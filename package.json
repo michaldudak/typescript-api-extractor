@@ -23,7 +23,8 @@
 	"scripts": {
 		"prebuild": "rimraf ./dist",
 		"build": "tsc --build tsconfig.json",
-		"test": "vitest"
+		"test": "vitest",
+		"dev": "tsx scripts/cli.ts"
 	},
 	"dependencies": {
 		"doctrine": "^3.0.0",
@@ -38,8 +39,10 @@
 		"fast-glob": "^3.3.3",
 		"prettier": "^3.5.1",
 		"rimraf": "^6.0.1",
+		"tsx": "^4.19.2",
 		"vite": "^6.1.0",
-		"vitest": "^3.0.6"
+		"vitest": "^3.0.6",
+		"yargs": "^17.7.2"
 	},
 	"publishConfig": {
 		"access": "public"

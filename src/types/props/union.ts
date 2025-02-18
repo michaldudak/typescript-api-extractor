@@ -1,6 +1,7 @@
 import _ from 'lodash';
-import * as t from '../../types';
 import { Node } from '../nodes/baseNodes';
+import { isLiteralNode } from './literal';
+import { isInstanceOfNode } from './instanceOf';
 
 const typeString = 'UnionNode';
 
@@ -37,11 +38,11 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 	return {
 		type: node.type,
 		types: _.uniqBy(node.types, (x) => {
-			if (t.isLiteralNode(x)) {
+			if (isLiteralNode(x)) {
 				return x.value;
 			}
 
-			if (t.isInstanceOfNode(x)) {
+			if (isInstanceOfNode(x)) {
 				return `${x.type}.${x.instance}`;
 			}
 
