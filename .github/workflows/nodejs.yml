@@ -15,3 +15,4 @@ jobs:
 
       - run: pnpm build
       - run: pnpm prettier --check .
+      - run: pnpm test

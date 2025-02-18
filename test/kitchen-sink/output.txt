@@ -1,0 +1,106 @@
+{
+  type: 'ProgramNode',
+  body: [
+    {
+      type: 'ComponentNode',
+      name: 'KitchenSink',
+      types: [
+        {
+          type: 'PropTypeNode',
+          name: 'className',
+          jsDoc: 'The class name',
+          propType: {
+            type: 'UnionNode',
+            types: [ { type: 'UndefinedNode' }, { type: 'StringNode' } ]
+          },
+          filenames: Set(0) {}
+        },
+        {
+          type: 'PropTypeNode',
+          name: 'children',
+          jsDoc: undefined,
+          propType: {
+            type: 'UnionNode',
+            types: [
+              { type: 'ElementNode', elementType: 'node' },
+              { type: 'UndefinedNode' }
+            ]
+          },
+          filenames: Set(0) {}
+        },
+        {
+          type: 'PropTypeNode',
+          name: 'onChange',
+          jsDoc: undefined,
+          propType: {
+            type: 'UnionNode',
+            types: [
+              { type: 'UndefinedNode' },
+              {
+                type: 'FunctionNode',
+                parameters: [
+                  {
+                    type: 'ParameterNode',
+                    name: 'event',
+                    parameterType: 'ChangeEvent'
+                  }
+                ],
+                returnValue: { type: 'AnyNode' }
+              }
+            ]
+          },
+          filenames: Set(0) {}
+        },
+        {
+          type: 'PropTypeNode',
+          name: 'literalUnion',
+          jsDoc: "A union of literal types\n@default 'foo'",
+          propType: {
+            type: 'UnionNode',
+            types: [
+              { type: 'UndefinedNode' },
+              { type: 'LiteralNode', value: '"foo"', jsDoc: undefined },
+              { type: 'LiteralNode', value: '"bar"', jsDoc: undefined },
+              { type: 'LiteralNode', value: '"baz"', jsDoc: undefined },
+              { type: 'LiteralNode', value: '"qux"', jsDoc: undefined },
+              {
+                type: 'LiteralNode',
+                value: '"quux"',
+                jsDoc: undefined
+              }
+            ]
+          },
+          filenames: Set(0) {}
+        },
+        {
+          type: 'PropTypeNode',
+          name: 'boolProp',
+          jsDoc: undefined,
+          propType: {
+            type: 'UnionNode',
+            types: [
+              { type: 'UndefinedNode' },
+              { type: 'LiteralNode', value: 'false', jsDoc: undefined },
+              { type: 'LiteralNode', value: 'true', jsDoc: undefined }
+            ]
+          },
+          filenames: Set(0) {}
+        },
+        {
+          type: 'PropTypeNode',
+          name: 'requiredBoolProp',
+          jsDoc: undefined,
+          propType: {
+            type: 'UnionNode',
+            types: [
+              { type: 'LiteralNode', value: 'false', jsDoc: undefined },
+              { type: 'LiteralNode', value: 'true', jsDoc: undefined }
+            ]
+          },
+          filenames: Set(0) {}
+        }
+      ],
+      propsFilename: undefined
+    }
+  ]
+}
