@@ -18,7 +18,7 @@ export function propTypeNode(
 	jsDoc: string | undefined,
 	propType: Node,
 	filenames: Set<string>,
-	id: number | undefined
+	id: number | undefined,
 ): PropTypeNode {
 	return {
 		type: typeString,

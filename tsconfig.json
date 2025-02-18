@@ -1,21 +1,21 @@
 {
-  "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "tsBuildInfoFile": "./dist/.tsbuildinfo",
-    "target": "ES2022",
-    "moduleResolution": "node16",
-    "module": "node16",
-    "jsx": "react-jsx",
+	"compilerOptions": {
+		"rootDir": "./src",
+		"outDir": "./dist",
+		"tsBuildInfoFile": "./dist/.tsbuildinfo",
+		"target": "ES2022",
+		"moduleResolution": "node16",
+		"module": "node16",
+		"jsx": "react-jsx",
 
-    "strict": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "composite": true,
+		"strict": true,
+		"declaration": true,
+		"declarationMap": true,
+		"sourceMap": true,
+		"composite": true,
 
-    "esModuleInterop": true,
-    "isolatedModules": true
-  },
-  "include": ["./src/**/*"]
+		"esModuleInterop": true,
+		"isolatedModules": true
+	},
+	"include": ["./src/**/*"]
 }

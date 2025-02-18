@@ -4,6 +4,7 @@ export * from './nodes/component';
 export * from './nodes/proptype';
 
 export * from './props/function';
+export * from './props/parameter';
 export * from './props/interface';
 export * from './props/string';
 export * from './props/union';

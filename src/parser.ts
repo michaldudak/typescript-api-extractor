@@ -51,7 +51,7 @@ export function createProgram(files: string[], options: ts.CompilerOptions) {
 export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
-	parserOptions: Partial<ParserOptions> = {}
+	parserOptions: Partial<ParserOptions> = {},
 ) {
 	const program = ts.createProgram([filePath], options);
 	return parseFromProgram(filePath, program, parserOptions);
@@ -66,7 +66,7 @@ export function parseFile(
 export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
-	parserOptions: Partial<ParserOptions> = {}
+	parserOptions: Partial<ParserOptions> = {},
 ) {
 	const { checkDeclarations = false } = parserOptions;
 
@@ -168,7 +168,7 @@ export function parseFromProgram(
 							parsePropsType(
 								variableNode.name.getText(),
 								type.aliasTypeArguments[0],
-								node.getSourceFile()
+								node.getSourceFile(),
 							);
 						} else if (checkDeclarations) {
 							parseFunctionComponent(variableNode);
@@ -216,7 +216,7 @@ export function parseFromProgram(
 				parsePropsType(
 					node.name.getText(),
 					checker.getTypeAtLocation(arg.typeArguments[0]),
-					node.getSourceFile()
+					node.getSourceFile(),
 				);
 			}
 		}
@@ -225,11 +225,15 @@ export function parseFromProgram(
 	function isTypeJSXElementLike(type: ts.Type): boolean {
 		if (type.isUnion()) {
 			return type.types.every(
-				(subType) => subType.flags & ts.TypeFlags.Null || isTypeJSXElementLike(subType)
+				(subType) => subType.flags & ts.TypeFlags.Null || isTypeJSXElementLike(subType),
 			);
 		} else if (type.symbol) {
 			const name = checker.getFullyQualifiedName(type.symbol);
-			return name === 'global.JSX.Element' || name === 'React.ReactElement';
+			return (
+				name === 'global.JSX.Element' ||
+				name === 'React.ReactElement' ||
+				name === 'React.JSX.Element'
+			);
 		}
 
 		return false;
@@ -246,7 +250,7 @@ export function parseFromProgram(
 		}
 		const componentName = node.name.getText();
 
-		const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration);
+		const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
 		type.getCallSignatures().forEach((signature) => {
 			if (!isTypeJSXElementLike(signature.getReturnType())) {
 				return;
@@ -254,7 +258,7 @@ export function parseFromProgram(
 
 			const propsType = checker.getTypeOfSymbolAtLocation(
 				signature.parameters[0],
-				signature.parameters[0].valueDeclaration
+				signature.parameters[0].valueDeclaration!,
 			);
 
 			parsePropsType(componentName, propsType, node.getSourceFile());
@@ -282,7 +286,7 @@ export function parseFromProgram(
 							currentTypeNode.jsDoc,
 							t.unionNode([currentTypeNode.propType, typeNode.propType]),
 							new Set(Array.from(currentTypeNode.filenames).concat(Array.from(typeNode.filenames))),
-							undefined
+							undefined,
 						);
 					}
 
@@ -311,8 +315,8 @@ export function parseFromProgram(
 					}
 					return propType;
 				}),
-				node.getSourceFile().fileName
-			)
+				node.getSourceFile().fileName,
+			),
 		);
 	}
 
@@ -330,8 +334,8 @@ export function parseFromProgram(
 			t.componentNode(
 				name,
 				properties.map((x) => checkSymbol(x, new Set([(type as any).id]))),
-				propsFilename
-			)
+				propsFilename,
+			),
 		);
 	}
 
@@ -361,7 +365,7 @@ export function parseFromProgram(
 				name === 'React.Component'
 			) {
 				const elementNode = t.elementNode(
-					name === 'React.ReactElement' ? 'element' : 'elementType'
+					name === 'React.ReactElement' ? 'element' : 'elementType',
 				);
 
 				return t.propTypeNode(
@@ -369,17 +373,17 @@ export function parseFromProgram(
 					getDocumentation(symbol),
 					declaration.questionToken ? t.unionNode([t.undefinedNode(), elementNode]) : elementNode,
 					symbolFilenames,
-					(symbol as any).id
+					(symbol as any).id,
 				);
 			}
 		}
 
 		const symbolType = declaration
 			? // The proptypes aren't detailed enough that we need all the different combinations
-			  // so we just pick the first and ignore the rest
-			  checker.getTypeOfSymbolAtLocation(symbol, declaration)
+				// so we just pick the first and ignore the rest
+				checker.getTypeOfSymbolAtLocation(symbol, declaration)
 			: // The properties of Record<..., ...> don't have a declaration, but the symbol has a type property
-			  ((symbol as any).type as ts.Type);
+				((symbol as any).type as ts.Type);
 		// get `React.ElementType` from `C extends React.ElementType`
 		const declaredType =
 			declaration !== undefined ? checker.getTypeAtLocation(declaration) : undefined;
@@ -415,7 +419,7 @@ export function parseFromProgram(
 			getDocumentation(symbol),
 			parsedType,
 			symbolFilenames,
-			(symbol as any).id
+			(symbol as any).id,
 		);
 	}
 
@@ -433,6 +437,7 @@ export function parseFromProgram(
 			const typeName = symbol ? checker.getFullyQualifiedName(symbol) : null;
 			switch (typeName) {
 				case 'global.JSX.Element':
+				case 'React.JSX.Element':
 				case 'React.ReactElement': {
 					return t.elementNode('element');
 				}
@@ -486,7 +491,7 @@ export function parseFromProgram(
 			if (type.isLiteral()) {
 				return t.literalNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
-					getDocumentation(type.symbol)
+					getDocumentation(type.symbol),
 				);
 			}
 			return t.literalNode(checker.typeToString(type));
@@ -496,8 +501,20 @@ export function parseFromProgram(
 			return t.literalNode('null');
 		}
 
-		if (type.getCallSignatures().length) {
-			return t.functionNode();
+		if (type.getCallSignatures().length === 1) {
+			const signature = type.getCallSignatures()[0];
+			return t.functionNode(
+				signature.parameters.map((param) =>
+					t.parameterNode(
+						param.name,
+						checker.getTypeOfSymbol(param)?.getSymbol()?.name ?? 'unknown',
+					),
+				),
+				// TODO: parse return type
+				t.anyNode(),
+			);
+		} else if (type.getCallSignatures().length > 1) {
+			return t.functionNode([], t.anyNode());
 		}
 
 		// Object-like type
@@ -508,13 +525,13 @@ export function parseFromProgram(
 					shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.size })
 				) {
 					const filtered = properties.filter((symbol) =>
-						shouldInclude({ name: symbol.getName(), depth: typeStack.size + 1 })
+						shouldInclude({ name: symbol.getName(), depth: typeStack.size + 1 }),
 					);
 					if (filtered.length > 0) {
 						return t.interfaceNode(
 							filtered.map((x) =>
-								checkSymbol(x, new Set([...typeStack.values(), (type as any).id]))
-							)
+								checkSymbol(x, new Set([...typeStack.values(), (type as any).id])),
+							),
 						);
 					}
 				}
@@ -532,7 +549,7 @@ export function parseFromProgram(
 		}
 
 		console.warn(
-			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`
+			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`,
 		);
 		return t.anyNode();
 	}
