@@ -37,8 +37,6 @@ for (const testCase of testCases) {
 			}),
 		);
 
-		console.log(util.inspect(newAST, { depth: null }));
-
 		const expected = fs.readFileSync(expectedOutput, 'utf8');
 		expect(util.inspect(newAST, { depth: null })).toEqual(expected);
 	});
