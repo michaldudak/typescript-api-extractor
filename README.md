@@ -1,24 +1,8 @@
-# typescript-to-proptypes
+# React API extractor
 
-An API for converting [TypeScript](https://www.npmjs.com/package/typescript) definitions to [PropTypes](https://www.npmjs.com/package/prop-types) using the TypeScript Compiler API
+A utility for extracting React component API description from [TypeScript](https://www.npmjs.com/package/typescript) definitions using the TypeScript Compiler API.
 
-## Install
-
-```
-yarn add typescript-to-proptypes --dev
-or
-npm install typescript-to-proptypes --save-dev
-```
-
-## Support
-
-| Component type   |                    |
-| ---------------- | ------------------ |
-| Class            | :heavy_check_mark: |
-| Function         | :heavy_check_mark: |
-| Const functions  | :heavy_check_mark: |
-| React.memo       | :heavy_check_mark: |
-| React.ForwardRef | :heavy_check_mark: |
+This project is based on [typescript-to-proptypes](https://github.com/merceyz/typescript-to-proptypes) created by [Kristoffer K.](https://github.com/merceyz).
 
 ## License
 

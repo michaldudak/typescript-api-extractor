@@ -1,7 +1,11 @@
 {
-	"name": "typescript-to-proptypes",
-	"version": "2.2.1",
-	"description": "Generate proptypes from typescript declarations",
+	"name": "react-api-extractor",
+	"version": "1.0.0-alpha.1",
+	"description": "Extracts API description from React components",
+	"author": {
+		"name": "Michał Dudak",
+		"email": "michal@dudak.me"
+	},
 	"engines": {
 		"node": ">=18"
 	},
