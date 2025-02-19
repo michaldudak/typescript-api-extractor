@@ -259,7 +259,9 @@ export function parseFromProgram(
 			return (
 				name === 'global.JSX.Element' ||
 				name === 'React.ReactElement' ||
-				name === 'React.JSX.Element'
+				name === 'React.JSX.Element' ||
+				name.endsWith('@types/react/jsx-runtime".JSX.Element') || // when `"jsx": "react-jsx"` in tsconfig
+				name.endsWith('@types/react/jsx-dev-runtime".JSX.Element') // when `"jsx": "react-jsxdev"` in tsconfig
 			);
 		}
 

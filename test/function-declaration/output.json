@@ -1,0 +1,30 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "component",
+			"name": "Component",
+			"props": [
+				{
+					"nodeType": "prop",
+					"name": "className",
+					"propType": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "simpleType",
+								"typeName": "undefined"
+							},
+							{
+								"nodeType": "simpleType",
+								"typeName": "string"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}
