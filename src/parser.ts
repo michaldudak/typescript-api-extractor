@@ -165,7 +165,7 @@ export function parseFromProgram(
 							type.aliasTypeArguments &&
 							checker.getFullyQualifiedName(type.aliasSymbol) === 'React.ComponentType'
 						) {
-							parsePropsType(
+							parseComponentProps(
 								variableNode.name.getText(),
 								type.aliasTypeArguments[0],
 								node.getSourceFile(),
@@ -194,7 +194,7 @@ export function parseFromProgram(
 						) {
 							const propsType = checker.getTypeAtLocation(arg.parameters[0]);
 							if (propsType) {
-								parsePropsType(variableNode.name.getText(), propsType, node.getSourceFile());
+								parseComponentProps(variableNode.name.getText(), propsType, node.getSourceFile());
 							}
 						}
 					}
@@ -213,7 +213,7 @@ export function parseFromProgram(
 			if (!arg.typeArguments) return;
 
 			if (reactImports.includes(arg.expression.getText())) {
-				parsePropsType(
+				parseComponentProps(
 					node.name.getText(),
 					checker.getTypeAtLocation(arg.typeArguments[0]),
 					node.getSourceFile(),
@@ -261,14 +261,14 @@ export function parseFromProgram(
 				signature.parameters[0].valueDeclaration!,
 			);
 
-			parsePropsType(componentName, propsType, node.getSourceFile());
+			parseComponentProps(componentName, propsType, node.getSourceFile());
 		});
 
 		// squash props
 		// { variant: 'a', href: string } & { variant: 'b' }
 		// to
 		// { variant: 'a' | 'b', href?: string }
-		const props: Record<string, t.PropTypeNode> = {};
+		const props: Record<string, t.PropNode> = {};
 		const usedPropsPerSignature: Set<String>[] = [];
 		programNode.body = programNode.body.filter((node) => {
 			if (node.name === componentName) {
@@ -281,7 +281,7 @@ export function parseFromProgram(
 					if (currentTypeNode === undefined) {
 						currentTypeNode = typeNode;
 					} else if (currentTypeNode.$$id !== typeNode.$$id) {
-						currentTypeNode = t.propTypeNode(
+						currentTypeNode = t.propNode(
 							currentTypeNode.name,
 							currentTypeNode.jsDoc,
 							t.unionNode([currentTypeNode.propType, typeNode.propType]),
@@ -310,7 +310,7 @@ export function parseFromProgram(
 						// mark as optional
 						return {
 							...propType,
-							propType: t.unionNode([propType.propType, t.undefinedNode()]),
+							propType: t.unionNode([propType.propType, t.simpleTypeNode('undefined')]),
 						};
 					}
 					return propType;
@@ -320,7 +320,7 @@ export function parseFromProgram(
 		);
 	}
 
-	function parsePropsType(name: string, type: ts.Type, sourceFile: ts.SourceFile | undefined) {
+	function parseComponentProps(name: string, type: ts.Type, sourceFile: ts.SourceFile | undefined) {
 		const properties = type
 			.getProperties()
 			.filter((symbol) => shouldInclude({ name: symbol.getName(), depth: 1 }));
@@ -339,7 +339,7 @@ export function parseFromProgram(
 		);
 	}
 
-	function checkSymbol(symbol: ts.Symbol, typeStack: Set<number>): t.PropTypeNode {
+	function checkSymbol(symbol: ts.Symbol, typeStack: Set<number>): t.PropNode {
 		const declarations = symbol.getDeclarations();
 		const declaration = declarations && declarations[0];
 
@@ -364,14 +364,14 @@ export function parseFromProgram(
 				name === 'React.MemoExoticComponent' ||
 				name === 'React.Component'
 			) {
-				const elementNode = t.elementNode(
-					name === 'React.ReactElement' ? 'element' : 'elementType',
-				);
+				const elementNode = t.simpleTypeNode(name);
 
-				return t.propTypeNode(
+				return t.propNode(
 					symbol.getName(),
 					getDocumentation(symbol),
-					declaration.questionToken ? t.unionNode([t.undefinedNode(), elementNode]) : elementNode,
+					declaration.questionToken
+						? t.unionNode([t.simpleTypeNode('undefined'), elementNode])
+						: elementNode,
 					symbolFilenames,
 					(symbol as any).id,
 				);
@@ -408,13 +408,13 @@ export function parseFromProgram(
 			ts.isPropertySignature(declaration)
 		) {
 			parsedType = declaration.questionToken
-				? t.unionNode([t.undefinedNode(), t.anyNode()])
-				: t.anyNode();
+				? t.unionNode([t.simpleTypeNode('undefined'), t.simpleTypeNode('any')])
+				: t.simpleTypeNode('any');
 		} else {
 			parsedType = checkType(type, typeStack, symbol.getName());
 		}
 
-		return t.propTypeNode(
+		return t.propNode(
 			symbol.getName(),
 			getDocumentation(symbol),
 			parsedType,
@@ -438,22 +438,16 @@ export function parseFromProgram(
 			switch (typeName) {
 				case 'global.JSX.Element':
 				case 'React.JSX.Element':
-				case 'React.ReactElement': {
-					return t.elementNode('element');
-				}
-				case 'React.ElementType': {
-					return t.elementNode('elementType');
-				}
-				case 'React.ReactNode': {
-					return t.unionNode([t.elementNode('node'), t.undefinedNode()]);
-				}
+				case 'React.ReactElement':
+				case 'React.ElementType':
 				case 'Date':
-				case 'React.Component': {
-					return t.instanceOfNode(typeName);
-				}
+				case 'React.Component':
 				case 'Element':
 				case 'HTMLElement': {
-					return t.DOMElementNode();
+					return t.simpleTypeNode(typeName);
+				}
+				case 'React.ReactNode': {
+					return t.unionNode([t.simpleTypeNode(typeName), t.simpleTypeNode('undefined')]);
 				}
 			}
 		}
@@ -465,6 +459,14 @@ export function parseFromProgram(
 			return t.arrayNode(checkType(arrayType, typeStack, name));
 		}
 
+		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
+			return t.simpleTypeNode('boolean');
+		}
+
+		if (hasFlag(type.flags, ts.TypeFlags.Void)) {
+			return t.simpleTypeNode('void');
+		}
+
 		if (type.isUnion()) {
 			const node = t.unionNode(type.types.map((x) => checkType(x, typeStack, name)));
 
@@ -472,19 +474,23 @@ export function parseFromProgram(
 		}
 
 		if (type.flags & ts.TypeFlags.String) {
-			return t.stringNode();
+			return t.simpleTypeNode('string');
 		}
 
 		if (type.flags & ts.TypeFlags.Number) {
-			return t.numericNode();
+			return t.simpleTypeNode('number');
+		}
+
+		if (type.flags & ts.TypeFlags.BigInt) {
+			return t.simpleTypeNode('bigint');
 		}
 
 		if (type.flags & ts.TypeFlags.Undefined) {
-			return t.undefinedNode();
+			return t.simpleTypeNode('undefined');
 		}
 
 		if (type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) {
-			return t.anyNode();
+			return t.simpleTypeNode('any');
 		}
 
 		if (type.flags & ts.TypeFlags.Literal) {
@@ -501,6 +507,7 @@ export function parseFromProgram(
 			return t.literalNode('null');
 		}
 
+		// TODO: handle multiple call signatures
 		if (type.getCallSignatures().length === 1) {
 			const signature = type.getCallSignatures()[0];
 			return t.functionNode(
@@ -510,11 +517,10 @@ export function parseFromProgram(
 						checker.getTypeOfSymbol(param)?.getSymbol()?.name ?? 'unknown',
 					),
 				),
-				// TODO: parse return type
-				t.anyNode(),
+				checkType(signature.getReturnType(), typeStack, name),
 			);
 		} else if (type.getCallSignatures().length > 1) {
-			return t.functionNode([], t.anyNode());
+			return t.functionNode([], t.simpleTypeNode('any'));
 		}
 
 		// Object-like type
@@ -551,7 +557,7 @@ export function parseFromProgram(
 		console.warn(
 			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`,
 		);
-		return t.anyNode();
+		return t.simpleTypeNode('any');
 	}
 
 	function getDocumentation(symbol?: ts.Symbol): string | undefined {
@@ -580,4 +586,8 @@ export function parseFromProgram(
 
 		return new Set(declarations.map((declaration) => declaration.getSourceFile().fileName));
 	}
+}
+
+function hasFlag(typeFlags: number, flag: number) {
+	return (typeFlags & flag) === flag;
 }

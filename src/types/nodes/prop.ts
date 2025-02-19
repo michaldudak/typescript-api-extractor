@@ -1,8 +1,8 @@
 import { Node } from './baseNodes';
 
-const typeString = 'PropTypeNode';
+const typeString = 'PropNode';
 
-export interface PropTypeNode extends Node {
+export interface PropNode extends Node {
 	name: string;
 	jsDoc?: string;
 	propType: Node;
@@ -13,13 +13,13 @@ export interface PropTypeNode extends Node {
 	$$id: number | undefined;
 }
 
-export function propTypeNode(
+export function propNode(
 	name: string,
 	jsDoc: string | undefined,
 	propType: Node,
 	filenames: Set<string>,
 	id: number | undefined,
-): PropTypeNode {
+): PropNode {
 	return {
 		type: typeString,
 		name,
@@ -30,6 +30,6 @@ export function propTypeNode(
 	};
 }
 
-export function isPropTypeNode(node: Node): node is PropTypeNode {
+export function isPropNode(node: Node): node is PropNode {
 	return node.type === typeString;
 }

@@ -1,5 +1,5 @@
 import { Node, DefinitionHolder } from './baseNodes';
-import { PropTypeNode } from './proptype';
+import { PropNode } from './prop';
 
 const typeString = 'ComponentNode';
 
@@ -10,7 +10,7 @@ export interface ComponentNode extends DefinitionHolder {
 
 export function componentNode(
 	name: string,
-	types: PropTypeNode[],
+	types: PropNode[],
 	propsFilename: string | undefined,
 ): ComponentNode {
 	return {

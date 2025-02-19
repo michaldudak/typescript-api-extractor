@@ -1,11 +1,11 @@
 import { Node, DefinitionHolder } from '../nodes/baseNodes';
-import { PropTypeNode } from '../nodes/proptype';
+import { PropNode } from '../nodes/prop';
 
 const typeString = 'InterfaceNode';
 
 export interface InterfaceNode extends DefinitionHolder {}
 
-export function interfaceNode(types?: PropTypeNode[]): InterfaceNode {
+export function interfaceNode(types?: PropNode[]): InterfaceNode {
 	return {
 		type: typeString,
 		types: types || [],
