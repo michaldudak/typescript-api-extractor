@@ -1,0 +1,59 @@
+{
+	"type": "ProgramNode",
+	"body": [
+		{
+			"type": "ComponentNode",
+			"name": "Component",
+			"types": [
+				{
+					"type": "PropNode",
+					"name": "requiredString",
+					"propType": {
+						"type": "SimpleTypeNode",
+						"typeName": "string"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "optionalString",
+					"propType": {
+						"type": "UnionNode",
+						"types": [
+							{
+								"type": "SimpleTypeNode",
+								"typeName": "undefined"
+							},
+							{
+								"type": "SimpleTypeNode",
+								"typeName": "string"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "stringOrUndefined",
+					"propType": {
+						"type": "UnionNode",
+						"types": [
+							{
+								"type": "SimpleTypeNode",
+								"typeName": "undefined"
+							},
+							{
+								"type": "SimpleTypeNode",
+								"typeName": "string"
+							}
+						]
+					},
+					"optional": false,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}

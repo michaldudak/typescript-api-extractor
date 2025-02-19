@@ -1,6 +1,7 @@
 import _ from 'lodash';
 import { Node } from '../nodes/baseNodes';
 import { isLiteralNode } from './literal';
+import { isSimpleTypeNode } from './simpleType';
 
 const typeString = 'UnionNode';
 
@@ -39,6 +40,10 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 		types: _.uniqBy(node.types, (x) => {
 			if (isLiteralNode(x)) {
 				return x.value;
+			}
+
+			if (isSimpleTypeNode(x)) {
+				return x.typeName;
 			}
 
 			return x.type;

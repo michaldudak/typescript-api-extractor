@@ -1,0 +1,51 @@
+{
+	"type": "ProgramNode",
+	"body": [
+		{
+			"type": "ComponentNode",
+			"name": "Component",
+			"types": [
+				{
+					"type": "PropNode",
+					"name": "stringLiteral",
+					"propType": {
+						"type": "LiteralNode",
+						"value": "\"foo\""
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "numberLiteral",
+					"propType": {
+						"type": "LiteralNode",
+						"value": 42
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "booleanLiteral",
+					"propType": {
+						"type": "LiteralNode",
+						"value": "true"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "nullLiteral",
+					"propType": {
+						"type": "LiteralNode",
+						"value": "null"
+					},
+					"optional": false,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}

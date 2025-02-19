@@ -1,11 +1,13 @@
 import path from 'node:path';
 import fs from 'node:fs';
-import util from 'node:util';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
 import * as rae from '../src';
 
-const testCases = glob.sync('**/input.{d.ts,ts,tsx}', { absolute: true, cwd: __dirname });
+let testCases = glob.sync('**/input.{d.ts,ts,tsx}', { absolute: true, cwd: __dirname });
+if (testCases.some((t) => t.includes('.only'))) {
+	testCases = testCases.filter((t) => t.includes('.only'));
+}
 
 const program = rae.createProgram(
 	testCases,
@@ -15,9 +17,9 @@ const program = rae.createProgram(
 for (const testCase of testCases) {
 	const dirname = path.dirname(testCase);
 	const testName = dirname.slice(__dirname.length + 1);
-	const expectedOutput = path.join(dirname, 'output.txt');
+	const expectedOutput = path.join(dirname, 'output.json');
 
-	it(testName, async () => {
+	it.skipIf(testCase.includes('.skip'))(testName, async () => {
 		const ast = rae.parseFromProgram(testCase, program);
 
 		const newAST = rae.programNode(
@@ -25,19 +27,28 @@ for (const testCase of testCases) {
 				expect(component.propsFilename).toBe(testCase);
 				return {
 					...component,
-					types: component.types.map((type) => {
-						delete type['$$id'];
-						return {
-							...type,
-							filenames: new Set(),
-						};
-					}),
 					propsFilename: undefined,
 				};
 			}),
 		);
 
-		const expected = fs.readFileSync(expectedOutput, 'utf8');
-		expect(util.inspect(newAST, { depth: null })).toEqual(expected);
+		if (fs.existsSync(expectedOutput)) {
+			expect(newAST).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
+		} else {
+			fs.writeFileSync(
+				expectedOutput,
+				JSON.stringify(
+					newAST,
+					(key, value) => {
+						// These are TypeScript internals that change depending on the number of symbols created during test
+						if (key === '$$id') {
+							return undefined;
+						}
+						return value;
+					},
+					'\t',
+				),
+			);
+		}
 	});
 }

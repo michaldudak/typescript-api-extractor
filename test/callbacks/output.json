@@ -1,0 +1,69 @@
+{
+	"type": "ProgramNode",
+	"body": [
+		{
+			"type": "ComponentNode",
+			"name": "Component",
+			"types": [
+				{
+					"type": "PropNode",
+					"name": "onChange",
+					"propType": {
+						"type": "FunctionNode",
+						"parameters": [
+							{
+								"type": "ParameterNode",
+								"name": "event",
+								"parameterType": {
+									"type": "PropNode",
+									"name": "event",
+									"propType": {
+										"type": "SimpleTypeNode",
+										"typeName": "React.ChangeEvent"
+									},
+									"optional": false,
+									"filenames": {}
+								}
+							}
+						],
+						"returnValue": {
+							"type": "SimpleTypeNode",
+							"typeName": "void"
+						}
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"type": "PropNode",
+					"name": "onClosing",
+					"propType": {
+						"type": "FunctionNode",
+						"parameters": [
+							{
+								"type": "ParameterNode",
+								"name": "animated",
+								"parameterType": {
+									"type": "PropNode",
+									"name": "animated",
+									"propType": {
+										"type": "SimpleTypeNode",
+										"typeName": "boolean"
+									},
+									"optional": false,
+									"filenames": {}
+								}
+							}
+						],
+						"returnValue": {
+							"type": "SimpleTypeNode",
+							"typeName": "boolean"
+						}
+					},
+					"optional": false,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}

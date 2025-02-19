@@ -4,10 +4,10 @@ const typeString = 'ParameterNode';
 
 interface ParameterNode extends Node {
 	name: string;
-	parameterType: string;
+	parameterType: Node;
 }
 
-export function parameterNode(name: string, parameterType: string): ParameterNode {
+export function parameterNode(name: string, parameterType: Node): ParameterNode {
 	return {
 		type: typeString,
 		name,
@@ -15,6 +15,6 @@ export function parameterNode(name: string, parameterType: string): ParameterNod
 	};
 }
 
-export function isParameterNode(node: Node) {
+export function isParameterNode(node: Node): node is ParameterNode {
 	return node.type === typeString;
 }

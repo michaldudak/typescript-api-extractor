@@ -13,6 +13,6 @@ export function simpleTypeNode(typeName: string): SimpleTypeNode {
 	};
 }
 
-export function isSimpleTypeNode(node: Node) {
+export function isSimpleTypeNode(node: Node): node is SimpleTypeNode {
 	return node.type === typeString;
 }

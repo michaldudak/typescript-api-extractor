@@ -24,6 +24,17 @@ export interface ParserOptions {
 		depth: number;
 	}) => boolean | undefined;
 	/**
+	 * Called before the shape of a function is resolved
+	 * @return true to resolve the shape of the function, false to just use a Function, or undefined to
+	 * use the default behaviour
+	 * @default parameterCount <= 5 && depth <= 2
+	 */
+	shouldResolveFunction: (data: {
+		name: string;
+		parameterCount: number;
+		depth: number;
+	}) => boolean | undefined;
+	/**
 	 * Control if const declarations should be checked
 	 * @default false
 	 * @example declare const Component: React.ComponentType<Props>;
@@ -89,6 +100,17 @@ export function parseFromProgram(
 		}
 
 		return data.propertyCount <= 50 && data.depth <= 3;
+	};
+
+	const shouldResolveFunction: ParserOptions['shouldResolveFunction'] = (data) => {
+		if (parserOptions.shouldResolveFunction) {
+			const result = parserOptions.shouldResolveFunction(data);
+			if (result !== undefined) {
+				return result;
+			}
+		}
+
+		return data.parameterCount <= 5 && data.depth <= 2;
 	};
 
 	const checker = program.getTypeChecker();
@@ -339,7 +361,11 @@ export function parseFromProgram(
 		);
 	}
 
-	function checkSymbol(symbol: ts.Symbol, typeStack: Set<number>): t.PropNode {
+	function checkSymbol(
+		symbol: ts.Symbol,
+		typeStack: Set<number>,
+		skipResolvingComplexTypes: boolean = false,
+	): t.PropNode {
 		const declarations = symbol.getDeclarations();
 		const declaration = declarations && declarations[0];
 
@@ -408,7 +434,7 @@ export function parseFromProgram(
 		) {
 			parsedType = t.simpleTypeNode('any');
 		} else {
-			parsedType = checkType(type, typeStack, symbol.getName());
+			parsedType = checkType(type, typeStack, symbol.getName(), skipResolvingComplexTypes);
 		}
 
 		return t.propNode(
@@ -421,7 +447,12 @@ export function parseFromProgram(
 		);
 	}
 
-	function checkType(type: ts.Type, typeStack: Set<number>, name: string): t.Node {
+	function checkType(
+		type: ts.Type,
+		typeStack: Set<number>,
+		name: string,
+		skipResolvingComplexTypes: boolean = false,
+	): t.Node {
 		// If the typeStack contains type.id we're dealing with an object that references itself.
 		// To prevent getting stuck in an infinite loop we just set it to an objectNode
 		if (typeStack.has((type as any).id)) {
@@ -508,11 +539,22 @@ export function parseFromProgram(
 		// TODO: handle multiple call signatures
 		if (type.getCallSignatures().length === 1) {
 			const signature = type.getCallSignatures()[0];
+			if (
+				skipResolvingComplexTypes ||
+				!shouldResolveFunction({
+					name,
+					parameterCount: signature.parameters.length,
+					depth: typeStack.size,
+				})
+			) {
+				return t.simpleTypeNode('Function');
+			}
+
 			return t.functionNode(
 				signature.parameters.map((param) =>
 					t.parameterNode(
 						param.name,
-						checker.getTypeOfSymbol(param)?.getSymbol()?.name ?? 'unknown',
+						checkSymbol(param, new Set([...typeStack.values(), (type as any).id]), true),
 					),
 				),
 				checkType(signature.getReturnType(), typeStack, name),
@@ -526,6 +568,7 @@ export function parseFromProgram(
 			const properties = type.getProperties();
 			if (properties.length) {
 				if (
+					!skipResolvingComplexTypes &&
 					shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.size })
 				) {
 					const filtered = properties.filter((symbol) =>
@@ -538,6 +581,12 @@ export function parseFromProgram(
 							),
 						);
 					}
+				}
+
+				const typeSymbol = type.getSymbol();
+				if (typeSymbol) {
+					const typeName = checker.getFullyQualifiedName(typeSymbol);
+					return t.simpleTypeNode(typeName);
 				}
 
 				return t.objectNode();
