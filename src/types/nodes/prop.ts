@@ -6,6 +6,7 @@ export interface PropNode extends Node {
 	name: string;
 	jsDoc?: string;
 	propType: Node;
+	optional: boolean;
 	filenames: Set<string>;
 	/**
 	 * @internal
@@ -17,6 +18,7 @@ export function propNode(
 	name: string,
 	jsDoc: string | undefined,
 	propType: Node,
+	optional: boolean,
 	filenames: Set<string>,
 	id: number | undefined,
 ): PropNode {
@@ -25,6 +27,7 @@ export function propNode(
 		name,
 		jsDoc,
 		propType,
+		optional,
 		filenames,
 		$$id: id,
 	};

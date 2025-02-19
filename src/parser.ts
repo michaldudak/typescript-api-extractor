@@ -1,6 +1,5 @@
 import * as ts from 'typescript';
 import * as t from './types';
-import * as doctrine from 'doctrine';
 
 /**
  * Options that specify how the parser should act
@@ -285,6 +284,7 @@ export function parseFromProgram(
 							currentTypeNode.name,
 							currentTypeNode.jsDoc,
 							t.unionNode([currentTypeNode.propType, typeNode.propType]),
+							currentTypeNode.optional || typeNode.optional,
 							new Set(Array.from(currentTypeNode.filenames).concat(Array.from(typeNode.filenames))),
 							undefined,
 						);
@@ -369,9 +369,8 @@ export function parseFromProgram(
 				return t.propNode(
 					symbol.getName(),
 					getDocumentation(symbol),
-					declaration.questionToken
-						? t.unionNode([t.simpleTypeNode('undefined'), elementNode])
-						: elementNode,
+					elementNode,
+					!!declaration.questionToken,
 					symbolFilenames,
 					(symbol as any).id,
 				);
@@ -407,9 +406,7 @@ export function parseFromProgram(
 			declaration &&
 			ts.isPropertySignature(declaration)
 		) {
-			parsedType = declaration.questionToken
-				? t.unionNode([t.simpleTypeNode('undefined'), t.simpleTypeNode('any')])
-				: t.simpleTypeNode('any');
+			parsedType = t.simpleTypeNode('any');
 		} else {
 			parsedType = checkType(type, typeStack, symbol.getName());
 		}
@@ -418,6 +415,7 @@ export function parseFromProgram(
 			symbol.getName(),
 			getDocumentation(symbol),
 			parsedType,
+			Boolean(declaration && ts.isPropertySignature(declaration) && declaration.questionToken),
 			symbolFilenames,
 			(symbol as any).id,
 		);
@@ -572,7 +570,11 @@ export function parseFromProgram(
 			if (comments && comments.length === 1) {
 				const commentNode = comments[0];
 				if (ts.isJSDoc(commentNode)) {
-					return doctrine.unwrapComment(commentNode.getText()).trim();
+					if (Array.isArray(commentNode.comment)) {
+						return commentNode.comment.map((x) => x.text).join('\n');
+					}
+
+					return commentNode.comment as string | undefined;
 				}
 			}
 		}
