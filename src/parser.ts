@@ -303,6 +303,8 @@ export function parseFromProgram(
 					if (currentTypeNode === undefined) {
 						currentTypeNode = propNode;
 					} else if (currentTypeNode.$$id !== propNode.$$id) {
+						let mergedPropType = t.unionNode([currentTypeNode.propType, propNode.propType]);
+
 						currentTypeNode = t.propNode(
 							currentTypeNode.name,
 							{
@@ -310,7 +312,7 @@ export function parseFromProgram(
 								defaultValue: currentTypeNode.defaultValue,
 								visibility: currentTypeNode.visibility,
 							},
-							t.unionNode([currentTypeNode.propType, propNode.propType]),
+							mergedPropType.types.length === 1 ? mergedPropType.types[0] : mergedPropType,
 							currentTypeNode.optional || propNode.optional,
 							new Set(Array.from(currentTypeNode.filenames).concat(Array.from(propNode.filenames))),
 							undefined,
@@ -349,10 +351,18 @@ export function parseFromProgram(
 	}
 
 	function parseComponentProps(name: string, type: ts.Type, sourceFile: ts.SourceFile | undefined) {
-		const properties = type
-			.getProperties()
-			.filter((symbol) => shouldInclude({ name: symbol.getName(), depth: 1 }));
-		if (properties.length === 0) {
+		let allProperties: ts.Symbol[];
+		if (type.isUnion()) {
+			allProperties = type.types.flatMap((x) => x.getProperties());
+		} else {
+			allProperties = type.getProperties();
+		}
+
+		const filteredProperties = allProperties.filter((symbol) =>
+			shouldInclude({ name: symbol.getName(), depth: 1 }),
+		);
+
+		if (filteredProperties.length === 0) {
 			return;
 		}
 
@@ -361,7 +371,7 @@ export function parseFromProgram(
 		programNode.body.push(
 			t.componentNode(
 				name,
-				properties.map((x) => checkSymbol(x, new Set([(type as any).id]))),
+				filteredProperties.map((x) => checkSymbol(x, new Set([(type as any).id]))),
 				getDocumentation(checker.getSymbolAtLocation(type.symbol?.valueDeclaration!)),
 				propsFilename,
 			),

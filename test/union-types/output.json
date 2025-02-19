@@ -1,0 +1,79 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "component",
+			"name": "Component",
+			"props": [
+				{
+					"nodeType": "prop",
+					"name": "matching",
+					"propType": {
+						"nodeType": "simpleType",
+						"typeName": "boolean"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "prop",
+					"name": "uniqueA",
+					"propType": {
+						"nodeType": "simpleType",
+						"typeName": "string"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "prop",
+					"name": "conflictingOptionality",
+					"propType": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "simpleType",
+								"typeName": "string"
+							},
+							{
+								"nodeType": "simpleType",
+								"typeName": "undefined"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
+				},
+				{
+					"nodeType": "prop",
+					"name": "conflictingType",
+					"propType": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "simpleType",
+								"typeName": "string"
+							},
+							{
+								"nodeType": "simpleType",
+								"typeName": "number"
+							}
+						]
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "prop",
+					"name": "uniqueB",
+					"propType": {
+						"nodeType": "simpleType",
+						"typeName": "string"
+					},
+					"optional": false,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}
