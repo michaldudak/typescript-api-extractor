@@ -168,7 +168,7 @@ export function parseFromProgram(
 	function visit(node: ts.Node) {
 		// function x(props: type) { return <div/> }
 		if (ts.isFunctionDeclaration(node) && node.name && node.parameters.length === 1) {
-			parseFunctionComponent(node);
+			parseFunctionComponent(node, node);
 		}
 		// const x = ...
 		else if (ts.isVariableStatement(node)) {
@@ -193,14 +193,14 @@ export function parseFromProgram(
 								node.getSourceFile(),
 							);
 						} else if (checkDeclarations) {
-							parseFunctionComponent(variableNode);
+							parseFunctionComponent(variableNode, node);
 						}
 					} else if (
 						(ts.isArrowFunction(variableNode.initializer) ||
 							ts.isFunctionExpression(variableNode.initializer)) &&
 						variableNode.initializer.parameters.length === 1
 					) {
-						parseFunctionComponent(variableNode);
+						parseFunctionComponent(variableNode, node);
 					}
 					// x = react.memo((props:type) { return <div/> })
 					else if (
@@ -216,7 +216,12 @@ export function parseFromProgram(
 						) {
 							const propsType = checker.getTypeAtLocation(arg.parameters[0]);
 							if (propsType) {
-								parseComponentProps(variableNode.name.getText(), propsType, node.getSourceFile());
+								parseComponentProps(
+									variableNode.name.getText(),
+									propsType,
+									node.getSourceFile(),
+									node,
+								);
 							}
 						}
 					}
@@ -261,7 +266,10 @@ export function parseFromProgram(
 		return false;
 	}
 
-	function parseFunctionComponent(node: ts.VariableDeclaration | ts.FunctionDeclaration) {
+	function parseFunctionComponent(
+		node: ts.VariableDeclaration | ts.FunctionDeclaration,
+		documentationNode: ts.Node,
+	) {
 		if (!node.name) {
 			return;
 		}
@@ -344,13 +352,18 @@ export function parseFromProgram(
 					}
 					return propType;
 				}),
-				getDocumentation(symbol),
+				getDocumentationFromNode(documentationNode),
 				node.getSourceFile().fileName,
 			),
 		);
 	}
 
-	function parseComponentProps(name: string, type: ts.Type, sourceFile: ts.SourceFile | undefined) {
+	function parseComponentProps(
+		name: string,
+		type: ts.Type,
+		sourceFile: ts.SourceFile | undefined,
+		documentationNode: ts.Node | undefined = undefined,
+	) {
 		let allProperties: ts.Symbol[];
 		if (type.isUnion()) {
 			allProperties = type.types.flatMap((x) => x.getProperties());
@@ -368,11 +381,15 @@ export function parseFromProgram(
 
 		const propsFilename = sourceFile !== undefined ? sourceFile.fileName : undefined;
 
+		const docs = documentationNode
+			? getDocumentationFromNode(documentationNode)
+			: getDocumentationFromSymbol(checker.getSymbolAtLocation(type.symbol?.valueDeclaration!));
+
 		programNode.body.push(
 			t.componentNode(
 				name,
 				filteredProperties.map((x) => checkSymbol(x, new Set([(type as any).id]))),
-				getDocumentation(checker.getSymbolAtLocation(type.symbol?.valueDeclaration!)),
+				docs,
 				propsFilename,
 			),
 		);
@@ -411,7 +428,7 @@ export function parseFromProgram(
 
 				return t.propNode(
 					symbol.getName(),
-					getDocumentation(symbol),
+					getDocumentationFromSymbol(symbol),
 					elementNode,
 					!!declaration.questionToken,
 					symbolFilenames,
@@ -456,7 +473,7 @@ export function parseFromProgram(
 
 		return t.propNode(
 			symbol.getName(),
-			getDocumentation(symbol),
+			getDocumentationFromSymbol(symbol),
 			parsedType,
 			Boolean(declaration && ts.isPropertySignature(declaration) && declaration.questionToken),
 			symbolFilenames,
@@ -543,7 +560,7 @@ export function parseFromProgram(
 			if (type.isLiteral()) {
 				return t.literalNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
-					getDocumentation(type.symbol)?.description,
+					getDocumentationFromSymbol(type.symbol)?.description,
 				);
 			}
 			return t.literalNode(checker.typeToString(type));
@@ -623,29 +640,32 @@ export function parseFromProgram(
 		return t.simpleTypeNode('any');
 	}
 
-	function getDocumentation(symbol?: ts.Symbol): Documentation | undefined {
+	function getDocumentationFromSymbol(symbol?: ts.Symbol): Documentation | undefined {
 		if (!symbol) {
 			return undefined;
 		}
 
 		const decl = symbol.getDeclarations();
 		if (decl) {
-			// @ts-ignore - Private method
-			const comments = ts.getJSDocCommentsAndTags(decl[0]) as any[];
-			if (comments && comments.length === 1) {
-				const commentNode = comments[0];
-				if (ts.isJSDoc(commentNode)) {
-					return {
-						description: commentNode.comment as string | undefined,
-						defaultValue: commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
-						visibility: getVisibilityFromJSDoc(commentNode),
-					};
-				}
-			}
+			return getDocumentationFromNode(decl[0]);
 		}
 
 		const comment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
 		return comment ? { description: comment } : undefined;
+	}
+
+	function getDocumentationFromNode(node: ts.Node): Documentation | undefined {
+		const comments = ts.getJSDocCommentsAndTags(node);
+		if (comments && comments.length === 1) {
+			const commentNode = comments[0];
+			if (ts.isJSDoc(commentNode)) {
+				return {
+					description: commentNode.comment as string | undefined,
+					defaultValue: commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
+					visibility: getVisibilityFromJSDoc(commentNode),
+				};
+			}
+		}
 	}
 
 	function getSymbolFileNames(symbol: ts.Symbol): Set<string> {
