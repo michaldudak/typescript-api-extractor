@@ -4,7 +4,7 @@
 		{
 			"type": "ComponentNode",
 			"name": "Component",
-			"types": [
+			"props": [
 				{
 					"type": "PropNode",
 					"name": "stringLiteral",

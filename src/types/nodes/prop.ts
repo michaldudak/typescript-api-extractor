@@ -1,10 +1,13 @@
+import { Documentation } from '../documentation';
 import { Node } from './baseNodes';
 
 const typeString = 'PropNode';
 
 export interface PropNode extends Node {
 	name: string;
-	jsDoc?: string;
+	description?: string;
+	defaultValue?: any;
+	visibility?: Documentation['visibility'];
 	propType: Node;
 	optional: boolean;
 	filenames: Set<string>;
@@ -16,7 +19,7 @@ export interface PropNode extends Node {
 
 export function propNode(
 	name: string,
-	jsDoc: string | undefined,
+	documentation: Documentation | undefined,
 	propType: Node,
 	optional: boolean,
 	filenames: Set<string>,
@@ -25,7 +28,9 @@ export function propNode(
 	return {
 		type: typeString,
 		name,
-		jsDoc,
+		description: documentation?.description,
+		defaultValue: documentation?.defaultValue,
+		visibility: documentation?.visibility,
 		propType,
 		optional,
 		filenames,

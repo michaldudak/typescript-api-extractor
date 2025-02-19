@@ -7,17 +7,8 @@
 			"props": [
 				{
 					"type": "PropNode",
-					"name": "requiredString",
-					"propType": {
-						"type": "SimpleTypeNode",
-						"typeName": "string"
-					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"type": "PropNode",
-					"name": "optionalString",
+					"name": "className",
+					"description": "The class name.\nUsed to make the component more classy.",
 					"propType": {
 						"type": "UnionNode",
 						"types": [
@@ -36,7 +27,9 @@
 				},
 				{
 					"type": "PropNode",
-					"name": "stringOrUndefined",
+					"name": "someValue",
+					"description": "A value.",
+					"defaultValue": "10",
 					"propType": {
 						"type": "UnionNode",
 						"types": [
@@ -46,14 +39,16 @@
 							},
 							{
 								"type": "SimpleTypeNode",
-								"typeName": "string"
+								"typeName": "number"
 							}
 						]
 					},
-					"optional": false,
+					"optional": true,
 					"filenames": {}
 				}
-			]
+			],
+			"description": "The test component.",
+			"visibility": "internal"
 		}
 	]
 }

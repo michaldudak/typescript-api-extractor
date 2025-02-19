@@ -4,14 +4,14 @@ const typeString = 'LiteralNode';
 
 export interface LiteralNode extends Node {
 	value: unknown;
-	jsDoc?: string;
+	description?: string;
 }
 
-export function literalNode(value: unknown, jsDoc?: string): LiteralNode {
+export function literalNode(value: unknown, description?: string): LiteralNode {
 	return {
 		type: typeString,
 		value,
-		jsDoc,
+		description,
 	};
 }
 

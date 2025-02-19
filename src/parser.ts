@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import * as t from './types';
+import { Documentation } from './types/documentation';
 
 /**
  * Options that specify how the parser should act
@@ -295,24 +296,28 @@ export function parseFromProgram(
 			if (node.name === componentName) {
 				const usedProps: Set<string> = new Set();
 				// squash props
-				node.types.forEach((typeNode) => {
-					usedProps.add(typeNode.name);
+				node.props.forEach((propNode) => {
+					usedProps.add(propNode.name);
 
-					let { [typeNode.name]: currentTypeNode } = props;
+					let { [propNode.name]: currentTypeNode } = props;
 					if (currentTypeNode === undefined) {
-						currentTypeNode = typeNode;
-					} else if (currentTypeNode.$$id !== typeNode.$$id) {
+						currentTypeNode = propNode;
+					} else if (currentTypeNode.$$id !== propNode.$$id) {
 						currentTypeNode = t.propNode(
 							currentTypeNode.name,
-							currentTypeNode.jsDoc,
-							t.unionNode([currentTypeNode.propType, typeNode.propType]),
-							currentTypeNode.optional || typeNode.optional,
-							new Set(Array.from(currentTypeNode.filenames).concat(Array.from(typeNode.filenames))),
+							{
+								description: currentTypeNode.description,
+								defaultValue: currentTypeNode.defaultValue,
+								visibility: currentTypeNode.visibility,
+							},
+							t.unionNode([currentTypeNode.propType, propNode.propType]),
+							currentTypeNode.optional || propNode.optional,
+							new Set(Array.from(currentTypeNode.filenames).concat(Array.from(propNode.filenames))),
 							undefined,
 						);
 					}
 
-					props[typeNode.name] = currentTypeNode;
+					props[propNode.name] = currentTypeNode;
 				});
 
 				usedPropsPerSignature.push(usedProps);
@@ -337,6 +342,7 @@ export function parseFromProgram(
 					}
 					return propType;
 				}),
+				getDocumentation(symbol),
 				node.getSourceFile().fileName,
 			),
 		);
@@ -356,6 +362,7 @@ export function parseFromProgram(
 			t.componentNode(
 				name,
 				properties.map((x) => checkSymbol(x, new Set([(type as any).id]))),
+				getDocumentation(checker.getSymbolAtLocation(type.symbol?.valueDeclaration!)),
 				propsFilename,
 			),
 		);
@@ -460,9 +467,9 @@ export function parseFromProgram(
 		}
 
 		{
-			const typeNode = type as any;
+			const propNode = type as any;
 
-			const symbol = typeNode.aliasSymbol ? typeNode.aliasSymbol : typeNode.symbol;
+			const symbol = propNode.aliasSymbol ? propNode.aliasSymbol : propNode.symbol;
 			const typeName = symbol ? checker.getFullyQualifiedName(symbol) : null;
 			switch (typeName) {
 				case 'global.JSX.Element':
@@ -526,7 +533,7 @@ export function parseFromProgram(
 			if (type.isLiteral()) {
 				return t.literalNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
-					getDocumentation(type.symbol),
+					getDocumentation(type.symbol)?.description,
 				);
 			}
 			return t.literalNode(checker.typeToString(type));
@@ -607,7 +614,7 @@ export function parseFromProgram(
 		return t.simpleTypeNode('any');
 	}
 
-	function getDocumentation(symbol?: ts.Symbol): string | undefined {
+	function getDocumentation(symbol?: ts.Symbol): Documentation | undefined {
 		if (!symbol) {
 			return undefined;
 		}
@@ -619,17 +626,17 @@ export function parseFromProgram(
 			if (comments && comments.length === 1) {
 				const commentNode = comments[0];
 				if (ts.isJSDoc(commentNode)) {
-					if (Array.isArray(commentNode.comment)) {
-						return commentNode.comment.map((x) => x.text).join('\n');
-					}
-
-					return commentNode.comment as string | undefined;
+					return {
+						description: commentNode.comment as string | undefined,
+						defaultValue: commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
+						visibility: getVisibilityFromJSDoc(commentNode),
+					};
 				}
 			}
 		}
 
 		const comment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
-		return comment ? comment : undefined;
+		return comment ? { description: comment } : undefined;
 	}
 
 	function getSymbolFileNames(symbol: ts.Symbol): Set<string> {
@@ -641,4 +648,20 @@ export function parseFromProgram(
 
 function hasFlag(typeFlags: number, flag: number) {
 	return (typeFlags & flag) === flag;
+}
+
+function getVisibilityFromJSDoc(doc: ts.JSDoc): Documentation['visibility'] | undefined {
+	if (doc.tags?.some((tag) => tag.tagName.text === 'public')) {
+		return 'public';
+	}
+
+	if (doc.tags?.some((tag) => tag.tagName.text === 'internal')) {
+		return 'internal';
+	}
+
+	if (doc.tags?.some((tag) => tag.tagName.text === 'private')) {
+		return 'private';
+	}
+
+	return undefined;
 }

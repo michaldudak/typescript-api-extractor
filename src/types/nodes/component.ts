@@ -1,22 +1,29 @@
-import { Node, DefinitionHolder } from './baseNodes';
+import { Documentation } from '../documentation';
+import { Node } from './baseNodes';
 import { PropNode } from './prop';
 
 const typeString = 'ComponentNode';
 
-export interface ComponentNode extends DefinitionHolder {
+export interface ComponentNode extends Node {
 	name: string;
+	props: PropNode[];
 	propsFilename?: string;
+	description?: string;
+	visibility?: Documentation['visibility'];
 }
 
 export function componentNode(
 	name: string,
-	types: PropNode[],
+	props: PropNode[],
+	documentation: Documentation | undefined,
 	propsFilename: string | undefined,
 ): ComponentNode {
 	return {
 		type: typeString,
 		name: name,
-		types: types || [],
+		props: props || [],
+		description: documentation?.description,
+		visibility: documentation?.visibility,
 		propsFilename,
 	};
 }
