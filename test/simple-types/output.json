@@ -1,45 +1,45 @@
 {
-	"type": "ProgramNode",
+	"nodeType": "program",
 	"body": [
 		{
-			"type": "ComponentNode",
+			"nodeType": "component",
 			"name": "Component",
 			"props": [
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "s",
 					"propType": {
-						"type": "SimpleTypeNode",
+						"nodeType": "simpleType",
 						"typeName": "string"
 					},
 					"optional": false,
 					"filenames": {}
 				},
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "nb",
 					"propType": {
-						"type": "SimpleTypeNode",
+						"nodeType": "simpleType",
 						"typeName": "number"
 					},
 					"optional": false,
 					"filenames": {}
 				},
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "b",
 					"propType": {
-						"type": "SimpleTypeNode",
+						"nodeType": "simpleType",
 						"typeName": "boolean"
 					},
 					"optional": false,
 					"filenames": {}
 				},
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "n",
 					"propType": {
-						"type": "LiteralNode",
+						"nodeType": "literal",
 						"value": "null"
 					},
 					"optional": false,

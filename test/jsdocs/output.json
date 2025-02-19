@@ -1,23 +1,23 @@
 {
-	"type": "ProgramNode",
+	"nodeType": "program",
 	"body": [
 		{
-			"type": "ComponentNode",
+			"nodeType": "component",
 			"name": "Component",
 			"props": [
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "className",
 					"description": "The class name.\nUsed to make the component more classy.",
 					"propType": {
-						"type": "UnionNode",
+						"nodeType": "union",
 						"types": [
 							{
-								"type": "SimpleTypeNode",
+								"nodeType": "simpleType",
 								"typeName": "undefined"
 							},
 							{
-								"type": "SimpleTypeNode",
+								"nodeType": "simpleType",
 								"typeName": "string"
 							}
 						]
@@ -26,19 +26,19 @@
 					"filenames": {}
 				},
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "someValue",
 					"description": "A value.",
 					"defaultValue": "10",
 					"propType": {
-						"type": "UnionNode",
+						"nodeType": "union",
 						"types": [
 							{
-								"type": "SimpleTypeNode",
+								"nodeType": "simpleType",
 								"typeName": "undefined"
 							},
 							{
-								"type": "SimpleTypeNode",
+								"nodeType": "simpleType",
 								"typeName": "number"
 							}
 						]

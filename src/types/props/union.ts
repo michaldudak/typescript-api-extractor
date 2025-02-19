@@ -3,7 +3,7 @@ import { Node } from '../nodes/baseNodes';
 import { isLiteralNode } from './literal';
 import { isSimpleTypeNode } from './simpleType';
 
-const typeString = 'UnionNode';
+const typeString = 'union';
 
 export interface UnionNode extends Node {
 	types: Node[];
@@ -25,18 +25,18 @@ export function unionNode(types: Node[]): UnionNode {
 	}
 
 	return uniqueUnionTypes({
-		type: typeString,
+		nodeType: typeString,
 		types: flatTypes,
 	});
 }
 
 export function isUnionNode(node: Node): node is UnionNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }
 
 export function uniqueUnionTypes(node: UnionNode): UnionNode {
 	return {
-		type: node.type,
+		nodeType: node.nodeType,
 		types: _.uniqBy(node.types, (x) => {
 			if (isLiteralNode(x)) {
 				return x.value;
@@ -46,7 +46,7 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 				return x.typeName;
 			}
 
-			return x.type;
+			return x.nodeType;
 		}),
 	};
 }

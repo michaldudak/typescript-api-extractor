@@ -1,7 +1,7 @@
 import { Documentation } from '../documentation';
 import { Node } from './baseNodes';
 
-const typeString = 'PropNode';
+const typeString = 'prop';
 
 export interface PropNode extends Node {
 	name: string;
@@ -26,7 +26,7 @@ export function propNode(
 	id: number | undefined,
 ): PropNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		name,
 		description: documentation?.description,
 		defaultValue: documentation?.defaultValue,
@@ -39,5 +39,5 @@ export function propNode(
 }
 
 export function isPropNode(node: Node): node is PropNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

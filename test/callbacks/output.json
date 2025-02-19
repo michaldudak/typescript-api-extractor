@@ -1,24 +1,23 @@
 {
-	"type": "ProgramNode",
+	"nodeType": "program",
 	"body": [
 		{
-			"type": "ComponentNode",
+			"nodeType": "component",
 			"name": "Component",
 			"props": [
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "onChange",
 					"propType": {
-						"type": "FunctionNode",
+						"nodeType": "function",
 						"parameters": [
 							{
-								"type": "ParameterNode",
-								"name": "event",
+								"nodeType": "parameter",
 								"parameterType": {
-									"type": "PropNode",
+									"nodeType": "prop",
 									"name": "event",
 									"propType": {
-										"type": "SimpleTypeNode",
+										"nodeType": "simpleType",
 										"typeName": "React.ChangeEvent"
 									},
 									"optional": false,
@@ -27,7 +26,7 @@
 							}
 						],
 						"returnValue": {
-							"type": "SimpleTypeNode",
+							"nodeType": "simpleType",
 							"typeName": "void"
 						}
 					},
@@ -35,19 +34,18 @@
 					"filenames": {}
 				},
 				{
-					"type": "PropNode",
+					"nodeType": "prop",
 					"name": "onClosing",
 					"propType": {
-						"type": "FunctionNode",
+						"nodeType": "function",
 						"parameters": [
 							{
-								"type": "ParameterNode",
-								"name": "animated",
+								"nodeType": "parameter",
 								"parameterType": {
-									"type": "PropNode",
+									"nodeType": "prop",
 									"name": "animated",
 									"propType": {
-										"type": "SimpleTypeNode",
+										"nodeType": "simpleType",
 										"typeName": "boolean"
 									},
 									"optional": false,
@@ -56,7 +54,7 @@
 							}
 						],
 						"returnValue": {
-							"type": "SimpleTypeNode",
+							"nodeType": "simpleType",
 							"typeName": "boolean"
 						}
 					},

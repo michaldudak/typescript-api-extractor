@@ -1,20 +1,18 @@
 import { Node } from '../nodes/baseNodes';
 
-const typeString = 'ParameterNode';
+const typeString = 'parameter';
 
 interface ParameterNode extends Node {
-	name: string;
 	parameterType: Node;
 }
 
-export function parameterNode(name: string, parameterType: Node): ParameterNode {
+export function parameterNode(parameterType: Node): ParameterNode {
 	return {
-		type: typeString,
-		name,
+		nodeType: typeString,
 		parameterType,
 	};
 }
 
 export function isParameterNode(node: Node): node is ParameterNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

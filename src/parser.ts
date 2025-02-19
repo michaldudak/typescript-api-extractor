@@ -560,7 +560,6 @@ export function parseFromProgram(
 			return t.functionNode(
 				signature.parameters.map((param) =>
 					t.parameterNode(
-						param.name,
 						checkSymbol(param, new Set([...typeStack.values(), (type as any).id]), true),
 					),
 				),

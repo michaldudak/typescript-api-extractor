@@ -1,6 +1,6 @@
 import { Node } from '../nodes/baseNodes';
 
-const typeString = 'LiteralNode';
+const typeString = 'literal';
 
 export interface LiteralNode extends Node {
 	value: unknown;
@@ -9,12 +9,12 @@ export interface LiteralNode extends Node {
 
 export function literalNode(value: unknown, description?: string): LiteralNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		value,
 		description,
 	};
 }
 
 export function isLiteralNode(node: Node): node is LiteralNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

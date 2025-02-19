@@ -1,6 +1,6 @@
 import { Node } from '../nodes/baseNodes';
 
-const typeString = 'FunctionNode';
+const typeString = 'function';
 
 interface FunctionNode extends Node {
 	parameters: Node[];
@@ -9,12 +9,12 @@ interface FunctionNode extends Node {
 
 export function functionNode(parameters: Node[], returnValue: Node): FunctionNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		parameters,
 		returnValue,
 	};
 }
 
 export function isFunctionNode(node: Node) {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

@@ -2,7 +2,7 @@ import { Documentation } from '../documentation';
 import { Node } from './baseNodes';
 import { PropNode } from './prop';
 
-const typeString = 'ComponentNode';
+const typeString = 'component';
 
 export interface ComponentNode extends Node {
 	name: string;
@@ -19,7 +19,7 @@ export function componentNode(
 	propsFilename: string | undefined,
 ): ComponentNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		name: name,
 		props: props || [],
 		description: documentation?.description,
@@ -29,5 +29,5 @@ export function componentNode(
 }
 
 export function isComponentNode(node: Node): node is ComponentNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

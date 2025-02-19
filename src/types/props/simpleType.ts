@@ -1,6 +1,6 @@
 import { Node } from '../nodes/baseNodes';
 
-const typeString = 'SimpleTypeNode';
+const typeString = 'simpleType';
 
 interface SimpleTypeNode extends Node {
 	typeName: string;
@@ -8,11 +8,11 @@ interface SimpleTypeNode extends Node {
 
 export function simpleTypeNode(typeName: string): SimpleTypeNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		typeName,
 	};
 }
 
 export function isSimpleTypeNode(node: Node): node is SimpleTypeNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

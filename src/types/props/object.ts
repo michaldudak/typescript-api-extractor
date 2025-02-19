@@ -1,13 +1,13 @@
 import { Node } from '../nodes/baseNodes';
 
-const typeString = 'ObjectNode';
+const typeString = 'object';
 
 export function objectNode(): Node {
 	return {
-		type: typeString,
+		nodeType: typeString,
 	};
 }
 
 export function isObjectNode(node: Node) {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }

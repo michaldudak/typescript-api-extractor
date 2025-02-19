@@ -1,7 +1,7 @@
 import { Node } from './baseNodes';
 import { ComponentNode } from './component';
 
-const typeString = 'ProgramNode';
+const typeString = 'program';
 
 export interface ProgramNode extends Node {
 	body: ComponentNode[];
@@ -9,11 +9,11 @@ export interface ProgramNode extends Node {
 
 export function programNode(body?: ComponentNode[]): ProgramNode {
 	return {
-		type: typeString,
+		nodeType: typeString,
 		body: body || [],
 	};
 }
 
 export function isProgramNode(node: Node): node is ProgramNode {
-	return node.type === typeString;
+	return node.nodeType === typeString;
 }
