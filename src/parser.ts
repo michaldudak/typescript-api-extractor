@@ -165,11 +165,12 @@ export function parseFromProgram(
 	}
 
 	function visit(node: ts.Node) {
-		// function x(props: type) { return <div/> }
 		if (ts.isFunctionDeclaration(node) && node.name) {
 			if (node.name.getText().startsWith('use')) {
+				// function useHook(parameters: type): type
 				parseHook(node);
 			} else if (node.parameters.length === 1) {
+				// function x(props: type) { return <div/> }
 				parseFunctionComponent(node, node);
 			}
 		}
@@ -199,11 +200,19 @@ export function parseFromProgram(
 							parseFunctionComponent(variableNode, node);
 						}
 					} else if (
-						(ts.isArrowFunction(variableNode.initializer) ||
-							ts.isFunctionExpression(variableNode.initializer)) &&
-						variableNode.initializer.parameters.length === 1
+						ts.isArrowFunction(variableNode.initializer) ||
+						ts.isFunctionExpression(variableNode.initializer)
 					) {
-						parseFunctionComponent(variableNode, node);
+						if (variableNode.name.getText().startsWith('use')) {
+							// const useHook = function useHook(parameters: type): type
+							// const useHook = (parameters: type): type
+							parseHook(variableNode);
+						} else if (variableNode.initializer.parameters.length === 1) {
+							// x = (props: type) => { return <div/> }
+							// x = function(props: type) { return <div/> }
+							// x = function y(props: type) { return <div/> }
+							parseFunctionComponent(variableNode, node);
+						}
 					}
 					// x = react.memo((props:type) { return <div/> })
 					else if (
@@ -285,7 +294,7 @@ export function parseFromProgram(
 		}
 		const componentName = node.name.getText();
 
-		const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
+		const type = checker.getTypeOfSymbolAtLocation(symbol, node);
 		type.getCallSignatures().forEach((signature) => {
 			if (!isTypeJSXElementLike(signature.getReturnType())) {
 				return;
@@ -411,7 +420,7 @@ export function parseFromProgram(
 		}
 		const hookName = node.name.getText();
 
-		const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
+		const type = checker.getTypeOfSymbolAtLocation(symbol, node);
 		const typeStack = new Set<number>([(type as any).id]);
 
 		const checkedSignatures = type.getCallSignatures().map((signature) => {

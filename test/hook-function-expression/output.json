@@ -1,0 +1,108 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "hook",
+			"name": "useHook",
+			"parameters": [
+				{
+					"nodeType": "parameter",
+					"parameterType": {
+						"nodeType": "prop",
+						"name": "parameters",
+						"propType": {
+							"nodeType": "interface",
+							"types": [
+								{
+									"nodeType": "prop",
+									"name": "value",
+									"propType": {
+										"nodeType": "simpleType",
+										"typeName": "string"
+									},
+									"optional": false,
+									"filenames": {}
+								},
+								{
+									"nodeType": "prop",
+									"name": "severity",
+									"propType": {
+										"nodeType": "simpleType",
+										"typeName": "number"
+									},
+									"optional": false,
+									"filenames": {}
+								},
+								{
+									"nodeType": "prop",
+									"name": "onChange",
+									"propType": {
+										"nodeType": "function",
+										"parameters": [
+											{
+												"nodeType": "parameter",
+												"parameterType": {
+													"nodeType": "prop",
+													"name": "value",
+													"propType": {
+														"nodeType": "simpleType",
+														"typeName": "string"
+													},
+													"optional": false,
+													"filenames": {}
+												}
+											}
+										],
+										"returnValue": {
+											"nodeType": "simpleType",
+											"typeName": "void"
+										}
+									},
+									"optional": false,
+									"filenames": {}
+								}
+							]
+						},
+						"optional": false,
+						"filenames": {}
+					}
+				}
+			],
+			"returnValue": {
+				"nodeType": "interface",
+				"types": [
+					{
+						"nodeType": "prop",
+						"name": "getProps",
+						"propType": {
+							"nodeType": "function",
+							"parameters": [
+								{
+									"nodeType": "parameter",
+									"parameterType": {
+										"nodeType": "prop",
+										"name": "externalProps",
+										"propType": {
+											"nodeType": "simpleType",
+											"typeName": "React.HTMLAttributes"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								}
+							],
+							"returnValue": {
+								"nodeType": "simpleType",
+								"typeName": "React.HTMLAttributes"
+							}
+						},
+						"optional": false,
+						"filenames": {}
+					}
+				]
+			},
+			"description": "A hook defined as a function expression.",
+			"visibility": "internal"
+		}
+	]
+}
