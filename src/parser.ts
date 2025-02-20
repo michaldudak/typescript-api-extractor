@@ -1,6 +1,5 @@
 import * as ts from 'typescript';
 import * as t from './types';
-import { Documentation } from './types/documentation';
 
 /**
  * Options that specify how the parser should act
@@ -167,8 +166,12 @@ export function parseFromProgram(
 
 	function visit(node: ts.Node) {
 		// function x(props: type) { return <div/> }
-		if (ts.isFunctionDeclaration(node) && node.name && node.parameters.length === 1) {
-			parseFunctionComponent(node, node);
+		if (ts.isFunctionDeclaration(node) && node.name) {
+			if (node.name.getText().startsWith('use')) {
+				parseHook(node);
+			} else if (node.parameters.length === 1) {
+				parseFunctionComponent(node, node);
+			}
 		}
 		// const x = ...
 		else if (ts.isVariableStatement(node)) {
@@ -303,7 +306,7 @@ export function parseFromProgram(
 		const props: Record<string, t.PropNode> = {};
 		const usedPropsPerSignature: Set<String>[] = [];
 		programNode.body = programNode.body.filter((node) => {
-			if (node.name === componentName) {
+			if (node.name === componentName && t.isComponentNode(node)) {
 				const usedProps: Set<string> = new Set();
 				// squash props
 				node.props.forEach((propNode) => {
@@ -395,6 +398,49 @@ export function parseFromProgram(
 				propsFilename,
 			),
 		);
+	}
+
+	function parseHook(node: ts.VariableDeclaration | ts.FunctionDeclaration) {
+		if (!node.name) {
+			return;
+		}
+
+		const symbol = checker.getSymbolAtLocation(node.name);
+		if (!symbol) {
+			return;
+		}
+		const hookName = node.name.getText();
+
+		const type = checker.getTypeOfSymbolAtLocation(symbol, symbol.valueDeclaration!);
+		const typeStack = new Set<number>([(type as any).id]);
+
+		const checkedSignatures = type.getCallSignatures().map((signature) => {
+			return {
+				parameters: signature.parameters.map((param) =>
+					t.parameterNode(checkSymbol(param, typeStack)),
+				),
+
+				returnValue: checkType(signature.getReturnType(), typeStack, hookName),
+			};
+		});
+
+		if (checkedSignatures.length === 0) {
+			return;
+		}
+
+		if (checkedSignatures.length === 1) {
+			programNode.body.push(
+				t.hookNode(
+					hookName,
+					checkedSignatures[0].parameters,
+					checkedSignatures[0].returnValue,
+					getDocumentationFromNode(node),
+					node.getSourceFile().fileName,
+				),
+			);
+		}
+
+		// TODO: handle multiple call signatures
 	}
 
 	function checkSymbol(
@@ -642,7 +688,7 @@ export function parseFromProgram(
 		return t.simpleTypeNode('any');
 	}
 
-	function getDocumentationFromSymbol(symbol?: ts.Symbol): Documentation | undefined {
+	function getDocumentationFromSymbol(symbol?: ts.Symbol): t.Documentation | undefined {
 		if (!symbol) {
 			return undefined;
 		}
@@ -656,7 +702,7 @@ export function parseFromProgram(
 		return comment ? { description: comment } : undefined;
 	}
 
-	function getDocumentationFromNode(node: ts.Node): Documentation | undefined {
+	function getDocumentationFromNode(node: ts.Node): t.Documentation | undefined {
 		const comments = ts.getJSDocCommentsAndTags(node);
 		if (comments && comments.length === 1) {
 			const commentNode = comments[0];
@@ -681,7 +727,7 @@ function hasFlag(typeFlags: number, flag: number) {
 	return (typeFlags & flag) === flag;
 }
 
-function getVisibilityFromJSDoc(doc: ts.JSDoc): Documentation['visibility'] | undefined {
+function getVisibilityFromJSDoc(doc: ts.JSDoc): t.Documentation['visibility'] | undefined {
 	if (doc.tags?.some((tag) => tag.tagName.text === 'public')) {
 		return 'public';
 	}

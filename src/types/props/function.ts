@@ -2,7 +2,7 @@ import { Node } from '../nodes/baseNodes';
 
 const typeString = 'function';
 
-interface FunctionNode extends Node {
+export interface FunctionNode extends Node {
 	parameters: Node[];
 	returnValue: Node;
 }

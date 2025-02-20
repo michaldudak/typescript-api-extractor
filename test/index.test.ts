@@ -23,12 +23,20 @@ for (const testCase of testCases) {
 		const ast = rae.parseFromProgram(testCase, program);
 
 		const newAST = rae.programNode(
-			ast.body.map((component) => {
-				expect(component.propsFilename).toBe(testCase);
-				return {
-					...component,
-					propsFilename: undefined,
-				};
+			ast.body.map((componentOrHook) => {
+				if (rae.isComponentNode(componentOrHook)) {
+					expect(componentOrHook.propsFilename).toBe(testCase);
+					return {
+						...componentOrHook,
+						propsFilename: undefined,
+					};
+				} else {
+					expect(componentOrHook.parametersFilename).toBe(testCase);
+					return {
+						...componentOrHook,
+						parametersFilename: undefined,
+					};
+				}
 			}),
 		);
 

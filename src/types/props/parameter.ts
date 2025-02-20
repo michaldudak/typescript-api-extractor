@@ -2,7 +2,7 @@ import { Node } from '../nodes/baseNodes';
 
 const typeString = 'parameter';
 
-interface ParameterNode extends Node {
+export interface ParameterNode extends Node {
 	parameterType: Node;
 }
 
