@@ -57,7 +57,8 @@
 						]
 					},
 					"documentation": {
-						"description": "The severity."
+						"description": "The severity.",
+						"defaultValue": "\"'low'\""
 					}
 				}
 			],

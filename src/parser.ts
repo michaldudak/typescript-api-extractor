@@ -427,19 +427,34 @@ export function parseFromProgram(
 
 		const checkedSignatures = type.getCallSignatures().map((signature) => {
 			return {
-				parameters: signature.parameters.map((param) => {
+				parameters: signature.parameters.map((parameterSymbol) => {
+					const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
 					const type = checkType(
-						checker.getTypeOfSymbolAtLocation(param, param.valueDeclaration!),
+						checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterDeclaration),
 						typeStack,
-						param.getName(),
+						parameterSymbol.getName(),
 					);
 
-					const parameterDescription = parameterDescriptions[param.getName()];
+					const documentation: t.Documentation = {};
+					documentation.description = parameterDescriptions[parameterSymbol.getName()];
+					const initializer = parameterDeclaration.initializer;
+					if (initializer) {
+						const initializerType = checker.getTypeAtLocation(initializer);
+						if (initializerType.flags & ts.TypeFlags.Literal) {
+							if (initializerType.isStringLiteral()) {
+								documentation.defaultValue = `"${initializer.getText()}"`;
+							} else {
+								documentation.defaultValue = initializer.getText();
+							}
+						}
+					}
+
+					const hasDocumentation = documentation.description || documentation.defaultValue;
 
 					return t.parameterNode(
 						type,
-						param.getName(),
-						parameterDescription ? { description: parameterDescription } : undefined,
+						parameterSymbol.getName(),
+						hasDocumentation ? documentation : undefined,
 					);
 				}),
 
