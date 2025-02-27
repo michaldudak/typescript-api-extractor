@@ -1,16 +1,16 @@
-export * from './nodes/baseNodes';
+export * from './nodes/node';
 export * from './nodes/program';
 export * from './nodes/component';
 export * from './nodes/hook';
-export * from './nodes/prop';
+export * from './nodes/member';
 
-export * from './props/simpleType';
-export * from './props/function';
-export * from './props/parameter';
-export * from './props/interface';
-export * from './props/union';
-export * from './props/literal';
-export * from './props/object';
-export * from './props/array';
+export * from './nodes/simpleType';
+export * from './nodes/function';
+export * from './nodes/parameter';
+export * from './nodes/interface';
+export * from './nodes/union';
+export * from './nodes/literal';
+export * from './nodes/object';
+export * from './nodes/array';
 
 export * from './documentation';

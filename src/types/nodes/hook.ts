@@ -1,10 +1,11 @@
 import { Documentation } from '../documentation';
-import { FunctionNode } from '../props/function';
-import { Node } from './baseNodes';
+import { FunctionNode } from './function';
+import { Node, TypeNode } from './node';
 
 const typeString = 'hook';
 
-export interface HookNode extends FunctionNode {
+export interface HookNode extends Omit<FunctionNode, 'nodeType'> {
+	nodeType: typeof typeString;
 	name: string;
 	parametersFilename?: string;
 	description?: string;
@@ -14,7 +15,7 @@ export interface HookNode extends FunctionNode {
 export function hookNode(
 	name: string,
 	parameters: Node[],
-	returnValue: Node,
+	returnValueType: TypeNode,
 	documentation: Documentation | undefined,
 	parametersFilename: string | undefined,
 ): HookNode {
@@ -22,7 +23,7 @@ export function hookNode(
 		nodeType: typeString,
 		name: name,
 		parameters: parameters || [],
-		returnValue,
+		returnValueType,
 		description: documentation?.description,
 		visibility: documentation?.visibility,
 		parametersFilename,

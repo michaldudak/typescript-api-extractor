@@ -1,8 +1,10 @@
-import { Node } from '../nodes/baseNodes';
+import { Node } from './node';
 
 const typeString = 'literal';
 
-export interface LiteralNode extends Node {
+export interface LiteralNode {
+	nodeType: typeof typeString;
+
 	value: unknown;
 	description?: string;
 }

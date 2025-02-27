@@ -1,14 +1,15 @@
 import { Documentation } from '../documentation';
-import { Node } from './baseNodes';
+import { Node, TypeNode } from './node';
 
-const typeString = 'prop';
+const typeString = 'member';
 
-export interface PropNode extends Node {
+export interface MemberNode {
+	nodeType: typeof typeString;
 	name: string;
 	description?: string;
 	defaultValue?: any;
 	visibility?: Documentation['visibility'];
-	propType: Node;
+	type: TypeNode;
 	optional: boolean;
 	filenames: Set<string>;
 	/**
@@ -17,27 +18,27 @@ export interface PropNode extends Node {
 	$$id: number | undefined;
 }
 
-export function propNode(
+export function memberNode(
 	name: string,
 	documentation: Documentation | undefined,
-	propType: Node,
+	type: TypeNode,
 	optional: boolean,
 	filenames: Set<string>,
 	id: number | undefined,
-): PropNode {
+): MemberNode {
 	return {
 		nodeType: typeString,
 		name,
 		description: documentation?.description,
 		defaultValue: documentation?.defaultValue,
 		visibility: documentation?.visibility,
-		propType,
+		type,
 		optional,
 		filenames,
 		$$id: id,
 	};
 }
 
-export function isPropNode(node: Node): node is PropNode {
+export function isMemberNode(node: Node): node is MemberNode {
 	return node.nodeType === typeString;
 }

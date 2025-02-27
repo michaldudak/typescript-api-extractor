@@ -1,12 +1,13 @@
 import { Documentation } from '../documentation';
-import { Node } from './baseNodes';
-import { PropNode } from './prop';
+import { Node } from './node';
+import { MemberNode } from './member';
 
 const typeString = 'component';
 
-export interface ComponentNode extends Node {
+export interface ComponentNode {
+	nodeType: typeof typeString;
 	name: string;
-	props: PropNode[];
+	props: MemberNode[];
 	propsFilename?: string;
 	description?: string;
 	visibility?: Documentation['visibility'];
@@ -14,7 +15,7 @@ export interface ComponentNode extends Node {
 
 export function componentNode(
 	name: string,
-	props: PropNode[],
+	props: MemberNode[],
 	documentation: Documentation | undefined,
 	propsFilename: string | undefined,
 ): ComponentNode {

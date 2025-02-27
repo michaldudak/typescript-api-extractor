@@ -6,9 +6,9 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "className",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{

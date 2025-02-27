@@ -1,8 +1,9 @@
-import { Node } from '../nodes/baseNodes';
+import { Node } from './node';
 
 const typeString = 'simpleType';
 
-interface SimpleTypeNode extends Node {
+export interface SimpleTypeNode {
+	nodeType: typeof typeString;
 	typeName: string;
 }
 

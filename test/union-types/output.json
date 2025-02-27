@@ -6,9 +6,9 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "matching",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "boolean"
 					},
@@ -16,9 +16,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "uniqueA",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "string"
 					},
@@ -26,9 +26,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "conflictingOptionality",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -45,9 +45,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "conflictingType",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -64,9 +64,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "uniqueB",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "string"
 					},

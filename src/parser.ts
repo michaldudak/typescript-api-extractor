@@ -312,7 +312,7 @@ export function parseFromProgram(
 		// { variant: 'a', href: string } & { variant: 'b' }
 		// to
 		// { variant: 'a' | 'b', href?: string }
-		const props: Record<string, t.PropNode> = {};
+		const props: Record<string, t.MemberNode> = {};
 		const usedPropsPerSignature: Set<String>[] = [];
 		programNode.body = programNode.body.filter((node) => {
 			if (node.name === componentName && t.isComponentNode(node)) {
@@ -325,9 +325,9 @@ export function parseFromProgram(
 					if (currentTypeNode === undefined) {
 						currentTypeNode = propNode;
 					} else if (currentTypeNode.$$id !== propNode.$$id) {
-						let mergedPropType = t.unionNode([currentTypeNode.propType, propNode.propType]);
+						let mergedPropType = t.unionNode([currentTypeNode.type, propNode.type]);
 
-						currentTypeNode = t.propNode(
+						currentTypeNode = t.memberNode(
 							currentTypeNode.name,
 							{
 								description: currentTypeNode.description,
@@ -361,7 +361,7 @@ export function parseFromProgram(
 						// mark as optional
 						return {
 							...propType,
-							propType: t.unionNode([propType.propType, t.simpleTypeNode('undefined')]),
+							type: t.unionNode([propType.type, t.simpleTypeNode('undefined')]),
 						};
 					}
 					return propType;
@@ -456,7 +456,7 @@ export function parseFromProgram(
 		symbol: ts.Symbol,
 		typeStack: Set<number>,
 		skipResolvingComplexTypes: boolean = false,
-	): t.PropNode {
+	): t.MemberNode {
 		const declarations = symbol.getDeclarations();
 		const declaration = declarations && declarations[0];
 
@@ -483,7 +483,7 @@ export function parseFromProgram(
 			) {
 				const elementNode = t.simpleTypeNode(name);
 
-				return t.propNode(
+				return t.memberNode(
 					symbol.getName(),
 					getDocumentationFromSymbol(symbol),
 					elementNode,
@@ -528,7 +528,7 @@ export function parseFromProgram(
 			parsedType = checkType(type, typeStack, symbol.getName(), skipResolvingComplexTypes);
 		}
 
-		return t.propNode(
+		return t.memberNode(
 			symbol.getName(),
 			getDocumentationFromSymbol(symbol),
 			parsedType,
@@ -543,7 +543,7 @@ export function parseFromProgram(
 		typeStack: Set<number>,
 		name: string,
 		skipResolvingComplexTypes: boolean = false,
-	): t.Node {
+	): t.TypeNode {
 		// If the typeStack contains type.id we're dealing with an object that references itself.
 		// To prevent getting stuck in an infinite loop we just set it to an objectNode
 		if (typeStack.has((type as any).id)) {

@@ -6,9 +6,9 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "stringLiteral",
-					"propType": {
+					"type": {
 						"nodeType": "literal",
 						"value": "\"foo\""
 					},
@@ -16,9 +16,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "numberLiteral",
-					"propType": {
+					"type": {
 						"nodeType": "literal",
 						"value": 42
 					},
@@ -26,9 +26,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "booleanLiteral",
-					"propType": {
+					"type": {
 						"nodeType": "literal",
 						"value": "true"
 					},
@@ -36,9 +36,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "nullLiteral",
-					"propType": {
+					"type": {
 						"nodeType": "literal",
 						"value": "null"
 					},

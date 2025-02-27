@@ -4,21 +4,19 @@
 		{
 			"nodeType": "hook",
 			"name": "useHook",
-			"description": "A hook defined as a function.",
-			"visibility": "internal",
 			"parameters": [
 				{
 					"nodeType": "parameter",
-					"parameterType": {
-						"nodeType": "prop",
+					"type": {
+						"nodeType": "member",
 						"name": "parameters",
-						"propType": {
+						"type": {
 							"nodeType": "interface",
-							"types": [
+							"members": [
 								{
-									"nodeType": "prop",
+									"nodeType": "member",
 									"name": "value",
-									"propType": {
+									"type": {
 										"nodeType": "simpleType",
 										"typeName": "string"
 									},
@@ -26,9 +24,9 @@
 									"filenames": {}
 								},
 								{
-									"nodeType": "prop",
+									"nodeType": "member",
 									"name": "severity",
-									"propType": {
+									"type": {
 										"nodeType": "simpleType",
 										"typeName": "number"
 									},
@@ -36,17 +34,17 @@
 									"filenames": {}
 								},
 								{
-									"nodeType": "prop",
+									"nodeType": "member",
 									"name": "onChange",
-									"propType": {
+									"type": {
 										"nodeType": "function",
 										"parameters": [
 											{
 												"nodeType": "parameter",
-												"parameterType": {
-													"nodeType": "prop",
+												"type": {
+													"nodeType": "member",
 													"name": "value",
-													"propType": {
+													"type": {
 														"nodeType": "simpleType",
 														"typeName": "string"
 													},
@@ -55,7 +53,7 @@
 												}
 											}
 										],
-										"returnValue": {
+										"returnValueType": {
 											"nodeType": "simpleType",
 											"typeName": "void"
 										}
@@ -70,21 +68,21 @@
 					}
 				}
 			],
-			"returnValue": {
+			"returnValueType": {
 				"nodeType": "interface",
-				"types": [
+				"members": [
 					{
-						"nodeType": "prop",
+						"nodeType": "member",
 						"name": "getProps",
-						"propType": {
+						"type": {
 							"nodeType": "function",
 							"parameters": [
 								{
 									"nodeType": "parameter",
-									"parameterType": {
-										"nodeType": "prop",
+									"type": {
+										"nodeType": "member",
 										"name": "externalProps",
-										"propType": {
+										"type": {
 											"nodeType": "simpleType",
 											"typeName": "React.HTMLAttributes"
 										},
@@ -93,7 +91,7 @@
 									}
 								}
 							],
-							"returnValue": {
+							"returnValueType": {
 								"nodeType": "simpleType",
 								"typeName": "React.HTMLAttributes"
 							}
@@ -102,7 +100,9 @@
 						"filenames": {}
 					}
 				]
-			}
+			},
+			"description": "A hook defined as a function.",
+			"visibility": "internal"
 		}
 	]
 }

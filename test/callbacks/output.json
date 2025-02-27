@@ -6,17 +6,17 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "onChange",
-					"propType": {
+					"type": {
 						"nodeType": "function",
 						"parameters": [
 							{
 								"nodeType": "parameter",
-								"parameterType": {
-									"nodeType": "prop",
+								"type": {
+									"nodeType": "member",
 									"name": "event",
-									"propType": {
+									"type": {
 										"nodeType": "simpleType",
 										"typeName": "React.ChangeEvent"
 									},
@@ -25,7 +25,7 @@
 								}
 							}
 						],
-						"returnValue": {
+						"returnValueType": {
 							"nodeType": "simpleType",
 							"typeName": "void"
 						}
@@ -34,17 +34,17 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "onClosing",
-					"propType": {
+					"type": {
 						"nodeType": "function",
 						"parameters": [
 							{
 								"nodeType": "parameter",
-								"parameterType": {
-									"nodeType": "prop",
+								"type": {
+									"nodeType": "member",
 									"name": "animated",
-									"propType": {
+									"type": {
 										"nodeType": "simpleType",
 										"typeName": "boolean"
 									},
@@ -53,7 +53,7 @@
 								}
 							}
 						],
-						"returnValue": {
+						"returnValueType": {
 							"nodeType": "simpleType",
 							"typeName": "boolean"
 						}

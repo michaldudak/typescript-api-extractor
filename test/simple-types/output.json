@@ -6,9 +6,9 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "s",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "string"
 					},
@@ -16,9 +16,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "nb",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "number"
 					},
@@ -26,9 +26,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "b",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "boolean"
 					},
@@ -36,9 +36,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "n",
-					"propType": {
+					"type": {
 						"nodeType": "literal",
 						"value": "null"
 					},

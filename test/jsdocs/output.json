@@ -6,10 +6,10 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "className",
 					"description": "The class name.\nUsed to make the component more classy.",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -26,11 +26,11 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "someValue",
 					"description": "A value.",
 					"defaultValue": "10",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{

@@ -1,10 +1,11 @@
-import { Node } from './baseNodes';
+import { Node } from './node';
 import { ComponentNode } from './component';
 import { HookNode } from './hook';
 
 const typeString = 'program';
 
-export interface ProgramNode extends Node {
+export interface ProgramNode {
+	nodeType: typeof typeString;
 	body: (ComponentNode | HookNode)[];
 }
 

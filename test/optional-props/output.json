@@ -6,9 +6,9 @@
 			"name": "Component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "requiredString",
-					"propType": {
+					"type": {
 						"nodeType": "simpleType",
 						"typeName": "string"
 					},
@@ -16,9 +16,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "optionalString",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -35,9 +35,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "stringOrUndefined",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{

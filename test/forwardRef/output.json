@@ -4,12 +4,11 @@
 		{
 			"nodeType": "component",
 			"name": "TestComponent",
-			"description": "A test component",
 			"props": [
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "className",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -26,9 +25,9 @@
 					"filenames": {}
 				},
 				{
-					"nodeType": "prop",
+					"nodeType": "member",
 					"name": "id",
-					"propType": {
+					"type": {
 						"nodeType": "union",
 						"types": [
 							{
@@ -44,7 +43,8 @@
 					"optional": true,
 					"filenames": {}
 				}
-			]
+			],
+			"description": "A test component"
 		}
 	]
 }

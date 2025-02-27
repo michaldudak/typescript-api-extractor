@@ -1,20 +1,21 @@
 import _ from 'lodash';
-import { Node } from '../nodes/baseNodes';
+import { Node, TypeNode } from './node';
 import { isLiteralNode } from './literal';
 import { isSimpleTypeNode } from './simpleType';
 
 const typeString = 'union';
 
-export interface UnionNode extends Node {
-	types: Node[];
+export interface UnionNode {
+	nodeType: typeof typeString;
+	types: TypeNode[];
 }
 
-export function unionNode(types: Node[]): UnionNode {
-	const flatTypes: Node[] = [];
+export function unionNode(types: TypeNode[]): UnionNode {
+	const flatTypes: TypeNode[] = [];
 
 	flattenTypes(types);
 
-	function flattenTypes(nodes: Node[]) {
+	function flattenTypes(nodes: TypeNode[]) {
 		nodes.forEach((x) => {
 			if (isUnionNode(x)) {
 				flattenTypes(x.types);
