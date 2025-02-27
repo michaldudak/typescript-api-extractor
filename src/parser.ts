@@ -29,11 +29,7 @@ export interface ParserOptions {
 	 * use the default behaviour
 	 * @default parameterCount <= 5 && depth <= 2
 	 */
-	shouldResolveFunction: (data: {
-		name: string;
-		parameterCount: number;
-		depth: number;
-	}) => boolean | undefined;
+	shouldResolveFunction: (data: { name: string; depth: number }) => boolean | undefined;
 	/**
 	 * Control if const declarations should be checked
 	 * @default false
@@ -110,7 +106,7 @@ export function parseFromProgram(
 			}
 		}
 
-		return data.parameterCount <= 5 && data.depth <= 2;
+		return data.depth <= 2;
 	};
 
 	const checker = program.getTypeChecker();
@@ -118,6 +114,7 @@ export function parseFromProgram(
 
 	const programNode = t.programNode();
 	const reactImports: string[] = [];
+	const visitedNodes = new Set<number>();
 
 	if (sourceFile) {
 		ts.forEachChild(sourceFile, visitImports);
@@ -165,6 +162,12 @@ export function parseFromProgram(
 	}
 
 	function visit(node: ts.Node) {
+		// A node can be processed while another node is visited.
+		// If the node we're currently visiting has already been visited, skip it.
+		if (visitedNodes.has(getNodeId(node))) {
+			return;
+		}
+
 		if (ts.isFunctionDeclaration(node) && node.name) {
 			if (node.name.getText().startsWith('use')) {
 				// function useHook(parameters: type): type
@@ -414,6 +417,8 @@ export function parseFromProgram(
 			return;
 		}
 
+		visitedNodes.add(getNodeId(node));
+
 		const symbol = checker.getSymbolAtLocation(node.name);
 		if (!symbol) {
 			return;
@@ -422,63 +427,22 @@ export function parseFromProgram(
 
 		const type = checker.getTypeOfSymbolAtLocation(symbol, node);
 		const typeStack = new Set<number>([(type as any).id]);
+		const parsedCallSignatures = type
+			.getCallSignatures()
+			.map((signature) => parseFunctionSignature(signature, typeStack));
 
-		const parameterDescriptions = getParameterDescriptionFromNode(node);
-
-		const checkedSignatures = type.getCallSignatures().map((signature) => {
-			return {
-				parameters: signature.parameters.map((parameterSymbol) => {
-					const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-					const type = checkType(
-						checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterDeclaration),
-						typeStack,
-						parameterSymbol.getName(),
-					);
-
-					const documentation: t.Documentation = {};
-					documentation.description = parameterDescriptions[parameterSymbol.getName()];
-					const initializer = parameterDeclaration.initializer;
-					if (initializer) {
-						const initializerType = checker.getTypeAtLocation(initializer);
-						if (initializerType.flags & ts.TypeFlags.Literal) {
-							if (initializerType.isStringLiteral()) {
-								documentation.defaultValue = `"${initializer.getText()}"`;
-							} else {
-								documentation.defaultValue = initializer.getText();
-							}
-						}
-					}
-
-					const hasDocumentation = documentation.description || documentation.defaultValue;
-
-					return t.parameterNode(
-						type,
-						parameterSymbol.getName(),
-						hasDocumentation ? documentation : undefined,
-					);
-				}),
-
-				returnValue: checkType(signature.getReturnType(), typeStack, hookName),
-			};
-		});
-
-		if (checkedSignatures.length === 0) {
+		if (parsedCallSignatures.length === 0) {
 			return;
 		}
 
-		if (checkedSignatures.length === 1) {
-			programNode.body.push(
-				t.hookNode(
-					hookName,
-					checkedSignatures[0].parameters,
-					checkedSignatures[0].returnValue,
-					getDocumentationFromNode(node),
-					node.getSourceFile().fileName,
-				),
-			);
-		}
-
-		// TODO: handle multiple call signatures
+		programNode.body.push(
+			t.hookNode(
+				hookName,
+				parsedCallSignatures,
+				getDocumentationFromNode(node),
+				node.getSourceFile().fileName,
+			),
+		);
 	}
 
 	function checkSymbol(
@@ -656,14 +620,12 @@ export function parseFromProgram(
 			return t.literalNode('null');
 		}
 
-		// TODO: handle multiple call signatures
-		if (type.getCallSignatures().length === 1) {
-			const signature = type.getCallSignatures()[0];
+		const callSignatures = type.getCallSignatures();
+		if (callSignatures.length >= 1) {
 			if (
 				skipResolvingComplexTypes ||
 				!shouldResolveFunction({
 					name,
-					parameterCount: signature.parameters.length,
 					depth: typeStack.size,
 				})
 			) {
@@ -671,21 +633,8 @@ export function parseFromProgram(
 			}
 
 			return t.functionNode(
-				signature.parameters.map((param) => {
-					const parameterType = checkType(
-						checker.getTypeOfSymbolAtLocation(param, param.valueDeclaration!),
-						new Set([...typeStack.values(), (type as any).id]),
-						param.getName(),
-						true,
-					);
-
-					return t.parameterNode(parameterType, param.getName(), getDocumentationFromSymbol(param));
-				}),
-
-				checkType(signature.getReturnType(), typeStack, name),
+				callSignatures.map((signature) => parseFunctionSignature(signature, typeStack, true)),
 			);
-		} else if (type.getCallSignatures().length > 1) {
-			return t.functionNode([], t.intrinsicNode('any'));
 		}
 
 		// Object-like type
@@ -730,6 +679,86 @@ export function parseFromProgram(
 			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`,
 		);
 		return t.intrinsicNode('any');
+	}
+
+	function parseFunctionSignature(
+		signature: ts.Signature,
+		typeStack: Set<number>,
+		skipResolvingComplexTypes: boolean = false,
+	): t.CallSignature {
+		// Node that possibly has JSDocs attached to it
+		let documentationNodeCandidate: ts.Node | undefined = undefined;
+
+		const functionDeclaration = signature.getDeclaration();
+		if (ts.isFunctionDeclaration(functionDeclaration)) {
+			// function foo(a: string) {}
+			documentationNodeCandidate = functionDeclaration;
+			visitedNodes.add(getNodeId(functionDeclaration));
+		} else if (
+			ts.isFunctionExpression(functionDeclaration) ||
+			ts.isArrowFunction(functionDeclaration)
+		) {
+			// const foo = function(a: string) {}
+			// const foo = (a: string) => {}
+			documentationNodeCandidate = functionDeclaration.parent;
+
+			while (true) {
+				// find the nearest variable declaration to look for JSDocs
+				if (ts.isVariableStatement(documentationNodeCandidate)) {
+					break;
+				}
+
+				if (ts.isSourceFile(documentationNodeCandidate)) {
+					documentationNodeCandidate = undefined;
+					break;
+				}
+
+				documentationNodeCandidate = documentationNodeCandidate?.parent;
+			}
+		}
+
+		const parameterDescriptions = documentationNodeCandidate
+			? getParameterDescriptionFromNode(documentationNodeCandidate)
+			: {};
+
+		return {
+			parameters: signature.parameters.map((parameterSymbol) => {
+				const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
+				const parameterType = checkType(
+					checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+					typeStack,
+					parameterSymbol.getName(),
+					skipResolvingComplexTypes,
+				);
+
+				const documentation: t.Documentation = {};
+				documentation.description = parameterDescriptions[parameterSymbol.getName()];
+				const initializer = parameterDeclaration.initializer;
+				if (initializer) {
+					const initializerType = checker.getTypeAtLocation(initializer);
+					if (initializerType.flags & ts.TypeFlags.Literal) {
+						if (initializerType.isStringLiteral()) {
+							documentation.defaultValue = `"${initializer.getText()}"`;
+						} else {
+							documentation.defaultValue = initializer.getText();
+						}
+					}
+				}
+
+				const hasDocumentation = documentation.description || documentation.defaultValue;
+
+				return t.parameterNode(
+					parameterType,
+					parameterSymbol.getName(),
+					hasDocumentation ? documentation : undefined,
+				);
+			}),
+			returnValueType: checkType(
+				signature.getReturnType(),
+				typeStack,
+				signature.getDeclaration().name?.getText() || '',
+			),
+		};
 	}
 
 	function getDocumentationFromSymbol(symbol?: ts.Symbol): t.Documentation | undefined {
@@ -804,4 +833,8 @@ function getParameterDescriptionFromNode(node: ts.Node) {
 	}
 
 	return {};
+}
+
+function getNodeId(node: ts.Node) {
+	return (node as any).id;
 }

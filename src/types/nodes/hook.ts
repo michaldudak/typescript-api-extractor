@@ -1,32 +1,27 @@
 import { Documentation } from '../documentation';
-import { FunctionNode } from './function';
-import { Node, TypeNode } from './node';
-import { ParameterNode } from './parameter';
+import { CallSignature, FunctionNode } from './function';
+import { Node } from './node';
 
 const typeString = 'hook';
 
 export interface HookNode extends Omit<FunctionNode, 'nodeType'> {
 	nodeType: typeof typeString;
 	name: string;
+	documentation: Documentation | undefined;
 	parametersFilename?: string;
-	description?: string;
-	visibility?: Documentation['visibility'];
 }
 
 export function hookNode(
 	name: string,
-	parameters: ParameterNode[],
-	returnValueType: TypeNode,
+	callSignatures: CallSignature[],
 	documentation: Documentation | undefined,
 	parametersFilename: string | undefined,
 ): HookNode {
 	return {
 		nodeType: typeString,
 		name: name,
-		parameters: parameters || [],
-		returnValueType,
-		description: documentation?.description,
-		visibility: documentation?.visibility,
+		callSignatures,
+		documentation,
 		parametersFilename,
 	};
 }

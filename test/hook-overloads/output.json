@@ -1,0 +1,52 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "hook",
+			"name": "useHook",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "s",
+							"type": {
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							"documentation": {
+								"description": "The string"
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "string"
+					}
+				},
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "n",
+							"type": {
+								"nodeType": "intrinsic",
+								"type": "number"
+							},
+							"documentation": {
+								"description": "The number"
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "number"
+					}
+				}
+			],
+			"documentation": {
+				"description": "Returns the input string."
+			}
+		}
+	]
+}

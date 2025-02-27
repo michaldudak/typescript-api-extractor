@@ -4,70 +4,80 @@
 		{
 			"nodeType": "hook",
 			"name": "useHook",
-			"parameters": [
+			"callSignatures": [
 				{
-					"nodeType": "parameter",
-					"name": "value",
-					"type": {
-						"nodeType": "intrinsic",
-						"type": "string"
-					},
-					"documentation": {
-						"description": "The value."
-					}
-				},
-				{
-					"nodeType": "parameter",
-					"name": "onChange",
-					"type": {
-						"nodeType": "function",
-						"parameters": [
-							{
-								"nodeType": "parameter",
-								"name": "newValue",
-								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
-								}
-							}
-						],
-						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
-						}
-					},
-					"documentation": {
-						"description": "The change handler."
-					}
-				},
-				{
-					"nodeType": "parameter",
-					"name": "severity",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "literal",
-								"value": "\"low\""
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "value",
+							"type": {
+								"nodeType": "intrinsic",
+								"type": "string"
 							},
-							{
-								"nodeType": "literal",
-								"value": "\"high\""
+							"documentation": {
+								"description": "The value."
 							}
-						]
-					},
-					"documentation": {
-						"description": "The severity.",
-						"defaultValue": "\"'low'\""
+						},
+						{
+							"nodeType": "parameter",
+							"name": "onChange",
+							"type": {
+								"nodeType": "function",
+								"callSignatures": [
+									{
+										"parameters": [
+											{
+												"nodeType": "parameter",
+												"name": "newValue",
+												"type": {
+													"nodeType": "intrinsic",
+													"type": "string"
+												}
+											}
+										],
+										"returnValueType": {
+											"nodeType": "intrinsic",
+											"type": "void"
+										}
+									}
+								]
+							},
+							"documentation": {
+								"description": "The change handler."
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "severity",
+							"type": {
+								"nodeType": "union",
+								"types": [
+									{
+										"nodeType": "literal",
+										"value": "\"low\""
+									},
+									{
+										"nodeType": "literal",
+										"value": "\"high\""
+									}
+								]
+							},
+							"documentation": {
+								"description": "The severity.",
+								"defaultValue": "\"'low'\""
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "number"
 					}
 				}
 			],
-			"returnValueType": {
-				"nodeType": "intrinsic",
-				"type": "number"
-			},
-			"description": "A hook defined as a function.",
-			"visibility": "internal"
+			"documentation": {
+				"description": "A hook defined as a function.",
+				"visibility": "internal"
+			}
 		}
 	]
 }
