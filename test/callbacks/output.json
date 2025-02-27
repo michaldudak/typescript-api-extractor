@@ -13,15 +13,10 @@
 						"parameters": [
 							{
 								"nodeType": "parameter",
+								"name": "event",
 								"type": {
-									"nodeType": "member",
-									"name": "event",
-									"type": {
-										"nodeType": "simpleType",
-										"typeName": "React.ChangeEvent"
-									},
-									"optional": false,
-									"filenames": {}
+									"nodeType": "simpleType",
+									"typeName": "React.ChangeEvent"
 								}
 							}
 						],
@@ -41,15 +36,10 @@
 						"parameters": [
 							{
 								"nodeType": "parameter",
+								"name": "animated",
 								"type": {
-									"nodeType": "member",
-									"name": "animated",
-									"type": {
-										"nodeType": "simpleType",
-										"typeName": "boolean"
-									},
-									"optional": false,
-									"filenames": {}
+									"nodeType": "simpleType",
+									"typeName": "boolean"
 								}
 							}
 						],

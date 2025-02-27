@@ -7,64 +7,54 @@
 			"parameters": [
 				{
 					"nodeType": "parameter",
+					"name": "parameters",
 					"type": {
-						"nodeType": "member",
-						"name": "parameters",
-						"type": {
-							"nodeType": "interface",
-							"members": [
-								{
-									"nodeType": "member",
-									"name": "value",
-									"type": {
-										"nodeType": "simpleType",
-										"typeName": "string"
-									},
-									"optional": false,
-									"filenames": {}
+						"nodeType": "interface",
+						"members": [
+							{
+								"nodeType": "member",
+								"name": "value",
+								"type": {
+									"nodeType": "simpleType",
+									"typeName": "string"
 								},
-								{
-									"nodeType": "member",
-									"name": "severity",
-									"type": {
-										"nodeType": "simpleType",
-										"typeName": "number"
-									},
-									"optional": false,
-									"filenames": {}
+								"optional": false,
+								"filenames": {}
+							},
+							{
+								"nodeType": "member",
+								"name": "severity",
+								"type": {
+									"nodeType": "simpleType",
+									"typeName": "number"
 								},
-								{
-									"nodeType": "member",
-									"name": "onChange",
-									"type": {
-										"nodeType": "function",
-										"parameters": [
-											{
-												"nodeType": "parameter",
-												"type": {
-													"nodeType": "member",
-													"name": "value",
-													"type": {
-														"nodeType": "simpleType",
-														"typeName": "string"
-													},
-													"optional": false,
-													"filenames": {}
-												}
+								"optional": false,
+								"filenames": {}
+							},
+							{
+								"nodeType": "member",
+								"name": "onChange",
+								"type": {
+									"nodeType": "function",
+									"parameters": [
+										{
+											"nodeType": "parameter",
+											"name": "value",
+											"type": {
+												"nodeType": "simpleType",
+												"typeName": "string"
 											}
-										],
-										"returnValueType": {
-											"nodeType": "simpleType",
-											"typeName": "void"
 										}
-									},
-									"optional": false,
-									"filenames": {}
-								}
-							]
-						},
-						"optional": false,
-						"filenames": {}
+									],
+									"returnValueType": {
+										"nodeType": "simpleType",
+										"typeName": "void"
+									}
+								},
+								"optional": false,
+								"filenames": {}
+							}
+						]
 					}
 				}
 			],
@@ -79,15 +69,10 @@
 							"parameters": [
 								{
 									"nodeType": "parameter",
+									"name": "externalProps",
 									"type": {
-										"nodeType": "member",
-										"name": "externalProps",
-										"type": {
-											"nodeType": "simpleType",
-											"typeName": "React.HTMLAttributes"
-										},
-										"optional": false,
-										"filenames": {}
+										"nodeType": "simpleType",
+										"typeName": "React.HTMLAttributes"
 									}
 								}
 							],

@@ -425,9 +425,14 @@ export function parseFromProgram(
 
 		const checkedSignatures = type.getCallSignatures().map((signature) => {
 			return {
-				parameters: signature.parameters.map((param) =>
-					t.parameterNode(checkSymbol(param, typeStack)),
-				),
+				parameters: signature.parameters.map((param) => {
+					const type = checkType(
+						checker.getTypeOfSymbolAtLocation(param, param.valueDeclaration!),
+						typeStack,
+						param.getName(),
+					);
+					return t.parameterNode(type, param.getName(), getDocumentationFromSymbol(param));
+				}),
 
 				returnValue: checkType(signature.getReturnType(), typeStack, hookName),
 			};
@@ -642,11 +647,17 @@ export function parseFromProgram(
 			}
 
 			return t.functionNode(
-				signature.parameters.map((param) =>
-					t.parameterNode(
-						checkSymbol(param, new Set([...typeStack.values(), (type as any).id]), true),
-					),
-				),
+				signature.parameters.map((param) => {
+					const parameterType = checkType(
+						checker.getTypeOfSymbolAtLocation(param, param.valueDeclaration!),
+						new Set([...typeStack.values(), (type as any).id]),
+						param.getName(),
+						true,
+					);
+
+					return t.parameterNode(parameterType, param.getName(), getDocumentationFromSymbol(param));
+				}),
+
 				checkType(signature.getReturnType(), typeStack, name),
 			);
 		} else if (type.getCallSignatures().length > 1) {

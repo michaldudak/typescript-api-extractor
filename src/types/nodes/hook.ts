@@ -1,6 +1,7 @@
 import { Documentation } from '../documentation';
 import { FunctionNode } from './function';
 import { Node, TypeNode } from './node';
+import { ParameterNode } from './parameter';
 
 const typeString = 'hook';
 
@@ -14,7 +15,7 @@ export interface HookNode extends Omit<FunctionNode, 'nodeType'> {
 
 export function hookNode(
 	name: string,
-	parameters: Node[],
+	parameters: ParameterNode[],
 	returnValueType: TypeNode,
 	documentation: Documentation | undefined,
 	parametersFilename: string | undefined,

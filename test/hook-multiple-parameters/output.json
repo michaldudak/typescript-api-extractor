@@ -1,0 +1,63 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "hook",
+			"name": "useHook",
+			"parameters": [
+				{
+					"nodeType": "parameter",
+					"name": "value",
+					"type": {
+						"nodeType": "simpleType",
+						"typeName": "string"
+					}
+				},
+				{
+					"nodeType": "parameter",
+					"name": "severity",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "literal",
+								"value": "\"low\""
+							},
+							{
+								"nodeType": "literal",
+								"value": "\"high\""
+							}
+						]
+					}
+				},
+				{
+					"nodeType": "parameter",
+					"name": "onChange",
+					"type": {
+						"nodeType": "function",
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "newValue",
+								"type": {
+									"nodeType": "simpleType",
+									"typeName": "string"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "simpleType",
+							"typeName": "void"
+						}
+					}
+				}
+			],
+			"returnValueType": {
+				"nodeType": "simpleType",
+				"typeName": "number"
+			},
+			"description": "A hook defined as a function.",
+			"visibility": "internal"
+		}
+	]
+}

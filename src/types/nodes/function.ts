@@ -1,14 +1,15 @@
 import { Node, TypeNode } from './node';
+import { ParameterNode } from './parameter';
 
 const typeString = 'function';
 
 export interface FunctionNode {
 	nodeType: typeof typeString;
-	parameters: Node[];
+	parameters: ParameterNode[];
 	returnValueType: TypeNode;
 }
 
-export function functionNode(parameters: Node[], returnValueType: TypeNode): FunctionNode {
+export function functionNode(parameters: ParameterNode[], returnValueType: TypeNode): FunctionNode {
 	return {
 		nodeType: typeString,
 		parameters,
