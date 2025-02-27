@@ -11,23 +11,9 @@
 					"type": {
 						"nodeType": "intrinsic",
 						"type": "string"
-					}
-				},
-				{
-					"nodeType": "parameter",
-					"name": "severity",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "literal",
-								"value": "\"low\""
-							},
-							{
-								"nodeType": "literal",
-								"value": "\"high\""
-							}
-						]
+					},
+					"documentation": {
+						"description": "The value."
 					}
 				},
 				{
@@ -49,6 +35,29 @@
 							"nodeType": "intrinsic",
 							"type": "void"
 						}
+					},
+					"documentation": {
+						"description": "The change handler."
+					}
+				},
+				{
+					"nodeType": "parameter",
+					"name": "severity",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "literal",
+								"value": "\"low\""
+							},
+							{
+								"nodeType": "literal",
+								"value": "\"high\""
+							}
+						]
+					},
+					"documentation": {
+						"description": "The severity."
 					}
 				}
 			],

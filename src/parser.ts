@@ -423,6 +423,8 @@ export function parseFromProgram(
 		const type = checker.getTypeOfSymbolAtLocation(symbol, node);
 		const typeStack = new Set<number>([(type as any).id]);
 
+		const parameterDescriptions = getParameterDescriptionFromNode(node);
+
 		const checkedSignatures = type.getCallSignatures().map((signature) => {
 			return {
 				parameters: signature.parameters.map((param) => {
@@ -431,7 +433,14 @@ export function parseFromProgram(
 						typeStack,
 						param.getName(),
 					);
-					return t.parameterNode(type, param.getName(), getDocumentationFromSymbol(param));
+
+					const parameterDescription = parameterDescriptions[param.getName()];
+
+					return t.parameterNode(
+						type,
+						param.getName(),
+						parameterDescription ? { description: parameterDescription } : undefined,
+					);
 				}),
 
 				returnValue: checkType(signature.getReturnType(), typeStack, hookName),
@@ -761,4 +770,23 @@ function getVisibilityFromJSDoc(doc: ts.JSDoc): t.Documentation['visibility'] | 
 	}
 
 	return undefined;
+}
+
+function getParameterDescriptionFromNode(node: ts.Node) {
+	const comments = ts.getJSDocCommentsAndTags(node);
+	if (comments && comments.length >= 1) {
+		const commentNode = comments[0];
+		if (ts.isJSDoc(commentNode)) {
+			const paramComments: Record<string, string> = {};
+			commentNode.tags?.forEach((tag) => {
+				if (ts.isJSDocParameterTag(tag) && typeof tag.comment === 'string') {
+					paramComments[tag.name.getText()] = tag.comment.replace(/^[\s-*:]+/g, '');
+				}
+			});
+
+			return paramComments;
+		}
+	}
+
+	return {};
 }
