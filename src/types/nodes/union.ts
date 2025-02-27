@@ -1,7 +1,8 @@
 import _ from 'lodash';
 import { Node, TypeNode } from './node';
 import { isLiteralNode } from './literal';
-import { isSimpleTypeNode } from './simpleType';
+import { isIntrinsicNode } from './intrinsic';
+import { isReferenceNode } from './reference';
 
 const typeString = 'union';
 
@@ -43,7 +44,11 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 				return x.value;
 			}
 
-			if (isSimpleTypeNode(x)) {
+			if (isIntrinsicNode(x)) {
+				return x.type;
+			}
+
+			if (isReferenceNode(x)) {
 				return x.typeName;
 			}
 

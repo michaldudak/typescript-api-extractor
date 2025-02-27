@@ -9,8 +9,8 @@
 					"nodeType": "parameter",
 					"name": "value",
 					"type": {
-						"nodeType": "simpleType",
-						"typeName": "string"
+						"nodeType": "intrinsic",
+						"type": "string"
 					}
 				},
 				{
@@ -40,21 +40,21 @@
 								"nodeType": "parameter",
 								"name": "newValue",
 								"type": {
-									"nodeType": "simpleType",
-									"typeName": "string"
+									"nodeType": "intrinsic",
+									"type": "string"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "simpleType",
-							"typeName": "void"
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
 					}
 				}
 			],
 			"returnValueType": {
-				"nodeType": "simpleType",
-				"typeName": "number"
+				"nodeType": "intrinsic",
+				"type": "number"
 			},
 			"description": "A hook defined as a function.",
 			"visibility": "internal"

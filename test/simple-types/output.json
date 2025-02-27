@@ -9,8 +9,8 @@
 					"nodeType": "member",
 					"name": "s",
 					"type": {
-						"nodeType": "simpleType",
-						"typeName": "string"
+						"nodeType": "intrinsic",
+						"type": "string"
 					},
 					"optional": false,
 					"filenames": {}
@@ -19,8 +19,8 @@
 					"nodeType": "member",
 					"name": "nb",
 					"type": {
-						"nodeType": "simpleType",
-						"typeName": "number"
+						"nodeType": "intrinsic",
+						"type": "number"
 					},
 					"optional": false,
 					"filenames": {}
@@ -29,8 +29,8 @@
 					"nodeType": "member",
 					"name": "b",
 					"type": {
-						"nodeType": "simpleType",
-						"typeName": "boolean"
+						"nodeType": "intrinsic",
+						"type": "boolean"
 					},
 					"optional": false,
 					"filenames": {}

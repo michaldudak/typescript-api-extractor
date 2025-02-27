@@ -15,14 +15,14 @@
 								"nodeType": "parameter",
 								"name": "event",
 								"type": {
-									"nodeType": "simpleType",
+									"nodeType": "reference",
 									"typeName": "React.ChangeEvent"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "simpleType",
-							"typeName": "void"
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
 					},
 					"optional": false,
@@ -38,14 +38,14 @@
 								"nodeType": "parameter",
 								"name": "animated",
 								"type": {
-									"nodeType": "simpleType",
-									"typeName": "boolean"
+									"nodeType": "intrinsic",
+									"type": "boolean"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "simpleType",
-							"typeName": "boolean"
+							"nodeType": "intrinsic",
+							"type": "boolean"
 						}
 					},
 					"optional": false,

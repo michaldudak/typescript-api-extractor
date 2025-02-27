@@ -15,8 +15,8 @@
 								"nodeType": "member",
 								"name": "value",
 								"type": {
-									"nodeType": "simpleType",
-									"typeName": "string"
+									"nodeType": "intrinsic",
+									"type": "string"
 								},
 								"optional": false,
 								"filenames": {}
@@ -25,8 +25,8 @@
 								"nodeType": "member",
 								"name": "severity",
 								"type": {
-									"nodeType": "simpleType",
-									"typeName": "number"
+									"nodeType": "intrinsic",
+									"type": "number"
 								},
 								"optional": false,
 								"filenames": {}
@@ -41,14 +41,14 @@
 											"nodeType": "parameter",
 											"name": "value",
 											"type": {
-												"nodeType": "simpleType",
-												"typeName": "string"
+												"nodeType": "intrinsic",
+												"type": "string"
 											}
 										}
 									],
 									"returnValueType": {
-										"nodeType": "simpleType",
-										"typeName": "void"
+										"nodeType": "intrinsic",
+										"type": "void"
 									}
 								},
 								"optional": false,
@@ -71,13 +71,13 @@
 									"nodeType": "parameter",
 									"name": "externalProps",
 									"type": {
-										"nodeType": "simpleType",
+										"nodeType": "reference",
 										"typeName": "React.HTMLAttributes"
 									}
 								}
 							],
 							"returnValueType": {
-								"nodeType": "simpleType",
+								"nodeType": "reference",
 								"typeName": "React.HTMLAttributes"
 							}
 						},

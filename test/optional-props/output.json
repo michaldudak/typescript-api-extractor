@@ -9,8 +9,8 @@
 					"nodeType": "member",
 					"name": "requiredString",
 					"type": {
-						"nodeType": "simpleType",
-						"typeName": "string"
+						"nodeType": "intrinsic",
+						"type": "string"
 					},
 					"optional": false,
 					"filenames": {}
@@ -22,12 +22,12 @@
 						"nodeType": "union",
 						"types": [
 							{
-								"nodeType": "simpleType",
-								"typeName": "undefined"
+								"nodeType": "intrinsic",
+								"type": "undefined"
 							},
 							{
-								"nodeType": "simpleType",
-								"typeName": "string"
+								"nodeType": "intrinsic",
+								"type": "string"
 							}
 						]
 					},
@@ -41,12 +41,12 @@
 						"nodeType": "union",
 						"types": [
 							{
-								"nodeType": "simpleType",
-								"typeName": "undefined"
+								"nodeType": "intrinsic",
+								"type": "undefined"
 							},
 							{
-								"nodeType": "simpleType",
-								"typeName": "string"
+								"nodeType": "intrinsic",
+								"type": "string"
 							}
 						]
 					},

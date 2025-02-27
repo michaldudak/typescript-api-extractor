@@ -8,16 +8,18 @@ import { MemberNode } from './member';
 import { ObjectNode } from './object';
 import { ParameterNode } from './parameter';
 import { ProgramNode } from './program';
-import { SimpleTypeNode } from './simpleType';
+import { IntrinsicNode } from './intrinsic';
 import { UnionNode } from './union';
+import { ReferenceNode } from './reference';
 
 export type TypeNode =
 	| ArrayNode
 	| FunctionNode
 	| InterfaceNode
+	| IntrinsicNode
 	| LiteralNode
 	| ObjectNode
-	| SimpleTypeNode
+	| ReferenceNode
 	| UnionNode;
 
 export type Node = TypeNode | ComponentNode | HookNode | MemberNode | ParameterNode | ProgramNode;

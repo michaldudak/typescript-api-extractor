@@ -13,12 +13,12 @@
 						"nodeType": "union",
 						"types": [
 							{
-								"nodeType": "simpleType",
-								"typeName": "undefined"
+								"nodeType": "intrinsic",
+								"type": "undefined"
 							},
 							{
-								"nodeType": "simpleType",
-								"typeName": "string"
+								"nodeType": "intrinsic",
+								"type": "string"
 							}
 						]
 					},
@@ -34,12 +34,12 @@
 						"nodeType": "union",
 						"types": [
 							{
-								"nodeType": "simpleType",
-								"typeName": "undefined"
+								"nodeType": "intrinsic",
+								"type": "undefined"
 							},
 							{
-								"nodeType": "simpleType",
-								"typeName": "number"
+								"nodeType": "intrinsic",
+								"type": "number"
 							}
 						]
 					},
