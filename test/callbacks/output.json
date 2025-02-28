@@ -10,20 +10,24 @@
 					"name": "onChange",
 					"type": {
 						"nodeType": "function",
-						"parameters": [
+						"callSignatures": [
 							{
-								"nodeType": "parameter",
-								"name": "event",
-								"type": {
-									"nodeType": "reference",
-									"typeName": "React.ChangeEvent"
+								"parameters": [
+									{
+										"nodeType": "parameter",
+										"name": "event",
+										"type": {
+											"nodeType": "reference",
+											"typeName": "React.ChangeEvent"
+										}
+									}
+								],
+								"returnValueType": {
+									"nodeType": "intrinsic",
+									"type": "void"
 								}
 							}
-						],
-						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
-						}
+						]
 					},
 					"optional": false,
 					"filenames": {}
@@ -33,20 +37,24 @@
 					"name": "onClosing",
 					"type": {
 						"nodeType": "function",
-						"parameters": [
+						"callSignatures": [
 							{
-								"nodeType": "parameter",
-								"name": "animated",
-								"type": {
+								"parameters": [
+									{
+										"nodeType": "parameter",
+										"name": "animated",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "boolean"
+										}
+									}
+								],
+								"returnValueType": {
 									"nodeType": "intrinsic",
 									"type": "boolean"
 								}
 							}
-						],
-						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "boolean"
-						}
+						]
 					},
 					"optional": false,
 					"filenames": {}

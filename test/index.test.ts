@@ -11,7 +11,7 @@ if (testCases.some((t) => t.includes('.only'))) {
 
 const program = rae.createProgram(
 	testCases,
-	rae.loadConfig(path.resolve(__dirname, '../tsconfig.json')),
+	rae.loadConfig(path.resolve(__dirname, '../tsconfig.json')).options,
 );
 
 for (const testCase of testCases) {
@@ -25,16 +25,16 @@ for (const testCase of testCases) {
 		const newAST = rae.programNode(
 			ast.body.map((componentOrHook) => {
 				if (rae.isComponentNode(componentOrHook)) {
-					expect(componentOrHook.propsFilename).toBe(testCase);
+					expect(componentOrHook.fileName).toBe(testCase);
 					return {
 						...componentOrHook,
-						propsFilename: undefined,
+						fileName: undefined,
 					};
 				} else {
-					expect(componentOrHook.parametersFilename).toBe(testCase);
+					expect(componentOrHook.fileName).toBe(testCase);
 					return {
 						...componentOrHook,
-						parametersFilename: undefined,
+						fileName: undefined,
 					};
 				}
 			}),

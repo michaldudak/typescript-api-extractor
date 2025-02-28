@@ -8,21 +8,21 @@ export interface HookNode extends Omit<FunctionNode, 'nodeType'> {
 	nodeType: typeof typeString;
 	name: string;
 	documentation: Documentation | undefined;
-	parametersFilename?: string;
+	fileName: string | undefined;
 }
 
 export function hookNode(
 	name: string,
 	callSignatures: CallSignature[],
 	documentation: Documentation | undefined,
-	parametersFilename: string | undefined,
+	fileName: string | undefined,
 ): HookNode {
 	return {
 		nodeType: typeString,
 		name: name,
 		callSignatures,
 		documentation,
-		parametersFilename,
+		fileName,
 	};
 }
 

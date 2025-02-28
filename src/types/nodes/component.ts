@@ -8,7 +8,7 @@ export interface ComponentNode {
 	nodeType: typeof typeString;
 	name: string;
 	props: MemberNode[];
-	propsFilename?: string;
+	fileName?: string;
 	description?: string;
 	visibility?: Documentation['visibility'];
 }
@@ -17,7 +17,7 @@ export function componentNode(
 	name: string,
 	props: MemberNode[],
 	documentation: Documentation | undefined,
-	propsFilename: string | undefined,
+	fileName: string | undefined,
 ): ComponentNode {
 	return {
 		nodeType: typeString,
@@ -25,7 +25,7 @@ export function componentNode(
 		props: props || [],
 		description: documentation?.description,
 		visibility: documentation?.visibility,
-		propsFilename,
+		fileName,
 	};
 }
 

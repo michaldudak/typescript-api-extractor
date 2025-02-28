@@ -264,25 +264,6 @@ export function parseFromProgram(
 		}
 	}
 
-	function isTypeJSXElementLike(type: ts.Type): boolean {
-		if (type.isUnion()) {
-			return type.types.every(
-				(subType) => subType.flags & ts.TypeFlags.Null || isTypeJSXElementLike(subType),
-			);
-		} else if (type.symbol) {
-			const name = checker.getFullyQualifiedName(type.symbol);
-			return (
-				name === 'global.JSX.Element' ||
-				name === 'React.ReactElement' ||
-				name === 'React.JSX.Element' ||
-				name.endsWith('@types/react/jsx-runtime".JSX.Element') || // when `"jsx": "react-jsx"` in tsconfig
-				name.endsWith('@types/react/jsx-dev-runtime".JSX.Element') // when `"jsx": "react-jsxdev"` in tsconfig
-			);
-		}
-
-		return false;
-	}
-
 	function parseFunctionComponent(
 		node: ts.VariableDeclaration | ts.FunctionDeclaration,
 		documentationNode: ts.Node,
@@ -299,10 +280,6 @@ export function parseFromProgram(
 
 		const type = checker.getTypeOfSymbolAtLocation(symbol, node);
 		type.getCallSignatures().forEach((signature) => {
-			if (!isTypeJSXElementLike(signature.getReturnType())) {
-				return;
-			}
-
 			const propsType = checker.getTypeOfSymbolAtLocation(
 				signature.parameters[0],
 				signature.parameters[0].valueDeclaration!,
