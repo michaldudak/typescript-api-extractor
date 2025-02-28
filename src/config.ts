@@ -1,4 +1,4 @@
-import * as ts from 'typescript';
+import ts from 'typescript';
 import fs from 'fs';
 import path from 'path';
 
@@ -7,19 +7,22 @@ import path from 'path';
  * @param tsConfigPath The location for a `tsconfig.json` file
  */
 export function loadConfig(tsConfigPath: string) {
+	const resolvedConfigPath = path.resolve(tsConfigPath);
+	const projectDirectory = path.dirname(resolvedConfigPath);
+
 	const { config, error } = ts.readConfigFile(tsConfigPath, (filePath) =>
 		fs.readFileSync(filePath).toString(),
 	);
 
 	if (error) throw error;
 
-	const { options, errors } = ts.parseJsonConfigFileContent(
+	const { options, errors, fileNames } = ts.parseJsonConfigFileContent(
 		config,
 		ts.sys,
-		path.dirname(tsConfigPath),
+		projectDirectory,
 	);
 
 	if (errors.length > 0) throw errors[0];
 
-	return options;
+	return { options, fileNames };
 }

@@ -1,5 +1,6 @@
 # Output folder
 dist
+out
 
 # Yarn 2
 .yarn/*

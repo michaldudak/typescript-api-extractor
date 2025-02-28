@@ -504,7 +504,11 @@ export function parseFromProgram(
 				: symbolType;
 
 		if (!type) {
-			throw new Error('No types found');
+			if (symbol.name) {
+				throw new Error('No types found for symbol ' + symbol.name);
+			} else {
+				throw new Error('No types found for symbol');
+			}
 		}
 
 		// Typechecker only gives the type "any" if it's present in a union

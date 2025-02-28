@@ -5,7 +5,7 @@ const typeString = 'function';
 
 export interface FunctionNode {
 	nodeType: typeof typeString;
-	callSignatures?: CallSignature[];
+	callSignatures: CallSignature[];
 }
 
 export interface CallSignature {
