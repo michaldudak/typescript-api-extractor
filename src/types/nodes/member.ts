@@ -6,10 +6,8 @@ const typeString = 'member';
 export interface MemberNode {
 	nodeType: typeof typeString;
 	name: string;
-	description?: string;
-	defaultValue?: any;
-	visibility?: Documentation['visibility'];
 	type: TypeNode;
+	documentation?: Documentation;
 	optional: boolean;
 	filenames: Set<string>;
 	/**
@@ -20,8 +18,8 @@ export interface MemberNode {
 
 export function memberNode(
 	name: string,
-	documentation: Documentation | undefined,
 	type: TypeNode,
+	documentation: Documentation | undefined,
 	optional: boolean,
 	filenames: Set<string>,
 	id: number | undefined,
@@ -29,10 +27,8 @@ export function memberNode(
 	return {
 		nodeType: typeString,
 		name,
-		description: documentation?.description,
-		defaultValue: documentation?.defaultValue,
-		visibility: documentation?.visibility,
 		type,
+		documentation,
 		optional,
 		filenames,
 		$$id: id,

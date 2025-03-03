@@ -19,10 +19,19 @@
 					"nodeType": "member",
 					"name": "uniqueA",
 					"type": {
-						"nodeType": "intrinsic",
-						"type": "string"
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							}
+						]
 					},
-					"optional": false,
+					"optional": true,
 					"filenames": {}
 				},
 				{
@@ -67,10 +76,19 @@
 					"nodeType": "member",
 					"name": "uniqueB",
 					"type": {
-						"nodeType": "intrinsic",
-						"type": "string"
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							}
+						]
 					},
-					"optional": false,
+					"optional": true,
 					"filenames": {}
 				}
 			]

@@ -1,6 +1,7 @@
 import { ArrayNode } from './array';
 import { ComponentNode } from './component';
 import { FunctionNode } from './function';
+import { FunctionTypeNode } from './functionType';
 import { HookNode } from './hook';
 import { InterfaceNode } from './interface';
 import { LiteralNode } from './literal';
@@ -14,7 +15,7 @@ import { ReferenceNode } from './reference';
 
 export type TypeNode =
 	| ArrayNode
-	| FunctionNode
+	| FunctionTypeNode
 	| InterfaceNode
 	| IntrinsicNode
 	| LiteralNode
@@ -22,4 +23,11 @@ export type TypeNode =
 	| ReferenceNode
 	| UnionNode;
 
-export type Node = TypeNode | ComponentNode | HookNode | MemberNode | ParameterNode | ProgramNode;
+export type Node =
+	| TypeNode
+	| FunctionNode
+	| ComponentNode
+	| HookNode
+	| MemberNode
+	| ParameterNode
+	| ProgramNode;

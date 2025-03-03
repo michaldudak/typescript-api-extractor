@@ -8,7 +8,6 @@
 				{
 					"nodeType": "member",
 					"name": "className",
-					"description": "The class name.\nUsed to make the component more classy.",
 					"type": {
 						"nodeType": "union",
 						"types": [
@@ -22,14 +21,15 @@
 							}
 						]
 					},
+					"documentation": {
+						"description": "The class name.\nUsed to make the component more classy."
+					},
 					"optional": true,
 					"filenames": {}
 				},
 				{
 					"nodeType": "member",
 					"name": "someValue",
-					"description": "A value.",
-					"defaultValue": "10",
 					"type": {
 						"nodeType": "union",
 						"types": [
@@ -42,6 +42,10 @@
 								"type": "number"
 							}
 						]
+					},
+					"documentation": {
+						"description": "A value.",
+						"defaultValue": "10"
 					},
 					"optional": true,
 					"filenames": {}

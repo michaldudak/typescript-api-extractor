@@ -22,7 +22,7 @@
 							"nodeType": "parameter",
 							"name": "onChange",
 							"type": {
-								"nodeType": "function",
+								"nodeType": "functionType",
 								"callSignatures": [
 									{
 										"parameters": [

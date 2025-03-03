@@ -3,6 +3,7 @@ import { Node, TypeNode } from './node';
 import { isLiteralNode } from './literal';
 import { isIntrinsicNode } from './intrinsic';
 import { isReferenceNode } from './reference';
+import { isInterfaceNode } from './interface';
 
 const typeString = 'union';
 
@@ -50,6 +51,10 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 
 			if (isReferenceNode(x)) {
 				return x.typeName;
+			}
+
+			if (isInterfaceNode(x)) {
+				return x;
 			}
 
 			return x.nodeType;

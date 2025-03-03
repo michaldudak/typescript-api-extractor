@@ -9,7 +9,7 @@
 					"nodeType": "member",
 					"name": "onChange",
 					"type": {
-						"nodeType": "function",
+						"nodeType": "functionType",
 						"callSignatures": [
 							{
 								"parameters": [
@@ -36,7 +36,7 @@
 					"nodeType": "member",
 					"name": "onClosing",
 					"type": {
-						"nodeType": "function",
+						"nodeType": "functionType",
 						"callSignatures": [
 							{
 								"parameters": [

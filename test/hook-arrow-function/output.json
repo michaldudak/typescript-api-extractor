@@ -37,7 +37,7 @@
 										"nodeType": "member",
 										"name": "onChange",
 										"type": {
-											"nodeType": "function",
+											"nodeType": "functionType",
 											"callSignatures": [
 												{
 													"parameters": [
@@ -71,7 +71,7 @@
 								"nodeType": "member",
 								"name": "getProps",
 								"type": {
-									"nodeType": "function",
+									"nodeType": "functionType",
 									"callSignatures": [
 										{
 											"parameters": [

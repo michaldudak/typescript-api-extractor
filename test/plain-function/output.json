@@ -1,0 +1,104 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "declaration",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "p",
+							"type": {
+								"nodeType": "interface",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "s",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "string"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "greetAsExpression",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "p",
+							"type": {
+								"nodeType": "interface",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "s",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "string"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "greetAsArrowFunction",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "p",
+							"type": {
+								"nodeType": "interface",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "s",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "string"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		}
+	]
+}

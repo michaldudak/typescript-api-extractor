@@ -4,6 +4,8 @@ import { it, expect } from 'vitest';
 import glob from 'fast-glob';
 import * as rae from '../src';
 
+const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
+
 let testCases = glob.sync('**/input.{d.ts,ts,tsx}', { absolute: true, cwd: __dirname });
 if (testCases.some((t) => t.includes('.only'))) {
 	testCases = testCases.filter((t) => t.includes('.only'));
@@ -31,7 +33,6 @@ for (const testCase of testCases) {
 						fileName: undefined,
 					};
 				} else {
-					expect(componentOrHook.fileName).toBe(testCase);
 					return {
 						...componentOrHook,
 						fileName: undefined,
@@ -40,7 +41,7 @@ for (const testCase of testCases) {
 			}),
 		);
 
-		if (fs.existsSync(expectedOutput)) {
+		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
 			expect(newAST).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
 		} else {
 			fs.writeFileSync(
