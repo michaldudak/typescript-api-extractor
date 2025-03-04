@@ -8,4 +8,6 @@ interface Props {
 	requiredString: string;
 	optionalString?: string;
 	stringOrUndefined: string | undefined;
+	requiredBoolean: boolean;
+	optionalBoolean?: boolean;
 }

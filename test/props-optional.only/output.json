@@ -52,6 +52,35 @@
 					},
 					"optional": false,
 					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "requiredBoolean",
+					"type": {
+						"nodeType": "intrinsic",
+						"type": "boolean"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "optionalBoolean",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "boolean"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
 				}
 			]
 		}
