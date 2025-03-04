@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { Node, TypeNode } from './node';
 import { isLiteralNode } from './literal';
-import { isIntrinsicNode } from './intrinsic';
+import { intrinsicNode, isIntrinsicNode } from './intrinsic';
 import { isReferenceNode } from './reference';
 import { isInterfaceNode } from './interface';
 
@@ -16,6 +16,7 @@ export function unionNode(types: TypeNode[]): UnionNode {
 	const flatTypes: TypeNode[] = [];
 
 	flattenTypes(types);
+	sanitizeBooleanLiterals(flatTypes);
 
 	function flattenTypes(nodes: TypeNode[]) {
 		nodes.forEach((x) => {
@@ -37,7 +38,9 @@ export function isUnionNode(node: Node): node is UnionNode {
 	return node.nodeType === typeString;
 }
 
-export function uniqueUnionTypes(node: UnionNode): UnionNode {
+function uniqueUnionTypes(node: UnionNode): UnionNode {
+	// Typescript parses foo?: boolean as a union of `true | false | undefined`.
+	// We want to simplify this to just `boolean | undefined`.
 	return {
 		nodeType: node.nodeType,
 		types: _.uniqBy(node.types, (x) => {
@@ -60,4 +63,20 @@ export function uniqueUnionTypes(node: UnionNode): UnionNode {
 			return x.nodeType;
 		}),
 	};
+}
+
+function sanitizeBooleanLiterals(members: TypeNode[]): void {
+	const trueLiteralIndex = members.findIndex((x) => isLiteralNode(x) && x.value === 'true');
+	const falseLiteralIndex = members.findIndex((x) => isLiteralNode(x) && x.value === 'false');
+
+	if (trueLiteralIndex !== -1 && falseLiteralIndex !== -1) {
+		const booleanNode = intrinsicNode('boolean');
+		if (trueLiteralIndex > falseLiteralIndex) {
+			members.splice(trueLiteralIndex, 1);
+			members.splice(falseLiteralIndex, 1, booleanNode);
+		} else {
+			members.splice(falseLiteralIndex, 1);
+			members.splice(trueLiteralIndex, 1, booleanNode);
+		}
+	}
 }
