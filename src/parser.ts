@@ -15,7 +15,7 @@ export interface ParserContext {
 	shouldResolveFunction: ParserOptions['shouldResolveFunction'];
 	sourceFile: ts.SourceFile;
 	visitedNodes: Set<ts.Node>;
-	typeStack: Set<number>;
+	typeStack: number[];
 	includeExternalTypes: boolean;
 }
 
@@ -146,7 +146,7 @@ export function parseFromProgram(
 		shouldResolveFunction,
 		sourceFile,
 		visitedNodes,
-		typeStack: new Set<number>(),
+		typeStack: [],
 		includeExternalTypes: parserOptions.includeExternalTypes || false,
 	};
 

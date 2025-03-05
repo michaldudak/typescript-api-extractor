@@ -44,7 +44,7 @@ export function parseComponentProps(
 
 	return t.componentNode(
 		componentName,
-		filteredProperties.map((x) => parseMember(x, new Set([(propsType as any).id]), context)),
+		filteredProperties.map((x) => parseMember(x, context)),
 		docs,
 		propsFilename,
 	);
