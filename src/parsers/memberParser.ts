@@ -6,7 +6,6 @@ import { resolveType } from './typeResolver';
 
 export function parseMember(
 	symbol: ts.Symbol,
-	typeStack: Set<number>,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): t.MemberNode {

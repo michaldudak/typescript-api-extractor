@@ -6,6 +6,7 @@ import {
 	parseFunctionComponent,
 	parseHook,
 } from './parsers/functionParser';
+import { parseEnum } from './parsers/enumParser';
 
 export interface ParserContext {
 	checker: ts.TypeChecker;
@@ -136,7 +137,7 @@ export function parseFromProgram(
 
 	const reactImports: string[] = [];
 	const visitedNodes = new Set<ts.Node>();
-	const foundNodes: (t.ComponentNode | t.HookNode | t.FunctionNode | undefined)[] = [];
+	const foundNodes: (t.ComponentNode | t.HookNode | t.FunctionNode | t.EnumNode | undefined)[] = [];
 
 	const parserContext: ParserContext = {
 		checker,
@@ -311,6 +312,8 @@ export function parseFromProgram(
 					),
 				);
 			}
+		} else if (ts.isEnumDeclaration(node)) {
+			foundNodes.push(parseEnum(node, parserContext));
 		}
 	}
 }

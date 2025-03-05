@@ -6,6 +6,7 @@ export * from './nodes/hook';
 export * from './nodes/member';
 
 export * from './nodes/array';
+export * from './nodes/enum';
 export * from './nodes/interface';
 export * from './nodes/intrinsic';
 export * from './nodes/functionType';

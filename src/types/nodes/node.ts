@@ -12,6 +12,7 @@ import { ProgramNode } from './program';
 import { IntrinsicNode } from './intrinsic';
 import { UnionNode } from './union';
 import { ReferenceNode } from './reference';
+import { EnumNode } from './enum';
 
 export type TypeNode =
 	| ArrayNode
@@ -21,7 +22,8 @@ export type TypeNode =
 	| LiteralNode
 	| ObjectNode
 	| ReferenceNode
-	| UnionNode;
+	| UnionNode
+	| EnumNode;
 
 export type Node =
 	| TypeNode
