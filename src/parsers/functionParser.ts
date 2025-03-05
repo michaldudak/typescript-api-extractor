@@ -25,8 +25,13 @@ export function parseComponentProps(
 		allProperties = propsType.getProperties();
 	}
 
-	const filteredProperties = allProperties.filter((symbol) =>
-		shouldInclude({ name: symbol.getName(), depth: 1 }),
+	const filteredProperties = allProperties.filter(
+		(symbol) =>
+			shouldInclude({ name: symbol.getName(), depth: 1 }) &&
+			(context.includeExternalTypes ||
+				!symbol.declarations?.some((propDeclaration) =>
+					propDeclaration.getSourceFile().fileName.includes('node_modules'),
+				)),
 	);
 
 	if (filteredProperties.length === 0) {

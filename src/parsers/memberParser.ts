@@ -63,12 +63,24 @@ export function parseMember(
 			? baseConstraintOfType
 			: symbolType;
 
+	if (
+		!context.includeExternalTypes &&
+		declaredType?.aliasSymbol?.declarations?.some((x) =>
+			x.getSourceFile().fileName.includes('node_modules'),
+		)
+	) {
+		return t.memberNode(
+			symbol.getName(),
+			t.referenceNode(declaredType.aliasSymbol.name),
+			undefined,
+			false,
+			symbolFilenames,
+			(symbol as any).id,
+		);
+	}
+
 	if (!type) {
-		if (symbol.name) {
-			throw new Error('No types found for symbol ' + symbol.name);
-		} else {
-			throw new Error('No types found for symbol');
-		}
+		throw new Error(`No types found for symbol${symbol.name ? ' ' + symbol.name : ''}`);
 	}
 
 	// Typechecker only gives the type "any" if it's present in a union

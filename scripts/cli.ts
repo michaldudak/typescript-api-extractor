@@ -10,7 +10,6 @@ const isDebug = inspector.url() !== undefined;
 interface RunOptions {
 	files?: string[];
 	configPath: string;
-	includeExternal: boolean;
 	out?: string;
 }
 
@@ -37,36 +36,28 @@ function run(options: RunOptions) {
 			const componentsApi = ast.body.filter(rae.isComponentNode).map((component) => {
 				return {
 					...component,
-					props: component.props
-						.map((prop) => {
-							return {
-								...prop,
-								filenames: Array.from(prop.filenames),
-							};
-						})
-						.filter(
-							(prop) =>
-								options.includeExternal ||
-								!Array.from(prop.filenames).some((filename) => filename.includes('/node_modules/')),
-						),
+					props: component.props.map((prop) => {
+						return {
+							...prop,
+							filenames: Array.from(prop.filenames),
+						};
+					}),
+
 					nodeType: undefined,
 				};
 			});
 
-			const hooksApi = ast.body
-				.filter(rae.isHookNode)
-				.map((hook) => {
-					return {
-						...hook,
-						parameters: hook.callSignatures[0].parameters.map((parameter) => {
-							return {
-								...parameter,
-							};
-						}),
-						nodeType: undefined,
-					};
-				})
-				.filter((hook) => options.includeExternal || !hook.fileName?.includes('/node_modules/'));
+			const hooksApi = ast.body.filter(rae.isHookNode).map((hook) => {
+				return {
+					...hook,
+					parameters: hook.callSignatures[0].parameters.map((parameter) => {
+						return {
+							...parameter,
+						};
+					}),
+					nodeType: undefined,
+				};
+			});
 
 			components.push(...componentsApi);
 			hooks.push(...hooksApi);
