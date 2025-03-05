@@ -25,7 +25,8 @@
 		"build": "tsc --build tsconfig.json",
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
-		"dev": "tsx scripts/cli.ts"
+		"prepack": "pnpm build && node scripts/appendDevVersion.mjs",
+		"postpack": "node scripts/removeDevVersion.mjs"
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",
@@ -36,15 +37,11 @@
 		"@types/lodash": "^4.17.15",
 		"@types/node": "^22.13.4",
 		"@types/react": "^19.0.10",
-		"@types/yargs": "^17.0.33",
 		"cross-env": "^7.0.3",
-		"fast-glob": "^3.3.3",
 		"prettier": "^3.5.1",
 		"rimraf": "^6.0.1",
-		"tsx": "^4.19.2",
 		"vite": "^6.1.0",
-		"vitest": "^3.0.6",
-		"yargs": "^17.7.2"
+		"vitest": "^3.0.6"
 	},
 	"publishConfig": {
 		"access": "public"
