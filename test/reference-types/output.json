@@ -3,16 +3,36 @@
 	"body": [
 		{
 			"nodeType": "function",
-			"name": "declaration",
+			"name": "referenceTypes",
 			"callSignatures": [
 				{
 					"parameters": [
 						{
 							"nodeType": "parameter",
-							"name": "p",
+							"name": "a",
 							"type": {
 								"nodeType": "interface",
-								"name": "Parameters",
+								"name": "CustomInterface",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "number"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "b",
+							"type": {
+								"nodeType": "interface",
+								"name": "CustomType",
 								"members": [
 									{
 										"nodeType": "member",
@@ -29,24 +49,27 @@
 						}
 					],
 					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
-					}
-				}
-			]
-		},
-		{
-			"nodeType": "function",
-			"name": "greetAsExpression",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "p",
-							"type": {
+						"nodeType": "union",
+						"types": [
+							{
 								"nodeType": "interface",
-								"name": "Parameters",
+								"name": "CustomInterface",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "number"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							},
+							{
+								"nodeType": "interface",
+								"name": "CustomType",
 								"members": [
 									{
 										"nodeType": "member",
@@ -60,27 +83,41 @@
 									}
 								]
 							}
-						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
+						]
 					}
 				}
 			]
 		},
 		{
 			"nodeType": "function",
-			"name": "greetAsArrowFunction",
+			"name": "inlineTypes",
 			"callSignatures": [
 				{
 					"parameters": [
 						{
 							"nodeType": "parameter",
-							"name": "p",
+							"name": "a",
 							"type": {
 								"nodeType": "interface",
-								"name": "Parameters",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "number"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "b",
+							"type": {
+								"nodeType": "interface",
 								"members": [
 									{
 										"nodeType": "member",

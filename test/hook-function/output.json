@@ -12,6 +12,7 @@
 							"name": "parameters",
 							"type": {
 								"nodeType": "interface",
+								"name": "HookParameters",
 								"members": [
 									{
 										"nodeType": "member",
@@ -66,6 +67,7 @@
 					],
 					"returnValueType": {
 						"nodeType": "interface",
+						"name": "HookReturnValue",
 						"members": [
 							{
 								"nodeType": "member",

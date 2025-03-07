@@ -5,13 +5,15 @@ const typeString = 'interface';
 
 export interface InterfaceNode {
 	nodeType: typeof typeString;
+	name: string | undefined;
 
 	members: MemberNode[];
 }
 
-export function interfaceNode(members: MemberNode[] = []): InterfaceNode {
+export function interfaceNode(name: string | undefined, members: MemberNode[] = []): InterfaceNode {
 	return {
 		nodeType: typeString,
+		name,
 		members,
 	};
 }

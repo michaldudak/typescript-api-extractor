@@ -142,6 +142,12 @@ export function resolveType(
 		// Object-like type
 		{
 			const properties = type.getProperties();
+			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
+			let fqName = typeSymbol ? checker.getFullyQualifiedName(typeSymbol) : undefined;
+			if (fqName === '__type') {
+				fqName = undefined;
+			}
+
 			if (properties.length) {
 				if (
 					!skipResolvingComplexTypes &&
@@ -151,14 +157,15 @@ export function resolveType(
 						shouldInclude({ name: symbol.getName(), depth: typeStack.length + 1 }),
 					);
 					if (filtered.length > 0) {
-						return t.interfaceNode(filtered.map((x) => parseMember(x, context)));
+						return t.interfaceNode(
+							fqName,
+							filtered.map((x) => parseMember(x, context)),
+						);
 					}
 				}
 
-				const typeSymbol = type.getSymbol();
-				if (typeSymbol) {
-					const typeName = checker.getFullyQualifiedName(typeSymbol);
-					return t.referenceNode(typeName);
+				if (fqName) {
+					return t.referenceNode(fqName);
 				}
 
 				return t.objectNode();
