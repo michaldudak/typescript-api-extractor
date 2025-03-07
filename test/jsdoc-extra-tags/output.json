@@ -1,0 +1,36 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "test",
+			"callSignatures": [
+				{
+					"parameters": [],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			],
+			"documentation": {
+				"description": "This is a test.",
+				"visibility": "public",
+				"tags": [
+					{
+						"tag": "example",
+						"value": "test();"
+					},
+					{
+						"tag": "type",
+						"value": "function"
+					},
+					{
+						"tag": "category",
+						"value": "important-functions"
+					}
+				]
+			}
+		}
+	]
+}

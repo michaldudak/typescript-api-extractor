@@ -23,10 +23,18 @@ export function getDocumentationFromNode(node: ts.Node): t.Documentation | undef
 	if (comments && comments.length === 1) {
 		const commentNode = comments[0];
 		if (ts.isJSDoc(commentNode)) {
+			const tags = commentNode.tags
+				?.filter(
+					(tag) =>
+						!['default', 'private', 'internal', 'public', 'param'].includes(tag.tagName.text),
+				)
+				.map(parseTag);
+
 			return {
 				description: commentNode.comment as string | undefined,
 				defaultValue: commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
 				visibility: getVisibilityFromJSDoc(commentNode),
+				tags: tags?.length ? tags : undefined,
 			};
 		}
 	}
@@ -65,4 +73,18 @@ export function getParameterDescriptionFromNode(node: ts.Node) {
 	}
 
 	return {};
+}
+
+function parseTag(tag: ts.JSDocTag) {
+	if (ts.isJSDocTypeTag(tag)) {
+		return {
+			tag: tag.tagName.text,
+			value: tag.typeExpression?.type.getText(),
+		};
+	}
+
+	return {
+		tag: tag.tagName.text,
+		value: typeof tag.comment === 'string' ? tag.comment : undefined,
+	};
 }
