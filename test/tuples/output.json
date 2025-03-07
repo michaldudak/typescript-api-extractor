@@ -1,0 +1,93 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "testFunction1",
+			"callSignatures": [
+				{
+					"parameters": [],
+					"returnValueType": {
+						"nodeType": "tuple",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "number"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "testFunction2",
+			"callSignatures": [
+				{
+					"parameters": [],
+					"returnValueType": {
+						"nodeType": "tuple",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "number"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "testFunction3",
+			"callSignatures": [
+				{
+					"parameters": [],
+					"returnValueType": {
+						"nodeType": "tuple",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "number"
+							}
+						]
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "testFunction4",
+			"callSignatures": [
+				{
+					"parameters": [],
+					"returnValueType": {
+						"nodeType": "tuple",
+						"types": [
+							{
+								"nodeType": "intrinsic",
+								"type": "string"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "number"
+							}
+						]
+					}
+				}
+			]
+		}
+	]
+}

@@ -14,6 +14,7 @@ export * from './nodes/literal';
 export * from './nodes/object';
 export * from './nodes/parameter';
 export * from './nodes/reference';
+export * from './nodes/tuple';
 export * from './nodes/union';
 
 export * from './documentation';

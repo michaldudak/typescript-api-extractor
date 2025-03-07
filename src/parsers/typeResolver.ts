@@ -82,6 +82,14 @@ export function resolveType(
 			return node.types.length === 1 ? node.types[0] : node;
 		}
 
+		if (checker.isTupleType(type)) {
+			return t.tupleNode(
+				(type as ts.TupleType).typeArguments?.map((x) =>
+					resolveType(x, x.getSymbol()?.name || '', context),
+				) ?? [],
+			);
+		}
+
 		if (type.flags & ts.TypeFlags.String) {
 			return t.intrinsicNode('string');
 		}

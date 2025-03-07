@@ -13,6 +13,7 @@ import { IntrinsicNode } from './intrinsic';
 import { UnionNode } from './union';
 import { ReferenceNode } from './reference';
 import { EnumNode } from './enum';
+import { TupleNode } from './tuple';
 
 export type TypeNode =
 	| ArrayNode
@@ -22,6 +23,7 @@ export type TypeNode =
 	| LiteralNode
 	| ObjectNode
 	| ReferenceNode
+	| TupleNode
 	| UnionNode
 	| EnumNode;
 
