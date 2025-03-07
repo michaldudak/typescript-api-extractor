@@ -29,6 +29,17 @@ export function resolveType(
 	typeStack.push((type as any).id);
 
 	try {
+		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
+			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+			return t.typeParameterNode(
+				type.symbol.name,
+				declaration?.constraint?.getText(),
+				declaration?.default
+					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
+					: undefined,
+			);
+		}
+
 		if (
 			!includeExternalTypes &&
 			type
@@ -143,9 +154,9 @@ export function resolveType(
 		{
 			const properties = type.getProperties();
 			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
-			let fqName = typeSymbol ? checker.getFullyQualifiedName(typeSymbol) : undefined;
-			if (fqName === '__type') {
-				fqName = undefined;
+			let typeName = typeSymbol?.getName();
+			if (typeName === '__type') {
+				typeName = undefined;
 			}
 
 			if (properties.length) {
@@ -158,14 +169,14 @@ export function resolveType(
 					);
 					if (filtered.length > 0) {
 						return t.interfaceNode(
-							fqName,
+							typeName,
 							filtered.map((x) => parseMember(x, context)),
 						);
 					}
 				}
 
-				if (fqName) {
-					return t.referenceNode(fqName);
+				if (typeName) {
+					return t.referenceNode(typeName);
 				}
 
 				return t.objectNode();

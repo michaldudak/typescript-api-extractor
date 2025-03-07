@@ -14,6 +14,7 @@ import { UnionNode } from './union';
 import { ReferenceNode } from './reference';
 import { EnumNode } from './enum';
 import { TupleNode } from './tuple';
+import { TypeParameterNode } from './typeParameter';
 
 export type TypeNode =
 	| ArrayNode
@@ -24,6 +25,7 @@ export type TypeNode =
 	| ObjectNode
 	| ReferenceNode
 	| TupleNode
+	| TypeParameterNode
 	| UnionNode
 	| EnumNode;
 

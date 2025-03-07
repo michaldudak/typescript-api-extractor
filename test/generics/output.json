@@ -1,0 +1,40 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "genericFunction",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "interface",
+								"name": "GenericFunctionParameters",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "value",
+										"type": {
+											"nodeType": "reference",
+											"typeName": "React.HTMLAttributes"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "typeParameter",
+						"name": "T",
+						"constraint": "React.HTMLAttributes<HTMLElement>"
+					}
+				}
+			]
+		}
+	]
+}
