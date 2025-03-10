@@ -1,0 +1,217 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "test1",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "interface",
+								"name": "Partial",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "intrinsic",
+													"type": "undefined"
+												},
+												{
+													"nodeType": "intrinsic",
+													"type": "boolean"
+												}
+											]
+										},
+										"optional": true,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "b",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "intrinsic",
+													"type": "undefined"
+												},
+												{
+													"nodeType": "intrinsic",
+													"type": "string"
+												}
+											]
+										},
+										"optional": true,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "test2",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "interface",
+								"name": "Readonly",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "boolean"
+										},
+										"optional": false,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "b",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "string"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "test3",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "interface",
+								"name": "Partial",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "intrinsic",
+													"type": "undefined"
+												},
+												{
+													"nodeType": "intrinsic",
+													"type": "boolean"
+												}
+											]
+										},
+										"optional": true,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "b",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "intrinsic",
+													"type": "undefined"
+												},
+												{
+													"nodeType": "intrinsic",
+													"type": "string"
+												}
+											]
+										},
+										"optional": true,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "test4",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "interface",
+								"name": "Readonly",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "a",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "boolean"
+										},
+										"optional": false,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "b",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "string"
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		}
+	]
+}

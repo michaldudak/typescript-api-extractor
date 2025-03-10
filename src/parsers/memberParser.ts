@@ -40,7 +40,7 @@ export function parseMember(
 				symbol.getName(),
 				elementNode,
 				getDocumentationFromSymbol(symbol, checker),
-				!!declaration.questionToken,
+				Boolean(symbol.flags & ts.SymbolFlags.Optional),
 				symbolFilenames,
 				(symbol as any).id,
 			);
@@ -101,7 +101,7 @@ export function parseMember(
 		symbol.getName(),
 		parsedType,
 		getDocumentationFromSymbol(symbol, checker),
-		Boolean(declaration && ts.isPropertySignature(declaration) && declaration.questionToken),
+		Boolean(symbol.flags & ts.SymbolFlags.Optional),
 		symbolFilenames,
 		(symbol as any).id,
 	);

@@ -44,7 +44,11 @@ export function resolveType(
 			!includeExternalTypes &&
 			type
 				.getSymbol()
-				?.declarations?.some((x) => x.getSourceFile().fileName.includes('node_modules'))
+				?.declarations?.some(
+					(x) =>
+						x.getSourceFile().fileName.includes('node_modules') &&
+						!x.getSourceFile().fileName.includes('typescript'),
+				)
 		) {
 			return t.referenceNode(checker.getFullyQualifiedName(type.getSymbol()!));
 		}
