@@ -17,6 +17,7 @@ export function unionNode(types: TypeNode[]): UnionNode {
 
 	flattenTypes(types);
 	sanitizeBooleanLiterals(flatTypes);
+	sortUnionTypes(flatTypes);
 
 	function flattenTypes(nodes: TypeNode[]) {
 		nodes.forEach((x) => {
@@ -63,6 +64,16 @@ function uniqueUnionTypes(node: UnionNode): UnionNode {
 			return x.nodeType;
 		}),
 	};
+}
+
+function sortUnionTypes(members: TypeNode[]) {
+	// move undefined and null to the end
+
+	const nullIndex = members.findIndex((x) => isIntrinsicNode(x) && x.type === 'null');
+	members.push(members.splice(nullIndex, 1)[0]);
+
+	const undefinedIndex = members.findIndex((x) => isIntrinsicNode(x) && x.type === 'undefined');
+	members.push(members.splice(undefinedIndex, 1)[0]);
 }
 
 function sanitizeBooleanLiterals(members: TypeNode[]): void {

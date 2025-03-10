@@ -13,11 +13,11 @@
 						"types": [
 							{
 								"nodeType": "intrinsic",
-								"type": "undefined"
+								"type": "string"
 							},
 							{
 								"nodeType": "intrinsic",
-								"type": "string"
+								"type": "undefined"
 							}
 						]
 					},
@@ -32,11 +32,11 @@
 						"types": [
 							{
 								"nodeType": "intrinsic",
-								"type": "undefined"
+								"type": "string"
 							},
 							{
 								"nodeType": "intrinsic",
-								"type": "string"
+								"type": "undefined"
 							}
 						]
 					},

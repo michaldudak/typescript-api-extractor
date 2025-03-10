@@ -22,11 +22,11 @@
 											"types": [
 												{
 													"nodeType": "intrinsic",
-													"type": "undefined"
+													"type": "boolean"
 												},
 												{
 													"nodeType": "intrinsic",
-													"type": "boolean"
+													"type": "undefined"
 												}
 											]
 										},
@@ -41,11 +41,11 @@
 											"types": [
 												{
 													"nodeType": "intrinsic",
-													"type": "undefined"
+													"type": "string"
 												},
 												{
 													"nodeType": "intrinsic",
-													"type": "string"
+													"type": "undefined"
 												}
 											]
 										},
@@ -128,11 +128,11 @@
 											"types": [
 												{
 													"nodeType": "intrinsic",
-													"type": "undefined"
+													"type": "boolean"
 												},
 												{
 													"nodeType": "intrinsic",
-													"type": "boolean"
+													"type": "undefined"
 												}
 											]
 										},
@@ -147,11 +147,11 @@
 											"types": [
 												{
 													"nodeType": "intrinsic",
-													"type": "undefined"
+													"type": "string"
 												},
 												{
 													"nodeType": "intrinsic",
-													"type": "string"
+													"type": "undefined"
 												}
 											]
 										},
