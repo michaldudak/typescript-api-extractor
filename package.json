@@ -9,7 +9,9 @@
 	"engines": {
 		"node": ">=18"
 	},
-	"files": ["dist"],
+	"files": [
+		"dist"
+	],
 	"main": "dist/index.js",
 	"exports": {
 		".": {
