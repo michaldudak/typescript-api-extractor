@@ -170,6 +170,7 @@ function parseFunctionSignature(
 		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
 		const parameterType = resolveType(
 			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+			parameterDeclaration,
 			parameterSymbol.getName(),
 			context,
 			skipResolvingComplexTypes,
@@ -200,6 +201,7 @@ function parseFunctionSignature(
 
 	const returnValueType = resolveType(
 		signature.getReturnType(),
+		signature.getDeclaration(),
 		signature.getDeclaration().name?.getText() || '',
 		context,
 	);

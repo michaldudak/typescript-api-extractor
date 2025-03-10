@@ -69,9 +69,17 @@ export function parseMember(
 			x.getSourceFile().fileName.includes('node_modules'),
 		)
 	) {
+		const typeName =
+			declaration !== undefined &&
+			ts.isPropertySignature(declaration) &&
+			declaration.type &&
+			ts.isTypeReferenceNode(declaration?.type)
+				? declaration.type.getText()
+				: checker.getFullyQualifiedName(declaredType.aliasSymbol);
+
 		return t.memberNode(
 			symbol.getName(),
-			t.referenceNode(checker.getFullyQualifiedName(declaredType.aliasSymbol)),
+			t.referenceNode(typeName),
 			undefined,
 			false,
 			symbolFilenames,
@@ -94,7 +102,13 @@ export function parseMember(
 	) {
 		parsedType = t.intrinsicNode('any');
 	} else {
-		parsedType = resolveType(type, symbol.getName(), context, skipResolvingComplexTypes);
+		parsedType = resolveType(
+			type,
+			declaration,
+			symbol.getName(),
+			context,
+			skipResolvingComplexTypes,
+		);
 	}
 
 	return t.memberNode(

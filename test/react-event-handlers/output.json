@@ -33,6 +33,35 @@
 					},
 					"optional": true,
 					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "onFocus",
+					"type": {
+						"nodeType": "reference",
+						"typeName": "React.FocusEventHandler<HTMLDivElement>"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "onBlur",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "reference",
+								"typeName": "React.FocusEventHandler<HTMLDivElement>"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
 				}
 			]
 		}

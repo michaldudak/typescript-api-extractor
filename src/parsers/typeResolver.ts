@@ -7,6 +7,7 @@ import { parseFunctionType } from './functionParser';
 
 export function resolveType(
 	type: ts.Type,
+	declarationNode: ts.Declaration | undefined,
 	name: string,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
@@ -35,7 +36,12 @@ export function resolveType(
 				type.symbol.name,
 				declaration?.constraint?.getText(),
 				declaration?.default
-					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
+					? resolveType(
+							checker.getTypeAtLocation(declaration.default),
+							declarationNode,
+							'',
+							context,
+						)
 					: undefined,
 			);
 		}
@@ -51,7 +57,11 @@ export function resolveType(
 				)
 		) {
 			const symbol = type.aliasSymbol ?? type.getSymbol()!;
-			return t.referenceNode(checker.getFullyQualifiedName(symbol));
+			const typeName =
+				declarationNode && ts.isPropertySignature(declarationNode) && declarationNode.type
+					? declarationNode.type.getText()
+					: checker.getFullyQualifiedName(symbol);
+			return t.referenceNode(typeName);
 		}
 
 		{
@@ -79,7 +89,7 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-ignore - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return t.arrayNode(resolveType(arrayType, name, context));
+			return t.arrayNode(resolveType(arrayType, declarationNode, name, context));
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -93,7 +103,9 @@ export function resolveType(
 		if (type.isUnion()) {
 			const memberTypes: t.TypeNode[] = [];
 			for (const memberType of type.types) {
-				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+				memberTypes.push(
+					resolveType(memberType, declarationNode, memberType.getSymbol()?.name || '', context),
+				);
 			}
 
 			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(memberTypes);
@@ -102,7 +114,7 @@ export function resolveType(
 		if (checker.isTupleType(type)) {
 			return t.tupleNode(
 				(type as ts.TupleType).typeArguments?.map((x) =>
-					resolveType(x, x.getSymbol()?.name || '', context),
+					resolveType(x, declarationNode, x.getSymbol()?.name || '', context),
 				) ?? [],
 			);
 		}
