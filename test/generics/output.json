@@ -18,8 +18,9 @@
 										"nodeType": "member",
 										"name": "value",
 										"type": {
-											"nodeType": "reference",
-											"typeName": "T"
+											"nodeType": "typeParameter",
+											"name": "T",
+											"constraint": "React.HTMLAttributes<HTMLElement>"
 										},
 										"optional": false,
 										"filenames": {}

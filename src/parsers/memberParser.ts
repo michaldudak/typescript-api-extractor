@@ -15,81 +15,12 @@ export function parseMember(
 
 	const symbolFilenames = getSymbolFileNames(symbol);
 
-	// TypeChecker keeps the name for
-	// { a: React.ElementType, b: React.ReactElement | boolean }
-	// but not
-	// { a?: React.ElementType, b: React.ReactElement }
-	// get around this by not using the TypeChecker
-	if (
-		declaration &&
-		ts.isPropertySignature(declaration) &&
-		declaration.type &&
-		ts.isTypeReferenceNode(declaration.type)
-	) {
-		const name = declaration.type.typeName.getText();
-		if (
-			name === 'React.ElementType' ||
-			name === 'React.ComponentType' ||
-			name === 'React.ReactElement' ||
-			name === 'React.MemoExoticComponent' ||
-			name === 'React.Component'
-		) {
-			const elementNode = t.referenceNode(name);
-
-			return t.memberNode(
-				symbol.getName(),
-				elementNode,
-				getDocumentationFromSymbol(symbol, checker),
-				Boolean(symbol.flags & ts.SymbolFlags.Optional),
-				symbolFilenames,
-				(symbol as any).id,
-			);
-		}
+	if (!declaration) {
+		throw new Error(`No declaration found for symbol ${symbol.getName()}`);
 	}
 
-	const symbolType = declaration
-		? // The proptypes aren't detailed enough that we need all the different combinations
-			// so we just pick the first and ignore the rest
-			checker.getTypeOfSymbolAtLocation(symbol, declaration)
-		: // The properties of Record<..., ...> don't have a declaration, but the symbol has a type property
-			((symbol as any).type as ts.Type);
-	// get `React.ElementType` from `C extends React.ElementType`
-	const declaredType =
-		declaration !== undefined ? checker.getTypeAtLocation(declaration) : undefined;
-	const baseConstraintOfType =
-		declaredType !== undefined ? checker.getBaseConstraintOfType(declaredType) : undefined;
-	const type =
-		baseConstraintOfType !== undefined && baseConstraintOfType !== declaredType
-			? baseConstraintOfType
-			: symbolType;
-
-	if (
-		!context.includeExternalTypes &&
-		declaredType?.aliasSymbol?.declarations?.some((x) =>
-			x.getSourceFile().fileName.includes('node_modules'),
-		)
-	) {
-		const typeName =
-			declaration !== undefined &&
-			ts.isPropertySignature(declaration) &&
-			declaration.type &&
-			ts.isTypeReferenceNode(declaration?.type)
-				? declaration.type.getText()
-				: checker.getFullyQualifiedName(declaredType.aliasSymbol);
-
-		return t.memberNode(
-			symbol.getName(),
-			t.referenceNode(typeName),
-			undefined,
-			false,
-			symbolFilenames,
-			(symbol as any).id,
-		);
-	}
-
-	if (!type) {
-		throw new Error(`No types found for symbol${symbol.name ? ' ' + symbol.name : ''}`);
-	}
+	const type = checker.getTypeOfSymbolAtLocation(symbol, declaration);
+	let isOptional = false;
 
 	// Typechecker only gives the type "any" if it's present in a union
 	// This means the type of "a" in {a?:any} isn't "any | undefined"
@@ -101,6 +32,7 @@ export function parseMember(
 		ts.isPropertySignature(declaration)
 	) {
 		parsedType = t.intrinsicNode('any');
+		isOptional = Boolean(declaration.questionToken);
 	} else {
 		parsedType = resolveType(
 			type,
@@ -109,13 +41,14 @@ export function parseMember(
 			context,
 			skipResolvingComplexTypes,
 		);
+		isOptional = Boolean(symbol.flags & ts.SymbolFlags.Optional);
 	}
 
 	return t.memberNode(
 		symbol.getName(),
 		parsedType,
 		getDocumentationFromSymbol(symbol, checker),
-		Boolean(symbol.flags & ts.SymbolFlags.Optional),
+		isOptional,
 		symbolFilenames,
 		(symbol as any).id,
 	);

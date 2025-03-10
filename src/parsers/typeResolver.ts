@@ -46,16 +46,7 @@ export function resolveType(
 			);
 		}
 
-		if (
-			!includeExternalTypes &&
-			type
-				.getSymbol()
-				?.declarations?.some(
-					(x) =>
-						x.getSourceFile().fileName.includes('node_modules') &&
-						!x.getSourceFile().fileName.includes('typescript'),
-				)
-		) {
+		if (!includeExternalTypes && isTypeExternal(type)) {
 			const symbol = type.aliasSymbol ?? type.getSymbol()!;
 			const typeName =
 				declarationNode && ts.isPropertySignature(declarationNode) && declarationNode.type
@@ -65,9 +56,7 @@ export function resolveType(
 		}
 
 		{
-			const propNode = type as any;
-
-			const symbol = propNode.aliasSymbol ? propNode.aliasSymbol : propNode.symbol;
+			const symbol = type.aliasSymbol ? type.aliasSymbol : type.symbol;
 			const typeName = symbol ? checker.getFullyQualifiedName(symbol) : null;
 			switch (typeName) {
 				case 'global.JSX.Element':
@@ -217,6 +206,13 @@ export function resolveType(
 	} finally {
 		typeStack.pop();
 	}
+}
+
+function isTypeExternal(type: ts.Type) {
+	return (type.aliasSymbol ?? type.symbol)?.declarations?.some((x) => {
+		const sourceFileName = x.getSourceFile().fileName;
+		return sourceFileName.includes('node_modules') && !sourceFileName.includes('typescript.d.ts');
+	});
 }
 
 function hasFlag(typeFlags: number, flag: number) {

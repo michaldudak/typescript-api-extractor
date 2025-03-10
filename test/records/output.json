@@ -1,0 +1,26 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "test",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "params",
+							"type": {
+								"nodeType": "object"
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		}
+	]
+}
