@@ -71,7 +71,7 @@ export function parseMember(
 	) {
 		return t.memberNode(
 			symbol.getName(),
-			t.referenceNode(declaredType.aliasSymbol.name),
+			t.referenceNode(checker.getFullyQualifiedName(declaredType.aliasSymbol)),
 			undefined,
 			false,
 			symbolFilenames,

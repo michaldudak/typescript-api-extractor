@@ -1,0 +1,40 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "component",
+			"name": "Test",
+			"props": [
+				{
+					"nodeType": "member",
+					"name": "onClick",
+					"type": {
+						"nodeType": "reference",
+						"typeName": "React.MouseEventHandler"
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "onKeyDown",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "reference",
+								"typeName": "React.KeyboardEventHandler"
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							}
+						]
+					},
+					"optional": true,
+					"filenames": {}
+				}
+			]
+		}
+	]
+}

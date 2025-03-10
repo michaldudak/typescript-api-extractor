@@ -50,7 +50,8 @@ export function resolveType(
 						!x.getSourceFile().fileName.includes('typescript'),
 				)
 		) {
-			return t.referenceNode(checker.getFullyQualifiedName(type.getSymbol()!));
+			const symbol = type.aliasSymbol ?? type.getSymbol()!;
+			return t.referenceNode(checker.getFullyQualifiedName(symbol));
 		}
 
 		{
@@ -90,11 +91,12 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			const node = t.unionNode(
-				type.types.map((x) => resolveType(x, x.getSymbol()?.name || '', context)),
-			);
+			const memberTypes: t.TypeNode[] = [];
+			for (const memberType of type.types) {
+				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+			}
 
-			return node.types.length === 1 ? node.types[0] : node;
+			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(memberTypes);
 		}
 
 		if (checker.isTupleType(type)) {
