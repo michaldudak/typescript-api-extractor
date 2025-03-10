@@ -10,7 +10,7 @@
 					"name": "onClick",
 					"type": {
 						"nodeType": "reference",
-						"typeName": "React.MouseEventHandler"
+						"typeName": "React.MouseEventHandler<Element>"
 					},
 					"optional": false,
 					"filenames": {}
@@ -23,7 +23,7 @@
 						"types": [
 							{
 								"nodeType": "reference",
-								"typeName": "React.KeyboardEventHandler"
+								"typeName": "React.KeyboardEventHandler<Element>"
 							},
 							{
 								"nodeType": "intrinsic",

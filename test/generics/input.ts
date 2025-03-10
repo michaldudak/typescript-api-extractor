@@ -6,4 +6,9 @@ export function genericFunction<T extends React.HTMLAttributes<HTMLElement>>(
 
 export interface GenericFunctionParameters<T extends React.HTMLAttributes<HTMLElement>> {
 	value: T;
+	nestedGenericType: GenericInterface<GenericInterface<string>>;
+}
+
+interface GenericInterface<T> {
+	data: T;
 }

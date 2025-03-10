@@ -11,7 +11,8 @@
 							"nodeType": "parameter",
 							"name": "params",
 							"type": {
-								"nodeType": "object"
+								"nodeType": "reference",
+								"typeName": "Record<string, unknown>"
 							}
 						}
 					],

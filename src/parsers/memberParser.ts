@@ -34,13 +34,7 @@ export function parseMember(
 		parsedType = t.intrinsicNode('any');
 		isOptional = Boolean(declaration.questionToken);
 	} else {
-		parsedType = resolveType(
-			type,
-			declaration,
-			symbol.getName(),
-			context,
-			skipResolvingComplexTypes,
-		);
+		parsedType = resolveType(type, symbol.getName(), context, skipResolvingComplexTypes);
 		isOptional = Boolean(symbol.flags & ts.SymbolFlags.Optional);
 	}
 

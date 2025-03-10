@@ -7,7 +7,6 @@ import { parseFunctionType } from './functionParser';
 
 export function resolveType(
 	type: ts.Type,
-	declarationNode: ts.Declaration | undefined,
 	name: string,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
@@ -36,49 +35,19 @@ export function resolveType(
 				type.symbol.name,
 				declaration?.constraint?.getText(),
 				declaration?.default
-					? resolveType(
-							checker.getTypeAtLocation(declaration.default),
-							declarationNode,
-							'',
-							context,
-						)
+					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
 					: undefined,
 			);
 		}
 
-		if (!includeExternalTypes && isTypeExternal(type)) {
-			const symbol = type.aliasSymbol ?? type.getSymbol()!;
-			const typeName =
-				declarationNode && ts.isPropertySignature(declarationNode) && declarationNode.type
-					? declarationNode.type.getText()
-					: checker.getFullyQualifiedName(symbol);
-			return t.referenceNode(typeName);
-		}
-
-		{
-			const symbol = type.aliasSymbol ? type.aliasSymbol : type.symbol;
-			const typeName = symbol ? checker.getFullyQualifiedName(symbol) : null;
-			switch (typeName) {
-				case 'global.JSX.Element':
-				case 'React.JSX.Element':
-				case 'React.ReactElement':
-				case 'React.ElementType':
-				case 'Date':
-				case 'React.Component':
-				case 'Element':
-				case 'HTMLElement': {
-					return t.referenceNode(typeName);
-				}
-				case 'React.ReactNode': {
-					return t.unionNode([t.referenceNode(typeName), t.intrinsicNode('undefined')]);
-				}
-			}
+		if (!includeExternalTypes && isTypeExternal(type, checker)) {
+			return t.referenceNode(getTypeName(type, checker));
 		}
 
 		if (checker.isArrayType(type)) {
 			// @ts-ignore - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return t.arrayNode(resolveType(arrayType, declarationNode, name, context));
+			return t.arrayNode(resolveType(arrayType, name, context));
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -92,9 +61,7 @@ export function resolveType(
 		if (type.isUnion()) {
 			const memberTypes: t.TypeNode[] = [];
 			for (const memberType of type.types) {
-				memberTypes.push(
-					resolveType(memberType, declarationNode, memberType.getSymbol()?.name || '', context),
-				);
+				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
 			}
 
 			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(memberTypes);
@@ -103,7 +70,7 @@ export function resolveType(
 		if (checker.isTupleType(type)) {
 			return t.tupleNode(
 				(type as ts.TupleType).typeArguments?.map((x) =>
-					resolveType(x, declarationNode, x.getSymbol()?.name || '', context),
+					resolveType(x, x.getSymbol()?.name || '', context),
 				) ?? [],
 			);
 		}
@@ -208,11 +175,50 @@ export function resolveType(
 	}
 }
 
-function isTypeExternal(type: ts.Type) {
-	return (type.aliasSymbol ?? type.symbol)?.declarations?.some((x) => {
-		const sourceFileName = x.getSourceFile().fileName;
-		return sourceFileName.includes('node_modules') && !sourceFileName.includes('typescript.d.ts');
-	});
+const allowedBuiltInTypes = new Set([
+	'Pick',
+	'Omit',
+	'ReturnType',
+	'Parameters',
+	'InstanceType',
+	'Partial',
+	'Required',
+	'Readonly',
+	'Exclude',
+	'Extract',
+]);
+
+function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
+	const symbol = type.aliasSymbol ?? type.getSymbol();
+	return (
+		symbol?.declarations?.some((x) => {
+			const sourceFileName = x.getSourceFile().fileName;
+			const definedExternally = sourceFileName.includes('node_modules');
+			return (
+				definedExternally &&
+				!(
+					allowedBuiltInTypes.has(checker.getFullyQualifiedName(symbol)) &&
+					/node_modules\/typescript\/lib/.test(sourceFileName)
+				)
+			);
+		}) ?? false
+	);
+}
+
+function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
+	const symbol = type.aliasSymbol ?? type.getSymbol();
+	if (!symbol) {
+		return checker.typeToString(type);
+	}
+
+	const typeName = checker.getFullyQualifiedName(symbol);
+
+	const typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker));
+	if (typeArguments) {
+		return `${typeName}<${typeArguments.join(', ')}>`;
+	}
+
+	return typeName;
 }
 
 function hasFlag(typeFlags: number, flag: number) {

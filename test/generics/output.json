@@ -24,6 +24,40 @@
 										},
 										"optional": false,
 										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "nestedGenericType",
+										"type": {
+											"nodeType": "interface",
+											"name": "GenericInterface",
+											"members": [
+												{
+													"nodeType": "member",
+													"name": "data",
+													"type": {
+														"nodeType": "interface",
+														"name": "GenericInterface",
+														"members": [
+															{
+																"nodeType": "member",
+																"name": "data",
+																"type": {
+																	"nodeType": "intrinsic",
+																	"type": "string"
+																},
+																"optional": false,
+																"filenames": {}
+															}
+														]
+													},
+													"optional": false,
+													"filenames": {}
+												}
+											]
+										},
+										"optional": false,
+										"filenames": {}
 									}
 								]
 							}
