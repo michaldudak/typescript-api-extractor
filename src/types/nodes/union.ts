@@ -9,10 +9,11 @@ const typeString = 'union';
 
 export interface UnionNode {
 	nodeType: typeof typeString;
+	name: string | undefined;
 	types: TypeNode[];
 }
 
-export function unionNode(types: TypeNode[]): UnionNode {
+export function unionNode(name: string | undefined, types: TypeNode[]): UnionNode {
 	const flatTypes: TypeNode[] = [];
 
 	flattenTypes(types);
@@ -31,6 +32,7 @@ export function unionNode(types: TypeNode[]): UnionNode {
 
 	return uniqueUnionTypes({
 		nodeType: typeString,
+		name,
 		types: flatTypes,
 	});
 }
@@ -44,6 +46,7 @@ function uniqueUnionTypes(node: UnionNode): UnionNode {
 	// We want to simplify this to just `boolean | undefined`.
 	return {
 		nodeType: node.nodeType,
+		name: node.name,
 		types: _.uniqBy(node.types, (x) => {
 			if (isLiteralNode(x)) {
 				return x.value;

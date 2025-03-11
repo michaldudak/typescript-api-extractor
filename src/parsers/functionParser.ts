@@ -265,7 +265,7 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 			if (currentTypeNode === undefined) {
 				currentTypeNode = propNode;
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				let mergedPropType = t.unionNode([currentTypeNode.type, propNode.type]);
+				let mergedPropType = t.unionNode(undefined, [currentTypeNode.type, propNode.type]);
 
 				currentTypeNode = t.memberNode(
 					currentTypeNode.name,
@@ -289,7 +289,7 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 			// mark as optional
 			return {
 				...propType,
-				type: t.unionNode([propType.type, t.intrinsicNode('undefined')]),
+				type: t.unionNode(undefined, [propType.type, t.intrinsicNode('undefined')]),
 				optional: true,
 			};
 		}

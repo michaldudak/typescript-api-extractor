@@ -60,11 +60,17 @@ export function resolveType(
 
 		if (type.isUnion()) {
 			const memberTypes: t.TypeNode[] = [];
+			const symbol = type.aliasSymbol ?? type.getSymbol();
+			let typeName = symbol?.getName();
+			if (typeName === '__type') {
+				typeName = undefined;
+			}
+
 			for (const memberType of type.types) {
 				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
 			}
 
-			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(memberTypes);
+			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(typeName, memberTypes);
 		}
 
 		if (checker.isTupleType(type)) {

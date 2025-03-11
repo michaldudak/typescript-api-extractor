@@ -51,6 +51,7 @@
 							"name": "severity",
 							"type": {
 								"nodeType": "union",
+								"name": "Severity",
 								"types": [
 									{
 										"nodeType": "literal",

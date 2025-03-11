@@ -1,0 +1,223 @@
+{
+	"nodeType": "program",
+	"body": [
+		{
+			"nodeType": "function",
+			"name": "test1",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "parameters",
+							"type": {
+								"nodeType": "interface",
+								"name": "Params",
+								"members": [
+									{
+										"nodeType": "member",
+										"name": "inlineStringUnion",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "literal",
+													"value": "\"foo\""
+												},
+												{
+													"nodeType": "literal",
+													"value": "\"bar\""
+												},
+												{
+													"nodeType": "literal",
+													"value": "\"baz\""
+												}
+											]
+										},
+										"optional": false,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "inlineNumberUnion",
+										"type": {
+											"nodeType": "union",
+											"types": [
+												{
+													"nodeType": "literal",
+													"value": 1
+												},
+												{
+													"nodeType": "literal",
+													"value": 2
+												},
+												{
+													"nodeType": "literal",
+													"value": 3
+												}
+											]
+										},
+										"optional": false,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "referencedStringUnion",
+										"type": {
+											"nodeType": "union",
+											"name": "StringUniuon",
+											"types": [
+												{
+													"nodeType": "literal",
+													"value": "\"foo\""
+												},
+												{
+													"nodeType": "literal",
+													"value": "\"bar\""
+												},
+												{
+													"nodeType": "literal",
+													"value": "\"baz\""
+												}
+											]
+										},
+										"optional": false,
+										"filenames": {}
+									},
+									{
+										"nodeType": "member",
+										"name": "referencedNumberUnion",
+										"type": {
+											"nodeType": "union",
+											"name": "NumberUnion",
+											"types": [
+												{
+													"nodeType": "literal",
+													"value": 1
+												},
+												{
+													"nodeType": "literal",
+													"value": 2
+												},
+												{
+													"nodeType": "literal",
+													"value": 3
+												}
+											]
+										},
+										"optional": false,
+										"filenames": {}
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		},
+		{
+			"nodeType": "function",
+			"name": "test2",
+			"callSignatures": [
+				{
+					"parameters": [
+						{
+							"nodeType": "parameter",
+							"name": "inlineStringUnion",
+							"type": {
+								"nodeType": "union",
+								"types": [
+									{
+										"nodeType": "literal",
+										"value": "\"foo\""
+									},
+									{
+										"nodeType": "literal",
+										"value": "\"bar\""
+									},
+									{
+										"nodeType": "literal",
+										"value": "\"baz\""
+									}
+								]
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "inlineNumberUnion",
+							"type": {
+								"nodeType": "union",
+								"types": [
+									{
+										"nodeType": "literal",
+										"value": 1
+									},
+									{
+										"nodeType": "literal",
+										"value": 2
+									},
+									{
+										"nodeType": "literal",
+										"value": 3
+									}
+								]
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "referencedStringUnion",
+							"type": {
+								"nodeType": "union",
+								"name": "StringUniuon",
+								"types": [
+									{
+										"nodeType": "literal",
+										"value": "\"foo\""
+									},
+									{
+										"nodeType": "literal",
+										"value": "\"bar\""
+									},
+									{
+										"nodeType": "literal",
+										"value": "\"baz\""
+									}
+								]
+							}
+						},
+						{
+							"nodeType": "parameter",
+							"name": "referencedNumberUnion",
+							"type": {
+								"nodeType": "union",
+								"name": "NumberUnion",
+								"types": [
+									{
+										"nodeType": "literal",
+										"value": 1
+									},
+									{
+										"nodeType": "literal",
+										"value": 2
+									},
+									{
+										"nodeType": "literal",
+										"value": 3
+									}
+								]
+							}
+						}
+					],
+					"returnValueType": {
+						"nodeType": "intrinsic",
+						"type": "void"
+					}
+				}
+			]
+		}
+	]
+}
