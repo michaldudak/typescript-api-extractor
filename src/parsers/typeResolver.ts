@@ -151,9 +151,12 @@ export function resolveType(
 					shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.length })
 				) {
 					const filtered = properties.filter((property) => {
+						const declaration =
+							property.valueDeclaration ??
+							(property.declarations?.[0] as ts.PropertySignature | undefined);
 						return (
-							property.valueDeclaration &&
-							ts.isPropertySignature(property.valueDeclaration) &&
+							declaration &&
+							ts.isPropertySignature(declaration) &&
 							shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 						);
 					});
@@ -161,7 +164,11 @@ export function resolveType(
 						return t.interfaceNode(
 							typeName,
 							filtered.map((property) => {
-								return parseMember(property.valueDeclaration as ts.PropertySignature, context);
+								return parseMember(
+									property,
+									property.valueDeclaration as ts.PropertySignature,
+									context,
+								);
 							}),
 						);
 					}

@@ -5,23 +5,23 @@ import { type ParserContext } from '../parser';
 import { resolveType } from './typeResolver';
 
 export function parseMember(
-	propertySignature: ts.PropertySignature,
+	propertySymbol: ts.Symbol,
+	propertySignature: ts.PropertySignature | undefined,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): t.MemberNode {
 	const { checker } = context;
-	const symbol = checker.getSymbolAtLocation(propertySignature.name);
-	if (!symbol) {
-		throw new Error(`No symbol found for property signature ${propertySignature.name.getText()}`);
-	}
-
-	const symbolFilenames = getSymbolFileNames(symbol);
+	const symbolFilenames = getSymbolFileNames(propertySymbol);
 
 	let type: ts.Type;
-	if (!propertySignature.type) {
-		type = checker.getAnyType();
+	if (propertySignature) {
+		if (!propertySignature.type) {
+			type = checker.getAnyType();
+		} else {
+			type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+		}
 	} else {
-		type = checker.getTypeOfSymbolAtLocation(symbol, propertySignature.type);
+		type = checker.getTypeOfSymbol(propertySymbol);
 	}
 
 	let isOptional = false;
@@ -34,17 +34,17 @@ export function parseMember(
 		parsedType = t.intrinsicNode('any');
 		isOptional = Boolean(propertySignature.questionToken);
 	} else {
-		parsedType = resolveType(type, symbol.getName(), context, skipResolvingComplexTypes);
-		isOptional = Boolean(symbol.flags & ts.SymbolFlags.Optional);
+		parsedType = resolveType(type, propertySymbol.getName(), context, skipResolvingComplexTypes);
+		isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 	}
 
 	return t.memberNode(
-		symbol.getName(),
+		propertySymbol.getName(),
 		parsedType,
-		getDocumentationFromSymbol(symbol, checker),
+		getDocumentationFromSymbol(propertySymbol, checker),
 		isOptional,
 		symbolFilenames,
-		(symbol as any).id,
+		(propertySymbol as any).id,
 	);
 }
 
