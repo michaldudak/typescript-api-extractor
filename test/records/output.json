@@ -1,27 +1,32 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "records\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "test",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "reference",
-								"typeName": "Record<string, unknown>"
+			"type": {
+				"nodeType": "function",
+				"name": "test",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "reference",
+									"typeName": "Record<string, unknown>"
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		}
 	]
 }

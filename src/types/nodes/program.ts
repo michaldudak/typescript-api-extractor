@@ -1,22 +1,17 @@
 import { Node } from './node';
-import { ComponentNode } from './component';
-import { HookNode } from './hook';
-import { FunctionNode } from './function';
-import { EnumNode } from './enum';
+import { ModuleNode } from './module';
 
 const typeString = 'program';
 
 export interface ProgramNode {
 	nodeType: typeof typeString;
-	body: (ComponentNode | HookNode | FunctionNode | EnumNode)[];
+	modules: ModuleNode[];
 }
 
-export function programNode(
-	body?: (ComponentNode | HookNode | FunctionNode | EnumNode)[],
-): ProgramNode {
+export function programNode(modules: ModuleNode[] = []): ProgramNode {
 	return {
 		nodeType: typeString,
-		body: body || [],
+		modules,
 	};
 }
 

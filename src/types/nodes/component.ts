@@ -1,4 +1,3 @@
-import { Documentation } from '../documentation';
 import { Node } from './node';
 import { MemberNode } from './member';
 
@@ -6,26 +5,15 @@ const typeString = 'component';
 
 export interface ComponentNode {
 	nodeType: typeof typeString;
-	name: string;
+	name: string | undefined;
 	props: MemberNode[];
-	fileName?: string;
-	description?: string;
-	visibility?: Documentation['visibility'];
 }
 
-export function componentNode(
-	name: string,
-	props: MemberNode[],
-	documentation: Documentation | undefined,
-	fileName: string | undefined,
-): ComponentNode {
+export function componentNode(name: string | undefined, props: MemberNode[]): ComponentNode {
 	return {
 		nodeType: typeString,
 		name: name,
 		props: props || [],
-		description: documentation?.description,
-		visibility: documentation?.visibility,
-		fileName,
 	};
 }
 

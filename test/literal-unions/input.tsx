@@ -1,12 +1,12 @@
-function test1(parameters: Params) {}
-function test2(
+export function test1(parameters: Params) {}
+export function test2(
 	inlineStringUnion: 'foo' | 'bar' | 'baz',
 	inlineNumberUnion: 1 | 2 | 3,
 	referencedStringUnion: StringUniuon,
 	referencedNumberUnion: NumberUnion,
 ) {}
 
-interface Params {
+export interface Params {
 	inlineStringUnion: 'foo' | 'bar' | 'baz';
 	inlineNumberUnion: 1 | 2 | 3;
 	referencedStringUnion: StringUniuon;

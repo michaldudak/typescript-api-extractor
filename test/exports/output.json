@@ -1,0 +1,126 @@
+{
+	"nodeType": "module",
+	"name": "exports\\input",
+	"exports": [
+		{
+			"nodeType": "export",
+			"name": "inlineExport",
+			"type": {
+				"nodeType": "function",
+				"name": "inlineExport",
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "overloadedFunction",
+			"type": {
+				"nodeType": "function",
+				"name": "overloadedFunction",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "number"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						}
+					},
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "string"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "aliasedOverloadedFunction",
+			"type": {
+				"nodeType": "function",
+				"name": "overloadedFunction",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "number"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						}
+					},
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "string"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "functionAndNamespaceDeclaration",
+			"type": {
+				"nodeType": "component",
+				"name": "functionAndNamespaceDeclaration",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "a",
+						"type": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

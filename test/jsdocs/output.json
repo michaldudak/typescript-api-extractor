@@ -1,58 +1,169 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "jsdocs\\input",
+	"exports": [
 		{
-			"nodeType": "component",
-			"name": "Component",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "className",
-					"type": {
-						"nodeType": "union",
-						"types": [
+			"nodeType": "export",
+			"name": "TestComponent",
+			"type": {
+				"nodeType": "component",
+				"name": "TestComponent",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "className",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "The class name.\nUsed to make the component more classy."
+						},
+						"optional": true
+					},
+					{
+						"nodeType": "member",
+						"name": "someValue",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "number"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "A value.",
+							"defaultValue": "10"
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "The test component.",
+				"visibility": "internal"
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "testFunction",
+			"type": {
+				"nodeType": "function",
+				"name": "testFunction",
+				"callSignatures": [
+					{
+						"parameters": [
 							{
-								"nodeType": "intrinsic",
-								"type": "string"
+								"nodeType": "parameter",
+								"name": "p1",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "number"
+								},
+								"documentation": {
+									"description": "The first parameter which is a number"
+								}
 							},
 							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
+								"nodeType": "parameter",
+								"name": "p2",
+								"type": {
+									"nodeType": "union",
+									"types": [
+										{
+											"nodeType": "intrinsic",
+											"type": "number"
+										},
+										{
+											"nodeType": "intrinsic",
+											"type": "undefined"
+										}
+									]
+								},
+								"documentation": {
+									"description": "The second parameter"
+								}
 							}
-						]
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						}
 					},
-					"documentation": {
-						"description": "The class name.\nUsed to make the component more classy."
-					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "someValue",
-					"type": {
-						"nodeType": "union",
-						"types": [
+					{
+						"parameters": [
 							{
-								"nodeType": "intrinsic",
-								"type": "number"
+								"nodeType": "parameter",
+								"name": "p1",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								"documentation": {
+									"description": "The first parameter which is a string"
+								}
 							},
 							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
+								"nodeType": "parameter",
+								"name": "p2",
+								"type": {
+									"nodeType": "union",
+									"types": [
+										{
+											"nodeType": "intrinsic",
+											"type": "number"
+										},
+										{
+											"nodeType": "intrinsic",
+											"type": "undefined"
+										}
+									]
+								},
+								"documentation": {
+									"description": "The second parameter"
+								}
 							}
-						]
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						}
+					}
+				]
+			},
+			"documentation": {
+				"description": "A test function",
+				"visibility": "public",
+				"tags": [
+					{
+						"tag": "remarks",
+						"value": "This is a test function."
 					},
-					"documentation": {
-						"description": "A value.",
-						"defaultValue": "10"
+					{
+						"tag": "returns",
+						"value": "The return value"
 					},
-					"optional": true,
-					"filenames": {}
-				}
-			],
-			"description": "The test component.",
-			"visibility": "internal"
+					{
+						"tag": "example",
+						"value": "testFunction('test', 10);"
+					}
+				]
+			}
 		}
 	]
 }

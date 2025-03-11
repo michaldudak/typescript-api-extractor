@@ -1,191 +1,202 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "ts-utility-types\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "test1",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "interface",
-								"name": "Pick",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "a",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "boolean"
-										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "b",
-										"type": {
-											"nodeType": "union",
-											"types": [
-												{
-													"nodeType": "intrinsic",
-													"type": "string"
-												},
-												{
-													"nodeType": "intrinsic",
-													"type": "undefined"
-												}
-											]
-										},
-										"optional": true,
-										"filenames": {}
-									}
-								]
-							}
-						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
-					}
-				}
-			]
-		},
-		{
-			"nodeType": "function",
-			"name": "test2",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "interface",
-								"name": "Omit",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "a",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "boolean"
-										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "b",
-										"type": {
-											"nodeType": "union",
-											"types": [
-												{
-													"nodeType": "intrinsic",
-													"type": "string"
-												},
-												{
-													"nodeType": "intrinsic",
-													"type": "undefined"
-												}
-											]
-										},
-										"optional": true,
-										"filenames": {}
-									}
-								]
-							}
-						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "number"
-					}
-				}
-			]
-		},
-		{
-			"nodeType": "function",
-			"name": "test3",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "tuple",
-								"types": [
-									{
-										"nodeType": "interface",
-										"name": "Pick",
-										"members": [
-											{
-												"nodeType": "member",
-												"name": "a",
-												"type": {
-													"nodeType": "intrinsic",
-													"type": "boolean"
-												},
-												"optional": false,
-												"filenames": {}
+			"type": {
+				"nodeType": "function",
+				"name": "test1",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "interface",
+									"name": "Pick",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "boolean"
 											},
-											{
-												"nodeType": "member",
-												"name": "b",
-												"type": {
-													"nodeType": "union",
-													"types": [
-														{
-															"nodeType": "intrinsic",
-															"type": "string"
-														},
-														{
-															"nodeType": "intrinsic",
-															"type": "undefined"
-														}
-													]
-												},
-												"optional": true,
-												"filenames": {}
-											}
-										]
-									}
-								]
+											"optional": false
+										},
+										{
+											"nodeType": "member",
+											"name": "b",
+											"type": {
+												"nodeType": "union",
+												"types": [
+													{
+														"nodeType": "intrinsic",
+														"type": "string"
+													},
+													{
+														"nodeType": "intrinsic",
+														"type": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		},
 		{
-			"nodeType": "function",
-			"name": "test4",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "intrinsic",
-								"type": "number"
+			"nodeType": "export",
+			"name": "test2",
+			"type": {
+				"nodeType": "function",
+				"name": "test2",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "interface",
+									"name": "Omit",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "boolean"
+											},
+											"optional": false
+										},
+										{
+											"nodeType": "member",
+											"name": "b",
+											"type": {
+												"nodeType": "union",
+												"types": [
+													{
+														"nodeType": "intrinsic",
+														"type": "string"
+													},
+													{
+														"nodeType": "intrinsic",
+														"type": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "test3",
+			"type": {
+				"nodeType": "function",
+				"name": "test3",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "tuple",
+									"types": [
+										{
+											"nodeType": "interface",
+											"name": "Pick",
+											"members": [
+												{
+													"nodeType": "member",
+													"name": "a",
+													"type": {
+														"nodeType": "intrinsic",
+														"type": "boolean"
+													},
+													"optional": false
+												},
+												{
+													"nodeType": "member",
+													"name": "b",
+													"type": {
+														"nodeType": "union",
+														"types": [
+															{
+																"nodeType": "intrinsic",
+																"type": "string"
+															},
+															{
+																"nodeType": "intrinsic",
+																"type": "undefined"
+															}
+														]
+													},
+													"optional": true
+												}
+											]
+										}
+									]
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"nodeType": "export",
+			"name": "test4",
+			"type": {
+				"nodeType": "function",
+				"name": "test4",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "number"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
+						}
+					}
+				]
+			}
 		}
 	]
 }

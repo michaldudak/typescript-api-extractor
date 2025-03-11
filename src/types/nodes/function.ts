@@ -1,4 +1,3 @@
-import { Documentation } from '../documentation';
 import { Node, TypeNode } from './node';
 import { ParameterNode } from './parameter';
 
@@ -6,29 +5,26 @@ const typeString = 'function';
 
 export interface FunctionNode {
 	nodeType: typeof typeString;
-	name: string;
+	name: string | undefined;
 	callSignatures: CallSignature[];
-	documentation: Documentation | undefined;
-}
-
-export interface CallSignature {
-	parameters: ParameterNode[];
-	returnValueType: TypeNode;
 }
 
 export function functionNode(
-	name: string,
+	name: string | undefined,
 	callSignatures: CallSignature[],
-	documentation: Documentation | undefined,
 ): FunctionNode {
 	return {
 		nodeType: typeString,
-		name,
+		name: name === '__function' ? undefined : name,
 		callSignatures,
-		documentation,
 	};
 }
 
 export function isFunctionNode(node: Node): node is FunctionNode {
 	return node.nodeType === typeString;
+}
+
+export interface CallSignature {
+	parameters: ParameterNode[];
+	returnValueType: TypeNode;
 }

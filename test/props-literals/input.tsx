@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function Component(props: Props): React.ReactElement {
+export function Component(props: Props): React.ReactElement {
 	return <div {...props} />;
 }
 

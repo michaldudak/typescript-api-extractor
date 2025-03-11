@@ -1,51 +1,52 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "simple-types\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "Component",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "s",
-					"type": {
-						"nodeType": "intrinsic",
-						"type": "string"
+			"type": {
+				"nodeType": "component",
+				"name": "Component",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "s",
+						"type": {
+							"nodeType": "intrinsic",
+							"type": "string"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "nb",
-					"type": {
-						"nodeType": "intrinsic",
-						"type": "number"
+					{
+						"nodeType": "member",
+						"name": "nb",
+						"type": {
+							"nodeType": "intrinsic",
+							"type": "number"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "b",
-					"type": {
-						"nodeType": "intrinsic",
-						"type": "boolean"
+					{
+						"nodeType": "member",
+						"name": "b",
+						"type": {
+							"nodeType": "intrinsic",
+							"type": "boolean"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "n",
-					"type": {
-						"nodeType": "literal",
-						"value": "null"
-					},
-					"optional": false,
-					"filenames": {}
-				}
-			]
+					{
+						"nodeType": "member",
+						"name": "n",
+						"type": {
+							"nodeType": "literal",
+							"value": "null"
+						},
+						"optional": false
+					}
+				]
+			}
 		}
 	]
 }

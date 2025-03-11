@@ -1,75 +1,76 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "generics\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "genericFunction",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "interface",
-								"name": "GenericFunctionParameters",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "value",
-										"type": {
-											"nodeType": "typeParameter",
-											"name": "T",
-											"constraint": "React.HTMLAttributes<HTMLElement>"
+			"type": {
+				"nodeType": "function",
+				"name": "genericFunction",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "interface",
+									"name": "GenericFunctionParameters",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "value",
+											"type": {
+												"nodeType": "typeParameter",
+												"name": "T",
+												"constraint": "React.HTMLAttributes<HTMLElement>"
+											},
+											"optional": false
 										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "nestedGenericType",
-										"type": {
-											"nodeType": "interface",
-											"name": "GenericInterface",
-											"members": [
-												{
-													"nodeType": "member",
-													"name": "data",
-													"type": {
-														"nodeType": "interface",
-														"name": "GenericInterface",
-														"members": [
-															{
-																"nodeType": "member",
-																"name": "data",
-																"type": {
-																	"nodeType": "intrinsic",
-																	"type": "string"
-																},
-																"optional": false,
-																"filenames": {}
-															}
-														]
-													},
-													"optional": false,
-													"filenames": {}
-												}
-											]
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+										{
+											"nodeType": "member",
+											"name": "nestedGenericType",
+											"type": {
+												"nodeType": "interface",
+												"name": "GenericInterface",
+												"members": [
+													{
+														"nodeType": "member",
+														"name": "data",
+														"type": {
+															"nodeType": "interface",
+															"name": "GenericInterface",
+															"members": [
+																{
+																	"nodeType": "member",
+																	"name": "data",
+																	"type": {
+																		"nodeType": "intrinsic",
+																		"type": "string"
+																	},
+																	"optional": false
+																}
+															]
+														},
+														"optional": false
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "typeParameter",
+							"name": "T",
+							"constraint": "React.HTMLAttributes<HTMLElement>"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "typeParameter",
-						"name": "T",
-						"constraint": "React.HTMLAttributes<HTMLElement>"
 					}
-				}
-			]
+				]
+			}
 		}
 	]
 }

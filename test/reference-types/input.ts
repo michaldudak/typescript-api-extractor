@@ -1,8 +1,8 @@
-function referenceTypes(a: CustomInterface, b: CustomType): CustomInterface | CustomType {
+export function referenceTypes(a: CustomInterface, b: CustomType): CustomInterface | CustomType {
 	return a;
 }
 
-function inlineTypes(a: { a: number }, b: { s: string }) {}
+export function inlineTypes(a: { a: number }, b: { s: string }) {}
 
 interface CustomInterface {
 	a: number;

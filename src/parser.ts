@@ -1,61 +1,8 @@
+import path from 'node:path';
 import ts from 'typescript';
 import * as t from './types';
-import {
-	parseComponentProps,
-	parseFunction,
-	parseFunctionComponent,
-	parseHook,
-} from './parsers/functionParser';
-import { parseEnum } from './parsers/enumParser';
-
-export interface ParserContext {
-	checker: ts.TypeChecker;
-	shouldInclude: ParserOptions['shouldInclude'];
-	shouldResolveObject: ParserOptions['shouldResolveObject'];
-	shouldResolveFunction: ParserOptions['shouldResolveFunction'];
-	sourceFile: ts.SourceFile;
-	visitedNodes: Set<ts.Node>;
-	typeStack: number[];
-	includeExternalTypes: boolean;
-}
-
-/**
- * Options that specify how the parser should act
- */
-export interface ParserOptions {
-	/**
-	 * Called before a PropType is added to a component/object
-	 * @return true to include the PropType, false to skip it, or undefined to
-	 * use the default behaviour
-	 * @default name !== 'ref'
-	 */
-	shouldInclude: (data: { name: string; depth: number }) => boolean | undefined;
-	/**
-	 * Called before the shape of an object is resolved
-	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
-	 * use the default behaviour
-	 * @default propertyCount <= 50 && depth <= 3
-	 */
-	shouldResolveObject: (data: {
-		name: string;
-		propertyCount: number;
-		depth: number;
-	}) => boolean | undefined;
-	/**
-	 * Called before the shape of a function is resolved
-	 * @return true to resolve the shape of the function, false to just use a Function, or undefined to
-	 * use the default behaviour
-	 * @default parameterCount <= 5 && depth <= 2
-	 */
-	shouldResolveFunction: (data: { name: string; depth: number }) => boolean | undefined;
-	/**
-	 * Control if const declarations should be checked
-	 * @default false
-	 * @example declare const Component: React.ComponentType<Props>;
-	 */
-	checkDeclarations?: boolean;
-	includeExternalTypes?: boolean;
-}
+import { augmentComponentNodes } from './parsers/componentParser';
+import { parseExport } from './parsers/exportParser';
 
 /**
  * A wrapper for `ts.createProgram`
@@ -77,7 +24,7 @@ export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
 	parserOptions: Partial<ParserOptions> = {},
-) {
+): t.ModuleNode {
 	const program = ts.createProgram([filePath], options);
 	return parseFromProgram(filePath, program, parserOptions);
 }
@@ -92,9 +39,49 @@ export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
 	parserOptions: Partial<ParserOptions> = {},
-) {
-	const { checkDeclarations = false } = parserOptions;
+): t.ModuleNode {
+	const checker = program.getTypeChecker();
+	const sourceFile = program.getSourceFile(filePath);
 
+	if (!sourceFile) {
+		throw new Error(`Program doesn't contain file: "${filePath}"`);
+	}
+
+	const parserContext: ParserContext = {
+		checker,
+		sourceFile,
+		typeStack: [],
+		...getParserOptions(parserOptions),
+	};
+
+	const sourceFileSymbol = checker.getSymbolAtLocation(sourceFile);
+	if (!sourceFileSymbol) {
+		throw new Error('Failed to get the source file symbol');
+	}
+
+	let parsedModuleExports: t.ExportNode[] = [];
+	const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
+
+	for (const exportedSymbol of exportedSymbols) {
+		const parsedExport = parseExport(exportedSymbol, parserContext);
+		if (!parsedExport) {
+			continue;
+		}
+
+		parsedModuleExports.push(parsedExport);
+	}
+
+	parsedModuleExports = augmentComponentNodes(parsedModuleExports, parserContext);
+
+	const relativeModulePath = path.relative(
+		program.getCompilerOptions().rootDir!,
+		JSON.parse(sourceFileSymbol.name),
+	);
+
+	return t.moduleNode(relativeModulePath, parsedModuleExports);
+}
+
+function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions {
 	const shouldInclude: ParserOptions['shouldInclude'] = (data) => {
 		if (parserOptions.shouldInclude) {
 			const result = parserOptions.shouldInclude(data);
@@ -114,218 +101,44 @@ export function parseFromProgram(
 			}
 		}
 
-		return data.propertyCount <= 50 && data.depth <= 3;
+		return data.propertyCount <= 50 && data.depth <= 10;
 	};
 
-	const shouldResolveFunction: ParserOptions['shouldResolveFunction'] = (data) => {
-		if (parserOptions.shouldResolveFunction) {
-			const result = parserOptions.shouldResolveFunction(data);
-			if (result !== undefined) {
-				return result;
-			}
-		}
-
-		return data.depth <= 3;
-	};
-
-	const checker = program.getTypeChecker();
-	const sourceFile = program.getSourceFile(filePath);
-
-	if (!sourceFile) {
-		throw new Error(`Program doesn't contain file: "${filePath}"`);
-	}
-
-	const reactImports: string[] = [];
-	const visitedNodes = new Set<ts.Node>();
-	const foundNodes: (t.ComponentNode | t.HookNode | t.FunctionNode | t.EnumNode | undefined)[] = [];
-
-	const parserContext: ParserContext = {
-		checker,
+	return {
 		shouldInclude,
 		shouldResolveObject,
-		shouldResolveFunction,
-		sourceFile,
-		visitedNodes,
-		typeStack: [],
-		includeExternalTypes: parserOptions.includeExternalTypes || false,
+		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
 	};
-
-	ts.forEachChild(sourceFile, visitImports);
-	ts.forEachChild(sourceFile, visit);
-
-	return t.programNode(foundNodes.filter((node) => node !== undefined));
-
-	function visitImports(node: ts.Node) {
-		if (
-			ts.isImportDeclaration(node) &&
-			ts.isStringLiteral(node.moduleSpecifier) &&
-			node.moduleSpecifier.text === 'react' &&
-			node.importClause
-		) {
-			const imports = ['Component', 'PureComponent', 'memo', 'forwardRef'];
-
-			// import x from 'react'
-			if (node.importClause.name) {
-				const nameText = node.importClause.name.text;
-				reactImports.push(...imports.map((x) => `${nameText}.${x}`));
-			}
-
-			// import {x, y as z} from 'react'
-			const bindings = node.importClause.namedBindings;
-			if (bindings) {
-				if (ts.isNamedImports(bindings)) {
-					bindings.elements.forEach((spec) => {
-						const nameIdentifier = spec.propertyName || spec.name;
-						const nameText = nameIdentifier.getText();
-						if (imports.includes(nameText)) {
-							reactImports.push(spec.name.getText());
-						}
-					});
-				}
-				// import * as x from 'react'
-				else {
-					const nameText = bindings.name.text;
-					reactImports.push(...imports.map((x) => `${nameText}.${x}`));
-				}
-			}
-		}
-	}
-
-	function visit(node: ts.Node) {
-		// A node can be processed while another node is visited.
-		// If the node we're currently visiting has already been visited, skip it.
-		if (visitedNodes.has(node)) {
-			return;
-		}
-
-		if (ts.isFunctionDeclaration(node) && node.name) {
-			if (node.name.getText().startsWith('use')) {
-				// function useHook(parameters: type): type
-				foundNodes.push(parseHook(node, parserContext));
-			} else if (/^[A-Z]/.test(node.name.getText()) && node.parameters.length === 1) {
-				// function x(props: type) { return <div/> }
-				foundNodes.push(parseFunctionComponent(node, parserContext));
-			} else if (isDefinedInModuleScope(node)) {
-				// plain function
-				foundNodes.push(parseFunction(node, parserContext));
-			}
-		}
-		// const x = ...
-		else if (ts.isVariableStatement(node)) {
-			ts.forEachChild(node.declarationList, (variableNode) => {
-				// x = (props: type) => { return <div/> }
-				// x = function(props: type) { return <div/> }
-				// x = function y(props: type) { return <div/> }
-				// x = react.memo((props:type) { return <div/> })
-
-				if (ts.isVariableDeclaration(variableNode) && variableNode.name) {
-					if (/^[A-Z]/.test(variableNode.name.getText())) {
-						const type = checker.getTypeAtLocation(variableNode.name);
-						if (!variableNode.initializer) {
-							if (
-								checkDeclarations &&
-								type.aliasSymbol &&
-								type.aliasTypeArguments &&
-								checker.getFullyQualifiedName(type.aliasSymbol) === 'React.ComponentType'
-							) {
-								foundNodes.push(
-									parseComponentProps(
-										variableNode.name.getText(),
-										type.aliasTypeArguments[0],
-										node.getSourceFile(),
-										node,
-										parserContext,
-									),
-								);
-							} else if (checkDeclarations) {
-								foundNodes.push(parseFunctionComponent(variableNode, parserContext));
-							}
-						} else if (
-							ts.isArrowFunction(variableNode.initializer) ||
-							ts.isFunctionExpression(variableNode.initializer)
-						) {
-							// x = (props: type) => { return <div/> }
-							// x = function(props: type) { return <div/> }
-							// x = function y(props: type) { return <div/> }
-							foundNodes.push(parseFunctionComponent(variableNode, parserContext));
-						} else if (
-							ts.isCallExpression(variableNode.initializer) &&
-							variableNode.initializer.arguments.length > 0
-						) {
-							// x = react.memo((props:type) { return <div/> })
-							const callString = variableNode.initializer.expression.getText();
-							const arg = variableNode.initializer.arguments[0];
-							if (
-								reactImports.includes(callString) &&
-								(ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) &&
-								arg.parameters.length > 0
-							) {
-								const propsType = checker.getTypeAtLocation(arg.parameters[0]);
-								if (propsType) {
-									foundNodes.push(
-										parseComponentProps(
-											variableNode.name.getText(),
-											propsType,
-											node.getSourceFile(),
-											node,
-											parserContext,
-										),
-									);
-								}
-							}
-						}
-					} else if (
-						variableNode.name.getText().startsWith('use') &&
-						variableNode.initializer &&
-						(ts.isArrowFunction(variableNode.initializer) ||
-							ts.isFunctionExpression(variableNode.initializer))
-					) {
-						// const useHook = function useHook(parameters: type): type
-						// const useHook = (parameters: type): type
-						foundNodes.push(parseHook(variableNode, parserContext));
-					} else if (isDefinedInModuleScope(node)) {
-						// plain function
-						foundNodes.push(parseFunction(variableNode, parserContext));
-					}
-				}
-			});
-		} else if (
-			ts.isClassDeclaration(node) &&
-			node.name &&
-			node.heritageClauses &&
-			node.heritageClauses.length === 1
-		) {
-			const heritage = node.heritageClauses[0];
-			if (heritage.types.length !== 1) return;
-
-			const arg = heritage.types[0];
-			if (!arg.typeArguments) return;
-
-			if (reactImports.includes(arg.expression.getText())) {
-				foundNodes.push(
-					parseComponentProps(
-						node.name.getText(),
-						checker.getTypeAtLocation(arg.typeArguments[0]),
-						node.getSourceFile(),
-						node,
-						parserContext,
-					),
-				);
-			}
-		} else if (ts.isEnumDeclaration(node)) {
-			foundNodes.push(parseEnum(node, parserContext));
-		}
-	}
 }
 
-function isDefinedInModuleScope(node: ts.Node) {
-	while (node) {
-		if (ts.isModuleBlock(node) || ts.isSourceFile(node)) {
-			return true;
-		}
+export interface ParserContext extends ParserOptions {
+	checker: ts.TypeChecker;
+	sourceFile: ts.SourceFile;
+	typeStack: number[];
+}
 
-		node = node.parent;
-	}
-
-	return false;
+/**
+ * Options that specify how the parser should act
+ */
+export interface ParserOptions {
+	/**
+	 * Called before a property is added to an object type.
+	 */
+	shouldInclude: (data: { name: string; depth: number }) => boolean | undefined;
+	/**
+	 * Called before the shape of an object is resolved
+	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
+	 * use the default behaviour
+	 * @default propertyCount <= 50 && depth <= 10
+	 */
+	shouldResolveObject: (data: {
+		name: string;
+		propertyCount: number;
+		depth: number;
+	}) => boolean | undefined;
+	/**
+	 * Control if external types and members should be included in the output.
+	 * @default false
+	 */
+	includeExternalTypes?: boolean;
 }

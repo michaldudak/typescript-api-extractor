@@ -1,51 +1,52 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "props-literals\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "Component",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "stringLiteral",
-					"type": {
-						"nodeType": "literal",
-						"value": "\"foo\""
+			"type": {
+				"nodeType": "component",
+				"name": "Component",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "stringLiteral",
+						"type": {
+							"nodeType": "literal",
+							"value": "\"foo\""
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "numberLiteral",
-					"type": {
-						"nodeType": "literal",
-						"value": 42
+					{
+						"nodeType": "member",
+						"name": "numberLiteral",
+						"type": {
+							"nodeType": "literal",
+							"value": 42
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "booleanLiteral",
-					"type": {
-						"nodeType": "literal",
-						"value": "true"
+					{
+						"nodeType": "member",
+						"name": "booleanLiteral",
+						"type": {
+							"nodeType": "literal",
+							"value": "true"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "nullLiteral",
-					"type": {
-						"nodeType": "literal",
-						"value": "null"
-					},
-					"optional": false,
-					"filenames": {}
-				}
-			]
+					{
+						"nodeType": "member",
+						"name": "nullLiteral",
+						"type": {
+							"nodeType": "literal",
+							"value": "null"
+						},
+						"optional": false
+					}
+				]
+			}
 		}
 	]
 }

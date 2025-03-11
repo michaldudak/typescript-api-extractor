@@ -1,37 +1,28 @@
 import { Documentation } from '../documentation';
 import { Node, TypeNode } from './node';
 
-const typeString = 'member';
+const typeString = 'export';
 
-export interface MemberNode {
+export interface ExportNode {
 	nodeType: typeof typeString;
 	name: string;
 	type: TypeNode;
 	documentation?: Documentation;
-	optional: boolean;
-	/**
-	 * @internal
-	 */
-	$$id: number | undefined;
 }
 
-export function memberNode(
+export function exportNode(
 	name: string,
 	type: TypeNode,
 	documentation: Documentation | undefined,
-	optional: boolean,
-	id: number | undefined,
-): MemberNode {
+): ExportNode {
 	return {
 		nodeType: typeString,
 		name,
 		type,
 		documentation,
-		optional,
-		$$id: id,
 	};
 }
 
-export function isMemberNode(node: Node): node is MemberNode {
+export function isExportNode(node: Node): node is ExportNode {
 	return node.nodeType === typeString;
 }

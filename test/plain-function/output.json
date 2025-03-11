@@ -1,107 +1,115 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "plain-function\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "declaration",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "p",
-							"type": {
-								"nodeType": "interface",
-								"name": "Parameters",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+			"type": {
+				"nodeType": "function",
+				"name": "declaration",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "p",
+								"type": {
+									"nodeType": "interface",
+									"name": "Parameters",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		},
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "greetAsExpression",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "p",
-							"type": {
-								"nodeType": "interface",
-								"name": "Parameters",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+			"type": {
+				"nodeType": "function",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "p",
+								"type": {
+									"nodeType": "interface",
+									"name": "Parameters",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		},
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "greetAsArrowFunction",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "p",
-							"type": {
-								"nodeType": "interface",
-								"name": "Parameters",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+			"type": {
+				"nodeType": "function",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "p",
+								"type": {
+									"nodeType": "interface",
+									"name": "Parameters",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		}
 	]
 }

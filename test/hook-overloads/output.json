@@ -1,49 +1,54 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "hook-overloads\\input",
+	"exports": [
 		{
-			"nodeType": "hook",
+			"nodeType": "export",
 			"name": "useHook",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "s",
-							"type": {
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							"documentation": {
-								"description": "The string"
+			"type": {
+				"nodeType": "function",
+				"name": "useHook",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "s",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								"documentation": {
+									"description": "The string"
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "string"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "string"
-					}
-				},
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "n",
-							"type": {
-								"nodeType": "intrinsic",
-								"type": "number"
-							},
-							"documentation": {
-								"description": "The number"
+					},
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "n",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "number"
+								},
+								"documentation": {
+									"description": "The number"
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "number"
 					}
-				}
-			],
+				]
+			},
 			"documentation": {
 				"description": "Returns the input string."
 			}

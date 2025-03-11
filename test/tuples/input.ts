@@ -1,16 +1,16 @@
-function testFunction1(): [string, number] {
+export function testFunction1(): [string, number] {
 	return ['hello', 42];
 }
 
-function testFunction2(): [s: string, n: number] {
+export function testFunction2(): [s: string, n: number] {
 	return ['hello', 42];
 }
 
-function testFunction3(): TupleType {
+export function testFunction3(): TupleType {
 	return ['hello', 42];
 }
 
-function testFunction4(): NamedTupleType {
+export function testFunction4(): NamedTupleType {
 	return ['hello', 42];
 }
 

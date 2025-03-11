@@ -1,135 +1,140 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "arrays\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "test1",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "params",
-							"type": {
-								"nodeType": "interface",
-								"name": "Params",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "arr1",
-										"type": {
-											"nodeType": "array",
+			"type": {
+				"nodeType": "function",
+				"name": "test1",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "interface",
+									"name": "Params",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "arr1",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
-											}
+												"nodeType": "array",
+												"type": {
+													"nodeType": "intrinsic",
+													"type": "string"
+												}
+											},
+											"optional": false
 										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "arr2",
-										"type": {
-											"nodeType": "array",
+										{
+											"nodeType": "member",
+											"name": "arr2",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
-											}
-										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "optionalArr1",
-										"type": {
-											"nodeType": "union",
-											"types": [
-												{
-													"nodeType": "array",
-													"type": {
-														"nodeType": "intrinsic",
-														"type": "string"
-													}
-												},
-												{
+												"nodeType": "array",
+												"type": {
 													"nodeType": "intrinsic",
-													"type": "undefined"
+													"type": "number"
 												}
-											]
+											},
+											"optional": false
 										},
-										"optional": true,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "optionalArr2",
-										"type": {
-											"nodeType": "union",
-											"types": [
-												{
-													"nodeType": "array",
-													"type": {
+										{
+											"nodeType": "member",
+											"name": "optionalArr1",
+											"type": {
+												"nodeType": "union",
+												"types": [
+													{
+														"nodeType": "array",
+														"type": {
+															"nodeType": "intrinsic",
+															"type": "string"
+														}
+													},
+													{
 														"nodeType": "intrinsic",
-														"type": "number"
+														"type": "undefined"
 													}
-												},
-												{
-													"nodeType": "intrinsic",
-													"type": "undefined"
-												}
-											]
+												]
+											},
+											"optional": true
 										},
-										"optional": true,
-										"filenames": {}
-									}
-								]
+										{
+											"nodeType": "member",
+											"name": "optionalArr2",
+											"type": {
+												"nodeType": "union",
+												"types": [
+													{
+														"nodeType": "array",
+														"type": {
+															"nodeType": "intrinsic",
+															"type": "number"
+														}
+													},
+													{
+														"nodeType": "intrinsic",
+														"type": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								}
 							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		},
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "test2",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "a1",
-							"type": {
-								"nodeType": "array",
+			"type": {
+				"nodeType": "function",
+				"name": "test2",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a1",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"nodeType": "array",
+									"type": {
+										"nodeType": "intrinsic",
+										"type": "string"
+									}
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "a2",
+								"type": {
+									"nodeType": "array",
+									"type": {
+										"nodeType": "intrinsic",
+										"type": "number"
+									}
 								}
 							}
-						},
-						{
-							"nodeType": "parameter",
-							"name": "a2",
-							"type": {
-								"nodeType": "array",
-								"type": {
-									"nodeType": "intrinsic",
-									"type": "number"
-								}
-							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		}
 	]
 }

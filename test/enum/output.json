@@ -1,54 +1,66 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "enum\\input",
+	"exports": [
 		{
-			"nodeType": "enum",
+			"nodeType": "export",
 			"name": "Side",
-			"members": [
-				{
-					"name": "left",
-					"value": "left",
-					"documentation": {
-						"description": "Left side."
+			"type": {
+				"nodeType": "enum",
+				"name": "Side",
+				"members": [
+					{
+						"name": "left",
+						"value": "left",
+						"documentation": {
+							"description": "Left side."
+						}
+					},
+					{
+						"name": "right",
+						"value": "right",
+						"documentation": {
+							"description": "Right side."
+						}
 					}
-				},
-				{
-					"name": "right",
-					"value": "right",
-					"documentation": {
-						"description": "Right side."
-					}
+				],
+				"documentation": {
+					"description": "Description of the Side enum."
 				}
-			],
+			},
 			"documentation": {
 				"description": "Description of the Side enum."
 			}
 		},
 		{
-			"nodeType": "enum",
+			"nodeType": "export",
 			"name": "Flags",
-			"members": [
-				{
-					"name": "flag1",
-					"value": 1
-				},
-				{
-					"name": "flag2",
-					"value": 2
-				},
-				{
-					"name": "flag3",
-					"value": 4
-				},
-				{
-					"name": "flag2And3",
-					"value": 6
-				},
-				{
-					"name": "implicitValue",
-					"value": 7
-				}
-			]
+			"type": {
+				"nodeType": "enum",
+				"name": "Flags",
+				"members": [
+					{
+						"name": "flag1",
+						"value": 1
+					},
+					{
+						"name": "flag2",
+						"value": 2
+					},
+					{
+						"name": "flag3",
+						"value": 4
+					},
+					{
+						"name": "flag2And3",
+						"value": 6
+					},
+					{
+						"name": "implicitValue",
+						"value": 7
+					}
+				]
+			}
 		}
 	]
 }

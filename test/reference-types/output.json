@@ -1,144 +1,147 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "reference-types\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "referenceTypes",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "a",
-							"type": {
-								"nodeType": "interface",
-								"name": "CustomInterface",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "a",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "number"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
-							}
-						},
-						{
-							"nodeType": "parameter",
-							"name": "b",
-							"type": {
-								"nodeType": "interface",
-								"name": "CustomType",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
-							}
-						}
-					],
-					"returnValueType": {
-						"nodeType": "union",
-						"types": [
+			"type": {
+				"nodeType": "function",
+				"name": "referenceTypes",
+				"callSignatures": [
+					{
+						"parameters": [
 							{
-								"nodeType": "interface",
-								"name": "CustomInterface",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "a",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "number"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "interface",
+									"name": "CustomInterface",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "number"
+											},
+											"optional": false
+										}
+									]
+								}
 							},
 							{
-								"nodeType": "interface",
-								"name": "CustomType",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+								"nodeType": "parameter",
+								"name": "b",
+								"type": {
+									"nodeType": "interface",
+									"name": "CustomType",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
 							}
-						]
+						],
+						"returnValueType": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "interface",
+									"name": "CustomInterface",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								{
+									"nodeType": "interface",
+									"name": "CustomType",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
+							]
+						}
 					}
-				}
-			]
+				]
+			}
 		},
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "inlineTypes",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "a",
-							"type": {
-								"nodeType": "interface",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "a",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "number"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
+			"type": {
+				"nodeType": "function",
+				"name": "inlineTypes",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"nodeType": "interface",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "number"
+											},
+											"optional": false
+										}
+									]
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "b",
+								"type": {
+									"nodeType": "interface",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "s",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										}
+									]
+								}
 							}
-						},
-						{
-							"nodeType": "parameter",
-							"name": "b",
-							"type": {
-								"nodeType": "interface",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "s",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
-							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
 					}
-				}
-			]
+				]
+			}
 		}
 	]
 }

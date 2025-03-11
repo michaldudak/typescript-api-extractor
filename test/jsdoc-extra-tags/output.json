@@ -1,18 +1,23 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "jsdoc-extra-tags\\input",
+	"exports": [
 		{
-			"nodeType": "function",
+			"nodeType": "export",
 			"name": "test",
-			"callSignatures": [
-				{
-					"parameters": [],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "void"
+			"type": {
+				"nodeType": "function",
+				"name": "test",
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "void"
+						}
 					}
-				}
-			],
+				]
+			},
 			"documentation": {
 				"description": "This is a test.",
 				"visibility": "public",

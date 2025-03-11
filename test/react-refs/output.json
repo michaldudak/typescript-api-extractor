@@ -1,106 +1,105 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "react-refs\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "Test",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "refObject",
-					"type": {
-						"nodeType": "reference",
-						"typeName": "React.RefObject"
+			"type": {
+				"nodeType": "component",
+				"name": "Test",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "refObject",
+						"type": {
+							"nodeType": "reference",
+							"typeName": "RefObject"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "refCallback",
-					"type": {
-						"nodeType": "reference",
-						"typeName": "React.RefCallback"
+					{
+						"nodeType": "member",
+						"name": "refCallback",
+						"type": {
+							"nodeType": "reference",
+							"typeName": "RefCallback"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "ref",
-					"type": {
-						"nodeType": "reference",
-						"typeName": "React.Ref<HTMLInputElement>"
+					{
+						"nodeType": "member",
+						"name": "ref",
+						"type": {
+							"nodeType": "reference",
+							"typeName": "Ref<HTMLInputElement>"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "optionalRefObject",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "reference",
-								"typeName": "React.RefObject"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
+					{
+						"nodeType": "member",
+						"name": "optionalRefObject",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "reference",
+									"typeName": "RefObject"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
 					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "optionalRefCallback",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "reference",
-								"typeName": "React.RefCallback"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
+					{
+						"nodeType": "member",
+						"name": "optionalRefCallback",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "reference",
+									"typeName": "RefCallback"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
 					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "optionalRef",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "literal",
-								"value": "null"
-							},
-							{
-								"nodeType": "reference",
-								"typeName": "React.RefCallback"
-							},
-							{
-								"nodeType": "reference",
-								"typeName": "React.RefObject"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
-					},
-					"optional": true,
-					"filenames": {}
-				}
-			]
+					{
+						"nodeType": "member",
+						"name": "optionalRef",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "literal",
+									"value": "null"
+								},
+								{
+									"nodeType": "reference",
+									"typeName": "RefCallback"
+								},
+								{
+									"nodeType": "reference",
+									"typeName": "RefObject"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
 		}
 	]
 }

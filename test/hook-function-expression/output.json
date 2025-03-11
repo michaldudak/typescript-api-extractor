@@ -1,115 +1,115 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "hook-function-expression\\input",
+	"exports": [
 		{
-			"nodeType": "hook",
+			"nodeType": "export",
 			"name": "useHook",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "parameters",
-							"type": {
-								"nodeType": "interface",
-								"name": "HookParameters",
-								"members": [
-									{
-										"nodeType": "member",
-										"name": "value",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "string"
-										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "severity",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "number"
-										},
-										"optional": false,
-										"filenames": {}
-									},
-									{
-										"nodeType": "member",
-										"name": "onChange",
-										"type": {
-											"nodeType": "functionType",
-											"callSignatures": [
-												{
-													"parameters": [
-														{
-															"nodeType": "parameter",
-															"name": "value",
-															"type": {
-																"nodeType": "intrinsic",
-																"type": "string"
-															}
-														}
-													],
-													"returnValueType": {
-														"nodeType": "intrinsic",
-														"type": "void"
-													}
-												}
-											]
-										},
-										"optional": false,
-										"filenames": {}
-									}
-								]
-							}
-						}
-					],
-					"returnValueType": {
-						"nodeType": "interface",
-						"name": "HookReturnValue",
-						"members": [
+			"type": {
+				"nodeType": "function",
+				"name": "useHook",
+				"callSignatures": [
+					{
+						"parameters": [
 							{
-								"nodeType": "member",
-								"name": "getProps",
+								"nodeType": "parameter",
+								"name": "parameters",
 								"type": {
-									"nodeType": "functionType",
-									"callSignatures": [
+									"nodeType": "interface",
+									"name": "HookParameters",
+									"members": [
 										{
-											"parameters": [
-												{
-													"nodeType": "parameter",
-													"name": "externalProps",
-													"type": {
-														"nodeType": "reference",
-														"typeName": "React.HTMLAttributes"
+											"nodeType": "member",
+											"name": "value",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "string"
+											},
+											"optional": false
+										},
+										{
+											"nodeType": "member",
+											"name": "severity",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "number"
+											},
+											"optional": false
+										},
+										{
+											"nodeType": "member",
+											"name": "onChange",
+											"type": {
+												"nodeType": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"nodeType": "parameter",
+																"name": "value",
+																"type": {
+																	"nodeType": "intrinsic",
+																	"type": "string"
+																}
+															}
+														],
+														"returnValueType": {
+															"nodeType": "intrinsic",
+															"type": "void"
+														}
 													}
-												}
-											],
-											"returnValueType": {
-												"nodeType": "reference",
-												"typeName": "React.HTMLAttributes"
-											}
+												]
+											},
+											"optional": false
 										}
 									]
-								},
-								"optional": false,
-								"filenames": {}
-							},
-							{
-								"nodeType": "member",
-								"name": "ref",
-								"type": {
-									"nodeType": "reference",
-									"typeName": "React.RefCallback"
-								},
-								"optional": false,
-								"filenames": {}
+								}
 							}
-						]
+						],
+						"returnValueType": {
+							"nodeType": "interface",
+							"name": "HookReturnValue",
+							"members": [
+								{
+									"nodeType": "member",
+									"name": "getProps",
+									"type": {
+										"nodeType": "function",
+										"callSignatures": [
+											{
+												"parameters": [
+													{
+														"nodeType": "parameter",
+														"name": "externalProps",
+														"type": {
+															"nodeType": "reference",
+															"typeName": "HTMLAttributes"
+														}
+													}
+												],
+												"returnValueType": {
+													"nodeType": "reference",
+													"typeName": "HTMLAttributes"
+												}
+											}
+										]
+									},
+									"optional": false
+								},
+								{
+									"nodeType": "member",
+									"name": "ref",
+									"type": {
+										"nodeType": "reference",
+										"typeName": "RefCallback"
+									},
+									"optional": false
+								}
+							]
+						}
 					}
-				}
-			],
+				]
+			},
 			"documentation": {
 				"description": "A hook defined as a function expression.",
 				"visibility": "internal"

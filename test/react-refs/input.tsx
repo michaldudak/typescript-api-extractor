@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export function Test(props: Props) {
-	return null;
+	return <div />;
 }
 
 interface Props {

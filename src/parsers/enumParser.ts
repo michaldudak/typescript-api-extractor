@@ -1,25 +1,24 @@
 import ts from 'typescript';
 import { ParserContext } from '../parser';
-import { EnumMember, enumNode } from '../types';
-import { getDocumentationFromNode } from './documentationParser';
+import { EnumNode, EnumMember, enumNode } from '../types';
+import { getDocumentationFromNode, getDocumentationFromSymbol } from './documentationParser';
 
-export function parseEnum(declaration: ts.EnumDeclaration, context: ParserContext) {
+export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 	const { checker } = context;
-	const members = declaration.members.map((member) => {
-		const memberSymbol = checker.getSymbolAtLocation(member.name);
-
+	const memberSymbols = checker.getExportsOfModule(symbol);
+	const members = memberSymbols.map((memberSymbol) => {
 		if (!memberSymbol) {
 			throw new Error('Could not find symbol for member');
 		}
 
-		const memberType = checker.getTypeAtLocation(member);
+		const memberType = checker.getTypeOfSymbol(memberSymbol);
 
 		return {
-			name: member.name.getText(),
+			name: memberSymbol.getName(),
 			value: (memberType as any).value,
-			documentation: getDocumentationFromNode(member),
+			documentation: getDocumentationFromSymbol(memberSymbol, checker),
 		} satisfies EnumMember;
 	});
 
-	return enumNode(declaration.name.getText(), members, getDocumentationFromNode(declaration));
+	return enumNode(symbol.getName(), members, getDocumentationFromSymbol(symbol, checker));
 }

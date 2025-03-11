@@ -1,97 +1,97 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "union-types\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "Component",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "matching",
-					"type": {
-						"nodeType": "intrinsic",
-						"type": "boolean"
+			"type": {
+				"nodeType": "component",
+				"name": "Component",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "matching",
+						"type": {
+							"nodeType": "intrinsic",
+							"type": "boolean"
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "uniqueA",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
+					{
+						"nodeType": "member",
+						"name": "uniqueA",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
 					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "conflictingOptionality",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
+					{
+						"nodeType": "member",
+						"name": "conflictingOptionality",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
 					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "conflictingType",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "number"
-							}
-						]
+					{
+						"nodeType": "member",
+						"name": "conflictingType",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "number"
+								}
+							]
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "uniqueB",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
-					},
-					"optional": true,
-					"filenames": {}
-				}
-			]
+					{
+						"nodeType": "member",
+						"name": "uniqueB",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
 		}
 	]
 }

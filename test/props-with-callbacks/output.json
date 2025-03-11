@@ -1,121 +1,122 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "props-with-callbacks\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "Component",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "onChange",
-					"type": {
-						"nodeType": "functionType",
-						"callSignatures": [
-							{
-								"parameters": [
-									{
-										"nodeType": "parameter",
-										"name": "event",
-										"type": {
-											"nodeType": "reference",
-											"typeName": "React.ChangeEvent"
+			"type": {
+				"nodeType": "component",
+				"name": "Component",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "onChange",
+						"type": {
+							"nodeType": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"nodeType": "parameter",
+											"name": "event",
+											"type": {
+												"nodeType": "reference",
+												"typeName": "ChangeEvent"
+											}
 										}
+									],
+									"returnValueType": {
+										"nodeType": "intrinsic",
+										"type": "void"
 									}
-								],
-								"returnValueType": {
-									"nodeType": "intrinsic",
-									"type": "void"
 								}
-							}
-						]
+							]
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "onClosing",
-					"type": {
-						"nodeType": "functionType",
-						"name": "OnClosingCallback",
-						"callSignatures": [
-							{
-								"parameters": [
-									{
-										"nodeType": "parameter",
-										"name": "animated",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "boolean"
+					{
+						"nodeType": "member",
+						"name": "onClosing",
+						"type": {
+							"nodeType": "function",
+							"name": "OnClosingCallback",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"nodeType": "parameter",
+											"name": "animated",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "boolean"
+											}
 										}
+									],
+									"returnValueType": {
+										"nodeType": "intrinsic",
+										"type": "boolean"
 									}
-								],
-								"returnValueType": {
-									"nodeType": "intrinsic",
-									"type": "boolean"
 								}
-							}
-						]
+							]
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "onOpen",
-					"type": {
-						"nodeType": "functionType",
-						"name": "OnOpenCallback",
-						"callSignatures": [
-							{
-								"parameters": [
-									{
-										"nodeType": "parameter",
-										"name": "animated",
-										"type": {
-											"nodeType": "intrinsic",
-											"type": "boolean"
+					{
+						"nodeType": "member",
+						"name": "onOpen",
+						"type": {
+							"nodeType": "function",
+							"name": "OnOpenCallback",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"nodeType": "parameter",
+											"name": "animated",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "boolean"
+											}
 										}
+									],
+									"returnValueType": {
+										"nodeType": "intrinsic",
+										"type": "void"
 									}
-								],
-								"returnValueType": {
-									"nodeType": "intrinsic",
-									"type": "void"
 								}
-							}
-						]
+							]
+						},
+						"optional": false
 					},
-					"optional": false,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "onClosed",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "functionType",
-								"callSignatures": [
-									{
-										"parameters": [],
-										"returnValueType": {
-											"nodeType": "intrinsic",
-											"type": "void"
+					{
+						"nodeType": "member",
+						"name": "onClosed",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "function",
+									"callSignatures": [
+										{
+											"parameters": [],
+											"returnValueType": {
+												"nodeType": "intrinsic",
+												"type": "void"
+											}
 										}
-									}
-								]
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
-					},
-					"optional": true,
-					"filenames": {}
-				}
-			]
+									]
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
 		}
 	]
 }

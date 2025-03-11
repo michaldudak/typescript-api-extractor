@@ -4,6 +4,7 @@ import { getDocumentationFromSymbol } from './documentationParser';
 import { ParserContext } from '../parser';
 import { parseMember } from './memberParser';
 import { parseFunctionType } from './functionParser';
+import { parseEnum } from './enumParser';
 
 export function resolveType(
 	type: ts.Type,
@@ -11,14 +12,7 @@ export function resolveType(
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): t.TypeNode {
-	const {
-		checker,
-		shouldInclude,
-		shouldResolveObject,
-		shouldResolveFunction,
-		typeStack,
-		includeExternalTypes,
-	} = context;
+	const { checker, shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
 
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
@@ -49,8 +43,8 @@ export function resolveType(
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
 			const typeName = getTypeName(type, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
-			if (typeName === '__type.bivarianceHack') {
-				return t.referenceNode('React.RefCallback');
+			if (typeName === 'bivarianceHack') {
+				return t.referenceNode('RefCallback');
 			}
 
 			return t.referenceNode(getTypeName(type, checker));
@@ -62,6 +56,15 @@ export function resolveType(
 
 		if (hasFlag(type.flags, ts.TypeFlags.Void)) {
 			return t.intrinsicNode('void');
+		}
+
+		if (type.flags & ts.TypeFlags.EnumLike) {
+			const symbol = type.aliasSymbol ?? type.getSymbol();
+			if (!symbol) {
+				return t.intrinsicNode('any');
+			}
+
+			return parseEnum(symbol, context);
 		}
 
 		if (type.isUnion()) {
@@ -123,13 +126,7 @@ export function resolveType(
 
 		const callSignatures = type.getCallSignatures();
 		if (callSignatures.length >= 1) {
-			if (
-				skipResolvingComplexTypes ||
-				!shouldResolveFunction({
-					name,
-					depth: typeStack.length,
-				})
-			) {
+			if (skipResolvingComplexTypes) {
 				return t.intrinsicNode('function');
 			}
 
@@ -138,7 +135,10 @@ export function resolveType(
 
 		// Object-like type
 		{
-			const properties = type.getProperties();
+			const properties = type
+				.getProperties()
+				.filter((property) => includeExternalTypes || !isPropertyExternal(property));
+
 			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
 			let typeName = typeSymbol?.getName();
 			if (typeName === '__type') {
@@ -200,7 +200,7 @@ export function resolveType(
 	}
 }
 
-const allowedBuiltInTypes = new Set([
+const allowedBuiltInTsTypes = new Set([
 	'Pick',
 	'Omit',
 	'ReturnType',
@@ -211,7 +211,23 @@ const allowedBuiltInTypes = new Set([
 	'Readonly',
 	'Exclude',
 	'Extract',
+	'',
 ]);
+
+const allowedBuiltInReactTypes = new Set([
+	'React.NamedExoticComponent',
+	'React.FC',
+	'React.FunctionComponent',
+	'React.ForwardRefExoticComponent',
+]);
+
+function isPropertyExternal(property: ts.Symbol): boolean {
+	return (
+		property.declarations?.every((declaration) =>
+			declaration.getSourceFile().fileName.includes('node_modules'),
+		) ?? false
+	);
+}
 
 function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	const symbol = type.aliasSymbol ?? type.getSymbol();
@@ -222,8 +238,10 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 			return (
 				definedExternally &&
 				!(
-					allowedBuiltInTypes.has(checker.getFullyQualifiedName(symbol)) &&
-					/node_modules\/typescript\/lib/.test(sourceFileName)
+					(allowedBuiltInTsTypes.has(checker.getFullyQualifiedName(symbol)) &&
+						/node_modules\/typescript\/lib/.test(sourceFileName)) ||
+					(allowedBuiltInReactTypes.has(checker.getFullyQualifiedName(symbol)) &&
+						/node_modules\/@types\/react/.test(sourceFileName))
 				)
 			);
 		}) ?? false
@@ -236,7 +254,10 @@ function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
 		return checker.typeToString(type);
 	}
 
-	const typeName = checker.getFullyQualifiedName(symbol);
+	const typeName = symbol.getName();
+	if (typeName === '__type') {
+		return checker.typeToString(type);
+	}
 
 	const typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker));
 	if (typeArguments) {

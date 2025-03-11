@@ -1,50 +1,55 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "forwardRef\\input",
+	"exports": [
 		{
-			"nodeType": "component",
+			"nodeType": "export",
 			"name": "TestComponent",
-			"props": [
-				{
-					"nodeType": "member",
-					"name": "className",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
+			"type": {
+				"nodeType": "component",
+				"name": "ForwardRefExoticComponent",
+				"props": [
+					{
+						"nodeType": "member",
+						"name": "className",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
 					},
-					"optional": true,
-					"filenames": {}
-				},
-				{
-					"nodeType": "member",
-					"name": "id",
-					"type": {
-						"nodeType": "union",
-						"types": [
-							{
-								"nodeType": "intrinsic",
-								"type": "string"
-							},
-							{
-								"nodeType": "intrinsic",
-								"type": "undefined"
-							}
-						]
-					},
-					"optional": true,
-					"filenames": {}
-				}
-			],
-			"description": "A test component"
+					{
+						"nodeType": "member",
+						"name": "id",
+						"type": {
+							"nodeType": "union",
+							"types": [
+								{
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								{
+									"nodeType": "intrinsic",
+									"type": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "A test component"
+			}
 		}
 	]
 }

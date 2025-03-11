@@ -11,7 +11,6 @@ export function parseMember(
 	skipResolvingComplexTypes: boolean = false,
 ): t.MemberNode {
 	const { checker } = context;
-	const symbolFilenames = getSymbolFileNames(propertySymbol);
 
 	let type: ts.Type;
 	if (propertySignature) {
@@ -43,13 +42,6 @@ export function parseMember(
 		parsedType,
 		getDocumentationFromSymbol(propertySymbol, checker),
 		isOptional,
-		symbolFilenames,
 		(propertySymbol as any).id,
 	);
-}
-
-function getSymbolFileNames(symbol: ts.Symbol): Set<string> {
-	const declarations = symbol.getDeclarations() || [];
-
-	return new Set(declarations.map((declaration) => declaration.getSourceFile().fileName));
 }

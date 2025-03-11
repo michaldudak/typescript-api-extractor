@@ -1,4 +1,3 @@
-import { Documentation } from '../documentation';
 import { CallSignature, FunctionNode } from './function';
 import { Node } from './node';
 
@@ -8,16 +7,11 @@ export interface HookNode extends Omit<FunctionNode, 'nodeType'> {
 	nodeType: typeof typeString;
 }
 
-export function hookNode(
-	name: string,
-	callSignatures: CallSignature[],
-	documentation: Documentation | undefined,
-): HookNode {
+export function hookNode(name: string, callSignatures: CallSignature[]): HookNode {
 	return {
 		nodeType: typeString,
 		name: name,
 		callSignatures,
-		documentation,
 	};
 }
 

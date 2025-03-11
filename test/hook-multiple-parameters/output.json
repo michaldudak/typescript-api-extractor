@@ -1,80 +1,85 @@
 {
-	"nodeType": "program",
-	"body": [
+	"nodeType": "module",
+	"name": "hook-multiple-parameters\\input",
+	"exports": [
 		{
-			"nodeType": "hook",
+			"nodeType": "export",
 			"name": "useHook",
-			"callSignatures": [
-				{
-					"parameters": [
-						{
-							"nodeType": "parameter",
-							"name": "value",
-							"type": {
-								"nodeType": "intrinsic",
-								"type": "string"
+			"type": {
+				"nodeType": "function",
+				"name": "useHook",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "value",
+								"type": {
+									"nodeType": "intrinsic",
+									"type": "string"
+								},
+								"documentation": {
+									"description": "The value."
+								}
 							},
-							"documentation": {
-								"description": "The value."
-							}
-						},
-						{
-							"nodeType": "parameter",
-							"name": "onChange",
-							"type": {
-								"nodeType": "functionType",
-								"callSignatures": [
-									{
-										"parameters": [
-											{
-												"nodeType": "parameter",
-												"name": "newValue",
-												"type": {
-													"nodeType": "intrinsic",
-													"type": "string"
+							{
+								"nodeType": "parameter",
+								"name": "onChange",
+								"type": {
+									"nodeType": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"nodeType": "parameter",
+													"name": "newValue",
+													"type": {
+														"nodeType": "intrinsic",
+														"type": "string"
+													}
 												}
+											],
+											"returnValueType": {
+												"nodeType": "intrinsic",
+												"type": "void"
 											}
-										],
-										"returnValueType": {
-											"nodeType": "intrinsic",
-											"type": "void"
 										}
-									}
-								]
+									]
+								},
+								"documentation": {
+									"description": "The change handler."
+								}
 							},
-							"documentation": {
-								"description": "The change handler."
+							{
+								"nodeType": "parameter",
+								"name": "severity",
+								"type": {
+									"nodeType": "union",
+									"name": "Severity",
+									"types": [
+										{
+											"nodeType": "literal",
+											"value": "\"low\""
+										},
+										{
+											"nodeType": "literal",
+											"value": "\"high\""
+										}
+									]
+								},
+								"documentation": {
+									"description": "The severity.",
+									"defaultValue": "\"'low'\""
+								}
 							}
-						},
-						{
-							"nodeType": "parameter",
-							"name": "severity",
-							"type": {
-								"nodeType": "union",
-								"name": "Severity",
-								"types": [
-									{
-										"nodeType": "literal",
-										"value": "\"low\""
-									},
-									{
-										"nodeType": "literal",
-										"value": "\"high\""
-									}
-								]
-							},
-							"documentation": {
-								"description": "The severity.",
-								"defaultValue": "\"'low'\""
-							}
+						],
+						"returnValueType": {
+							"nodeType": "intrinsic",
+							"type": "number"
 						}
-					],
-					"returnValueType": {
-						"nodeType": "intrinsic",
-						"type": "number"
 					}
-				}
-			],
+				]
+			},
 			"documentation": {
 				"description": "A hook defined as a function.",
 				"visibility": "internal"

@@ -1,1 +1,1 @@
-function test(params: Record<string, unknown>) {}
+export function test(params: Record<string, unknown>) {}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-function Component(props: PropsA | PropsB): React.ReactElement {
+export function Component(props: PropsA | PropsB): React.ReactElement {
 	return <div {...props} />;
 }
 
