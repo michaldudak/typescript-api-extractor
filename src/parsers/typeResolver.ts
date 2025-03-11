@@ -40,6 +40,12 @@ export function resolveType(
 			);
 		}
 
+		if (checker.isArrayType(type)) {
+			// @ts-ignore - Private method
+			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
+			return t.arrayNode(resolveType(arrayType, name, context));
+		}
+
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
 			const typeName = getTypeName(type, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
@@ -48,12 +54,6 @@ export function resolveType(
 			}
 
 			return t.referenceNode(getTypeName(type, checker));
-		}
-
-		if (checker.isArrayType(type)) {
-			// @ts-ignore - Private method
-			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return t.arrayNode(resolveType(arrayType, name, context));
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
