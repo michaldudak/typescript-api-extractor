@@ -49,7 +49,7 @@ export function parseComponentProps(
 
 	return t.componentNode(
 		componentName,
-		filteredProperties.map((x) => parseMember(x, context)),
+		filteredProperties.map((x) => parseMember(x.valueDeclaration as ts.PropertySignature, context)),
 		docs,
 		propsFilename,
 	);

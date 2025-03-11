@@ -1,0 +1,14 @@
+import * as React from 'react';
+
+export function Test(props: Props) {
+	return null;
+}
+
+interface Props {
+	refObject: React.RefObject<HTMLInputElement>;
+	refCallback: React.RefCallback<HTMLInputElement>;
+	ref: React.Ref<HTMLInputElement>;
+	optionalRefObject?: React.RefObject<HTMLInputElement>;
+	optionalRefCallback?: React.RefCallback<HTMLInputElement>;
+	optionalRef?: React.Ref<HTMLInputElement>;
+}

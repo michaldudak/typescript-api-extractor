@@ -95,6 +95,16 @@
 								},
 								"optional": false,
 								"filenames": {}
+							},
+							{
+								"nodeType": "member",
+								"name": "ref",
+								"type": {
+									"nodeType": "reference",
+									"typeName": "React.RefCallback"
+								},
+								"optional": false,
+								"filenames": {}
 							}
 						]
 					}

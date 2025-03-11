@@ -5,34 +5,34 @@ import { type ParserContext } from '../parser';
 import { resolveType } from './typeResolver';
 
 export function parseMember(
-	symbol: ts.Symbol,
+	propertySignature: ts.PropertySignature,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): t.MemberNode {
 	const { checker } = context;
-	const declarations = symbol.getDeclarations();
-	const declaration = declarations && declarations[0];
+	const symbol = checker.getSymbolAtLocation(propertySignature.name);
+	if (!symbol) {
+		throw new Error(`No symbol found for property signature ${propertySignature.name.getText()}`);
+	}
 
 	const symbolFilenames = getSymbolFileNames(symbol);
 
-	if (!declaration) {
-		throw new Error(`No declaration found for symbol ${symbol.getName()}`);
+	let type: ts.Type;
+	if (!propertySignature.type) {
+		type = checker.getAnyType();
+	} else {
+		type = checker.getTypeOfSymbolAtLocation(symbol, propertySignature.type);
 	}
 
-	const type = checker.getTypeOfSymbolAtLocation(symbol, declaration);
 	let isOptional = false;
 
 	// Typechecker only gives the type "any" if it's present in a union
 	// This means the type of "a" in {a?:any} isn't "any | undefined"
 	// So instead we check for the questionmark to detect optional types
 	let parsedType: t.Node | undefined = undefined;
-	if (
-		(type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) &&
-		declaration &&
-		ts.isPropertySignature(declaration)
-	) {
+	if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
 		parsedType = t.intrinsicNode('any');
-		isOptional = Boolean(declaration.questionToken);
+		isOptional = Boolean(propertySignature.questionToken);
 	} else {
 		parsedType = resolveType(type, symbol.getName(), context, skipResolvingComplexTypes);
 		isOptional = Boolean(symbol.flags & ts.SymbolFlags.Optional);

@@ -103,7 +103,7 @@ export function parseFromProgram(
 			}
 		}
 
-		return data.name !== 'ref';
+		return true;
 	};
 
 	const shouldResolveObject: ParserOptions['shouldResolveObject'] = (data) => {

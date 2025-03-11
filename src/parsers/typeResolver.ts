@@ -41,6 +41,12 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
+			const typeName = getTypeName(type, checker);
+			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
+			if (typeName === '__type.bivarianceHack') {
+				return t.referenceNode('React.RefCallback');
+			}
+
 			return t.referenceNode(getTypeName(type, checker));
 		}
 
@@ -144,13 +150,19 @@ export function resolveType(
 					!skipResolvingComplexTypes &&
 					shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.length })
 				) {
-					const filtered = properties.filter((symbol) =>
-						shouldInclude({ name: symbol.getName(), depth: typeStack.length + 1 }),
-					);
+					const filtered = properties.filter((property) => {
+						return (
+							property.valueDeclaration &&
+							ts.isPropertySignature(property.valueDeclaration) &&
+							shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
+						);
+					});
 					if (filtered.length > 0) {
 						return t.interfaceNode(
 							typeName,
-							filtered.map((x) => parseMember(x, context)),
+							filtered.map((property) => {
+								return parseMember(property.valueDeclaration as ts.PropertySignature, context);
+							}),
 						);
 					}
 				}
