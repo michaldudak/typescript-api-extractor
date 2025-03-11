@@ -97,7 +97,13 @@ export function parseFunctionType(type: ts.Type, context: ParserContext) {
 		return;
 	}
 
-	return t.functionTypeNode(parsedCallSignatures);
+	const symbol = type.aliasSymbol ?? type.getSymbol();
+	let name = symbol?.getName();
+	if (name === '__type') {
+		name = undefined;
+	}
+
+	return t.functionTypeNode(name, parsedCallSignatures);
 }
 
 export function parseFunctionComponent(

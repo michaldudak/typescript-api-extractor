@@ -6,5 +6,13 @@ function Component(props: Props): React.ReactElement {
 
 interface Props {
 	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-	onClosing: (animated: boolean) => boolean;
+	onClosing: OnClosingCallback;
+	onOpen: OnOpenCallback;
+	onClosed?: () => void;
+}
+
+type OnClosingCallback = (animated: boolean) => boolean;
+
+interface OnOpenCallback {
+	(animated: boolean): void;
 }

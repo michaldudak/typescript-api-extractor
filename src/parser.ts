@@ -125,7 +125,7 @@ export function parseFromProgram(
 			}
 		}
 
-		return data.depth <= 2;
+		return data.depth <= 3;
 	};
 
 	const checker = program.getTypeChecker();

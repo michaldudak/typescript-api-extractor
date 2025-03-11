@@ -5,12 +5,17 @@ const typeString = 'functionType';
 
 export interface FunctionTypeNode {
 	nodeType: typeof typeString;
+	name: string | undefined;
 	callSignatures: CallSignature[];
 }
 
-export function functionTypeNode(callSignatures: CallSignature[]): FunctionTypeNode {
+export function functionTypeNode(
+	name: string | undefined,
+	callSignatures: CallSignature[],
+): FunctionTypeNode {
 	return {
 		nodeType: typeString,
+		name,
 		callSignatures,
 	};
 }

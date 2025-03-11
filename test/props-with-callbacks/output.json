@@ -37,6 +37,7 @@
 					"name": "onClosing",
 					"type": {
 						"nodeType": "functionType",
+						"name": "OnClosingCallback",
 						"callSignatures": [
 							{
 								"parameters": [
@@ -57,6 +58,61 @@
 						]
 					},
 					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "onOpen",
+					"type": {
+						"nodeType": "functionType",
+						"name": "OnOpenCallback",
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"nodeType": "parameter",
+										"name": "animated",
+										"type": {
+											"nodeType": "intrinsic",
+											"type": "boolean"
+										}
+									}
+								],
+								"returnValueType": {
+									"nodeType": "intrinsic",
+									"type": "void"
+								}
+							}
+						]
+					},
+					"optional": false,
+					"filenames": {}
+				},
+				{
+					"nodeType": "member",
+					"name": "onClosed",
+					"type": {
+						"nodeType": "union",
+						"types": [
+							{
+								"nodeType": "functionType",
+								"callSignatures": [
+									{
+										"parameters": [],
+										"returnValueType": {
+											"nodeType": "intrinsic",
+											"type": "void"
+										}
+									}
+								]
+							},
+							{
+								"nodeType": "intrinsic",
+								"type": "undefined"
+							}
+						]
+					},
+					"optional": true,
 					"filenames": {}
 				}
 			]
