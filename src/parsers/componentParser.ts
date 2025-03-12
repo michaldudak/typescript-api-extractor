@@ -17,8 +17,12 @@ export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserCont
 			t.isFunctionNode(node.type) &&
 			node.type.callSignatures.some(
 				(signature) =>
-					t.isReferenceNode(signature.returnValueType) &&
-					componentReturnTypes.has(signature.returnValueType.typeName),
+					(t.isReferenceNode(signature.returnValueType) &&
+						componentReturnTypes.has(signature.returnValueType.typeName)) ||
+					(t.isUnionNode(signature.returnValueType) &&
+						signature.returnValueType.types.some(
+							(type) => t.isReferenceNode(type) && componentReturnTypes.has(type.typeName),
+						)),
 			)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
