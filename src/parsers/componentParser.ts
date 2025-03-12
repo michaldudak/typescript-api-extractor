@@ -15,15 +15,8 @@ export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserCont
 	return nodes.map((node) => {
 		if (
 			t.isFunctionNode(node.type) &&
-			node.type.callSignatures.some(
-				(signature) =>
-					(t.isReferenceNode(signature.returnValueType) &&
-						componentReturnTypes.has(signature.returnValueType.typeName)) ||
-					(t.isUnionNode(signature.returnValueType) &&
-						signature.returnValueType.types.some(
-							(type) => t.isReferenceNode(type) && componentReturnTypes.has(type.typeName),
-						)),
-			)
+			/^[A-Z]/.test(node.name) &&
+			hasReactNodeLikeReturnType(node.type)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			return {
@@ -34,6 +27,18 @@ export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserCont
 
 		return node;
 	});
+}
+
+function hasReactNodeLikeReturnType(type: t.FunctionNode) {
+	return type.callSignatures.some(
+		(signature) =>
+			(t.isReferenceNode(signature.returnValueType) &&
+				componentReturnTypes.has(signature.returnValueType.typeName)) ||
+			(t.isUnionNode(signature.returnValueType) &&
+				signature.returnValueType.types.some(
+					(type) => t.isReferenceNode(type) && componentReturnTypes.has(type.typeName),
+				)),
+	);
 }
 
 function squashComponentProps(callSignatures: t.CallSignature[], context: ParserContext) {
