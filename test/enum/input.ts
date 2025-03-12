@@ -19,3 +19,11 @@ export enum Flags {
 	flag2And3 = flag2 | flag3,
 	implicitValue,
 }
+
+export enum DegenerateN {
+	theOnlyItem = 1,
+}
+
+export enum DegenerateS {
+	theOnlyItem = 'one',
+}

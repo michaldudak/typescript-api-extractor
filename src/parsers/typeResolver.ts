@@ -59,7 +59,13 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.EnumLike) {
-			const symbol = type.aliasSymbol ?? type.getSymbol();
+			let symbol = type.aliasSymbol ?? type.getSymbol();
+			if ('value' in type) {
+				// weird edge case - when an enum has one member only, type.getSymbol() returns the symbol of the member
+				// @ts-expect-error internal API
+				symbol = symbol?.parent;
+			}
+
 			if (!symbol) {
 				return t.intrinsicNode('any');
 			}
