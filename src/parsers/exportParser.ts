@@ -92,7 +92,7 @@ export function parseExport(
 	function createExportNode(name: string, symbol: ts.Symbol, type: ts.Type) {
 		const parsedType = resolveType(type, symbol.getName(), parserContext);
 		if (parsedType) {
-			return t.exportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker));
+			return new t.ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker));
 		}
 	}
 }

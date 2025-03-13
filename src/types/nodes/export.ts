@@ -1,28 +1,20 @@
 import { Documentation } from '../documentation';
-import { Node, TypeNode } from './node';
+import { TypeNode } from './node';
 
-const typeString = 'export';
+export class ExportNode {
+	constructor(
+		public name: string,
+		public type: TypeNode,
+		public documentation: Documentation | undefined,
+	) {}
 
-export interface ExportNode {
-	nodeType: typeof typeString;
-	name: string;
-	type: TypeNode;
-	documentation?: Documentation;
-}
-
-export function exportNode(
-	name: string,
-	type: TypeNode,
-	documentation: Documentation | undefined,
-): ExportNode {
-	return {
-		nodeType: typeString,
-		name,
-		type,
-		documentation,
-	};
-}
-
-export function isExportNode(node: Node): node is ExportNode {
-	return node.nodeType === typeString;
+	/**
+	 * Whether the export is public.
+	 * Exports are considered public if they are not explicitly marked as private or internal.
+	 */
+	public get isPublic() {
+		return (
+			this.documentation?.visibility !== 'private' && this.documentation?.visibility !== 'internal'
+		);
+	}
 }

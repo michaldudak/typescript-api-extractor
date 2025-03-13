@@ -1,37 +1,16 @@
 import { Documentation } from '../documentation';
-import { Node, TypeNode } from './node';
+import { TypeNode } from './node';
 
-const typeString = 'member';
+export class MemberNode {
+	constructor(
+		public name: string,
+		public type: TypeNode,
+		public documentation: Documentation | undefined,
+		public optional: boolean,
+		public id: number | undefined,
+	) {
+		this.$$id = id;
+	}
 
-export interface MemberNode {
-	nodeType: typeof typeString;
-	name: string;
-	type: TypeNode;
-	documentation?: Documentation;
-	optional: boolean;
-	/**
-	 * @internal
-	 */
-	$$id: number | undefined;
-}
-
-export function memberNode(
-	name: string,
-	type: TypeNode,
-	documentation: Documentation | undefined,
-	optional: boolean,
-	id: number | undefined,
-): MemberNode {
-	return {
-		nodeType: typeString,
-		name,
-		type,
-		documentation,
-		optional,
-		$$id: id,
-	};
-}
-
-export function isMemberNode(node: Node): node is MemberNode {
-	return node.nodeType === typeString;
+	public readonly $$id: number | undefined;
 }

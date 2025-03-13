@@ -71,14 +71,14 @@ export function parseFromProgram(
 		parsedModuleExports.push(parsedExport);
 	}
 
-	parsedModuleExports = augmentComponentNodes(parsedModuleExports, parserContext);
+	parsedModuleExports = augmentComponentNodes(parsedModuleExports);
 
 	const relativeModulePath = path.relative(
 		program.getCompilerOptions().rootDir!,
 		JSON.parse(sourceFileSymbol.name),
 	);
 
-	return t.moduleNode(relativeModulePath, parsedModuleExports);
+	return new t.ModuleNode(relativeModulePath, parsedModuleExports);
 }
 
 function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions {

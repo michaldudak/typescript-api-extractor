@@ -1,17 +1,14 @@
-import { Node } from './node';
-
-const typeString = 'object';
+import { MemberNode } from './member';
 
 export interface ObjectNode {
-	nodeType: typeof typeString;
+	name: string | undefined;
+
+	members: MemberNode[];
 }
 
-export function objectNode(): ObjectNode {
-	return {
-		nodeType: typeString,
-	};
-}
-
-export function isObjectNode(node: Node): node is ObjectNode {
-	return node.nodeType === typeString;
+export class ObjectNode {
+	constructor(
+		public name: string | undefined = undefined,
+		public members: MemberNode[] = [],
+	) {}
 }

@@ -30,14 +30,14 @@ export function parseMember(
 	// So instead we check for the questionmark to detect optional types
 	let parsedType: t.Node | undefined = undefined;
 	if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
-		parsedType = t.intrinsicNode('any');
+		parsedType = new t.IntrinsicNode('any');
 		isOptional = Boolean(propertySignature.questionToken);
 	} else {
 		parsedType = resolveType(type, propertySymbol.getName(), context, skipResolvingComplexTypes);
 		isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 	}
 
-	return t.memberNode(
+	return new t.MemberNode(
 		propertySymbol.getName(),
 		parsedType,
 		getDocumentationFromSymbol(propertySymbol, checker),

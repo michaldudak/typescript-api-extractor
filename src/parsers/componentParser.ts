@@ -11,18 +11,19 @@ const componentReturnTypes = new Set([
 	'React.ReactElement',
 ]);
 
-export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserContext) {
+export function augmentComponentNodes(nodes: t.ExportNode[]) {
 	return nodes.map((node) => {
 		if (
-			t.isFunctionNode(node.type) &&
+			node.type instanceof t.FunctionNode &&
 			/^[A-Z]/.test(node.name) &&
 			hasReactNodeLikeReturnType(node.type)
 		) {
-			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
-			return {
-				...node,
-				type: t.componentNode(node.type.name, newCallSignatures),
-			};
+			const newCallSignatures = squashComponentProps(node.type.callSignatures);
+			return new t.ExportNode(
+				node.name,
+				new t.ComponentNode(node.type.name, newCallSignatures),
+				node.documentation,
+			);
 		}
 
 		return node;
@@ -32,16 +33,16 @@ export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserCont
 function hasReactNodeLikeReturnType(type: t.FunctionNode) {
 	return type.callSignatures.some(
 		(signature) =>
-			(t.isReferenceNode(signature.returnValueType) &&
+			(signature.returnValueType instanceof t.ReferenceNode &&
 				componentReturnTypes.has(signature.returnValueType.typeName)) ||
-			(t.isUnionNode(signature.returnValueType) &&
+			(signature.returnValueType instanceof t.UnionNode &&
 				signature.returnValueType.types.some(
-					(type) => t.isReferenceNode(type) && componentReturnTypes.has(type.typeName),
+					(type) => type instanceof t.ReferenceNode && componentReturnTypes.has(type.typeName),
 				)),
 	);
 }
 
-function squashComponentProps(callSignatures: t.CallSignature[], context: ParserContext) {
+function squashComponentProps(callSignatures: t.CallSignature[]) {
 	// squash props
 	// { variant: 'a', href: string } & { variant: 'b' }
 	// to
@@ -49,12 +50,12 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 	const props: Record<string, t.MemberNode> = {};
 	const usedPropsPerSignature: Set<String>[] = [];
 
-	function unwrapUnionType(type: t.UnionNode): t.InterfaceNode[] {
+	function unwrapUnionType(type: t.UnionNode): t.ObjectNode[] {
 		return type.types
 			.map((type) => {
-				if (t.isInterfaceNode(type)) {
+				if (type instanceof t.ObjectNode) {
 					return type;
-				} else if (t.isUnionNode(type)) {
+				} else if (type instanceof t.UnionNode) {
 					return unwrapUnionType(type);
 				}
 			})
@@ -69,11 +70,11 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 				return undefined;
 			}
 
-			if (t.isInterfaceNode(propsParameter.type)) {
+			if (propsParameter.type instanceof t.ObjectNode) {
 				return propsParameter.type;
 			}
 
-			if (t.isUnionNode(propsParameter.type)) {
+			if (propsParameter.type instanceof t.UnionNode) {
 				return unwrapUnionType(propsParameter.type);
 			}
 		})
@@ -90,9 +91,9 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 			if (currentTypeNode === undefined) {
 				currentTypeNode = propNode;
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				let mergedPropType = t.unionNode(undefined, [currentTypeNode.type, propNode.type]);
+				let mergedPropType = new t.UnionNode(undefined, [currentTypeNode.type, propNode.type]);
 
-				currentTypeNode = t.memberNode(
+				currentTypeNode = new t.MemberNode(
 					currentTypeNode.name,
 					mergedPropType.types.length === 1 ? mergedPropType.types[0] : mergedPropType,
 					currentTypeNode.documentation,
@@ -113,7 +114,7 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 			// mark as optional
 			return {
 				...propType,
-				type: t.unionNode(undefined, [propType.type, t.intrinsicNode('undefined')]),
+				type: new t.UnionNode(undefined, [propType.type, new t.IntrinsicNode('undefined')]),
 				optional: true,
 			};
 		}

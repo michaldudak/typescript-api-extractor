@@ -17,7 +17,7 @@ export function resolveType(
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
 	if (typeStack.includes((type as any).id)) {
-		return t.objectNode();
+		return new t.ObjectNode();
 	}
 
 	typeStack.push((type as any).id);
@@ -25,7 +25,7 @@ export function resolveType(
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
 			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
-			return t.typeParameterNode(
+			return new t.TypeParameterNode(
 				type.symbol.name,
 				declaration?.constraint?.getText(),
 				declaration?.default
@@ -37,25 +37,25 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-ignore - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return t.arrayNode(resolveType(arrayType, name, context));
+			return new t.ArrayNode(resolveType(arrayType, name, context));
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
 			const typeName = getTypeName(type, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
-				return t.referenceNode('RefCallback');
+				return new t.ReferenceNode('RefCallback');
 			}
 
-			return t.referenceNode(getTypeName(type, checker));
+			return new t.ReferenceNode(getTypeName(type, checker));
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
-			return t.intrinsicNode('boolean');
+			return new t.IntrinsicNode('boolean');
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Void)) {
-			return t.intrinsicNode('void');
+			return new t.IntrinsicNode('void');
 		}
 
 		if (type.flags & ts.TypeFlags.EnumLike) {
@@ -67,7 +67,7 @@ export function resolveType(
 			}
 
 			if (!symbol) {
-				return t.intrinsicNode('any');
+				return new t.IntrinsicNode('any');
 			}
 
 			return parseEnum(symbol, context);
@@ -85,11 +85,11 @@ export function resolveType(
 				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
 			}
 
-			return memberTypes.length === 1 ? memberTypes[0] : t.unionNode(typeName, memberTypes);
+			return memberTypes.length === 1 ? memberTypes[0] : new t.UnionNode(typeName, memberTypes);
 		}
 
 		if (checker.isTupleType(type)) {
-			return t.tupleNode(
+			return new t.TupleNode(
 				(type as ts.TupleType).typeArguments?.map((x) =>
 					resolveType(x, x.getSymbol()?.name || '', context),
 				) ?? [],
@@ -97,43 +97,43 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.String) {
-			return t.intrinsicNode('string');
+			return new t.IntrinsicNode('string');
 		}
 
 		if (type.flags & ts.TypeFlags.Number) {
-			return t.intrinsicNode('number');
+			return new t.IntrinsicNode('number');
 		}
 
 		if (type.flags & ts.TypeFlags.BigInt) {
-			return t.intrinsicNode('bigint');
+			return new t.IntrinsicNode('bigint');
 		}
 
 		if (type.flags & ts.TypeFlags.Undefined) {
-			return t.intrinsicNode('undefined');
+			return new t.IntrinsicNode('undefined');
 		}
 
 		if (type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) {
-			return t.intrinsicNode('any');
+			return new t.IntrinsicNode('any');
 		}
 
 		if (type.flags & ts.TypeFlags.Literal) {
 			if (type.isLiteral()) {
-				return t.literalNode(
+				return new t.LiteralNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
 					getDocumentationFromSymbol(type.symbol, checker)?.description,
 				);
 			}
-			return t.literalNode(checker.typeToString(type));
+			return new t.LiteralNode(checker.typeToString(type));
 		}
 
 		if (type.flags & ts.TypeFlags.Null) {
-			return t.literalNode('null');
+			return new t.LiteralNode('null');
 		}
 
 		const callSignatures = type.getCallSignatures();
 		if (callSignatures.length >= 1) {
 			if (skipResolvingComplexTypes) {
-				return t.intrinsicNode('function');
+				return new t.IntrinsicNode('function');
 			}
 
 			return parseFunctionType(type, context)!;
@@ -167,7 +167,7 @@ export function resolveType(
 						);
 					});
 					if (filtered.length > 0) {
-						return t.interfaceNode(
+						return new t.ObjectNode(
 							typeName,
 							filtered.map((property) => {
 								return parseMember(
@@ -181,10 +181,10 @@ export function resolveType(
 				}
 
 				if (typeName) {
-					return t.referenceNode(typeName);
+					return new t.ReferenceNode(typeName);
 				}
 
-				return t.objectNode();
+				return new t.ObjectNode();
 			}
 		}
 
@@ -193,14 +193,14 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			return t.objectNode();
+			return new t.ObjectNode();
 		}
 
 		console.warn(
 			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`,
 		);
 
-		return t.intrinsicNode('any');
+		return new t.IntrinsicNode('any');
 	} finally {
 		typeStack.pop();
 	}

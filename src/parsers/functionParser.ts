@@ -19,7 +19,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext) {
 		name = undefined;
 	}
 
-	return t.functionNode(name, parsedCallSignatures);
+	return new t.FunctionNode(name, parsedCallSignatures);
 }
 
 function parseFunctionSignature(
@@ -88,7 +88,7 @@ function parseFunctionSignature(
 
 		const hasDocumentation = documentation.description || documentation.defaultValue;
 
-		return t.parameterNode(
+		return new t.ParameterNode(
 			parameterType,
 			parameterSymbol.getName(),
 			hasDocumentation ? documentation : undefined,
