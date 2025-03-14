@@ -1,3 +1,5 @@
+import { BaseNode } from './node';
+
 type IntrinsicType =
 	| 'string'
 	| 'number'
@@ -10,6 +12,13 @@ type IntrinsicType =
 	| 'unknown'
 	| 'function';
 
-export class IntrinsicNode {
+export class IntrinsicNode implements BaseNode {
 	constructor(public type: IntrinsicType) {}
+
+	toObject(): Record<string, unknown> {
+		return {
+			nodeType: 'intrinsic',
+			type: this.type,
+		};
+	}
 }

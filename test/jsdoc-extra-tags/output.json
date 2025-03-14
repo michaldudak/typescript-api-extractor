@@ -20,18 +20,17 @@
 			},
 			"documentation": {
 				"description": "This is a test.",
-				"visibility": "public",
 				"tags": [
 					{
-						"tag": "example",
+						"name": "example",
 						"value": "test();"
 					},
 					{
-						"tag": "type",
+						"name": "type",
 						"value": "function"
 					},
 					{
-						"tag": "category",
+						"name": "category",
 						"value": "important-functions"
 					}
 				]

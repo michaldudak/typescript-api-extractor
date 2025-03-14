@@ -148,18 +148,17 @@
 			},
 			"documentation": {
 				"description": "A test function",
-				"visibility": "public",
 				"tags": [
 					{
-						"tag": "remarks",
+						"name": "remarks",
 						"value": "This is a test function."
 					},
 					{
-						"tag": "returns",
+						"name": "returns",
 						"value": "The return value"
 					},
 					{
-						"tag": "example",
+						"name": "example",
 						"value": "testFunction('test', 10);"
 					}
 				]

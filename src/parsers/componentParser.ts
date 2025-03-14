@@ -11,14 +11,14 @@ const componentReturnTypes = new Set([
 	'React.ReactElement',
 ]);
 
-export function augmentComponentNodes(nodes: t.ExportNode[]) {
+export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserContext) {
 	return nodes.map((node) => {
 		if (
 			node.type instanceof t.FunctionNode &&
 			/^[A-Z]/.test(node.name) &&
 			hasReactNodeLikeReturnType(node.type)
 		) {
-			const newCallSignatures = squashComponentProps(node.type.callSignatures);
+			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			return new t.ExportNode(
 				node.name,
 				new t.ComponentNode(node.type.name, newCallSignatures),
@@ -42,7 +42,7 @@ function hasReactNodeLikeReturnType(type: t.FunctionNode) {
 	);
 }
 
-function squashComponentProps(callSignatures: t.CallSignature[]) {
+function squashComponentProps(callSignatures: t.CallSignature[], context: ParserContext) {
 	// squash props
 	// { variant: 'a', href: string } & { variant: 'b' }
 	// to
@@ -108,19 +108,31 @@ function squashComponentProps(callSignatures: t.CallSignature[]) {
 		usedPropsPerSignature.push(usedProps);
 	});
 
-	const memberNodes = Object.entries(props).map(([name, propType]) => {
+	const memberNodes = Object.entries(props).map(([name, property]) => {
 		const onlyUsedInSomeSignatures = usedPropsPerSignature.some((props) => !props.has(name));
 		if (onlyUsedInSomeSignatures) {
 			// mark as optional
-			return {
-				...propType,
-				type: new t.UnionNode(undefined, [propType.type, new t.IntrinsicNode('undefined')]),
-				optional: true,
-			};
+			return markPropertyAsOptional(property, context);
 		}
 
-		return propType;
+		return property;
 	});
 
 	return memberNodes;
+}
+
+function markPropertyAsOptional(property: t.MemberNode, context: ParserContext) {
+	const canBeUndefined =
+		property.type instanceof t.UnionNode &&
+		property.type.types.some(
+			(type) => type instanceof t.IntrinsicNode && type.type === 'undefined',
+		);
+
+	const { compilerOptions } = context;
+	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
+		const newType = new t.UnionNode(undefined, [property.type, new t.IntrinsicNode('undefined')]);
+		return new t.MemberNode(property.name, newType, property.documentation, true, undefined);
+	}
+
+	return new t.MemberNode(property.name, property.type, property.documentation, true, undefined);
 }

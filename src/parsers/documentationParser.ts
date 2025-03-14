@@ -15,7 +15,7 @@ export function getDocumentationFromSymbol(
 	}
 
 	const comment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
-	return comment ? { description: comment } : undefined;
+	return comment ? new t.Documentation(comment) : undefined;
 }
 
 export function getDocumentationFromNode(node: ts.Node): t.Documentation | undefined {
@@ -30,12 +30,12 @@ export function getDocumentationFromNode(node: ts.Node): t.Documentation | undef
 				)
 				.map(parseTag);
 
-			return {
-				description: commentNode.comment as string | undefined,
-				defaultValue: commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
-				visibility: getVisibilityFromJSDoc(commentNode),
-				tags: tags?.length ? tags : undefined,
-			};
+			return new t.Documentation(
+				commentNode.comment as string | undefined,
+				commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
+				getVisibilityFromJSDoc(commentNode) ?? 'public',
+				tags ?? [],
+			);
 		}
 	}
 }
@@ -75,16 +75,16 @@ export function getParameterDescriptionFromNode(node: ts.Node) {
 	return {};
 }
 
-function parseTag(tag: ts.JSDocTag) {
+function parseTag(tag: ts.JSDocTag): t.DocumentationTag {
 	if (ts.isJSDocTypeTag(tag)) {
 		return {
-			tag: tag.tagName.text,
+			name: tag.tagName.text,
 			value: tag.typeExpression?.type.getText(),
 		};
 	}
 
 	return {
-		tag: tag.tagName.text,
+		name: tag.tagName.text,
 		value: typeof tag.comment === 'string' ? tag.comment : undefined,
 	};
 }

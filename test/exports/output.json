@@ -107,17 +107,43 @@
 			"nodeType": "export",
 			"name": "functionAndNamespaceDeclaration",
 			"type": {
-				"nodeType": "component",
+				"nodeType": "function",
 				"name": "functionAndNamespaceDeclaration",
-				"props": [
+				"callSignatures": [
 					{
-						"nodeType": "member",
-						"name": "a",
-						"type": {
-							"nodeType": "intrinsic",
-							"type": "number"
-						},
-						"optional": false
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"nodeType": "interface",
+									"name": "Params",
+									"members": [
+										{
+											"nodeType": "member",
+											"name": "a",
+											"type": {
+												"nodeType": "intrinsic",
+												"type": "number"
+											},
+											"optional": false
+										}
+									]
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "ref",
+								"type": {
+									"nodeType": "reference",
+									"typeName": "ForwardedRef<Element>"
+								}
+							}
+						],
+						"returnValueType": {
+							"nodeType": "reference",
+							"typeName": "Element"
+						}
 					}
 				]
 			}

@@ -72,8 +72,7 @@ function parseFunctionSignature(
 			skipResolvingComplexTypes,
 		);
 
-		const documentation: t.Documentation = {};
-		documentation.description = parameterDescriptions[parameterSymbol.getName()];
+		const documentation = new t.Documentation(parameterDescriptions[parameterSymbol.getName()]);
 		const initializer = parameterDeclaration.initializer;
 		if (initializer) {
 			const initializerType = checker.getTypeAtLocation(initializer);
@@ -101,8 +100,5 @@ function parseFunctionSignature(
 		context,
 	);
 
-	return {
-		parameters,
-		returnValueType,
-	};
+	return new t.CallSignature(parameters, returnValueType);
 }

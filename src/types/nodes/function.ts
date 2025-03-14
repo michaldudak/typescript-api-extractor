@@ -1,7 +1,9 @@
-import { TypeNode } from './node';
+import { BaseNode, TypeNode } from './node';
 import { ParameterNode } from './parameter';
 
-export class FunctionNode {
+export class FunctionNode implements BaseNode {
+	name: string | undefined;
+
 	constructor(
 		name: string | undefined,
 		public callSignatures: CallSignature[],
@@ -9,10 +11,25 @@ export class FunctionNode {
 		this.name = name === '__function' ? undefined : name;
 	}
 
-	name: string | undefined;
+	toObject(): Record<string, unknown> {
+		return {
+			nodeType: 'function',
+			name: this.name,
+			callSignatures: this.callSignatures.map((signature) => signature.toObject()),
+		};
+	}
 }
 
-export interface CallSignature {
-	parameters: ParameterNode[];
-	returnValueType: TypeNode;
+export class CallSignature implements BaseNode {
+	constructor(
+		public parameters: ParameterNode[],
+		public returnValueType: TypeNode,
+	) {}
+
+	toObject(): Record<string, unknown> {
+		return {
+			parameters: this.parameters.map((param) => param.toObject()),
+			returnValueType: this.returnValueType.toObject(),
+		};
+	}
 }

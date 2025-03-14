@@ -29,3 +29,7 @@ export type TypeNode =
 	| UnionNode;
 
 export type Node = TypeNode | ExportNode | MemberNode | ParameterNode | ProgramNode | ModuleNode;
+
+export interface BaseNode {
+	toObject(): Record<string, unknown>;
+}

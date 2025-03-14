@@ -1,10 +1,10 @@
 import { uniqBy } from 'lodash';
-import { TypeNode } from './node';
+import { BaseNode, TypeNode } from './node';
 import { LiteralNode } from './literal';
 import { IntrinsicNode } from './intrinsic';
 import { ReferenceNode } from './reference';
 
-export class UnionNode {
+export class UnionNode implements BaseNode {
 	constructor(
 		public name: string | undefined,
 		types: TypeNode[],
@@ -29,6 +29,14 @@ export class UnionNode {
 	}
 
 	types: readonly TypeNode[];
+
+	toObject(): Record<string, unknown> {
+		return {
+			nodeType: 'union',
+			name: this.name,
+			types: this.types.map((x) => x.toObject()),
+		};
+	}
 }
 
 function uniqueUnionTypes(types: TypeNode[]): TypeNode[] {

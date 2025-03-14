@@ -13,11 +13,11 @@ export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 
 		const memberType = checker.getTypeOfSymbol(memberSymbol);
 
-		return {
-			name: memberSymbol.getName(),
-			value: (memberType as any).value,
-			documentation: getDocumentationFromSymbol(memberSymbol, checker),
-		} satisfies EnumMember;
+		return new EnumMember(
+			memberSymbol.getName(),
+			(memberType as any).value,
+			getDocumentationFromSymbol(memberSymbol, checker),
+		);
 	});
 
 	return new EnumNode(symbol.getName(), members, getDocumentationFromSymbol(symbol, checker));

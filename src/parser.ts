@@ -51,6 +51,7 @@ export function parseFromProgram(
 		checker,
 		sourceFile,
 		typeStack: [],
+		compilerOptions: program.getCompilerOptions(),
 		...getParserOptions(parserOptions),
 	};
 
@@ -71,7 +72,7 @@ export function parseFromProgram(
 		parsedModuleExports.push(parsedExport);
 	}
 
-	parsedModuleExports = augmentComponentNodes(parsedModuleExports);
+	parsedModuleExports = augmentComponentNodes(parsedModuleExports, parserContext);
 
 	const relativeModulePath = path.relative(
 		program.getCompilerOptions().rootDir!,
@@ -115,6 +116,7 @@ export interface ParserContext extends ParserOptions {
 	checker: ts.TypeChecker;
 	sourceFile: ts.SourceFile;
 	typeStack: number[];
+	compilerOptions: ts.CompilerOptions;
 }
 
 /**

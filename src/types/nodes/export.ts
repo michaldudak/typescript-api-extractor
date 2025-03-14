@@ -1,7 +1,7 @@
 import { Documentation } from '../documentation';
-import { TypeNode } from './node';
+import { BaseNode, TypeNode } from './node';
 
-export class ExportNode {
+export class ExportNode implements BaseNode {
 	constructor(
 		public name: string,
 		public type: TypeNode,
@@ -12,9 +12,18 @@ export class ExportNode {
 	 * Whether the export is public.
 	 * Exports are considered public if they are not explicitly marked as private or internal.
 	 */
-	public get isPublic() {
+	get isPublic() {
 		return (
 			this.documentation?.visibility !== 'private' && this.documentation?.visibility !== 'internal'
 		);
+	}
+
+	toObject(): Record<string, unknown> {
+		return {
+			nodeType: 'export',
+			name: this.name,
+			type: this.type.toObject(),
+			documentation: this.documentation?.toObject(),
+		};
 	}
 }

@@ -17,7 +17,7 @@ export function resolveType(
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
 	if (typeStack.includes((type as any).id)) {
-		return new t.ObjectNode();
+		return new t.ObjectNode(undefined, [], undefined);
 	}
 
 	typeStack.push((type as any).id);
@@ -120,7 +120,7 @@ export function resolveType(
 			if (type.isLiteral()) {
 				return new t.LiteralNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
-					getDocumentationFromSymbol(type.symbol, checker)?.description,
+					getDocumentationFromSymbol(type.symbol, checker),
 				);
 			}
 			return new t.LiteralNode(checker.typeToString(type));
@@ -176,6 +176,7 @@ export function resolveType(
 									context,
 								);
 							}),
+							undefined,
 						);
 					}
 				}
@@ -184,7 +185,7 @@ export function resolveType(
 					return new t.ReferenceNode(typeName);
 				}
 
-				return new t.ObjectNode();
+				return new t.ObjectNode(undefined, [], undefined);
 			}
 		}
 
@@ -193,7 +194,7 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			return new t.ObjectNode();
+			return new t.ObjectNode(undefined, [], undefined);
 		}
 
 		console.warn(
@@ -217,7 +218,6 @@ const allowedBuiltInTsTypes = new Set([
 	'Readonly',
 	'Exclude',
 	'Extract',
-	'',
 ]);
 
 const allowedBuiltInReactTypes = new Set([
