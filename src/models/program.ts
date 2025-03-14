@@ -1,12 +1,11 @@
 import { ModuleNode } from './module';
-import { BaseNode } from './node';
+import { SerializableNode } from './node';
 
-export class ProgramNode implements BaseNode {
+export class ProgramNode implements SerializableNode {
 	constructor(public modules: ModuleNode[]) {}
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'program',
 			modules: this.modules.map((module) => module.toObject()),
 		};
 	}

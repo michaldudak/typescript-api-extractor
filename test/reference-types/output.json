@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "reference-types\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "referenceTypes",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "referenceTypes",
 				"callSignatures": [
 					{
@@ -15,15 +13,14 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "CustomInterface",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
+												"kind": "intrinsic",
+												"name": "number"
 											},
 											"optional": false
 										}
@@ -34,15 +31,14 @@
 								"nodeType": "parameter",
 								"name": "b",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "CustomType",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -51,33 +47,31 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "CustomInterface",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
+												"kind": "intrinsic",
+												"name": "number"
 											},
 											"optional": false
 										}
 									]
 								},
 								{
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "CustomType",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -90,10 +84,9 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "inlineTypes",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "inlineTypes",
 				"callSignatures": [
 					{
@@ -102,14 +95,13 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
+												"kind": "intrinsic",
+												"name": "number"
 											},
 											"optional": false
 										}
@@ -120,14 +112,13 @@
 								"nodeType": "parameter",
 								"name": "b",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -136,8 +127,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

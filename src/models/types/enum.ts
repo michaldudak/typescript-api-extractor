@@ -1,7 +1,9 @@
-import { Documentation } from './documentation';
-import { BaseNode } from './node';
+import { Documentation } from '../documentation';
+import { SerializableNode, TypeNode } from '../node';
 
-export class EnumNode implements BaseNode {
+export class EnumNode implements TypeNode {
+	kind = 'enum';
+
 	constructor(
 		public name: string,
 		public members: EnumMember[],
@@ -10,7 +12,7 @@ export class EnumNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'enum',
+			kind: this.kind,
 			name: this.name,
 			members: this.members.map((member) => member.toObject()),
 			documentation: this.documentation?.toObject(),
@@ -18,7 +20,7 @@ export class EnumNode implements BaseNode {
 	}
 }
 
-export class EnumMember implements BaseNode {
+export class EnumMember implements SerializableNode {
 	constructor(
 		public name: string,
 		public value: string,

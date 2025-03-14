@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "plain-function\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "declaration",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "declaration",
 				"callSignatures": [
 					{
@@ -15,15 +13,14 @@
 								"nodeType": "parameter",
 								"name": "p",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Parameters",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -32,18 +29,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "greetAsExpression",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"callSignatures": [
 					{
 						"parameters": [
@@ -51,15 +47,14 @@
 								"nodeType": "parameter",
 								"name": "p",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Parameters",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -68,18 +63,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "greetAsArrowFunction",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"callSignatures": [
 					{
 						"parameters": [
@@ -87,15 +81,14 @@
 								"nodeType": "parameter",
 								"name": "p",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Parameters",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "s",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -104,8 +97,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

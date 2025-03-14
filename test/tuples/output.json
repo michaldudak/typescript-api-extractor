@@ -1,26 +1,24 @@
 {
-	"nodeType": "module",
 	"name": "tuples\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "testFunction1",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "testFunction1",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "tuple",
+							"kind": "tuple",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							]
 						}
@@ -29,24 +27,23 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "testFunction2",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "testFunction2",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "tuple",
+							"kind": "tuple",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							]
 						}
@@ -55,24 +52,23 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "testFunction3",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "testFunction3",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "tuple",
+							"kind": "tuple",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							]
 						}
@@ -81,24 +77,23 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "testFunction4",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "testFunction4",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "tuple",
+							"kind": "tuple",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							]
 						}

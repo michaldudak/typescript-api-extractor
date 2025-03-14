@@ -1,63 +1,57 @@
 {
-	"nodeType": "module",
 	"name": "react-event-handlers\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Test",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Test",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "onClick",
 						"type": {
-							"nodeType": "reference",
-							"typeName": "MouseEventHandler<Element>"
+							"kind": "reference",
+							"name": "MouseEventHandler<Element>"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "onKeyDown",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "reference",
-									"typeName": "KeyboardEventHandler<Element>"
+									"kind": "reference",
+									"name": "KeyboardEventHandler<Element>"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "onFocus",
 						"type": {
-							"nodeType": "reference",
-							"typeName": "FocusEventHandler<HTMLDivElement>"
+							"kind": "reference",
+							"name": "FocusEventHandler<HTMLDivElement>"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "onBlur",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "reference",
-									"typeName": "FocusEventHandler<HTMLDivElement>"
+									"kind": "reference",
+									"name": "FocusEventHandler<HTMLDivElement>"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

@@ -1,27 +1,24 @@
 {
-	"nodeType": "module",
 	"name": "jsdocs\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "TestComponent",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "TestComponent",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
@@ -31,18 +28,17 @@
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "someValue",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
@@ -60,10 +56,9 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "testFunction",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "testFunction",
 				"callSignatures": [
 					{
@@ -72,8 +67,8 @@
 								"nodeType": "parameter",
 								"name": "p1",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								},
 								"documentation": {
 									"description": "The first parameter which is a number"
@@ -83,15 +78,15 @@
 								"nodeType": "parameter",
 								"name": "p2",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"types": [
 										{
-											"nodeType": "intrinsic",
-											"type": "number"
+											"kind": "intrinsic",
+											"name": "number"
 										},
 										{
-											"nodeType": "intrinsic",
-											"type": "undefined"
+											"kind": "intrinsic",
+											"name": "undefined"
 										}
 									]
 								},
@@ -101,8 +96,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					},
 					{
@@ -111,8 +106,8 @@
 								"nodeType": "parameter",
 								"name": "p1",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								"documentation": {
 									"description": "The first parameter which is a string"
@@ -122,15 +117,15 @@
 								"nodeType": "parameter",
 								"name": "p2",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"types": [
 										{
-											"nodeType": "intrinsic",
-											"type": "number"
+											"kind": "intrinsic",
+											"name": "number"
 										},
 										{
-											"nodeType": "intrinsic",
-											"type": "undefined"
+											"kind": "intrinsic",
+											"name": "undefined"
 										}
 									]
 								},
@@ -140,8 +135,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					}
 				]

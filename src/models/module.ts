@@ -1,7 +1,7 @@
 import { ExportNode } from './export';
-import { BaseNode } from './node';
+import { SerializableNode } from './node';
 
-export class ModuleNode implements BaseNode {
+export class ModuleNode implements SerializableNode {
 	constructor(
 		public name: string,
 		public exports: ExportNode[],
@@ -9,7 +9,6 @@ export class ModuleNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'module',
 			name: this.name,
 			exports: this.exports.map((exportNode) => exportNode.toObject()),
 		};

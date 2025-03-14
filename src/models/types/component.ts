@@ -1,7 +1,9 @@
-import { MemberNode } from './member';
-import { BaseNode } from './node';
+import { MemberNode } from '../member';
+import { TypeNode } from '../node';
 
-export class ComponentNode implements BaseNode {
+export class ComponentNode implements TypeNode {
+	kind = 'component';
+
 	constructor(
 		public name: string | undefined,
 		public props: MemberNode[],
@@ -9,7 +11,7 @@ export class ComponentNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'component',
+			kind: this.kind,
 			name: this.name,
 			props: this.props.map((prop) => prop.toObject()),
 		};

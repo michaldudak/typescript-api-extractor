@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "hook-overloads\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "useHook",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "useHook",
 				"callSignatures": [
 					{
@@ -15,8 +13,8 @@
 								"nodeType": "parameter",
 								"name": "s",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								"documentation": {
 									"description": "The string"
@@ -24,8 +22,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "string"
+							"kind": "intrinsic",
+							"name": "string"
 						}
 					},
 					{
@@ -34,8 +32,8 @@
 								"nodeType": "parameter",
 								"name": "n",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								},
 								"documentation": {
 									"description": "The number"
@@ -43,8 +41,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					}
 				]

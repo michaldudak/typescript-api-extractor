@@ -1,19 +1,17 @@
 {
-	"nodeType": "module",
 	"name": "jsdoc-extra-tags\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "test",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

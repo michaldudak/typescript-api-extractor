@@ -1,45 +1,41 @@
 {
-	"nodeType": "module",
 	"name": "forwardRef\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "TestComponent",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "ForwardRefExoticComponent",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "id",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

@@ -1,45 +1,41 @@
 {
-	"nodeType": "module",
 	"name": "component-function-variable\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "TestComponent1",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "TestComponent",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "id",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
@@ -49,43 +45,40 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "TestComponent2",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "FC",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "id",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
@@ -95,43 +88,40 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "TestComponent3",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "FunctionComponent",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "id",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

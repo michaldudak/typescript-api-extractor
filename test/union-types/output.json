@@ -1,90 +1,83 @@
 {
-	"nodeType": "module",
 	"name": "union-types\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Component",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Component",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "matching",
 						"type": {
-							"nodeType": "intrinsic",
-							"type": "boolean"
+							"kind": "intrinsic",
+							"name": "boolean"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "uniqueA",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "conflictingOptionality",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "conflictingType",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							]
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "uniqueB",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

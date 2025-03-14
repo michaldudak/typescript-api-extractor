@@ -1,81 +1,74 @@
 {
-	"nodeType": "module",
 	"name": "props-optional\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Component",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Component",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "requiredString",
 						"type": {
-							"nodeType": "intrinsic",
-							"type": "string"
+							"kind": "intrinsic",
+							"name": "string"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "optionalString",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": true
 					},
 					{
-						"nodeType": "member",
 						"name": "stringOrUndefined",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "requiredBoolean",
 						"type": {
-							"nodeType": "intrinsic",
-							"type": "boolean"
+							"kind": "intrinsic",
+							"name": "boolean"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "optionalBoolean",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "boolean"
+									"kind": "intrinsic",
+									"name": "boolean"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

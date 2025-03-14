@@ -1,29 +1,26 @@
 {
-	"nodeType": "module",
 	"name": "exports\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "inlineExport",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "inlineExport",
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "overloadedFunction",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "overloadedFunction",
 				"callSignatures": [
 					{
@@ -32,14 +29,14 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					},
 					{
@@ -48,24 +45,23 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "string"
+							"kind": "intrinsic",
+							"name": "string"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "aliasedOverloadedFunction",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "overloadedFunction",
 				"callSignatures": [
 					{
@@ -74,14 +70,14 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "number"
+									"kind": "intrinsic",
+									"name": "number"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					},
 					{
@@ -90,24 +86,23 @@
 								"nodeType": "parameter",
 								"name": "a",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "string"
+							"kind": "intrinsic",
+							"name": "string"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "functionAndNamespaceDeclaration",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "functionAndNamespaceDeclaration",
 				"callSignatures": [
 					{
@@ -116,15 +111,14 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Params",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
+												"kind": "intrinsic",
+												"name": "number"
 											},
 											"optional": false
 										}
@@ -135,14 +129,14 @@
 								"nodeType": "parameter",
 								"name": "ref",
 								"type": {
-									"nodeType": "reference",
-									"typeName": "ForwardedRef<Element>"
+									"kind": "reference",
+									"name": "ForwardedRef<Element>"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "reference",
-							"typeName": "Element"
+							"kind": "reference",
+							"name": "Element"
 						}
 					}
 				]

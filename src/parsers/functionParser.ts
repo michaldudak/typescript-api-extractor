@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { type ParserContext } from '../parser';
 import { getParameterDescriptionFromNode } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { FunctionNode, CallSignature, Documentation, ParameterNode } from '../models';
+import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext) {
 	const parsedCallSignatures = type
@@ -87,7 +87,7 @@ function parseFunctionSignature(
 
 		const hasDocumentation = documentation.description || documentation.defaultValue;
 
-		return new ParameterNode(
+		return new Parameter(
 			parameterType,
 			parameterSymbol.getName(),
 			hasDocumentation ? documentation : undefined,

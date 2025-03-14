@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "hook-arrow-function\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "useHook",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"callSignatures": [
 					{
 						"parameters": [
@@ -14,32 +12,29 @@
 								"nodeType": "parameter",
 								"name": "parameters",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "HookParameters",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "value",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "severity",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "number"
+												"kind": "intrinsic",
+												"name": "number"
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "onChange",
 											"type": {
-												"nodeType": "function",
+												"kind": "function",
 												"callSignatures": [
 													{
 														"parameters": [
@@ -47,14 +42,14 @@
 																"nodeType": "parameter",
 																"name": "value",
 																"type": {
-																	"nodeType": "intrinsic",
-																	"type": "string"
+																	"kind": "intrinsic",
+																	"name": "string"
 																}
 															}
 														],
 														"returnValueType": {
-															"nodeType": "intrinsic",
-															"type": "void"
+															"kind": "intrinsic",
+															"name": "void"
 														}
 													}
 												]
@@ -66,14 +61,13 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "interface",
+							"kind": "object",
 							"name": "HookReturnValue",
 							"members": [
 								{
-									"nodeType": "member",
 									"name": "getProps",
 									"type": {
-										"nodeType": "function",
+										"kind": "function",
 										"callSignatures": [
 											{
 												"parameters": [
@@ -81,14 +75,14 @@
 														"nodeType": "parameter",
 														"name": "externalProps",
 														"type": {
-															"nodeType": "reference",
-															"typeName": "HTMLAttributes"
+															"kind": "reference",
+															"name": "HTMLAttributes"
 														}
 													}
 												],
 												"returnValueType": {
-													"nodeType": "reference",
-													"typeName": "HTMLAttributes"
+													"kind": "reference",
+													"name": "HTMLAttributes"
 												}
 											}
 										]
@@ -96,11 +90,10 @@
 									"optional": false
 								},
 								{
-									"nodeType": "member",
 									"name": "ref",
 									"type": {
-										"nodeType": "reference",
-										"typeName": "RefCallback"
+										"kind": "reference",
+										"name": "RefCallback"
 									},
 									"optional": false
 								}

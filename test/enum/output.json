@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "enum\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Side",
 			"type": {
-				"nodeType": "enum",
+				"kind": "enum",
 				"name": "Side",
 				"members": [
 					{
@@ -33,10 +31,9 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "Flags",
 			"type": {
-				"nodeType": "enum",
+				"kind": "enum",
 				"name": "Flags",
 				"members": [
 					{
@@ -63,10 +60,9 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "DegenerateN",
 			"type": {
-				"nodeType": "enum",
+				"kind": "enum",
 				"name": "DegenerateN",
 				"members": [
 					{
@@ -77,10 +73,9 @@
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "DegenerateS",
 			"type": {
-				"nodeType": "enum",
+				"kind": "enum",
 				"name": "DegenerateS",
 				"members": [
 					{

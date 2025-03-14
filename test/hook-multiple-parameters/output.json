@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "hook-multiple-parameters\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "useHook",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "useHook",
 				"callSignatures": [
 					{
@@ -15,8 +13,8 @@
 								"nodeType": "parameter",
 								"name": "value",
 								"type": {
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								"documentation": {
 									"description": "The value."
@@ -26,7 +24,7 @@
 								"nodeType": "parameter",
 								"name": "onChange",
 								"type": {
-									"nodeType": "function",
+									"kind": "function",
 									"callSignatures": [
 										{
 											"parameters": [
@@ -34,14 +32,14 @@
 													"nodeType": "parameter",
 													"name": "newValue",
 													"type": {
-														"nodeType": "intrinsic",
-														"type": "string"
+														"kind": "intrinsic",
+														"name": "string"
 													}
 												}
 											],
 											"returnValueType": {
-												"nodeType": "intrinsic",
-												"type": "void"
+												"kind": "intrinsic",
+												"name": "void"
 											}
 										}
 									]
@@ -54,15 +52,15 @@
 								"nodeType": "parameter",
 								"name": "severity",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"name": "Severity",
 									"types": [
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"low\""
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"high\""
 										}
 									]
@@ -74,8 +72,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "number"
+							"kind": "intrinsic",
+							"name": "number"
 						}
 					}
 				]

@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "literal-unions\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "test1",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test1",
 				"callSignatures": [
 					{
@@ -15,25 +13,24 @@
 								"nodeType": "parameter",
 								"name": "parameters",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Params",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "inlineStringUnion",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"foo\""
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"bar\""
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"baz\""
 													}
 												]
@@ -41,21 +38,20 @@
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "inlineNumberUnion",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 1
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 2
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 3
 													}
 												]
@@ -63,22 +59,21 @@
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "referencedStringUnion",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"name": "StringUniuon",
 												"types": [
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"foo\""
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"bar\""
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": "\"baz\""
 													}
 												]
@@ -86,22 +81,21 @@
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "referencedNumberUnion",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"name": "NumberUnion",
 												"types": [
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 1
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 2
 													},
 													{
-														"nodeType": "literal",
+														"kind": "literal",
 														"value": 3
 													}
 												]
@@ -113,18 +107,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "test2",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test2",
 				"callSignatures": [
 					{
@@ -133,18 +126,18 @@
 								"nodeType": "parameter",
 								"name": "inlineStringUnion",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"types": [
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"foo\""
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"bar\""
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"baz\""
 										}
 									]
@@ -154,18 +147,18 @@
 								"nodeType": "parameter",
 								"name": "inlineNumberUnion",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"types": [
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 1
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 2
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 3
 										}
 									]
@@ -175,19 +168,19 @@
 								"nodeType": "parameter",
 								"name": "referencedStringUnion",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"name": "StringUniuon",
 									"types": [
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"foo\""
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"bar\""
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": "\"baz\""
 										}
 									]
@@ -197,19 +190,19 @@
 								"nodeType": "parameter",
 								"name": "referencedNumberUnion",
 								"type": {
-									"nodeType": "union",
+									"kind": "union",
 									"name": "NumberUnion",
 									"types": [
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 1
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 2
 										},
 										{
-											"nodeType": "literal",
+											"kind": "literal",
 											"value": 3
 										}
 									]
@@ -217,8 +210,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "generics\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "genericFunction",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "genericFunction",
 				"callSignatures": [
 					{
@@ -15,39 +13,35 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "GenericFunctionParameters",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "value",
 											"type": {
-												"nodeType": "typeParameter",
+												"kind": "typeParameter",
 												"name": "T",
 												"constraint": "React.HTMLAttributes<HTMLElement>"
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "nestedGenericType",
 											"type": {
-												"nodeType": "interface",
+												"kind": "object",
 												"name": "GenericInterface",
 												"members": [
 													{
-														"nodeType": "member",
 														"name": "data",
 														"type": {
-															"nodeType": "interface",
+															"kind": "object",
 															"name": "GenericInterface",
 															"members": [
 																{
-																	"nodeType": "member",
 																	"name": "data",
 																	"type": {
-																		"nodeType": "intrinsic",
-																		"type": "string"
+																		"kind": "intrinsic",
+																		"name": "string"
 																	},
 																	"optional": false
 																}
@@ -64,7 +58,7 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "typeParameter",
+							"kind": "typeParameter",
 							"name": "T",
 							"constraint": "React.HTMLAttributes<HTMLElement>"
 						}

@@ -1,6 +1,6 @@
-import { BaseNode } from './node';
+import { SerializableNode } from './node';
 
-export class Documentation implements BaseNode {
+export class Documentation implements SerializableNode {
 	constructor(
 		public description: string | undefined,
 		public defaultValue: any | undefined = undefined,

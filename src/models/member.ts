@@ -1,7 +1,7 @@
 import { Documentation } from './documentation';
-import { BaseNode, TypeNode } from './node';
+import { SerializableNode, TypeNode } from './node';
 
-export class MemberNode implements BaseNode {
+export class MemberNode implements SerializableNode {
 	constructor(
 		public name: string,
 		public type: TypeNode,
@@ -17,7 +17,6 @@ export class MemberNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'member',
 			name: this.name,
 			type: this.type.toObject(),
 			documentation: this.documentation?.toObject(),

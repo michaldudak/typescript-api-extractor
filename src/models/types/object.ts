@@ -1,8 +1,10 @@
-import { Documentation } from './documentation';
-import { MemberNode } from './member';
-import { BaseNode } from './node';
+import { TypeNode } from '../node';
+import { Documentation } from '../documentation';
+import { MemberNode } from '../member';
 
-export class ObjectNode implements BaseNode {
+export class ObjectNode implements TypeNode {
+	kind = 'object';
+
 	constructor(
 		public name: string | undefined,
 		public members: MemberNode[],
@@ -11,7 +13,7 @@ export class ObjectNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'interface',
+			kind: this.kind,
 			name: this.name,
 			members: this.members.map((member) => member.toObject()),
 			documentation: this.documentation?.toObject(),

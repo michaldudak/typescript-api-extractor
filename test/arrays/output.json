@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "arrays\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "test1",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test1",
 				"callSignatures": [
 					{
@@ -15,70 +13,66 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Params",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "arr1",
 											"type": {
-												"nodeType": "array",
-												"type": {
-													"nodeType": "intrinsic",
-													"type": "string"
+												"kind": "array",
+												"elementType": {
+													"kind": "intrinsic",
+													"name": "string"
 												}
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "arr2",
 											"type": {
-												"nodeType": "array",
-												"type": {
-													"nodeType": "intrinsic",
-													"type": "number"
+												"kind": "array",
+												"elementType": {
+													"kind": "intrinsic",
+													"name": "number"
 												}
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "optionalArr1",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "array",
-														"type": {
-															"nodeType": "intrinsic",
-															"type": "string"
+														"kind": "array",
+														"elementType": {
+															"kind": "intrinsic",
+															"name": "string"
 														}
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
 											"optional": true
 										},
 										{
-											"nodeType": "member",
 											"name": "optionalArr2",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "array",
-														"type": {
-															"nodeType": "intrinsic",
-															"type": "number"
+														"kind": "array",
+														"elementType": {
+															"kind": "intrinsic",
+															"name": "number"
 														}
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
@@ -89,18 +83,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "test2",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test2",
 				"callSignatures": [
 					{
@@ -109,10 +102,10 @@
 								"nodeType": "parameter",
 								"name": "a1",
 								"type": {
-									"nodeType": "array",
-									"type": {
-										"nodeType": "intrinsic",
-										"type": "string"
+									"kind": "array",
+									"elementType": {
+										"kind": "intrinsic",
+										"name": "string"
 									}
 								}
 							},
@@ -120,17 +113,17 @@
 								"nodeType": "parameter",
 								"name": "a2",
 								"type": {
-									"nodeType": "array",
-									"type": {
-										"nodeType": "intrinsic",
-										"type": "number"
+									"kind": "array",
+									"elementType": {
+										"kind": "intrinsic",
+										"name": "number"
 									}
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

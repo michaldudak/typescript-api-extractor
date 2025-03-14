@@ -1,46 +1,40 @@
 {
-	"nodeType": "module",
 	"name": "props-literals\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Component",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Component",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "stringLiteral",
 						"type": {
-							"nodeType": "literal",
+							"kind": "literal",
 							"value": "\"foo\""
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "numberLiteral",
 						"type": {
-							"nodeType": "literal",
+							"kind": "literal",
 							"value": 42
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "booleanLiteral",
 						"type": {
-							"nodeType": "literal",
+							"kind": "literal",
 							"value": "true"
 						},
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "nullLiteral",
 						"type": {
-							"nodeType": "literal",
+							"kind": "literal",
 							"value": "null"
 						},
 						"optional": false

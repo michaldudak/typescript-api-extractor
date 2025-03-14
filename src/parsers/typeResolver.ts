@@ -47,7 +47,7 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-ignore - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(resolveType(arrayType, name, context));
+			return new ArrayNode(undefined, resolveType(arrayType, name, context));
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
@@ -100,6 +100,7 @@ export function resolveType(
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
+				undefined,
 				(type as ts.TupleType).typeArguments?.map((x) =>
 					resolveType(x, x.getSymbol()?.name || '', context),
 				) ?? [],

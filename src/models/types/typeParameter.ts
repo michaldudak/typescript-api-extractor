@@ -1,6 +1,8 @@
-import { BaseNode, TypeNode } from './node';
+import { TypeNode } from '../node';
 
-export class TypeParameterNode implements BaseNode {
+export class TypeParameterNode implements TypeNode {
+	kind = 'typeParameter';
+
 	constructor(
 		public name: string,
 		public constraint: string | undefined,
@@ -9,7 +11,7 @@ export class TypeParameterNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'typeParameter',
+			kind: this.kind,
 			name: this.name,
 			constraint: this.constraint,
 			defaultValue: this.defaultValue?.toObject(),

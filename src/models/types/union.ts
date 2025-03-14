@@ -1,10 +1,12 @@
 import { uniqBy } from 'lodash';
-import { BaseNode, TypeNode } from './node';
+import { TypeNode } from '../node';
 import { LiteralNode } from './literal';
 import { IntrinsicNode } from './intrinsic';
 import { ReferenceNode } from './reference';
 
-export class UnionNode implements BaseNode {
+export class UnionNode implements TypeNode {
+	kind = 'union';
+
 	constructor(
 		public name: string | undefined,
 		types: TypeNode[],
@@ -32,7 +34,7 @@ export class UnionNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'union',
+			kind: this.kind,
 			name: this.name,
 			types: this.types.map((x) => x.toObject()),
 		};
@@ -45,12 +47,8 @@ function uniqueUnionTypes(types: TypeNode[]): TypeNode[] {
 			return x.value;
 		}
 
-		if (x instanceof IntrinsicNode) {
-			return x.type;
-		}
-
-		if (x instanceof ReferenceNode) {
-			return x.typeName;
+		if (x instanceof IntrinsicNode || x instanceof ReferenceNode) {
+			return x.name;
 		}
 
 		return x;
@@ -60,11 +58,11 @@ function uniqueUnionTypes(types: TypeNode[]): TypeNode[] {
 function sortUnionTypes(members: TypeNode[]) {
 	// move undefined and null to the end
 
-	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.type === 'null');
+	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.name === 'null');
 	members.push(members.splice(nullIndex, 1)[0]);
 
 	const undefinedIndex = members.findIndex(
-		(x) => x instanceof IntrinsicNode && x.type === 'undefined',
+		(x) => x instanceof IntrinsicNode && x.name === 'undefined',
 	);
 	members.push(members.splice(undefinedIndex, 1)[0]);
 }

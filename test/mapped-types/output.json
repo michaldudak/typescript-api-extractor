@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "mapped-types\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "test1",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test1",
 				"callSignatures": [
 					{
@@ -15,40 +13,38 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Partial",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "intrinsic",
-														"type": "boolean"
+														"kind": "intrinsic",
+														"name": "boolean"
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
 											"optional": true
 										},
 										{
-											"nodeType": "member",
 											"name": "b",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "intrinsic",
-														"type": "string"
+														"kind": "intrinsic",
+														"name": "string"
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
@@ -59,18 +55,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "test2",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test2",
 				"callSignatures": [
 					{
@@ -79,24 +74,22 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Required",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "boolean"
+												"kind": "intrinsic",
+												"name": "boolean"
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "b",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -105,18 +98,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "test3",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test3",
 				"callSignatures": [
 					{
@@ -125,40 +117,38 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Partial",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "intrinsic",
-														"type": "boolean"
+														"kind": "intrinsic",
+														"name": "boolean"
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
 											"optional": true
 										},
 										{
-											"nodeType": "member",
 											"name": "b",
 											"type": {
-												"nodeType": "union",
+												"kind": "union",
 												"types": [
 													{
-														"nodeType": "intrinsic",
-														"type": "string"
+														"kind": "intrinsic",
+														"name": "string"
 													},
 													{
-														"nodeType": "intrinsic",
-														"type": "undefined"
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
@@ -169,18 +159,17 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]
 			}
 		},
 		{
-			"nodeType": "export",
 			"name": "test4",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test4",
 				"callSignatures": [
 					{
@@ -189,24 +178,22 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "interface",
+									"kind": "object",
 									"name": "Required",
 									"members": [
 										{
-											"nodeType": "member",
 											"name": "a",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "boolean"
+												"kind": "intrinsic",
+												"name": "boolean"
 											},
 											"optional": false
 										},
 										{
-											"nodeType": "member",
 											"name": "b",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "string"
+												"kind": "intrinsic",
+												"name": "string"
 											},
 											"optional": false
 										}
@@ -215,8 +202,8 @@
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

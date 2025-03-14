@@ -1,7 +1,10 @@
-import { Documentation } from './documentation';
-import { BaseNode } from './node';
+import { TypeNode } from '../node';
+import { Documentation } from '../documentation';
 
-export class LiteralNode implements BaseNode {
+export class LiteralNode implements TypeNode {
+	kind = 'literal';
+	name: undefined;
+
 	constructor(
 		public value: unknown,
 		public documentation?: Documentation,
@@ -9,7 +12,7 @@ export class LiteralNode implements BaseNode {
 
 	toObject(): Record<string, unknown> {
 		return {
-			nodeType: 'literal',
+			kind: this.kind,
 			value: this.value,
 			documentation: this.documentation?.toObject(),
 		};

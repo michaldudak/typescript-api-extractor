@@ -1,19 +1,16 @@
 {
-	"nodeType": "module",
 	"name": "props-with-callbacks\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Component",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Component",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "onChange",
 						"type": {
-							"nodeType": "function",
+							"kind": "function",
 							"callSignatures": [
 								{
 									"parameters": [
@@ -21,14 +18,14 @@
 											"nodeType": "parameter",
 											"name": "event",
 											"type": {
-												"nodeType": "reference",
-												"typeName": "ChangeEvent"
+												"kind": "reference",
+												"name": "ChangeEvent"
 											}
 										}
 									],
 									"returnValueType": {
-										"nodeType": "intrinsic",
-										"type": "void"
+										"kind": "intrinsic",
+										"name": "void"
 									}
 								}
 							]
@@ -36,10 +33,9 @@
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "onClosing",
 						"type": {
-							"nodeType": "function",
+							"kind": "function",
 							"name": "OnClosingCallback",
 							"callSignatures": [
 								{
@@ -48,14 +44,14 @@
 											"nodeType": "parameter",
 											"name": "animated",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "boolean"
+												"kind": "intrinsic",
+												"name": "boolean"
 											}
 										}
 									],
 									"returnValueType": {
-										"nodeType": "intrinsic",
-										"type": "boolean"
+										"kind": "intrinsic",
+										"name": "boolean"
 									}
 								}
 							]
@@ -63,10 +59,9 @@
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "onOpen",
 						"type": {
-							"nodeType": "function",
+							"kind": "function",
 							"name": "OnOpenCallback",
 							"callSignatures": [
 								{
@@ -75,14 +70,14 @@
 											"nodeType": "parameter",
 											"name": "animated",
 											"type": {
-												"nodeType": "intrinsic",
-												"type": "boolean"
+												"kind": "intrinsic",
+												"name": "boolean"
 											}
 										}
 									],
 									"returnValueType": {
-										"nodeType": "intrinsic",
-										"type": "void"
+										"kind": "intrinsic",
+										"name": "void"
 									}
 								}
 							]
@@ -90,26 +85,25 @@
 						"optional": false
 					},
 					{
-						"nodeType": "member",
 						"name": "onClosed",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "function",
+									"kind": "function",
 									"callSignatures": [
 										{
 											"parameters": [],
 											"returnValueType": {
-												"nodeType": "intrinsic",
-												"type": "void"
+												"kind": "intrinsic",
+												"name": "void"
 											}
 										}
 									]
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},

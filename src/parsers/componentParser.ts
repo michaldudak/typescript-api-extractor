@@ -44,10 +44,10 @@ function hasReactNodeLikeReturnType(type: FunctionNode) {
 	return type.callSignatures.some(
 		(signature) =>
 			(signature.returnValueType instanceof ReferenceNode &&
-				componentReturnTypes.has(signature.returnValueType.typeName)) ||
+				componentReturnTypes.has(signature.returnValueType.name)) ||
 			(signature.returnValueType instanceof UnionNode &&
 				signature.returnValueType.types.some(
-					(type) => type instanceof ReferenceNode && componentReturnTypes.has(type.typeName),
+					(type) => type instanceof ReferenceNode && componentReturnTypes.has(type.name),
 				)),
 	);
 }
@@ -134,7 +134,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 function markPropertyAsOptional(property: MemberNode, context: ParserContext) {
 	const canBeUndefined =
 		property.type instanceof UnionNode &&
-		property.type.types.some((type) => type instanceof IntrinsicNode && type.type === 'undefined');
+		property.type.types.some((type) => type instanceof IntrinsicNode && type.name === 'undefined');
 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {

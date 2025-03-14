@@ -1,12 +1,10 @@
 {
-	"nodeType": "module",
 	"name": "records\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "test",
 			"type": {
-				"nodeType": "function",
+				"kind": "function",
 				"name": "test",
 				"callSignatures": [
 					{
@@ -15,14 +13,14 @@
 								"nodeType": "parameter",
 								"name": "params",
 								"type": {
-									"nodeType": "reference",
-									"typeName": "Record<string, unknown>"
+									"kind": "reference",
+									"name": "Record<string, unknown>"
 								}
 							}
 						],
 						"returnValueType": {
-							"nodeType": "intrinsic",
-							"type": "void"
+							"kind": "intrinsic",
+							"name": "void"
 						}
 					}
 				]

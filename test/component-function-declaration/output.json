@@ -1,27 +1,24 @@
 {
-	"nodeType": "module",
 	"name": "component-function-declaration\\input",
 	"exports": [
 		{
-			"nodeType": "export",
 			"name": "Component",
 			"type": {
-				"nodeType": "component",
+				"kind": "component",
 				"name": "Component",
 				"props": [
 					{
-						"nodeType": "member",
 						"name": "className",
 						"type": {
-							"nodeType": "union",
+							"kind": "union",
 							"types": [
 								{
-									"nodeType": "intrinsic",
-									"type": "string"
+									"kind": "intrinsic",
+									"name": "string"
 								},
 								{
-									"nodeType": "intrinsic",
-									"type": "undefined"
+									"kind": "intrinsic",
+									"name": "undefined"
 								}
 							]
 						},
