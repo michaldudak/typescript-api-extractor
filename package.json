@@ -27,7 +27,8 @@
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
 		"prepack": "pnpm build && node scripts/appendDevVersion.mjs",
 		"postpack": "node scripts/removeDevVersion.mjs",
-		"lint": "eslint . && prettier --check ."
+		"lint": "eslint . && prettier --check .",
+		"publish:dev": "pkg-pr-new publish --pnpm"
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",

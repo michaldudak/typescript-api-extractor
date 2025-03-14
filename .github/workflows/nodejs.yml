@@ -1,6 +1,10 @@
-name: Build, format, and test
+name: Build, format, test and publish
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - 'main'
 
 jobs:
   build:
@@ -19,3 +23,4 @@ jobs:
       - run: pnpm build
       - run: pnpm lint
       - run: pnpm test
+      - run: pnpm dlx pkg-pr-new publish --pnpm
