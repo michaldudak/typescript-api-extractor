@@ -2,7 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
-import * as rae from 'react-api-extractor';
+import * as rae from '../src';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 

@@ -1,6 +1,6 @@
 {
 	"compilerOptions": {
-		"rootDir": "./",
+		"rootDir": "../",
 		"target": "ES2022",
 		"moduleResolution": "node16",
 		"module": "node16",
@@ -10,12 +10,7 @@
 		"noEmit": true,
 
 		"esModuleInterop": true,
-		"isolatedModules": true,
-
-		"paths": {
-			"react-api-extractor": ["../src/index.ts"]
-		}
+		"isolatedModules": true
 	},
-	"include": ["."],
-	"references": [{ "path": "../tsconfig.json" }]
+	"include": ["."]
 }
