@@ -58,7 +58,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 	// to
 	// { variant: 'a' | 'b', href?: string }
 	const props: Record<string, PropertyNode> = {};
-	const usedPropsPerSignature: Set<String>[] = [];
+	const usedPropsPerSignature: Set<string>[] = [];
 
 	function unwrapUnionType(type: UnionNode): ObjectNode[] {
 		return type.types
@@ -101,7 +101,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			if (currentTypeNode === undefined) {
 				currentTypeNode = propNode;
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				let mergedPropType = new UnionNode(undefined, [currentTypeNode.type, propNode.type]);
+				const mergedPropType = new UnionNode(undefined, [currentTypeNode.type, propNode.type]);
 
 				currentTypeNode = new PropertyNode(
 					currentTypeNode.name,

@@ -17,5 +17,5 @@ jobs:
 
       - run: pnpm install
       - run: pnpm build
-      - run: pnpm prettier --check .
+      - run: pnpm lint
       - run: pnpm test

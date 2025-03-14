@@ -42,6 +42,7 @@ export function parseProperty(
 		parsedType,
 		getDocumentationFromSymbol(propertySymbol, checker),
 		isOptional,
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(propertySymbol as any).id,
 	);
 }

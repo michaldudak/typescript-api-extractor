@@ -26,7 +26,8 @@
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
 		"prepack": "pnpm build && node scripts/appendDevVersion.mjs",
-		"postpack": "node scripts/removeDevVersion.mjs"
+		"postpack": "node scripts/removeDevVersion.mjs",
+		"lint": "eslint . && prettier --check ."
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",
@@ -34,13 +35,17 @@
 		"yaml": "^2.7.0"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.22.0",
 		"@types/lodash": "^4.17.16",
 		"@types/node": "^22.13.10",
 		"@types/react": "^19.0.10",
 		"cross-env": "^7.0.3",
+		"eslint": "^9.22.0",
 		"fast-glob": "^3.3.3",
+		"globals": "^16.0.0",
 		"prettier": "^3.5.3",
 		"rimraf": "^6.0.1",
+		"typescript-eslint": "^8.26.1",
 		"vite": "^6.2.1",
 		"vitest": "^3.0.8"
 	},

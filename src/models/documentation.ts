@@ -3,7 +3,7 @@ import { SerializableNode } from './node';
 export class Documentation implements SerializableNode {
 	constructor(
 		public description: string | undefined,
-		public defaultValue: any | undefined = undefined,
+		public defaultValue: unknown | undefined = undefined,
 		public visibility: 'public' | 'private' | 'internal' = 'public',
 		public tags: DocumentationTag[] = [],
 	) {}

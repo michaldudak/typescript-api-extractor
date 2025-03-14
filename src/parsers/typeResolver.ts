@@ -26,10 +26,12 @@ export function resolveType(
 
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	if (typeStack.includes((type as any).id)) {
 		return new ObjectNode(undefined, [], undefined);
 	}
 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	typeStack.push((type as any).id);
 
 	try {
@@ -45,7 +47,7 @@ export function resolveType(
 		}
 
 		if (checker.isArrayType(type)) {
-			// @ts-ignore - Private method
+			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
 			return new ArrayNode(undefined, resolveType(arrayType, name, context));
 		}

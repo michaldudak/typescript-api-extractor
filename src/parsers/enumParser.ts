@@ -15,6 +15,7 @@ export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 
 		return new EnumMember(
 			memberSymbol.getName(),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			(memberType as any).value,
 			getDocumentationFromSymbol(memberSymbol, checker),
 		);
