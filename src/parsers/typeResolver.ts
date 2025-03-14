@@ -211,7 +211,7 @@ export function resolveType(
 		}
 
 		console.warn(
-			`Unable to handle node of type "ts.TypeFlags.${ts.TypeFlags[type.flags]}", using any`,
+			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
 		);
 
 		return new IntrinsicNode('any');

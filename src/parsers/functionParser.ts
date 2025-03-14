@@ -4,7 +4,7 @@ import { getParameterDescriptionFromNode } from './documentationParser';
 import { resolveType } from './typeResolver';
 import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
 
-export function parseFunctionType(type: ts.Type, context: ParserContext) {
+export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type
 		.getCallSignatures()
 		.map((signature) => parseFunctionSignature(signature, context));

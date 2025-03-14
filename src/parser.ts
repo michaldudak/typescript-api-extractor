@@ -1,8 +1,6 @@
-import path from 'node:path';
 import ts from 'typescript';
-import { augmentComponentNodes } from './parsers/componentParser';
-import { parseExport } from './parsers/exportParser';
-import { ExportNode, ModuleNode } from './models';
+import { ModuleNode } from './models';
+import { parseModule } from './parsers/moduleParser';
 
 /**
  * A wrapper for `ts.createProgram`
@@ -55,30 +53,7 @@ export function parseFromProgram(
 		...getParserOptions(parserOptions),
 	};
 
-	const sourceFileSymbol = checker.getSymbolAtLocation(sourceFile);
-	if (!sourceFileSymbol) {
-		throw new Error('Failed to get the source file symbol');
-	}
-
-	let parsedModuleExports: ExportNode[] = [];
-	const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
-
-	for (const exportedSymbol of exportedSymbols) {
-		const parsedExport = parseExport(exportedSymbol, parserContext);
-		if (!parsedExport) {
-			continue;
-		}
-
-		parsedModuleExports.push(parsedExport);
-	}
-
-	parsedModuleExports = augmentComponentNodes(parsedModuleExports, parserContext);
-
-	const relativeModulePath = path
-		.relative(program.getCompilerOptions().rootDir!, JSON.parse(sourceFileSymbol.name))
-		.replace(/\\/g, '/');
-
-	return new ModuleNode(relativeModulePath, parsedModuleExports);
+	return parseModule(sourceFile, parserContext);
 }
 
 function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions {

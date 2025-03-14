@@ -21,7 +21,7 @@ const componentReturnTypes = new Set([
 	'React.ReactElement',
 ]);
 
-export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext) {
+export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext): ExportNode[] {
 	return nodes.map((node) => {
 		if (
 			node.type instanceof FunctionNode &&
