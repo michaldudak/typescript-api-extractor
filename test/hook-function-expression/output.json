@@ -1,5 +1,5 @@
 {
-	"name": "hook-function-expression\\input",
+	"name": "hook-function-expression/input",
 	"exports": [
 		{
 			"name": "useHook",

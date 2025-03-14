@@ -1,5 +1,5 @@
 {
-	"name": "hook-multiple-parameters\\input",
+	"name": "hook-multiple-parameters/input",
 	"exports": [
 		{
 			"name": "useHook",

@@ -1,5 +1,5 @@
 {
-	"name": "forwardRef\\input",
+	"name": "forwardRef/input",
 	"exports": [
 		{
 			"name": "TestComponent",

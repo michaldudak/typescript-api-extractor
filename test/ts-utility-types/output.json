@@ -1,5 +1,5 @@
 {
-	"name": "ts-utility-types\\input",
+	"name": "ts-utility-types/input",
 	"exports": [
 		{
 			"name": "test1",

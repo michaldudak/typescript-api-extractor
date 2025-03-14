@@ -1,5 +1,5 @@
 {
-	"name": "memo\\input",
+	"name": "memo/input",
 	"exports": [
 		{
 			"name": "TestComponent",

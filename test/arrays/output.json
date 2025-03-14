@@ -1,5 +1,5 @@
 {
-	"name": "arrays\\input",
+	"name": "arrays/input",
 	"exports": [
 		{
 			"name": "test1",

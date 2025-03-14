@@ -74,10 +74,9 @@ export function parseFromProgram(
 
 	parsedModuleExports = augmentComponentNodes(parsedModuleExports, parserContext);
 
-	const relativeModulePath = path.relative(
-		program.getCompilerOptions().rootDir!,
-		JSON.parse(sourceFileSymbol.name),
-	);
+	const relativeModulePath = path
+		.relative(program.getCompilerOptions().rootDir!, JSON.parse(sourceFileSymbol.name))
+		.replace(/\\/g, '/');
 
 	return new ModuleNode(relativeModulePath, parsedModuleExports);
 }

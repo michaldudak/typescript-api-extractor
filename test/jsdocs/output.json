@@ -1,5 +1,5 @@
 {
-	"name": "jsdocs\\input",
+	"name": "jsdocs/input",
 	"exports": [
 		{
 			"name": "TestComponent",

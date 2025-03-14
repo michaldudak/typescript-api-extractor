@@ -1,5 +1,5 @@
 {
-	"name": "props-optional\\input",
+	"name": "props-optional/input",
 	"exports": [
 		{
 			"name": "Component",
