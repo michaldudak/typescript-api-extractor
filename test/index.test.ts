@@ -1,5 +1,6 @@
 import path from 'node:path';
 import fs from 'node:fs';
+import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
 import * as rae from '../src';
@@ -11,7 +12,7 @@ if (testCases.some((t) => t.includes('.only'))) {
 	testCases = testCases.filter((t) => t.includes('.only'));
 }
 
-const program = rae.createProgram(
+const program = ts.createProgram(
 	testCases,
 	rae.loadConfig(path.resolve(__dirname, 'tsconfig.json')).options,
 );
