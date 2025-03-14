@@ -32,8 +32,10 @@
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",
-		"typescript": "^5.8.2",
 		"yaml": "^2.7.0"
+	},
+	"peerDependencies": {
+		"typescript": "^5.8"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.22.0",
@@ -46,6 +48,7 @@
 		"globals": "^16.0.0",
 		"prettier": "^3.5.3",
 		"rimraf": "^6.0.1",
+		"typescript": "^5.8.2",
 		"typescript-eslint": "^8.26.1",
 		"vite": "^6.2.1",
 		"vitest": "^3.0.8"

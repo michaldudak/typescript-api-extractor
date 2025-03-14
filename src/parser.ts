@@ -3,15 +3,6 @@ import { ModuleNode } from './models';
 import { parseModule } from './parsers/moduleParser';
 
 /**
- * A wrapper for `ts.createProgram`
- * @param files The files to later be parsed with `parseFromProgram`
- * @param options The options to pass to the compiler
- */
-export function createProgram(files: string[], options: ts.CompilerOptions) {
-	return ts.createProgram(files, options);
-}
-
-/**
  * Creates a program, parses the specified file and returns the PropTypes as an AST, if you need to parse more than one file
  * use `createProgram` and `parseFromProgram` for better performance
  * @param filePath The file to parse
