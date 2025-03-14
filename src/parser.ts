@@ -1,8 +1,8 @@
 import path from 'node:path';
 import ts from 'typescript';
-import * as t from './types';
 import { augmentComponentNodes } from './parsers/componentParser';
 import { parseExport } from './parsers/exportParser';
+import { ExportNode, ModuleNode } from './models';
 
 /**
  * A wrapper for `ts.createProgram`
@@ -24,7 +24,7 @@ export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
 	parserOptions: Partial<ParserOptions> = {},
-): t.ModuleNode {
+): ModuleNode {
 	const program = ts.createProgram([filePath], options);
 	return parseFromProgram(filePath, program, parserOptions);
 }
@@ -39,7 +39,7 @@ export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
 	parserOptions: Partial<ParserOptions> = {},
-): t.ModuleNode {
+): ModuleNode {
 	const checker = program.getTypeChecker();
 	const sourceFile = program.getSourceFile(filePath);
 
@@ -60,7 +60,7 @@ export function parseFromProgram(
 		throw new Error('Failed to get the source file symbol');
 	}
 
-	let parsedModuleExports: t.ExportNode[] = [];
+	let parsedModuleExports: ExportNode[] = [];
 	const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
 
 	for (const exportedSymbol of exportedSymbols) {
@@ -79,7 +79,7 @@ export function parseFromProgram(
 		JSON.parse(sourceFileSymbol.name),
 	);
 
-	return new t.ModuleNode(relativeModulePath, parsedModuleExports);
+	return new ModuleNode(relativeModulePath, parsedModuleExports);
 }
 
 function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions {

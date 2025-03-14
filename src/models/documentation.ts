@@ -1,4 +1,4 @@
-import { BaseNode } from './nodes/node';
+import { BaseNode } from './node';
 
 export class Documentation implements BaseNode {
 	constructor(

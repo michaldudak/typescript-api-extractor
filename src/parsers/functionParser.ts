@@ -1,8 +1,8 @@
 import ts from 'typescript';
-import * as t from '../types';
 import { type ParserContext } from '../parser';
 import { getParameterDescriptionFromNode } from './documentationParser';
 import { resolveType } from './typeResolver';
+import { FunctionNode, CallSignature, Documentation, ParameterNode } from '../models';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext) {
 	const parsedCallSignatures = type
@@ -19,14 +19,14 @@ export function parseFunctionType(type: ts.Type, context: ParserContext) {
 		name = undefined;
 	}
 
-	return new t.FunctionNode(name, parsedCallSignatures);
+	return new FunctionNode(name, parsedCallSignatures);
 }
 
 function parseFunctionSignature(
 	signature: ts.Signature,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
-): t.CallSignature {
+): CallSignature {
 	const { checker } = context;
 
 	// Node that possibly has JSDocs attached to it
@@ -72,7 +72,7 @@ function parseFunctionSignature(
 			skipResolvingComplexTypes,
 		);
 
-		const documentation = new t.Documentation(parameterDescriptions[parameterSymbol.getName()]);
+		const documentation = new Documentation(parameterDescriptions[parameterSymbol.getName()]);
 		const initializer = parameterDeclaration.initializer;
 		if (initializer) {
 			const initializerType = checker.getTypeAtLocation(initializer);
@@ -87,7 +87,7 @@ function parseFunctionSignature(
 
 		const hasDocumentation = documentation.description || documentation.defaultValue;
 
-		return new t.ParameterNode(
+		return new ParameterNode(
 			parameterType,
 			parameterSymbol.getName(),
 			hasDocumentation ? documentation : undefined,
@@ -100,5 +100,5 @@ function parseFunctionSignature(
 		context,
 	);
 
-	return new t.CallSignature(parameters, returnValueType);
+	return new CallSignature(parameters, returnValueType);
 }

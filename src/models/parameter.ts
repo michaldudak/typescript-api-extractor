@@ -1,5 +1,5 @@
 import { BaseNode, TypeNode } from './node';
-import { Documentation } from '../documentation';
+import { Documentation } from './documentation';
 
 export class ParameterNode implements BaseNode {
 	constructor(

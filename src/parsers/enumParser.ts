@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { ParserContext } from '../parser';
-import { EnumNode, EnumMember } from '../types';
+import { EnumNode, EnumMember } from '../models';
 import { getDocumentationFromSymbol } from './documentationParser';
 
 export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {

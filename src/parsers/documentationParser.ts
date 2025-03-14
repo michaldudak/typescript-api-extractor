@@ -1,10 +1,10 @@
 import ts from 'typescript';
-import * as t from '../types';
+import { Documentation, DocumentationTag } from '../models';
 
 export function getDocumentationFromSymbol(
 	symbol: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
-): t.Documentation | undefined {
+): Documentation | undefined {
 	if (!symbol) {
 		return undefined;
 	}
@@ -15,10 +15,10 @@ export function getDocumentationFromSymbol(
 	}
 
 	const comment = ts.displayPartsToString(symbol.getDocumentationComment(checker));
-	return comment ? new t.Documentation(comment) : undefined;
+	return comment ? new Documentation(comment) : undefined;
 }
 
-export function getDocumentationFromNode(node: ts.Node): t.Documentation | undefined {
+export function getDocumentationFromNode(node: ts.Node): Documentation | undefined {
 	const comments = ts.getJSDocCommentsAndTags(node);
 	if (comments && comments.length === 1) {
 		const commentNode = comments[0];
@@ -30,7 +30,7 @@ export function getDocumentationFromNode(node: ts.Node): t.Documentation | undef
 				)
 				.map(parseTag);
 
-			return new t.Documentation(
+			return new Documentation(
 				commentNode.comment as string | undefined,
 				commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
 				getVisibilityFromJSDoc(commentNode) ?? 'public',
@@ -40,7 +40,7 @@ export function getDocumentationFromNode(node: ts.Node): t.Documentation | undef
 	}
 }
 
-function getVisibilityFromJSDoc(doc: ts.JSDoc): t.Documentation['visibility'] | undefined {
+function getVisibilityFromJSDoc(doc: ts.JSDoc): Documentation['visibility'] | undefined {
 	if (doc.tags?.some((tag) => tag.tagName.text === 'public')) {
 		return 'public';
 	}
@@ -75,7 +75,7 @@ export function getParameterDescriptionFromNode(node: ts.Node) {
 	return {};
 }
 
-function parseTag(tag: ts.JSDocTag): t.DocumentationTag {
+function parseTag(tag: ts.JSDocTag): DocumentationTag {
 	if (ts.isJSDocTypeTag(tag)) {
 		return {
 			name: tag.tagName.text,

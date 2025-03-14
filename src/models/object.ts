@@ -1,4 +1,4 @@
-import { Documentation } from '../documentation';
+import { Documentation } from './documentation';
 import { MemberNode } from './member';
 import { BaseNode } from './node';
 

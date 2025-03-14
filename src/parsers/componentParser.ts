@@ -1,5 +1,15 @@
-import * as t from '../index';
-import { ParserContext } from '../index';
+import {
+	CallSignature,
+	ComponentNode,
+	ExportNode,
+	FunctionNode,
+	IntrinsicNode,
+	MemberNode,
+	ObjectNode,
+	ReferenceNode,
+	UnionNode,
+} from '../models';
+import { ParserContext } from '../parser';
 
 const componentReturnTypes = new Set([
 	'Element',
@@ -11,17 +21,17 @@ const componentReturnTypes = new Set([
 	'React.ReactElement',
 ]);
 
-export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserContext) {
+export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext) {
 	return nodes.map((node) => {
 		if (
-			node.type instanceof t.FunctionNode &&
+			node.type instanceof FunctionNode &&
 			/^[A-Z]/.test(node.name) &&
 			hasReactNodeLikeReturnType(node.type)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
-			return new t.ExportNode(
+			return new ExportNode(
 				node.name,
-				new t.ComponentNode(node.type.name, newCallSignatures),
+				new ComponentNode(node.type.name, newCallSignatures),
 				node.documentation,
 			);
 		}
@@ -30,32 +40,32 @@ export function augmentComponentNodes(nodes: t.ExportNode[], context: ParserCont
 	});
 }
 
-function hasReactNodeLikeReturnType(type: t.FunctionNode) {
+function hasReactNodeLikeReturnType(type: FunctionNode) {
 	return type.callSignatures.some(
 		(signature) =>
-			(signature.returnValueType instanceof t.ReferenceNode &&
+			(signature.returnValueType instanceof ReferenceNode &&
 				componentReturnTypes.has(signature.returnValueType.typeName)) ||
-			(signature.returnValueType instanceof t.UnionNode &&
+			(signature.returnValueType instanceof UnionNode &&
 				signature.returnValueType.types.some(
-					(type) => type instanceof t.ReferenceNode && componentReturnTypes.has(type.typeName),
+					(type) => type instanceof ReferenceNode && componentReturnTypes.has(type.typeName),
 				)),
 	);
 }
 
-function squashComponentProps(callSignatures: t.CallSignature[], context: ParserContext) {
+function squashComponentProps(callSignatures: CallSignature[], context: ParserContext) {
 	// squash props
 	// { variant: 'a', href: string } & { variant: 'b' }
 	// to
 	// { variant: 'a' | 'b', href?: string }
-	const props: Record<string, t.MemberNode> = {};
+	const props: Record<string, MemberNode> = {};
 	const usedPropsPerSignature: Set<String>[] = [];
 
-	function unwrapUnionType(type: t.UnionNode): t.ObjectNode[] {
+	function unwrapUnionType(type: UnionNode): ObjectNode[] {
 		return type.types
 			.map((type) => {
-				if (type instanceof t.ObjectNode) {
+				if (type instanceof ObjectNode) {
 					return type;
-				} else if (type instanceof t.UnionNode) {
+				} else if (type instanceof UnionNode) {
 					return unwrapUnionType(type);
 				}
 			})
@@ -70,11 +80,11 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 				return undefined;
 			}
 
-			if (propsParameter.type instanceof t.ObjectNode) {
+			if (propsParameter.type instanceof ObjectNode) {
 				return propsParameter.type;
 			}
 
-			if (propsParameter.type instanceof t.UnionNode) {
+			if (propsParameter.type instanceof UnionNode) {
 				return unwrapUnionType(propsParameter.type);
 			}
 		})
@@ -91,9 +101,9 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 			if (currentTypeNode === undefined) {
 				currentTypeNode = propNode;
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				let mergedPropType = new t.UnionNode(undefined, [currentTypeNode.type, propNode.type]);
+				let mergedPropType = new UnionNode(undefined, [currentTypeNode.type, propNode.type]);
 
-				currentTypeNode = new t.MemberNode(
+				currentTypeNode = new MemberNode(
 					currentTypeNode.name,
 					mergedPropType.types.length === 1 ? mergedPropType.types[0] : mergedPropType,
 					currentTypeNode.documentation,
@@ -121,18 +131,16 @@ function squashComponentProps(callSignatures: t.CallSignature[], context: Parser
 	return memberNodes;
 }
 
-function markPropertyAsOptional(property: t.MemberNode, context: ParserContext) {
+function markPropertyAsOptional(property: MemberNode, context: ParserContext) {
 	const canBeUndefined =
-		property.type instanceof t.UnionNode &&
-		property.type.types.some(
-			(type) => type instanceof t.IntrinsicNode && type.type === 'undefined',
-		);
+		property.type instanceof UnionNode &&
+		property.type.types.some((type) => type instanceof IntrinsicNode && type.type === 'undefined');
 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
-		const newType = new t.UnionNode(undefined, [property.type, new t.IntrinsicNode('undefined')]);
-		return new t.MemberNode(property.name, newType, property.documentation, true, undefined);
+		const newType = new UnionNode(undefined, [property.type, new IntrinsicNode('undefined')]);
+		return new MemberNode(property.name, newType, property.documentation, true, undefined);
 	}
 
-	return new t.MemberNode(property.name, property.type, property.documentation, true, undefined);
+	return new MemberNode(property.name, property.type, property.documentation, true, undefined);
 }

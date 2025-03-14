@@ -2,12 +2,12 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import * as t from '../types';
+import { ExportNode } from '../models';
 
 export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ParserContext,
-): t.ExportNode | undefined {
+): ExportNode | undefined {
 	const { checker, sourceFile } = parserContext;
 
 	const exportDeclaration = exportSymbol.declarations?.[0];
@@ -92,7 +92,7 @@ export function parseExport(
 	function createExportNode(name: string, symbol: ts.Symbol, type: ts.Type) {
 		const parsedType = resolveType(type, symbol.getName(), parserContext);
 		if (parsedType) {
-			return new t.ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker));
+			return new ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker));
 		}
 	}
 }

@@ -1,4 +1,4 @@
-import { Documentation } from '../documentation';
+import { Documentation } from './documentation';
 import { BaseNode } from './node';
 
 export class LiteralNode implements BaseNode {

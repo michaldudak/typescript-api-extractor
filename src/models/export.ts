@@ -1,4 +1,4 @@
-import { Documentation } from '../documentation';
+import { Documentation } from './documentation';
 import { BaseNode, TypeNode } from './node';
 
 export class ExportNode implements BaseNode {
