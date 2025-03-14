@@ -22,13 +22,11 @@
 	"license": "MIT",
 	"scripts": {
 		"prebuild": "rimraf ./dist",
-		"build": "tsc --build tsconfig.json",
+		"build": "tsc --project tsconfig.json",
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
-		"prepack": "pnpm build && node scripts/appendDevVersion.mjs",
-		"postpack": "node scripts/removeDevVersion.mjs",
-		"lint": "eslint . && prettier --check .",
-		"publish:dev": "pkg-pr-new publish --pnpm"
+		"prepack": "pnpm build",
+		"lint": "eslint . && prettier --check ."
 	},
 	"dependencies": {
 		"lodash": "^4.17.21",
