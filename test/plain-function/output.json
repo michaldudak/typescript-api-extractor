@@ -1,5 +1,5 @@
 {
-	"name": "plain-function/input",
+	"name": "test/plain-function/input",
 	"exports": [
 		{
 			"name": "declaration",

@@ -1,5 +1,5 @@
 {
-	"name": "props-literals/input",
+	"name": "test/props-literals/input",
 	"exports": [
 		{
 			"name": "Component",

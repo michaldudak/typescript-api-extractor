@@ -1,5 +1,5 @@
 {
-	"name": "react-refs/input",
+	"name": "test/react-refs/input",
 	"exports": [
 		{
 			"name": "Test",

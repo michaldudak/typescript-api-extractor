@@ -1,5 +1,5 @@
 {
-	"name": "jsdoc-extra-tags/input",
+	"name": "test/jsdoc-extra-tags/input",
 	"exports": [
 		{
 			"name": "test",

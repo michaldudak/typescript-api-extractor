@@ -1,5 +1,5 @@
 {
-	"name": "props-with-callbacks/input",
+	"name": "test/props-with-callbacks/input",
 	"exports": [
 		{
 			"name": "Component",

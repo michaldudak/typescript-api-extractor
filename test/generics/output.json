@@ -1,5 +1,5 @@
 {
-	"name": "generics/input",
+	"name": "test/generics/input",
 	"exports": [
 		{
 			"name": "genericFunction",

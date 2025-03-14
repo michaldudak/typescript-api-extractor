@@ -1,5 +1,5 @@
 {
-	"name": "hook-overloads/input",
+	"name": "test/hook-overloads/input",
 	"exports": [
 		{
 			"name": "useHook",

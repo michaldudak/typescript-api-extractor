@@ -1,5 +1,5 @@
 {
-	"name": "literal-unions/input",
+	"name": "test/literal-unions/input",
 	"exports": [
 		{
 			"name": "test1",

@@ -1,5 +1,5 @@
 {
-	"name": "exports/input",
+	"name": "test/exports/input",
 	"exports": [
 		{
 			"name": "inlineExport",

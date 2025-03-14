@@ -1,5 +1,5 @@
 {
-	"name": "tuples/input",
+	"name": "test/tuples/input",
 	"exports": [
 		{
 			"name": "testFunction1",

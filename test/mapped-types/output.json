@@ -1,5 +1,5 @@
 {
-	"name": "mapped-types/input",
+	"name": "test/mapped-types/input",
 	"exports": [
 		{
 			"name": "test1",

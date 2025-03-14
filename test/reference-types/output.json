@@ -1,5 +1,5 @@
 {
-	"name": "reference-types/input",
+	"name": "test/reference-types/input",
 	"exports": [
 		{
 			"name": "referenceTypes",

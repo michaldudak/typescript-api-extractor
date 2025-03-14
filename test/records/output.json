@@ -1,5 +1,5 @@
 {
-	"name": "records/input",
+	"name": "test/records/input",
 	"exports": [
 		{
 			"name": "test",

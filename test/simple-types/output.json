@@ -1,5 +1,5 @@
 {
-	"name": "simple-types/input",
+	"name": "test/simple-types/input",
 	"exports": [
 		{
 			"name": "Component",

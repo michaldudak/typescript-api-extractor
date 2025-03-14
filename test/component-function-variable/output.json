@@ -1,5 +1,5 @@
 {
-	"name": "component-function-variable/input",
+	"name": "test/component-function-variable/input",
 	"exports": [
 		{
 			"name": "TestComponent1",
