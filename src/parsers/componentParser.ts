@@ -4,7 +4,7 @@ import {
 	ExportNode,
 	FunctionNode,
 	IntrinsicNode,
-	MemberNode,
+	PropertyNode,
 	ObjectNode,
 	ReferenceNode,
 	UnionNode,
@@ -57,7 +57,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 	// { variant: 'a', href: string } & { variant: 'b' }
 	// to
 	// { variant: 'a' | 'b', href?: string }
-	const props: Record<string, MemberNode> = {};
+	const props: Record<string, PropertyNode> = {};
 	const usedPropsPerSignature: Set<String>[] = [];
 
 	function unwrapUnionType(type: UnionNode): ObjectNode[] {
@@ -94,7 +94,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 	allParametersUnionMembers.forEach((propUnionMember) => {
 		const usedProps: Set<string> = new Set();
 
-		propUnionMember.members.forEach((propNode) => {
+		propUnionMember.properties.forEach((propNode) => {
 			usedProps.add(propNode.name);
 
 			let { [propNode.name]: currentTypeNode } = props;
@@ -103,7 +103,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
 				let mergedPropType = new UnionNode(undefined, [currentTypeNode.type, propNode.type]);
 
-				currentTypeNode = new MemberNode(
+				currentTypeNode = new PropertyNode(
 					currentTypeNode.name,
 					mergedPropType.types.length === 1 ? mergedPropType.types[0] : mergedPropType,
 					currentTypeNode.documentation,
@@ -118,7 +118,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 		usedPropsPerSignature.push(usedProps);
 	});
 
-	const memberNodes = Object.entries(props).map(([name, property]) => {
+	return Object.entries(props).map(([name, property]) => {
 		const onlyUsedInSomeSignatures = usedPropsPerSignature.some((props) => !props.has(name));
 		if (onlyUsedInSomeSignatures) {
 			// mark as optional
@@ -127,11 +127,9 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 
 		return property;
 	});
-
-	return memberNodes;
 }
 
-function markPropertyAsOptional(property: MemberNode, context: ParserContext) {
+function markPropertyAsOptional(property: PropertyNode, context: ParserContext) {
 	const canBeUndefined =
 		property.type instanceof UnionNode &&
 		property.type.types.some((type) => type instanceof IntrinsicNode && type.name === 'undefined');
@@ -139,8 +137,8 @@ function markPropertyAsOptional(property: MemberNode, context: ParserContext) {
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
 		const newType = new UnionNode(undefined, [property.type, new IntrinsicNode('undefined')]);
-		return new MemberNode(property.name, newType, property.documentation, true, undefined);
+		return new PropertyNode(property.name, newType, property.documentation, true, undefined);
 	}
 
-	return new MemberNode(property.name, property.type, property.documentation, true, undefined);
+	return new PropertyNode(property.name, property.type, property.documentation, true, undefined);
 }

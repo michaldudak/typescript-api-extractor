@@ -15,7 +15,7 @@
 								"type": {
 									"kind": "object",
 									"name": "Pick",
-									"members": [
+									"properties": [
 										{
 											"name": "a",
 											"type": {
@@ -67,7 +67,7 @@
 								"type": {
 									"kind": "object",
 									"name": "Omit",
-									"members": [
+									"properties": [
 										{
 											"name": "a",
 											"type": {
@@ -122,7 +122,7 @@
 										{
 											"kind": "object",
 											"name": "Pick",
-											"members": [
+											"properties": [
 												{
 													"name": "a",
 													"type": {

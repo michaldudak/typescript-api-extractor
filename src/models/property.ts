@@ -1,7 +1,7 @@
 import { Documentation } from './documentation';
 import { SerializableNode, TypeNode } from './node';
 
-export class MemberNode implements SerializableNode {
+export class PropertyNode implements SerializableNode {
 	constructor(
 		public name: string,
 		public type: TypeNode,

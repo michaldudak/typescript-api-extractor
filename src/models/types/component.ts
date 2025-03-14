@@ -1,4 +1,4 @@
-import { MemberNode } from '../member';
+import { PropertyNode } from '../property';
 import { TypeNode } from '../node';
 
 export class ComponentNode implements TypeNode {
@@ -6,7 +6,7 @@ export class ComponentNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
-		public props: MemberNode[],
+		public props: PropertyNode[],
 	) {}
 
 	toObject(): Record<string, unknown> {

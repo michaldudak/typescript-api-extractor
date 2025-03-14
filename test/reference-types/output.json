@@ -15,7 +15,7 @@
 								"type": {
 									"kind": "object",
 									"name": "CustomInterface",
-									"members": [
+									"properties": [
 										{
 											"name": "a",
 											"type": {
@@ -33,7 +33,7 @@
 								"type": {
 									"kind": "object",
 									"name": "CustomType",
-									"members": [
+									"properties": [
 										{
 											"name": "s",
 											"type": {
@@ -52,7 +52,7 @@
 								{
 									"kind": "object",
 									"name": "CustomInterface",
-									"members": [
+									"properties": [
 										{
 											"name": "a",
 											"type": {
@@ -66,7 +66,7 @@
 								{
 									"kind": "object",
 									"name": "CustomType",
-									"members": [
+									"properties": [
 										{
 											"name": "s",
 											"type": {
@@ -96,7 +96,7 @@
 								"name": "a",
 								"type": {
 									"kind": "object",
-									"members": [
+									"properties": [
 										{
 											"name": "a",
 											"type": {
@@ -113,7 +113,7 @@
 								"name": "b",
 								"type": {
 									"kind": "object",
-									"members": [
+									"properties": [
 										{
 											"name": "s",
 											"type": {

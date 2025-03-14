@@ -15,7 +15,7 @@
 								"type": {
 									"kind": "object",
 									"name": "Params",
-									"members": [
+									"properties": [
 										{
 											"name": "inlineStringUnion",
 											"type": {

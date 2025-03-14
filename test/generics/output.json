@@ -15,7 +15,7 @@
 								"type": {
 									"kind": "object",
 									"name": "GenericFunctionParameters",
-									"members": [
+									"properties": [
 										{
 											"name": "value",
 											"type": {
@@ -30,13 +30,13 @@
 											"type": {
 												"kind": "object",
 												"name": "GenericInterface",
-												"members": [
+												"properties": [
 													{
 														"name": "data",
 														"type": {
 															"kind": "object",
 															"name": "GenericInterface",
-															"members": [
+															"properties": [
 																{
 																	"name": "data",
 																	"type": {

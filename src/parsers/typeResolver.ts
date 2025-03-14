@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { ParserContext } from '../parser';
-import { parseMember } from './memberParser';
+import { parseProperty } from './propertyParser';
 import { parseFunctionType } from './functionParser';
 import { parseEnum } from './enumParser';
 import {
@@ -181,7 +181,7 @@ export function resolveType(
 						return new ObjectNode(
 							typeName,
 							filtered.map((property) => {
-								return parseMember(
+								return parseProperty(
 									property,
 									property.valueDeclaration as ts.PropertySignature,
 									context,

@@ -2,14 +2,14 @@ import ts from 'typescript';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { type ParserContext } from '../parser';
 import { resolveType } from './typeResolver';
-import { IntrinsicNode, MemberNode, TypeNode } from '../models';
+import { IntrinsicNode, PropertyNode, TypeNode } from '../models';
 
-export function parseMember(
+export function parseProperty(
 	propertySymbol: ts.Symbol,
 	propertySignature: ts.PropertySignature | undefined,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
-): MemberNode {
+): PropertyNode {
 	const { checker } = context;
 
 	let type: ts.Type;
@@ -37,7 +37,7 @@ export function parseMember(
 		isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 	}
 
-	return new MemberNode(
+	return new PropertyNode(
 		propertySymbol.getName(),
 		parsedType,
 		getDocumentationFromSymbol(propertySymbol, checker),
