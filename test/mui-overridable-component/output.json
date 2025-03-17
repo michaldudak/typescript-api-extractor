@@ -1,5 +1,5 @@
 {
-	"name": "test/mui-overridable-component.only/input",
+	"name": "test/mui-overridable-component/input",
 	"exports": [
 		{
 			"name": "default",
@@ -34,11 +34,11 @@
 							"types": [
 								{
 									"kind": "literal",
-									"value": "\"default\""
+									"value": "\"small\""
 								},
 								{
 									"kind": "literal",
-									"value": "\"small\""
+									"value": "\"default\""
 								},
 								{
 									"kind": "literal",
