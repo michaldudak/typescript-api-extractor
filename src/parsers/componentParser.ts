@@ -24,10 +24,11 @@ const componentReturnTypes = new Set([
 
 export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext): ExportNode[] {
 	return nodes.map((node) => {
+		// This heuristic is not perfect, but it's good enough for now.
+		// A better way would be to explicitly mark components with a JSDoc tag.
 		if (
 			node.type instanceof FunctionNode &&
-			(/^[A-Z]/.test(node.name) ||
-				(node.name === 'default' && /^[A-Z]/.test(node.type.name ?? ''))) &&
+			(/^[A-Z]/.test(node.name) || node.name === 'default') &&
 			hasReactNodeLikeReturnType(node.type)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);

@@ -208,6 +208,20 @@ export function resolveType(
 			return new ObjectNode(undefined, [], undefined);
 		}
 
+		if (type.flags & ts.TypeFlags.Conditional) {
+			// We don't fully support conditional types. We assume the condition is always true.
+			if (
+				type.aliasSymbol?.declarations?.[0] &&
+				ts.isTypeAliasDeclaration(type.aliasSymbol.declarations[0]) &&
+				ts.isConditionalTypeNode(type.aliasSymbol.declarations[0].type)
+			) {
+				const trueType = checker.getTypeFromTypeNode(
+					type.aliasSymbol.declarations[0].type.trueType,
+				);
+				return resolveType(trueType, name, context);
+			}
+		}
+
 		console.warn(
 			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
 		);

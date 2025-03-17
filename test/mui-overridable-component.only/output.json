@@ -1,0 +1,93 @@
+{
+	"name": "test/mui-overridable-component.only/input",
+	"exports": [
+		{
+			"name": "default",
+			"type": {
+				"kind": "component",
+				"props": [
+					{
+						"name": "component",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "typeParameter",
+									"name": "RootComponent",
+									"constraint": "React.ElementType"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "The component used for the root node.\r\nEither a string to use a HTML element or a component."
+						},
+						"optional": true
+					},
+					{
+						"name": "variant",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"value": "\"default\""
+								},
+								{
+									"kind": "literal",
+									"value": "\"small\""
+								},
+								{
+									"kind": "literal",
+									"value": "\"large\""
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"name": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "style",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "reference",
+									"name": "CSSProperties"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	]
+}
