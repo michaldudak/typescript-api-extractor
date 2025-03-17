@@ -1,0 +1,45 @@
+{
+	"name": "test/callable-types-with-other-properties/input",
+	"exports": [
+		{
+			"name": "test",
+			"type": {
+				"kind": "function",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "param",
+								"type": {
+									"kind": "intrinsic",
+									"name": "number"
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "number"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "TestComponent",
+			"type": {
+				"kind": "component",
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"name": "string"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

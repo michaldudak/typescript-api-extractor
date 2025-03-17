@@ -122,6 +122,15 @@ export function resolveType(
 			}
 
 			if (memberTypes.length > 1) {
+				const callSignatures = type.getCallSignatures();
+				if (callSignatures.length >= 1) {
+					if (skipResolvingComplexTypes) {
+						return new IntrinsicNode('function');
+					}
+
+					return parseFunctionType(type, context)!;
+				}
+
 				const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
 				if (objectType) {
 					return new IntersectionNode(typeName, memberTypes, objectType.properties);
@@ -174,6 +183,9 @@ export function resolveType(
 			return new LiteralNode('null');
 		}
 
+		// TODO: currently types can be either a "function" or an "object" but not both.
+		// In reality, type can have both call signatures and properties.
+		// Consider creating a new type that can handle both.
 		const callSignatures = type.getCallSignatures();
 		if (callSignatures.length >= 1) {
 			if (skipResolvingComplexTypes) {
