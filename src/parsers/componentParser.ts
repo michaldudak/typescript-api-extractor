@@ -8,6 +8,7 @@ import {
 	ObjectNode,
 	ReferenceNode,
 	UnionNode,
+	IntersectionNode,
 } from '../models';
 import { ParserContext } from '../parser';
 
@@ -86,6 +87,10 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 
 			if (propsParameter.type instanceof UnionNode) {
 				return unwrapUnionType(propsParameter.type);
+			}
+
+			if (propsParameter.type instanceof IntersectionNode) {
+				return propsParameter.type.types.filter((type) => type instanceof ObjectNode);
 			}
 		})
 		.flat()
