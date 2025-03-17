@@ -18,6 +18,31 @@
 			}
 		},
 		{
+			"name": "default",
+			"type": {
+				"kind": "function",
+				"name": "defaultExport",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "a",
+								"type": {
+									"kind": "intrinsic",
+									"name": "number"
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "number"
+						}
+					}
+				]
+			}
+		},
+		{
 			"name": "overloadedFunction",
 			"type": {
 				"kind": "function",

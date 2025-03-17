@@ -24,3 +24,7 @@ export { overloadedFunction };
 export { overloadedFunction as aliasedOverloadedFunction };
 
 export { functionAndNamespaceDeclaration };
+
+export default function defaultExport(a: number): number {
+	return a;
+}

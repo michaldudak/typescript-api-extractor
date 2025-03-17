@@ -1,4 +1,4 @@
-import ts from 'typescript';
+import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
 import { getParameterDescriptionFromNode } from './documentationParser';
 import { resolveType } from './typeResolver';
@@ -17,6 +17,13 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 	let name = symbol?.getName();
 	if (name === '__type') {
 		name = undefined;
+	}
+
+	// Functions with `export default` are named "default" in the type checker.
+	// Their original name is stored in the value declaration.
+	if (name === 'default') {
+		name =
+			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
 	}
 
 	return new FunctionNode(name, parsedCallSignatures);

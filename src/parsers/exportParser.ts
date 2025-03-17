@@ -58,6 +58,7 @@ export function parseExport(
 	) {
 		// export const x = ...
 		// export function x() {}
+		// export default function x() {}
 		if (!exportDeclaration.name) {
 			return;
 		}
