@@ -22,7 +22,6 @@ interface OverridableComponent<TypeMap extends OverridableTypeMap> {
 		props: {
 			/**
 			 * The component used for the root node.
-			 * Either a string to use a HTML element or a component.
 			 */
 			component: RootComponent;
 		} & OverrideProps<TypeMap, RootComponent>,
@@ -30,9 +29,6 @@ interface OverridableComponent<TypeMap extends OverridableTypeMap> {
 	(props: DefaultComponentProps<TypeMap>): React.JSX.Element | null;
 }
 
-/**
- * Props of the component if `component={Component}` is used.
- */
 type OverrideProps<
 	TypeMap extends OverridableTypeMap,
 	RootComponent extends React.ElementType,
