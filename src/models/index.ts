@@ -9,6 +9,7 @@ export * from './types/array';
 export * from './types/component';
 export * from './types/enum';
 export * from './types/function';
+export * from './types/intersection';
 export * from './types/intrinsic';
 export * from './types/literal';
 export * from './types/object';

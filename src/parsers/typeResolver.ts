@@ -1,8 +1,8 @@
 import ts from 'typescript';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { ParserContext } from '../parser';
-import { parseProperty } from './propertyParser';
 import { parseFunctionType } from './functionParser';
+import { parseObjectType } from './objectParser';
 import { parseEnum } from './enumParser';
 import {
 	ObjectNode,
@@ -14,6 +14,7 @@ import {
 	UnionNode,
 	TupleNode,
 	LiteralNode,
+	IntersectionNode,
 } from '../models';
 
 export function resolveType(
@@ -22,7 +23,7 @@ export function resolveType(
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): TypeNode {
-	const { checker, shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
+	const { checker, typeStack, includeExternalTypes } = context;
 
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
@@ -100,6 +101,36 @@ export function resolveType(
 			return memberTypes.length === 1 ? memberTypes[0] : new UnionNode(typeName, memberTypes);
 		}
 
+		if (type.isIntersection()) {
+			const memberTypes: TypeNode[] = [];
+			const symbol = type.aliasSymbol ?? type.getSymbol();
+			let typeName = symbol?.getName();
+			if (typeName === '__type') {
+				typeName = undefined;
+			}
+
+			for (const memberType of type.types) {
+				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+			}
+
+			if (memberTypes.length === 0) {
+				throw new Error('Encountered an intersection type with no members');
+			}
+
+			if (memberTypes.length === 1) {
+				return memberTypes[0];
+			}
+
+			if (memberTypes.length > 1) {
+				const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+				if (objectType) {
+					return new IntersectionNode(typeName, memberTypes, objectType.properties);
+				}
+
+				return new IntersectionNode(typeName, memberTypes, []);
+			}
+		}
+
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
 				undefined,
@@ -152,54 +183,9 @@ export function resolveType(
 			return parseFunctionType(type, context)!;
 		}
 
-		// Object-like type
-		{
-			const properties = type
-				.getProperties()
-				.filter((property) => includeExternalTypes || !isPropertyExternal(property));
-
-			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
-			let typeName = typeSymbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
-
-			if (properties.length) {
-				if (
-					!skipResolvingComplexTypes &&
-					shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.length })
-				) {
-					const filtered = properties.filter((property) => {
-						const declaration =
-							property.valueDeclaration ??
-							(property.declarations?.[0] as ts.PropertySignature | undefined);
-						return (
-							declaration &&
-							ts.isPropertySignature(declaration) &&
-							shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
-						);
-					});
-					if (filtered.length > 0) {
-						return new ObjectNode(
-							typeName,
-							filtered.map((property) => {
-								return parseProperty(
-									property,
-									property.valueDeclaration as ts.PropertySignature,
-									context,
-								);
-							}),
-							undefined,
-						);
-					}
-				}
-
-				if (typeName) {
-					return new ReferenceNode(typeName);
-				}
-
-				return new ObjectNode(undefined, [], undefined);
-			}
+		const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+		if (objectType) {
+			return objectType;
 		}
 
 		// Object without properties or object keyword
@@ -239,14 +225,6 @@ const allowedBuiltInReactTypes = new Set([
 	'React.FunctionComponent',
 	'React.ForwardRefExoticComponent',
 ]);
-
-function isPropertyExternal(property: ts.Symbol): boolean {
-	return (
-		property.declarations?.every((declaration) =>
-			declaration.getSourceFile().fileName.includes('node_modules'),
-		) ?? false
-	);
-}
 
 function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	const symbol = type.aliasSymbol ?? type.getSymbol();

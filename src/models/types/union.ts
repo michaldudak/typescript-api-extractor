@@ -1,8 +1,7 @@
-import { uniqBy } from 'lodash';
 import { TypeNode } from '../node';
 import { LiteralNode } from './literal';
 import { IntrinsicNode } from './intrinsic';
-import { ReferenceNode } from './reference';
+import { deduplicateMemberTypes, flattenTypes, sortMemberTypes } from './compoundTypeUtils';
 
 export class UnionNode implements TypeNode {
 	kind = 'union';
@@ -11,23 +10,10 @@ export class UnionNode implements TypeNode {
 		public name: string | undefined,
 		types: TypeNode[],
 	) {
-		const flatTypes: TypeNode[] = [];
-
-		flattenTypes(types);
+		const flatTypes = flattenTypes(types, UnionNode);
 		sanitizeBooleanLiterals(flatTypes);
-		sortUnionTypes(flatTypes);
-
-		function flattenTypes(nodes: readonly TypeNode[]) {
-			nodes.forEach((x) => {
-				if (x instanceof UnionNode) {
-					flattenTypes(x.types);
-				} else {
-					flatTypes.push(x);
-				}
-			});
-		}
-
-		this.types = uniqueUnionTypes(flatTypes);
+		sortMemberTypes(flatTypes);
+		this.types = deduplicateMemberTypes(flatTypes);
 	}
 
 	types: readonly TypeNode[];
@@ -39,32 +25,6 @@ export class UnionNode implements TypeNode {
 			types: this.types.map((x) => x.toObject()),
 		};
 	}
-}
-
-function uniqueUnionTypes(types: TypeNode[]): TypeNode[] {
-	return uniqBy(types, (x) => {
-		if (x instanceof LiteralNode) {
-			return x.value;
-		}
-
-		if (x instanceof IntrinsicNode || x instanceof ReferenceNode) {
-			return x.name;
-		}
-
-		return x;
-	});
-}
-
-function sortUnionTypes(members: TypeNode[]) {
-	// move undefined and null to the end
-
-	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.name === 'null');
-	members.push(members.splice(nullIndex, 1)[0]);
-
-	const undefinedIndex = members.findIndex(
-		(x) => x instanceof IntrinsicNode && x.name === 'undefined',
-	);
-	members.push(members.splice(undefinedIndex, 1)[0]);
 }
 
 /**
