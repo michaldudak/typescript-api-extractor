@@ -26,7 +26,8 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 	return nodes.map((node) => {
 		if (
 			node.type instanceof FunctionNode &&
-			/^[A-Z]/.test(node.name) &&
+			(/^[A-Z]/.test(node.name) ||
+				(node.name === 'default' && /^[A-Z]/.test(node.type.name ?? ''))) &&
 			hasReactNodeLikeReturnType(node.type)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
