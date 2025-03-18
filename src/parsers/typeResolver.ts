@@ -165,8 +165,12 @@ export function resolveType(
 			return new IntrinsicNode('undefined');
 		}
 
-		if (type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) {
+		if (type.flags & ts.TypeFlags.Any) {
 			return new IntrinsicNode('any');
+		}
+
+		if (type.flags & ts.TypeFlags.Unknown) {
+			return new IntrinsicNode('unknown');
 		}
 
 		if (type.flags & ts.TypeFlags.Literal) {
@@ -180,7 +184,7 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.Null) {
-			return new LiteralNode('null');
+			return new IntrinsicNode('null');
 		}
 
 		// TODO: currently types can be either a "function" or an "object" but not both.

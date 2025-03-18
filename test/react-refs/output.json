@@ -71,16 +71,16 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "literal",
-									"value": "null"
-								},
-								{
 									"kind": "reference",
 									"name": "RefCallback"
 								},
 								{
 									"kind": "reference",
 									"name": "RefObject"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "null"
 								},
 								{
 									"kind": "intrinsic",

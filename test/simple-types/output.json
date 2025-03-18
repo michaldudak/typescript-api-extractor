@@ -34,8 +34,8 @@
 					{
 						"name": "n",
 						"type": {
-							"kind": "literal",
-							"value": "null"
+							"kind": "intrinsic",
+							"name": "null"
 						},
 						"optional": false
 					}
