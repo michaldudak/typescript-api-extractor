@@ -354,6 +354,56 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "test3",
+			"type": {
+				"kind": "function",
+				"name": "test3",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "prop",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"value": "\"inlineStringUnion\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"inlineNumberUnion\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"referencedStringUnion\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"referencedNumberUnion\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"callback\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"unionOfUnions\""
+										}
+									]
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "void"
+						}
+					}
+				]
+			}
 		}
 	]
 }

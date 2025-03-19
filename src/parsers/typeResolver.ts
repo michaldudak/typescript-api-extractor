@@ -95,7 +95,7 @@ export function resolveType(
 			}
 
 			// @ts-expect-error - Internal API
-			if (type.origin) {
+			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
 				return resolveType(type.origin, name, context);
 			} else {
