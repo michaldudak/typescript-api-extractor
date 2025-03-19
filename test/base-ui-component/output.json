@@ -1,0 +1,256 @@
+{
+	"name": "test/base-ui-component/input",
+	"exports": [
+		{
+			"name": "BaseUIComponent",
+			"type": {
+				"kind": "component",
+				"name": "ForwardRefExoticComponent",
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"name": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "onValueChange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"nodeType": "parameter",
+													"name": "value",
+													"type": {
+														"kind": "intrinsic",
+														"name": "string"
+													}
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"name": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "actionsRef",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "reference",
+									"name": "RefObject<Actions>"
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"name": "string"
+								},
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"nodeType": "parameter",
+													"name": "state",
+													"type": {
+														"kind": "object",
+														"name": "State",
+														"properties": [
+															{
+																"name": "state",
+																"type": {
+																	"kind": "intrinsic",
+																	"name": "string"
+																},
+																"optional": false
+															}
+														]
+													}
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"name": "string"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+						},
+						"optional": true
+					},
+					{
+						"name": "render",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "reference",
+									"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>"
+								},
+								{
+									"kind": "function",
+									"name": "ComponentRenderFn",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"nodeType": "parameter",
+													"name": "props",
+													"type": {
+														"kind": "intersection",
+														"name": "GenericHTMLProps",
+														"types": [
+															{
+																"kind": "reference",
+																"name": "HTMLAttributes<any>"
+															},
+															{
+																"kind": "object",
+																"properties": [
+																	{
+																		"name": "ref",
+																		"type": {
+																			"kind": "union",
+																			"types": [
+																				{
+																					"kind": "reference",
+																					"name": "RefCallback"
+																				},
+																				{
+																					"kind": "reference",
+																					"name": "RefObject<any>"
+																				},
+																				{
+																					"kind": "intrinsic",
+																					"name": "null"
+																				},
+																				{
+																					"kind": "intrinsic",
+																					"name": "undefined"
+																				}
+																			]
+																		},
+																		"optional": true
+																	}
+																]
+															}
+														],
+														"properties": [
+															{
+																"name": "ref",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "reference",
+																			"name": "RefCallback"
+																		},
+																		{
+																			"kind": "reference",
+																			"name": "RefObject<any>"
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"name": "null"
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"name": "undefined"
+																		}
+																	]
+																},
+																"optional": true
+															}
+														]
+													}
+												},
+												{
+													"nodeType": "parameter",
+													"name": "state",
+													"type": {
+														"kind": "object",
+														"name": "State",
+														"properties": [
+															{
+																"name": "state",
+																"type": {
+																	"kind": "intrinsic",
+																	"name": "string"
+																},
+																"optional": false
+															}
+														]
+													}
+												}
+											],
+											"returnValueType": {
+												"kind": "reference",
+												"name": "ReactElement<unknown, string | JSXElementConstructor<any>>"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"name": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	]
+}
