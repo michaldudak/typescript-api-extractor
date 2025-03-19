@@ -19,7 +19,7 @@
 											"name": "event",
 											"type": {
 												"kind": "reference",
-												"name": "ChangeEvent"
+												"name": "ChangeEvent<HTMLInputElement>"
 											}
 										}
 									],

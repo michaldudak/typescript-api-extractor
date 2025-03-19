@@ -292,8 +292,18 @@ function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
 		return checker.typeToString(type);
 	}
 
-	const typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker));
-	if (typeArguments) {
+	let typeArguments: string[] | undefined;
+	if ('target' in type) {
+		typeArguments = checker
+			.getTypeArguments(type as ts.TypeReference)
+			?.map((x) => getTypeName(x, checker));
+	}
+
+	if (!typeArguments?.length) {
+		typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker)) ?? [];
+	}
+
+	if (typeArguments && typeArguments.length > 0) {
 		return `${typeName}<${typeArguments.join(', ')}>`;
 	}
 

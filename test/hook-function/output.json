@@ -77,13 +77,13 @@
 														"name": "externalProps",
 														"type": {
 															"kind": "reference",
-															"name": "HTMLAttributes"
+															"name": "HTMLAttributes<HTMLElement>"
 														}
 													}
 												],
 												"returnValueType": {
 													"kind": "reference",
-													"name": "HTMLAttributes"
+													"name": "HTMLAttributes<HTMLElement>"
 												}
 											}
 										]

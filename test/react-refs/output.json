@@ -11,7 +11,7 @@
 						"name": "refObject",
 						"type": {
 							"kind": "reference",
-							"name": "RefObject"
+							"name": "RefObject<HTMLInputElement>"
 						},
 						"optional": false
 					},
@@ -38,7 +38,7 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefObject"
+									"name": "RefObject<HTMLInputElement>"
 								},
 								{
 									"kind": "intrinsic",
@@ -76,7 +76,7 @@
 								},
 								{
 									"kind": "reference",
-									"name": "RefObject"
+									"name": "RefObject<HTMLInputElement | null>"
 								},
 								{
 									"kind": "intrinsic",

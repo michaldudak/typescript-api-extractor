@@ -12,15 +12,11 @@ import {
 } from '../models';
 import { ParserContext } from '../parser';
 
-const componentReturnTypes = new Set([
-	'Element',
-	'ReactNode',
-	'ReactElement',
-	'JSX.Element',
-	'React.JSX.Element',
-	'React.ReactNode',
-	'React.ReactElement',
-]);
+const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
+
+function isReactReturnType(type: ReferenceNode) {
+	return componentReturnTypes.some((regex) => regex.test(type.name));
+}
 
 export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext): ExportNode[] {
 	return nodes.map((node) => {
@@ -47,10 +43,10 @@ function hasReactNodeLikeReturnType(type: FunctionNode) {
 	return type.callSignatures.some(
 		(signature) =>
 			(signature.returnValueType instanceof ReferenceNode &&
-				componentReturnTypes.has(signature.returnValueType.name)) ||
+				isReactReturnType(signature.returnValueType)) ||
 			(signature.returnValueType instanceof UnionNode &&
 				signature.returnValueType.types.some(
-					(type) => type instanceof ReferenceNode && componentReturnTypes.has(type.name),
+					(type) => type instanceof ReferenceNode && isReactReturnType(type),
 				)),
 	);
 }
