@@ -1,0 +1,184 @@
+{
+	"name": "test/object-types/input",
+	"exports": [
+		{
+			"name": "test1",
+			"type": {
+				"kind": "function",
+				"name": "test1",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "emptyObject",
+								"type": {
+									"kind": "object",
+									"properties": []
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "objectKeyword",
+								"type": {
+									"kind": "object",
+									"properties": []
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "record",
+								"type": {
+									"kind": "reference",
+									"name": "Record<string, any>"
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "test2",
+			"type": {
+				"kind": "function",
+				"name": "test2",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "emptyInterface",
+								"type": {
+									"kind": "object",
+									"name": "EmptyInterface",
+									"properties": []
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "emptyObject",
+								"type": {
+									"kind": "object",
+									"name": "EmptyObject",
+									"properties": []
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "objectKeyword",
+								"type": {
+									"kind": "object",
+									"properties": []
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "recordType",
+								"type": {
+									"kind": "object",
+									"name": "RecordType",
+									"properties": []
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "test3",
+			"type": {
+				"kind": "function",
+				"name": "test3",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"properties": [
+										{
+											"name": "emptyInterface",
+											"type": {
+												"kind": "object",
+												"name": "EmptyInterface",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "emptyObject",
+											"type": {
+												"kind": "object",
+												"name": "EmptyObject",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "inlineEmptyObject",
+											"type": {
+												"kind": "object",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "objectKeyword",
+											"type": {
+												"kind": "object",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "inlineObjectKeyword",
+											"type": {
+												"kind": "object",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "recordType",
+											"type": {
+												"kind": "object",
+												"name": "RecordType",
+												"properties": []
+											},
+											"optional": false
+										},
+										{
+											"name": "inlineRecordType",
+											"type": {
+												"kind": "reference",
+												"name": "Record<string, any>"
+											},
+											"optional": false
+										}
+									]
+								}
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}

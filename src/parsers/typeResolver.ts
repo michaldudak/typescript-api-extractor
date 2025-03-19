@@ -209,7 +209,13 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			return new ObjectNode(undefined, [], undefined);
+			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
+			let typeName = typeSymbol?.getName();
+			if (typeName === '__type') {
+				typeName = undefined;
+			}
+
+			return new ObjectNode(typeName, [], undefined);
 		}
 
 		if (type.flags & ts.TypeFlags.Conditional) {
