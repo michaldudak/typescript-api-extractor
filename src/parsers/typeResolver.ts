@@ -94,8 +94,14 @@ export function resolveType(
 				typeName = undefined;
 			}
 
-			for (const memberType of type.types) {
-				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+			// @ts-expect-error - Internal API
+			if (type.origin) {
+				// @ts-expect-error - Internal API
+				return resolveType(type.origin, name, context);
+			} else {
+				for (const memberType of type.types) {
+					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+				}
 			}
 
 			return memberTypes.length === 1 ? memberTypes[0] : new UnionNode(typeName, memberTypes);

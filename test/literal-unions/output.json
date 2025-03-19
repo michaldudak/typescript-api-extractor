@@ -62,7 +62,7 @@
 											"name": "referencedStringUnion",
 											"type": {
 												"kind": "union",
-												"name": "StringUniuon",
+												"name": "StringUnion",
 												"types": [
 													{
 														"kind": "literal",
@@ -97,6 +97,99 @@
 													{
 														"kind": "literal",
 														"value": 3
+													}
+												]
+											},
+											"optional": false
+										},
+										{
+											"name": "callback",
+											"type": {
+												"kind": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"nodeType": "parameter",
+																"name": "ref",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "union",
+																			"name": "StringUnion",
+																			"types": [
+																				{
+																					"kind": "literal",
+																					"value": "\"foo\""
+																				},
+																				{
+																					"kind": "literal",
+																					"value": "\"bar\""
+																				},
+																				{
+																					"kind": "literal",
+																					"value": "\"baz\""
+																				}
+																			]
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"name": "undefined"
+																		}
+																	]
+																}
+															}
+														],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"name": "void"
+														}
+													}
+												]
+											},
+											"optional": false
+										},
+										{
+											"name": "unionOfUnions",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"name": "StringUnion",
+														"types": [
+															{
+																"kind": "literal",
+																"value": "\"foo\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"bar\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"baz\""
+															}
+														]
+													},
+													{
+														"kind": "union",
+														"name": "NumberUnion",
+														"types": [
+															{
+																"kind": "literal",
+																"value": 1
+															},
+															{
+																"kind": "literal",
+																"value": 2
+															},
+															{
+																"kind": "literal",
+																"value": 3
+															}
+														]
 													}
 												]
 											},
@@ -169,7 +262,7 @@
 								"name": "referencedStringUnion",
 								"type": {
 									"kind": "union",
-									"name": "StringUniuon",
+									"name": "StringUnion",
 									"types": [
 										{
 											"kind": "literal",
@@ -204,6 +297,51 @@
 										{
 											"kind": "literal",
 											"value": 3
+										}
+									]
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "unionOfUnions",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "union",
+											"name": "StringUnion",
+											"types": [
+												{
+													"kind": "literal",
+													"value": "\"foo\""
+												},
+												{
+													"kind": "literal",
+													"value": "\"bar\""
+												},
+												{
+													"kind": "literal",
+													"value": "\"baz\""
+												}
+											]
+										},
+										{
+											"kind": "union",
+											"name": "NumberUnion",
+											"types": [
+												{
+													"kind": "literal",
+													"value": 1
+												},
+												{
+													"kind": "literal",
+													"value": 2
+												},
+												{
+													"kind": "literal",
+													"value": 3
+												}
+											]
 										}
 									]
 								}

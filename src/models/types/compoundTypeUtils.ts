@@ -11,11 +11,11 @@ export function flattenTypes(
 	nodeToProcess: typeof UnionNode | typeof IntersectionNode,
 ): TypeNode[] {
 	let flatTypes: TypeNode[] = [];
-	nodes.forEach((x) => {
-		if (x instanceof nodeToProcess) {
-			flatTypes = flatTypes.concat(flattenTypes(x.types, nodeToProcess));
+	nodes.forEach((node) => {
+		if (node instanceof nodeToProcess && !node.name) {
+			flatTypes = flatTypes.concat(flattenTypes(node.types, nodeToProcess));
 		} else {
-			flatTypes.push(x);
+			flatTypes.push(node);
 		}
 	});
 

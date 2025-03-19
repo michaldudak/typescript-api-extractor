@@ -72,15 +72,7 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefCallback"
-								},
-								{
-									"kind": "reference",
-									"name": "RefObject<HTMLInputElement | null>"
-								},
-								{
-									"kind": "intrinsic",
-									"name": "null"
+									"name": "Ref<HTMLInputElement>"
 								},
 								{
 									"kind": "intrinsic",

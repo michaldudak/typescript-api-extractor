@@ -162,15 +162,7 @@
 																			"types": [
 																				{
 																					"kind": "reference",
-																					"name": "RefCallback"
-																				},
-																				{
-																					"kind": "reference",
-																					"name": "RefObject<any>"
-																				},
-																				{
-																					"kind": "intrinsic",
-																					"name": "null"
+																					"name": "Ref<any>"
 																				},
 																				{
 																					"kind": "intrinsic",
@@ -191,15 +183,7 @@
 																	"types": [
 																		{
 																			"kind": "reference",
-																			"name": "RefCallback"
-																		},
-																		{
-																			"kind": "reference",
-																			"name": "RefObject<any>"
-																		},
-																		{
-																			"kind": "intrinsic",
-																			"name": "null"
+																			"name": "Ref<any>"
 																		},
 																		{
 																			"kind": "intrinsic",
