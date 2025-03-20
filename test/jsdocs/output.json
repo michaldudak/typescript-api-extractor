@@ -92,7 +92,8 @@
 								},
 								"documentation": {
 									"description": "The second parameter"
-								}
+								},
+								"optional": true
 							}
 						],
 						"returnValueType": {
@@ -131,7 +132,8 @@
 								},
 								"documentation": {
 									"description": "The second parameter"
-								}
+								},
+								"optional": true
 							}
 						],
 						"returnValueType": {
@@ -143,6 +145,7 @@
 			},
 			"documentation": {
 				"description": "A test function",
+				"visibility": "public",
 				"tags": [
 					{
 						"name": "remarks",

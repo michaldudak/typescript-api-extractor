@@ -1,6 +1,5 @@
 import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
-import { getParameterDescriptionFromNode } from './documentationParser';
 import { resolveType } from './typeResolver';
 import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
 
@@ -34,8 +33,6 @@ function parseFunctionSignature(
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): CallSignature {
-	const { checker } = context;
-
 	// Node that possibly has JSDocs attached to it
 	let documentationNodeCandidate: ts.Node | undefined = undefined;
 
@@ -66,40 +63,9 @@ function parseFunctionSignature(
 		}
 	}
 
-	const parameterDescriptions = documentationNodeCandidate
-		? getParameterDescriptionFromNode(documentationNodeCandidate)
-		: {};
-
-	const parameters = signature.parameters.map((parameterSymbol) => {
-		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-		const parameterType = resolveType(
-			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-			parameterSymbol.getName(),
-			context,
-			skipResolvingComplexTypes,
-		);
-
-		const documentation = new Documentation(parameterDescriptions[parameterSymbol.getName()]);
-		const initializer = parameterDeclaration.initializer;
-		if (initializer) {
-			const initializerType = checker.getTypeAtLocation(initializer);
-			if (initializerType.flags & ts.TypeFlags.Literal) {
-				if (initializerType.isStringLiteral()) {
-					documentation.defaultValue = `"${initializer.getText()}"`;
-				} else {
-					documentation.defaultValue = initializer.getText();
-				}
-			}
-		}
-
-		const hasDocumentation = documentation.description || documentation.defaultValue;
-
-		return new Parameter(
-			parameterType,
-			parameterSymbol.getName(),
-			hasDocumentation ? documentation : undefined,
-		);
-	});
+	const parameters = signature.parameters.map((parameterSymbol) =>
+		parseParameter(parameterSymbol, context, skipResolvingComplexTypes),
+	);
 
 	const returnValueType = resolveType(
 		signature.getReturnType(),
@@ -108,4 +74,51 @@ function parseFunctionSignature(
 	);
 
 	return new CallSignature(parameters, returnValueType);
+}
+
+function parseParameter(
+	parameterSymbol: ts.Symbol,
+	context: ParserContext,
+	skipResolvingComplexTypes: boolean,
+): Parameter {
+	const { checker } = context;
+	const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
+	const parameterType = resolveType(
+		checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+		parameterSymbol.getName(),
+		context,
+		skipResolvingComplexTypes,
+	);
+
+	const summary = parameterSymbol
+		.getDocumentationComment(checker)
+		.map((comment) => comment.text)
+		.join('\n')
+		.replace(/^[\s-*:]*/, '');
+
+	const documentation = summary?.length ? new Documentation(summary) : undefined;
+
+	let defaultValue: string | undefined;
+	const initializer = parameterDeclaration.initializer;
+	if (initializer) {
+		const initializerType = checker.getTypeAtLocation(initializer);
+		if (initializerType.flags & ts.TypeFlags.Literal) {
+			if (initializerType.isStringLiteral()) {
+				defaultValue = `"${initializerType.value}"`;
+			} else if (initializerType.isLiteral()) {
+				defaultValue = initializerType.value.toString();
+			} else {
+				defaultValue = initializer.getText();
+			}
+		}
+	}
+
+	return new Parameter(
+		parameterType,
+		parameterSymbol.getName(),
+		documentation,
+		parameterDeclaration.questionToken !== undefined ||
+			parameterDeclaration.initializer !== undefined,
+		defaultValue,
+	);
 }

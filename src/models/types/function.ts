@@ -40,6 +40,8 @@ export class Parameter implements SerializableNode {
 		public type: TypeNode,
 		public name: string,
 		public documentation: Documentation | undefined,
+		public optional: boolean,
+		public defaultValue: unknown | undefined,
 	) {}
 
 	toObject(): Record<string, unknown> {
@@ -48,6 +50,8 @@ export class Parameter implements SerializableNode {
 			name: this.name,
 			type: this.type.toObject(),
 			documentation: this.documentation?.toObject(),
+			optional: this.optional || undefined,
+			defaultValue: this.defaultValue,
 		};
 	}
 }

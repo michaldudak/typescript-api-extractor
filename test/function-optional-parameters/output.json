@@ -1,0 +1,80 @@
+{
+	"name": "test/function-optional-parameters/input",
+	"exports": [
+		{
+			"name": "test",
+			"type": {
+				"kind": "function",
+				"name": "test",
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "required",
+								"type": {
+									"kind": "intrinsic",
+									"name": "number"
+								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "optional",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"name": "number"
+										},
+										{
+											"kind": "intrinsic",
+											"name": "undefined"
+										}
+									]
+								},
+								"documentation": {
+									"description": "The optional parameter."
+								},
+								"optional": true
+							},
+							{
+								"nodeType": "parameter",
+								"name": "withInlineDefault",
+								"type": {
+									"kind": "intrinsic",
+									"name": "number"
+								},
+								"documentation": {
+									"description": "The parameter with a default value."
+								},
+								"optional": true,
+								"defaultValue": "42"
+							},
+							{
+								"nodeType": "parameter",
+								"name": "withReferencedDefault",
+								"type": {
+									"kind": "intrinsic",
+									"name": "string"
+								},
+								"documentation": {
+									"description": "The parameter with a default value from a constant."
+								},
+								"optional": true,
+								"defaultValue": "\"default\""
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"name": "void"
+						}
+					}
+				]
+			},
+			"documentation": {
+				"description": "Function with optional parameters"
+			}
+		}
+	]
+}

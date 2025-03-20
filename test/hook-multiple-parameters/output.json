@@ -66,9 +66,10 @@
 									]
 								},
 								"documentation": {
-									"description": "The severity.",
-									"defaultValue": "\"'low'\""
-								}
+									"description": "The severity."
+								},
+								"optional": true,
+								"defaultValue": "\"low\""
 							}
 						],
 						"returnValueType": {

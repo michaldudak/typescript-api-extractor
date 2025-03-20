@@ -33,7 +33,7 @@ export function getDocumentationFromNode(node: ts.Node): Documentation | undefin
 			return new Documentation(
 				commentNode.comment as string | undefined,
 				commentNode.tags?.find((t) => t.tagName.text === 'default')?.comment,
-				getVisibilityFromJSDoc(commentNode) ?? 'public',
+				getVisibilityFromJSDoc(commentNode),
 				tags ?? [],
 			);
 		}
@@ -54,25 +54,6 @@ function getVisibilityFromJSDoc(doc: ts.JSDoc): Documentation['visibility'] | un
 	}
 
 	return undefined;
-}
-
-export function getParameterDescriptionFromNode(node: ts.Node) {
-	const comments = ts.getJSDocCommentsAndTags(node);
-	if (comments && comments.length >= 1) {
-		const commentNode = comments[0];
-		if (ts.isJSDoc(commentNode)) {
-			const paramComments: Record<string, string> = {};
-			commentNode.tags?.forEach((tag) => {
-				if (ts.isJSDocParameterTag(tag) && typeof tag.comment === 'string') {
-					paramComments[tag.name.getText()] = tag.comment.replace(/^[\s-*:]+/g, '');
-				}
-			});
-
-			return paramComments;
-		}
-	}
-
-	return {};
 }
 
 function parseTag(tag: ts.JSDocTag): DocumentationTag {

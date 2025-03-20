@@ -18,6 +18,7 @@
 			},
 			"documentation": {
 				"description": "This is a test.",
+				"visibility": "public",
 				"tags": [
 					{
 						"name": "example",
