@@ -4,7 +4,7 @@ export class Documentation implements SerializableNode {
 	constructor(
 		public description: string | undefined,
 		public defaultValue: unknown | undefined = undefined,
-		public visibility: 'public' | 'private' | 'internal' | undefined,
+		public visibility: 'public' | 'private' | 'internal' | undefined = undefined,
 		public tags: DocumentationTag[] = [],
 	) {}
 
