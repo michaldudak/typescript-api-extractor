@@ -11,8 +11,14 @@ export class ExportNode implements SerializableNode {
 	/**
 	 * Whether the export is public.
 	 * Exports are considered public if they are not explicitly marked as private or internal.
+	 *
+	 * @param requireExplicitAnnotation Whether the export must have an explicit visibility annotation to be considered public.
 	 */
-	get isPublic() {
+	isPublic(requireExplicitAnnotation = false): boolean {
+		if (requireExplicitAnnotation) {
+			return this.documentation?.visibility === 'public';
+		}
+
 		return (
 			this.documentation?.visibility !== 'private' && this.documentation?.visibility !== 'internal'
 		);
