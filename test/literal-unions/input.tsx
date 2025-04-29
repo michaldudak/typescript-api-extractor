@@ -6,6 +6,7 @@ export function test2(
 	referencedStringUnion: StringUnion,
 	referencedNumberUnion: NumberUnion,
 	unionOfUnions: StringUnion | NumberUnion,
+	indirectUnion: IndirectStringUnion | undefined,
 ) {}
 
 export function test3(prop: keyof Params) {}
@@ -17,8 +18,9 @@ export interface Params {
 	referencedNumberUnion: NumberUnion;
 	callback: (ref: StringUnion | undefined) => void;
 	unionOfUnions: StringUnion | NumberUnion;
-	unionAndLiteral: StringUnion | 'qux';
+	indirectUnion: IndirectStringUnion | undefined;
 }
 
 type StringUnion = 'foo' | 'bar' | 'baz';
+type IndirectStringUnion = StringUnion | 'qux';
 type NumberUnion = 1 | 2 | 3;

@@ -196,31 +196,41 @@
 											"optional": false
 										},
 										{
-											"name": "unionAndLiteral",
+											"name": "indirectUnion",
 											"type": {
 												"kind": "union",
 												"types": [
 													{
 														"kind": "union",
-														"name": "StringUnion",
+														"name": "IndirectStringUnion",
 														"types": [
 															{
-																"kind": "literal",
-																"value": "\"foo\""
+																"kind": "union",
+																"name": "StringUnion",
+																"types": [
+																	{
+																		"kind": "literal",
+																		"value": "\"foo\""
+																	},
+																	{
+																		"kind": "literal",
+																		"value": "\"bar\""
+																	},
+																	{
+																		"kind": "literal",
+																		"value": "\"baz\""
+																	}
+																]
 															},
 															{
 																"kind": "literal",
-																"value": "\"bar\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"baz\""
+																"value": "\"qux\""
 															}
 														]
 													},
 													{
-														"kind": "literal",
-														"value": "\"qux\""
+														"kind": "intrinsic",
+														"name": "undefined"
 													}
 												]
 											},
@@ -376,6 +386,47 @@
 										}
 									]
 								}
+							},
+							{
+								"nodeType": "parameter",
+								"name": "indirectUnion",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "union",
+											"name": "IndirectStringUnion",
+											"types": [
+												{
+													"kind": "union",
+													"name": "StringUnion",
+													"types": [
+														{
+															"kind": "literal",
+															"value": "\"foo\""
+														},
+														{
+															"kind": "literal",
+															"value": "\"bar\""
+														},
+														{
+															"kind": "literal",
+															"value": "\"baz\""
+														}
+													]
+												},
+												{
+													"kind": "literal",
+													"value": "\"qux\""
+												}
+											]
+										},
+										{
+											"kind": "intrinsic",
+											"name": "undefined"
+										}
+									]
+								}
 							}
 						],
 						"returnValueType": {
@@ -426,7 +477,7 @@
 										},
 										{
 											"kind": "literal",
-											"value": "\"unionAndLiteral\""
+											"value": "\"indirectUnion\""
 										}
 									]
 								}

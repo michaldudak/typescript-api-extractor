@@ -25,15 +25,17 @@ export function resolveType(
 ): TypeNode {
 	const { checker, typeStack, includeExternalTypes } = context;
 
+	const typeId = getTypeId(type);
+
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	if (typeStack.includes((type as any).id)) {
+	if (typeId !== undefined && typeStack.includes(typeId)) {
 		return new ObjectNode(undefined, [], undefined);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	typeStack.push((type as any).id);
+	if (typeId !== undefined) {
+		typeStack.push(typeId);
+	}
 
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
@@ -97,7 +99,9 @@ export function resolveType(
 			// @ts-expect-error - Internal API
 			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
-				return resolveType(type.origin, name, context);
+				for (const memberType of type.origin.types) {
+					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+				}
 			} else {
 				for (const memberType of type.types) {
 					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
@@ -243,6 +247,9 @@ export function resolveType(
 		);
 
 		return new IntrinsicNode('any');
+	} catch (error) {
+		console.error(error);
+		throw error;
 	} finally {
 		typeStack.pop();
 	}
@@ -318,4 +325,9 @@ function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
 
 function hasFlag(typeFlags: number, flag: number) {
 	return (typeFlags & flag) === flag;
+}
+
+function getTypeId(type: ts.Type): number | undefined {
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return (type as any).id;
 }
