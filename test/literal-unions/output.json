@@ -194,6 +194,37 @@
 												]
 											},
 											"optional": false
+										},
+										{
+											"name": "unionAndLiteral",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"name": "StringUnion",
+														"types": [
+															{
+																"kind": "literal",
+																"value": "\"foo\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"bar\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"baz\""
+															}
+														]
+													},
+													{
+														"kind": "literal",
+														"value": "\"qux\""
+													}
+												]
+											},
+											"optional": false
 										}
 									]
 								}
@@ -392,6 +423,10 @@
 										{
 											"kind": "literal",
 											"value": "\"unionOfUnions\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"unionAndLiteral\""
 										}
 									]
 								}

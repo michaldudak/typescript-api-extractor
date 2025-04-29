@@ -17,6 +17,7 @@ export interface Params {
 	referencedNumberUnion: NumberUnion;
 	callback: (ref: StringUnion | undefined) => void;
 	unionOfUnions: StringUnion | NumberUnion;
+	unionAndLiteral: StringUnion | 'qux';
 }
 
 type StringUnion = 'foo' | 'bar' | 'baz';
