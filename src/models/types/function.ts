@@ -1,5 +1,5 @@
 import { Documentation } from '../documentation';
-import { SerializableNode, TypeNode } from '../node';
+import { TypeNode } from '../node';
 
 export class FunctionNode implements TypeNode {
 	kind = 'function';
@@ -11,31 +11,16 @@ export class FunctionNode implements TypeNode {
 	) {
 		this.name = name === '__function' ? undefined : name;
 	}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			name: this.name,
-			callSignatures: this.callSignatures.map((signature) => signature.toObject()),
-		};
-	}
 }
 
-export class CallSignature implements SerializableNode {
+export class CallSignature {
 	constructor(
 		public parameters: Parameter[],
 		public returnValueType: TypeNode,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			parameters: this.parameters.map((param) => param.toObject()),
-			returnValueType: this.returnValueType.toObject(),
-		};
-	}
 }
 
-export class Parameter implements SerializableNode {
+export class Parameter {
 	constructor(
 		public type: TypeNode,
 		public name: string,
@@ -43,15 +28,4 @@ export class Parameter implements SerializableNode {
 		public optional: boolean,
 		public defaultValue: unknown | undefined,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			nodeType: 'parameter',
-			name: this.name,
-			type: this.type.toObject(),
-			documentation: this.documentation?.toObject(),
-			optional: this.optional || undefined,
-			defaultValue: this.defaultValue,
-		};
-	}
 }

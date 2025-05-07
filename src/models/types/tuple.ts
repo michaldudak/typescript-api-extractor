@@ -6,11 +6,4 @@ export class TupleNode implements TypeNode {
 		public name: string | undefined,
 		public types: TypeNode[],
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			types: this.types.map((type) => type.toObject()),
-		};
-	}
 }

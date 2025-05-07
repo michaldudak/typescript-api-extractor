@@ -1,6 +1,4 @@
-import { SerializableNode } from './node';
-
-export class Documentation implements SerializableNode {
+export class Documentation {
 	constructor(
 		public description: string | undefined,
 		public defaultValue: unknown | undefined = undefined,
@@ -14,15 +12,6 @@ export class Documentation implements SerializableNode {
 
 	getTagValue(name: string): string | undefined {
 		return this.tags.find((tag) => tag.name === name)?.name;
-	}
-
-	toObject(): Record<string, unknown> {
-		return {
-			description: this.description,
-			defaultValue: this.defaultValue,
-			visibility: this.visibility,
-			tags: this.tags.length > 0 ? this.tags : undefined,
-		};
 	}
 }
 

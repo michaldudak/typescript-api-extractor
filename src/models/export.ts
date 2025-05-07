@@ -1,7 +1,7 @@
 import { Documentation } from './documentation';
-import { SerializableNode, TypeNode } from './node';
+import { TypeNode } from './node';
 
-export class ExportNode implements SerializableNode {
+export class ExportNode {
 	constructor(
 		public name: string,
 		public type: TypeNode,
@@ -22,13 +22,5 @@ export class ExportNode implements SerializableNode {
 		return (
 			this.documentation?.visibility !== 'private' && this.documentation?.visibility !== 'internal'
 		);
-	}
-
-	toObject(): Record<string, unknown> {
-		return {
-			name: this.name,
-			type: this.type.toObject(),
-			documentation: this.documentation?.toObject(),
-		};
 	}
 }

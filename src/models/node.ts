@@ -1,8 +1,4 @@
-export interface TypeNode extends SerializableNode {
+export interface TypeNode {
 	readonly kind: string;
 	name: string | undefined;
-}
-
-export interface SerializableNode {
-	toObject(): Record<string, unknown>;
 }

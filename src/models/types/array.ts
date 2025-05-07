@@ -6,11 +6,4 @@ export class ArrayNode implements TypeNode {
 		public name: string | undefined,
 		public elementType: TypeNode,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			elementType: this.elementType.toObject(),
-		};
-	}
 }

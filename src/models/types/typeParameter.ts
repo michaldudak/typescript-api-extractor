@@ -8,13 +8,4 @@ export class TypeParameterNode implements TypeNode {
 		public constraint: string | undefined,
 		public defaultValue: TypeNode | undefined,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			name: this.name,
-			constraint: this.constraint,
-			defaultValue: this.defaultValue?.toObject(),
-		};
-	}
 }

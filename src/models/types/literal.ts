@@ -9,12 +9,4 @@ export class LiteralNode implements TypeNode {
 		public value: unknown,
 		public documentation?: Documentation,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			value: this.value,
-			documentation: this.documentation?.toObject(),
-		};
-	}
 }

@@ -10,13 +10,4 @@ export class ObjectNode implements TypeNode {
 		public properties: PropertyNode[],
 		public documentation: Documentation | undefined,
 	) {}
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			name: this.name,
-			properties: this.properties.map((property) => property.toObject()),
-			documentation: this.documentation?.toObject(),
-		};
-	}
 }

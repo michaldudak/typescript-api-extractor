@@ -1,7 +1,7 @@
 import { Documentation } from './documentation';
-import { SerializableNode, TypeNode } from './node';
+import { TypeNode } from './node';
 
-export class PropertyNode implements SerializableNode {
+export class PropertyNode {
 	constructor(
 		public name: string,
 		public type: TypeNode,
@@ -14,13 +14,4 @@ export class PropertyNode implements SerializableNode {
 
 	/** @internal */
 	public readonly $$id: number | undefined;
-
-	toObject(): Record<string, unknown> {
-		return {
-			name: this.name,
-			type: this.type.toObject(),
-			documentation: this.documentation?.toObject(),
-			optional: this.optional,
-		};
-	}
 }

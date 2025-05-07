@@ -17,14 +17,6 @@ export class UnionNode implements TypeNode {
 	}
 
 	types: readonly TypeNode[];
-
-	toObject(): Record<string, unknown> {
-		return {
-			kind: this.kind,
-			name: this.name,
-			types: this.types.map((x) => x.toObject()),
-		};
-	}
 }
 
 /**
