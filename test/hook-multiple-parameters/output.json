@@ -6,67 +6,77 @@
 			"type": {
 				"kind": "function",
 				"name": "useHook",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "value",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
+								"name": "value",
 								"documentation": {
-									"description": "The value."
-								}
+									"description": "The value.",
+									"tags": []
+								},
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "onChange",
 								"type": {
 									"kind": "function",
+									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [
 												{
-													"nodeType": "parameter",
-													"name": "newValue",
 													"type": {
 														"kind": "intrinsic",
+														"parentNamespaces": [],
 														"name": "string"
-													}
+													},
+													"name": "newValue",
+													"optional": false
 												}
 											],
 											"returnValueType": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "void"
 											}
 										}
 									]
 								},
+								"name": "onChange",
 								"documentation": {
-									"description": "The change handler."
-								}
+									"description": "The change handler.",
+									"tags": []
+								},
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "severity",
 								"type": {
 									"kind": "union",
-									"name": "Severity",
 									"types": [
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"low\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"high\""
 										}
-									]
+									],
+									"name": "Severity",
+									"parentNamespaces": []
 								},
+								"name": "severity",
 								"documentation": {
-									"description": "The severity."
+									"description": "The severity.",
+									"tags": []
 								},
 								"optional": true,
 								"defaultValue": "\"low\""
@@ -74,6 +84,7 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					}
@@ -81,7 +92,8 @@
 			},
 			"documentation": {
 				"description": "A hook defined as a function.",
-				"visibility": "internal"
+				"visibility": "internal",
+				"tags": []
 			}
 		}
 	]

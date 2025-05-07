@@ -7,6 +7,7 @@ export class FunctionNode implements TypeNode {
 
 	constructor(
 		name: string | undefined,
+		public parentNamespaces: string[],
 		public callSignatures: CallSignature[],
 	) {
 		this.name = name === '__function' ? undefined : name;

@@ -6,20 +6,21 @@
 			"type": {
 				"kind": "function",
 				"name": "test",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "params",
 								"type": {
 									"kind": "object",
 									"name": "Params",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
@@ -28,6 +29,7 @@
 											"name": "n",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"documentation": {
@@ -41,11 +43,14 @@
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "params",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

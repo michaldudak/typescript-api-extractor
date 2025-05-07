@@ -8,6 +8,7 @@ export class UnionNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
+		public parentNamespaces: string[],
 		types: TypeNode[],
 	) {
 		const flatTypes = flattenTypes(types, UnionNode);

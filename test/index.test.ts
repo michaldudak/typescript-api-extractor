@@ -26,14 +26,12 @@ for (const testCase of testCases) {
 		const moduleDefinition = rae.parseFromProgram(testCase, program);
 
 		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
-			expect(moduleDefinition.toObject()).toMatchObject(
-				JSON.parse(fs.readFileSync(expectedOutput, 'utf8')),
-			);
+			expect(moduleDefinition).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
 		} else {
 			fs.writeFileSync(
 				expectedOutput,
 				JSON.stringify(
-					moduleDefinition.toObject(),
+					moduleDefinition,
 					(key, value) => {
 						// These are TypeScript internals that change depending on the number of symbols created during test
 						if (key === '$$id') {

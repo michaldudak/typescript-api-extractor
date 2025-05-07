@@ -6,12 +6,16 @@
 			"type": {
 				"kind": "component",
 				"name": "Test",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "onClick",
 						"type": {
 							"kind": "reference",
-							"name": "MouseEventHandler<Element>"
+							"name": "MouseEventHandler<Element>",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": false
 					},
@@ -22,13 +26,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "KeyboardEventHandler<Element>"
+									"name": "KeyboardEventHandler<Element>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -36,7 +45,10 @@
 						"name": "onFocus",
 						"type": {
 							"kind": "reference",
-							"name": "FocusEventHandler<HTMLDivElement>"
+							"name": "FocusEventHandler<HTMLDivElement>",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": false
 					},
@@ -47,13 +59,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "FocusEventHandler<HTMLDivElement>"
+									"name": "FocusEventHandler<HTMLDivElement>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}

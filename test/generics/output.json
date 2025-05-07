@@ -6,21 +6,22 @@
 			"type": {
 				"kind": "function",
 				"name": "genericFunction",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "params",
 								"type": {
 									"kind": "object",
 									"name": "GenericFunctionParameters",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "value",
 											"type": {
 												"kind": "typeParameter",
 												"name": "T",
+												"parentNamespaces": [],
 												"constraint": "React.HTMLAttributes<HTMLElement>"
 											},
 											"optional": false
@@ -30,17 +31,20 @@
 											"type": {
 												"kind": "object",
 												"name": "GenericInterface",
+												"parentNamespaces": [],
 												"properties": [
 													{
 														"name": "data",
 														"type": {
 															"kind": "object",
 															"name": "GenericInterface",
+															"parentNamespaces": [],
 															"properties": [
 																{
 																	"name": "data",
 																	"type": {
 																		"kind": "intrinsic",
+																		"parentNamespaces": [],
 																		"name": "string"
 																	},
 																	"optional": false
@@ -54,12 +58,15 @@
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "params",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "typeParameter",
 							"name": "T",
+							"parentNamespaces": [],
 							"constraint": "React.HTMLAttributes<HTMLElement>"
 						}
 					}

@@ -5,20 +5,21 @@
 			"name": "useHook",
 			"type": {
 				"kind": "function",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "parameters",
 								"type": {
 									"kind": "object",
 									"name": "HookParameters",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "value",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
@@ -27,6 +28,7 @@
 											"name": "severity",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"optional": false
@@ -35,20 +37,23 @@
 											"name": "onChange",
 											"type": {
 												"kind": "function",
+												"parentNamespaces": [],
 												"callSignatures": [
 													{
 														"parameters": [
 															{
-																"nodeType": "parameter",
-																"name": "value",
 																"type": {
 																	"kind": "intrinsic",
+																	"parentNamespaces": [],
 																	"name": "string"
-																}
+																},
+																"name": "value",
+																"optional": false
 															}
 														],
 														"returnValueType": {
 															"kind": "intrinsic",
+															"parentNamespaces": [],
 															"name": "void"
 														}
 													}
@@ -57,32 +62,42 @@
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "parameters",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "object",
 							"name": "HookReturnValue",
+							"parentNamespaces": [],
 							"properties": [
 								{
 									"name": "getProps",
 									"type": {
 										"kind": "function",
+										"parentNamespaces": [],
 										"callSignatures": [
 											{
 												"parameters": [
 													{
-														"nodeType": "parameter",
-														"name": "externalProps",
 														"type": {
 															"kind": "reference",
-															"name": "HTMLAttributes<HTMLElement>"
-														}
+															"name": "HTMLAttributes<HTMLElement>",
+															"parentNamespaces": [
+																"React"
+															]
+														},
+														"name": "externalProps",
+														"optional": false
 													}
 												],
 												"returnValueType": {
 													"kind": "reference",
-													"name": "HTMLAttributes<HTMLElement>"
+													"name": "HTMLAttributes<HTMLElement>",
+													"parentNamespaces": [
+														"React"
+													]
 												}
 											}
 										]
@@ -93,7 +108,8 @@
 									"name": "ref",
 									"type": {
 										"kind": "reference",
-										"name": "RefCallback"
+										"name": "RefCallback",
+										"parentNamespaces": []
 									},
 									"optional": false
 								}
@@ -104,7 +120,8 @@
 			},
 			"documentation": {
 				"description": "A hook defined as an arrow function.",
-				"visibility": "internal"
+				"visibility": "internal",
+				"tags": []
 			}
 		}
 	]

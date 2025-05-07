@@ -5,6 +5,7 @@
 			"name": "default",
 			"type": {
 				"kind": "component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "component",
@@ -14,16 +15,20 @@
 								{
 									"kind": "typeParameter",
 									"name": "RootComponent",
+									"parentNamespaces": [],
 									"constraint": "React.ElementType"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"documentation": {
-							"description": "The component used for the root node."
+							"description": "The component used for the root node.",
+							"tags": []
 						},
 						"optional": true
 					},
@@ -34,21 +39,26 @@
 							"types": [
 								{
 									"kind": "literal",
+									"parentNamespaces": [],
 									"value": "\"small\""
 								},
 								{
 									"kind": "literal",
+									"parentNamespaces": [],
 									"value": "\"default\""
 								},
 								{
 									"kind": "literal",
+									"parentNamespaces": [],
 									"value": "\"large\""
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -59,13 +69,16 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -76,13 +89,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "CSSProperties"
+									"name": "CSSProperties",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}

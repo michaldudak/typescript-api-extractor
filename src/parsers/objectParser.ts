@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
 import { ObjectNode } from '../models';
+import { getTypeNamespaces } from './typeResolver';
 
 export function parseObjectType(
 	type: ts.Type,
@@ -39,6 +40,7 @@ export function parseObjectType(
 			if (filtered.length > 0) {
 				return new ObjectNode(
 					typeName,
+					getTypeNamespaces(type),
 					filtered.map((property) => {
 						return parseProperty(
 							property,
@@ -51,7 +53,7 @@ export function parseObjectType(
 			}
 		}
 
-		return new ObjectNode(typeName ?? undefined, [], undefined);
+		return new ObjectNode(typeName ?? undefined, getTypeNamespaces(type), [], undefined);
 	}
 }
 

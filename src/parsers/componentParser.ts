@@ -30,7 +30,7 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			return new ExportNode(
 				node.name,
-				new ComponentNode(node.type.name, newCallSignatures),
+				new ComponentNode(node.type.name, node.type.parentNamespaces, newCallSignatures),
 				node.documentation,
 			);
 		}
@@ -104,7 +104,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			if (currentTypeNode === undefined) {
 				currentTypeNode = propNode;
 			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				const mergedPropType = new UnionNode(undefined, [currentTypeNode.type, propNode.type]);
+				const mergedPropType = new UnionNode(undefined, [], [currentTypeNode.type, propNode.type]);
 
 				currentTypeNode = new PropertyNode(
 					currentTypeNode.name,
@@ -139,7 +139,7 @@ function markPropertyAsOptional(property: PropertyNode, context: ParserContext) 
 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
-		const newType = new UnionNode(undefined, [property.type, new IntrinsicNode('undefined')]);
+		const newType = new UnionNode(undefined, [], [property.type, new IntrinsicNode('undefined')]);
 		return new PropertyNode(property.name, newType, property.documentation, true, undefined);
 	}
 

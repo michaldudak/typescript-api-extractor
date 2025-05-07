@@ -7,6 +7,7 @@ export class ObjectNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
+		public parentNamespaces: string[],
 		public properties: PropertyNode[],
 		public documentation: Documentation | undefined,
 	) {}

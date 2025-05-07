@@ -6,49 +6,57 @@
 			"type": {
 				"kind": "function",
 				"name": "useHook",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "s",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
+								"name": "s",
 								"documentation": {
-									"description": "The string"
-								}
+									"description": "The string",
+									"tags": []
+								},
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "string"
 						}
 					},
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "n",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								},
+								"name": "n",
 								"documentation": {
-									"description": "The number"
-								}
+									"description": "The number",
+									"tags": []
+								},
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					}
 				]
 			},
 			"documentation": {
-				"description": "Returns the input string."
+				"description": "Returns the input string.",
+				"tags": []
 			}
 		}
 	]

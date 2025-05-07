@@ -6,30 +6,34 @@
 			"type": {
 				"kind": "function",
 				"name": "declaration",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "p",
 								"type": {
 									"kind": "object",
 									"name": "Parameters",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "p",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -40,30 +44,34 @@
 			"name": "greetAsExpression",
 			"type": {
 				"kind": "function",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "p",
 								"type": {
 									"kind": "object",
 									"name": "Parameters",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "p",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -74,30 +82,34 @@
 			"name": "greetAsArrowFunction",
 			"type": {
 				"kind": "function",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "p",
 								"type": {
 									"kind": "object",
 									"name": "Parameters",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "p",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

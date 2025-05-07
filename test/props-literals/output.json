@@ -6,11 +6,13 @@
 			"type": {
 				"kind": "component",
 				"name": "Component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "stringLiteral",
 						"type": {
 							"kind": "literal",
+							"parentNamespaces": [],
 							"value": "\"foo\""
 						},
 						"optional": false
@@ -19,6 +21,7 @@
 						"name": "numberLiteral",
 						"type": {
 							"kind": "literal",
+							"parentNamespaces": [],
 							"value": 42
 						},
 						"optional": false
@@ -27,6 +30,7 @@
 						"name": "booleanLiteral",
 						"type": {
 							"kind": "literal",
+							"parentNamespaces": [],
 							"value": "true"
 						},
 						"optional": false
@@ -35,6 +39,7 @@
 						"name": "nullLiteral",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "null"
 						},
 						"optional": false

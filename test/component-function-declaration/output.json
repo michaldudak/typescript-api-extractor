@@ -6,6 +6,7 @@
 			"type": {
 				"kind": "component",
 				"name": "Component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "className",
@@ -14,13 +15,16 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}

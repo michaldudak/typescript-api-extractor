@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { EnumNode, EnumMember } from '../models';
 import { getDocumentationFromSymbol } from './documentationParser';
+import { getTypeNamespaces } from './typeResolver';
 
 export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 	const { checker } = context;
@@ -21,5 +22,12 @@ export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 		);
 	});
 
-	return new EnumNode(symbol.getName(), members, getDocumentationFromSymbol(symbol, checker));
+	const symbolType = checker.getTypeOfSymbol(symbol);
+
+	return new EnumNode(
+		symbol.getName(),
+		getTypeNamespaces(symbolType),
+		members,
+		getDocumentationFromSymbol(symbol, checker),
+	);
 }

@@ -7,6 +7,7 @@ export class IntersectionNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
+		public parentNamespaces: string[],
 		types: TypeNode[],
 		public properties: PropertyNode[],
 	) {

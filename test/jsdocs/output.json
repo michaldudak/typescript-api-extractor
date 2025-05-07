@@ -6,6 +6,7 @@
 			"type": {
 				"kind": "component",
 				"name": "TestComponent",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "className",
@@ -14,16 +15,20 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"documentation": {
-							"description": "The class name.\nUsed to make the component more classy."
+							"description": "The class name.\nUsed to make the component more classy.",
+							"tags": []
 						},
 						"optional": true
 					},
@@ -34,17 +39,21 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"documentation": {
 							"description": "A value.",
-							"defaultValue": "10"
+							"defaultValue": "10",
+							"tags": []
 						},
 						"optional": true
 					}
@@ -52,7 +61,8 @@
 			},
 			"documentation": {
 				"description": "The test component.",
-				"visibility": "internal"
+				"visibility": "internal",
+				"tags": []
 			}
 		},
 		{
@@ -60,84 +70,97 @@
 			"type": {
 				"kind": "function",
 				"name": "testFunction",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "p1",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								},
+								"name": "p1",
 								"documentation": {
-									"description": "The first parameter which is a number"
-								}
+									"description": "The first parameter which is a number",
+									"tags": []
+								},
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "p2",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "number"
 										},
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "undefined"
 										}
-									]
+									],
+									"parentNamespaces": []
 								},
+								"name": "p2",
 								"documentation": {
-									"description": "The second parameter"
+									"description": "The second parameter",
+									"tags": []
 								},
 								"optional": true
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					},
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "p1",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
+								"name": "p1",
 								"documentation": {
-									"description": "The first parameter which is a string"
-								}
+									"description": "The first parameter which is a string",
+									"tags": []
+								},
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "p2",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "number"
 										},
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "undefined"
 										}
-									]
+									],
+									"parentNamespaces": []
 								},
+								"name": "p2",
 								"documentation": {
-									"description": "The second parameter"
+									"description": "The second parameter",
+									"tags": []
 								},
 								"optional": true
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					}

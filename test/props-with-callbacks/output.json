@@ -6,25 +6,31 @@
 			"type": {
 				"kind": "component",
 				"name": "Component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "onChange",
 						"type": {
 							"kind": "function",
+							"parentNamespaces": [],
 							"callSignatures": [
 								{
 									"parameters": [
 										{
-											"nodeType": "parameter",
-											"name": "event",
 											"type": {
 												"kind": "reference",
-												"name": "ChangeEvent<HTMLInputElement>"
-											}
+												"name": "ChangeEvent<HTMLInputElement>",
+												"parentNamespaces": [
+													"React"
+												]
+											},
+											"name": "event",
+											"optional": false
 										}
 									],
 									"returnValueType": {
 										"kind": "intrinsic",
+										"parentNamespaces": [],
 										"name": "void"
 									}
 								}
@@ -37,20 +43,23 @@
 						"type": {
 							"kind": "function",
 							"name": "OnClosingCallback",
+							"parentNamespaces": [],
 							"callSignatures": [
 								{
 									"parameters": [
 										{
-											"nodeType": "parameter",
-											"name": "animated",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "boolean"
-											}
+											},
+											"name": "animated",
+											"optional": false
 										}
 									],
 									"returnValueType": {
 										"kind": "intrinsic",
+										"parentNamespaces": [],
 										"name": "boolean"
 									}
 								}
@@ -63,20 +72,23 @@
 						"type": {
 							"kind": "function",
 							"name": "OnOpenCallback",
+							"parentNamespaces": [],
 							"callSignatures": [
 								{
 									"parameters": [
 										{
-											"nodeType": "parameter",
-											"name": "animated",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "boolean"
-											}
+											},
+											"name": "animated",
+											"optional": false
 										}
 									],
 									"returnValueType": {
 										"kind": "intrinsic",
+										"parentNamespaces": [],
 										"name": "void"
 									}
 								}
@@ -91,11 +103,13 @@
 							"types": [
 								{
 									"kind": "function",
+									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [],
 											"returnValueType": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "void"
 											}
 										}
@@ -103,9 +117,11 @@
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}

@@ -6,18 +6,22 @@
 			"type": {
 				"kind": "function",
 				"name": "testFunction1",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
+							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								}
 							]
@@ -31,18 +35,22 @@
 			"type": {
 				"kind": "function",
 				"name": "testFunction2",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
+							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								}
 							]
@@ -56,18 +64,22 @@
 			"type": {
 				"kind": "function",
 				"name": "testFunction3",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
+							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								}
 							]
@@ -81,18 +93,22 @@
 			"type": {
 				"kind": "function",
 				"name": "testFunction4",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
+							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								}
 							]

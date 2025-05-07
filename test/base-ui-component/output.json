@@ -6,6 +6,9 @@
 			"type": {
 				"kind": "component",
 				"name": "ForwardRefExoticComponent",
+				"parentNamespaces": [
+					"React"
+				],
 				"props": [
 					{
 						"name": "value",
@@ -14,13 +17,16 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -31,20 +37,23 @@
 							"types": [
 								{
 									"kind": "function",
+									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [
 												{
-													"nodeType": "parameter",
-													"name": "value",
 													"type": {
 														"kind": "intrinsic",
+														"parentNamespaces": [],
 														"name": "string"
-													}
+													},
+													"name": "value",
+													"optional": false
 												}
 											],
 											"returnValueType": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "void"
 											}
 										}
@@ -52,9 +61,11 @@
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -65,13 +76,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefObject<Actions>"
+									"name": "RefObject<Actions>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -82,34 +98,39 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "function",
+									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [
 												{
-													"nodeType": "parameter",
-													"name": "state",
 													"type": {
 														"kind": "object",
 														"name": "State",
+														"parentNamespaces": [],
 														"properties": [
 															{
 																"name": "state",
 																"type": {
 																	"kind": "intrinsic",
+																	"parentNamespaces": [],
 																	"name": "string"
 																},
 																"optional": false
 															}
 														]
-													}
+													},
+													"name": "state",
+													"optional": false
 												}
 											],
 											"returnValueType": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											}
 										}
@@ -117,12 +138,15 @@
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"documentation": {
-							"description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state."
+							"description": "CSS class applied to the element, or a function that\nreturns a class based on the component’s state.",
+							"tags": []
 						},
 						"optional": true
 					},
@@ -133,27 +157,32 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>"
+									"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "function",
 									"name": "ComponentRenderFn",
+									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [
 												{
-													"nodeType": "parameter",
-													"name": "props",
 													"type": {
 														"kind": "intersection",
-														"name": "GenericHTMLProps",
 														"types": [
 															{
 																"kind": "reference",
-																"name": "HTMLAttributes<any>"
+																"name": "HTMLAttributes<any>",
+																"parentNamespaces": [
+																	"React"
+																]
 															},
 															{
 																"kind": "object",
+																"parentNamespaces": [],
 																"properties": [
 																	{
 																		"name": "ref",
@@ -162,19 +191,26 @@
 																			"types": [
 																				{
 																					"kind": "reference",
-																					"name": "Ref<any>"
+																					"name": "Ref<any>",
+																					"parentNamespaces": [
+																						"React"
+																					]
 																				},
 																				{
 																					"kind": "intrinsic",
+																					"parentNamespaces": [],
 																					"name": "undefined"
 																				}
-																			]
+																			],
+																			"parentNamespaces": []
 																		},
 																		"optional": true
 																	}
 																]
 															}
 														],
+														"name": "GenericHTMLProps",
+														"parentNamespaces": [],
 														"properties": [
 															{
 																"name": "ref",
@@ -183,53 +219,68 @@
 																	"types": [
 																		{
 																			"kind": "reference",
-																			"name": "Ref<any>"
+																			"name": "Ref<any>",
+																			"parentNamespaces": [
+																				"React"
+																			]
 																		},
 																		{
 																			"kind": "intrinsic",
+																			"parentNamespaces": [],
 																			"name": "undefined"
 																		}
-																	]
+																	],
+																	"parentNamespaces": []
 																},
 																"optional": true
 															}
 														]
-													}
+													},
+													"name": "props",
+													"optional": false
 												},
 												{
-													"nodeType": "parameter",
-													"name": "state",
 													"type": {
 														"kind": "object",
 														"name": "State",
+														"parentNamespaces": [],
 														"properties": [
 															{
 																"name": "state",
 																"type": {
 																	"kind": "intrinsic",
+																	"parentNamespaces": [],
 																	"name": "string"
 																},
 																"optional": false
 															}
 														]
-													}
+													},
+													"name": "state",
+													"optional": false
 												}
 											],
 											"returnValueType": {
 												"kind": "reference",
-												"name": "ReactElement<unknown, string | JSXElementConstructor<any>>"
+												"name": "ReactElement<unknown, string | JSXElementConstructor<any>>",
+												"parentNamespaces": [
+													"React"
+												]
 											}
 										}
 									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"documentation": {
-							"description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render."
+							"description": "Allows you to replace the component’s HTML element\nwith a different tag, or compose it with another component.\n\nAccepts a `ReactElement` or a function that returns the element to render.",
+							"tags": []
 						},
 						"optional": true
 					}

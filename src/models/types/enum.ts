@@ -6,6 +6,7 @@ export class EnumNode implements TypeNode {
 
 	constructor(
 		public name: string,
+		public parentNamespaces: string[],
 		public members: EnumMember[],
 		public documentation: Documentation | undefined,
 	) {}

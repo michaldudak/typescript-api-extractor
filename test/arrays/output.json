@@ -6,22 +6,24 @@
 			"type": {
 				"kind": "function",
 				"name": "test1",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "params",
 								"type": {
 									"kind": "object",
 									"name": "Params",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "arr1",
 											"type": {
 												"kind": "array",
+												"parentNamespaces": [],
 												"elementType": {
 													"kind": "intrinsic",
+													"parentNamespaces": [],
 													"name": "string"
 												}
 											},
@@ -31,8 +33,10 @@
 											"name": "arr2",
 											"type": {
 												"kind": "array",
+												"parentNamespaces": [],
 												"elementType": {
 													"kind": "intrinsic",
+													"parentNamespaces": [],
 													"name": "number"
 												}
 											},
@@ -45,16 +49,20 @@
 												"types": [
 													{
 														"kind": "array",
+														"parentNamespaces": [],
 														"elementType": {
 															"kind": "intrinsic",
+															"parentNamespaces": [],
 															"name": "string"
 														}
 													},
 													{
 														"kind": "intrinsic",
+														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": true
 										},
@@ -65,25 +73,32 @@
 												"types": [
 													{
 														"kind": "array",
+														"parentNamespaces": [],
 														"elementType": {
 															"kind": "intrinsic",
+															"parentNamespaces": [],
 															"name": "number"
 														}
 													},
 													{
 														"kind": "intrinsic",
+														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": true
 										}
 									]
-								}
+								},
+								"name": "params",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -95,34 +110,40 @@
 			"type": {
 				"kind": "function",
 				"name": "test2",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a1",
 								"type": {
 									"kind": "array",
+									"parentNamespaces": [],
 									"elementType": {
 										"kind": "intrinsic",
+										"parentNamespaces": [],
 										"name": "string"
 									}
-								}
+								},
+								"name": "a1",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "a2",
 								"type": {
 									"kind": "array",
+									"parentNamespaces": [],
 									"elementType": {
 										"kind": "intrinsic",
+										"parentNamespaces": [],
 										"name": "number"
 									}
-								}
+								},
+								"name": "a2",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

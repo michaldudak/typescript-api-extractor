@@ -6,20 +6,23 @@
 			"type": {
 				"kind": "function",
 				"name": "test",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "params",
 								"type": {
 									"kind": "reference",
-									"name": "Record<string, unknown>"
-								}
+									"name": "Record<string, unknown>",
+									"parentNamespaces": []
+								},
+								"name": "params",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

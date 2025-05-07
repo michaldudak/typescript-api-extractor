@@ -6,6 +6,9 @@
 			"type": {
 				"kind": "component",
 				"name": "ForwardRefExoticComponent",
+				"parentNamespaces": [
+					"React"
+				],
 				"props": [
 					{
 						"name": "className",
@@ -14,13 +17,16 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -31,20 +37,24 @@
 							"types": [
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}
 				]
 			},
 			"documentation": {
-				"description": "A test component"
+				"description": "A test component",
+				"tags": []
 			}
 		}
 	]

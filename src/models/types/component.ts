@@ -6,6 +6,7 @@ export class ComponentNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
+		public parentNamespaces: string[],
 		public props: PropertyNode[],
 	) {}
 }

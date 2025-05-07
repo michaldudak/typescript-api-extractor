@@ -1,6 +1,6 @@
 import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
-import { resolveType } from './typeResolver';
+import { getTypeNamespaces, resolveType } from './typeResolver';
 import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
@@ -25,7 +25,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
 	}
 
-	return new FunctionNode(name, parsedCallSignatures);
+	return new FunctionNode(name, getTypeNamespaces(type), parsedCallSignatures);
 }
 
 function parseFunctionSignature(

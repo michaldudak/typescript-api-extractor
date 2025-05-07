@@ -6,15 +6,15 @@
 			"type": {
 				"kind": "function",
 				"name": "test1",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "parameters",
 								"type": {
 									"kind": "object",
 									"name": "Params",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "inlineStringUnion",
@@ -23,17 +23,21 @@
 												"types": [
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"foo\""
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"bar\""
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"baz\""
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": false
 										},
@@ -44,17 +48,21 @@
 												"types": [
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 1
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 2
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 3
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": false
 										},
@@ -62,21 +70,25 @@
 											"name": "referencedStringUnion",
 											"type": {
 												"kind": "union",
-												"name": "StringUnion",
 												"types": [
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"foo\""
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"bar\""
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": "\"baz\""
 													}
-												]
+												],
+												"name": "StringUnion",
+												"parentNamespaces": []
 											},
 											"optional": false
 										},
@@ -84,21 +96,25 @@
 											"name": "referencedNumberUnion",
 											"type": {
 												"kind": "union",
-												"name": "NumberUnion",
 												"types": [
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 1
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 2
 													},
 													{
 														"kind": "literal",
+														"parentNamespaces": [],
 														"value": 3
 													}
-												]
+												],
+												"name": "NumberUnion",
+												"parentNamespaces": []
 											},
 											"optional": false
 										},
@@ -106,43 +122,51 @@
 											"name": "callback",
 											"type": {
 												"kind": "function",
+												"parentNamespaces": [],
 												"callSignatures": [
 													{
 														"parameters": [
 															{
-																"nodeType": "parameter",
-																"name": "ref",
 																"type": {
 																	"kind": "union",
 																	"types": [
 																		{
 																			"kind": "union",
-																			"name": "StringUnion",
 																			"types": [
 																				{
 																					"kind": "literal",
+																					"parentNamespaces": [],
 																					"value": "\"foo\""
 																				},
 																				{
 																					"kind": "literal",
+																					"parentNamespaces": [],
 																					"value": "\"bar\""
 																				},
 																				{
 																					"kind": "literal",
+																					"parentNamespaces": [],
 																					"value": "\"baz\""
 																				}
-																			]
+																			],
+																			"name": "StringUnion",
+																			"parentNamespaces": []
 																		},
 																		{
 																			"kind": "intrinsic",
+																			"parentNamespaces": [],
 																			"name": "undefined"
 																		}
-																	]
-																}
+																	],
+																	"parentNamespaces": []
+																},
+																"name": "ref",
+																"optional": false
 															}
 														],
 														"returnValueType": {
 															"kind": "intrinsic",
+															"parentNamespaces": [],
 															"name": "void"
 														}
 													}
@@ -157,41 +181,50 @@
 												"types": [
 													{
 														"kind": "union",
-														"name": "StringUnion",
 														"types": [
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": "\"foo\""
 															},
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": "\"bar\""
 															},
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": "\"baz\""
 															}
-														]
+														],
+														"name": "StringUnion",
+														"parentNamespaces": []
 													},
 													{
 														"kind": "union",
-														"name": "NumberUnion",
 														"types": [
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": 1
 															},
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": 2
 															},
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": 3
 															}
-														]
+														],
+														"name": "NumberUnion",
+														"parentNamespaces": []
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": false
 										},
@@ -202,46 +235,57 @@
 												"types": [
 													{
 														"kind": "union",
-														"name": "IndirectStringUnion",
 														"types": [
 															{
 																"kind": "union",
-																"name": "StringUnion",
 																"types": [
 																	{
 																		"kind": "literal",
+																		"parentNamespaces": [],
 																		"value": "\"foo\""
 																	},
 																	{
 																		"kind": "literal",
+																		"parentNamespaces": [],
 																		"value": "\"bar\""
 																	},
 																	{
 																		"kind": "literal",
+																		"parentNamespaces": [],
 																		"value": "\"baz\""
 																	}
-																]
+																],
+																"name": "StringUnion",
+																"parentNamespaces": []
 															},
 															{
 																"kind": "literal",
+																"parentNamespaces": [],
 																"value": "\"qux\""
 															}
-														]
+														],
+														"name": "IndirectStringUnion",
+														"parentNamespaces": []
 													},
 													{
 														"kind": "intrinsic",
+														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												]
+												],
+												"parentNamespaces": []
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "parameters",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -253,184 +297,219 @@
 			"type": {
 				"kind": "function",
 				"name": "test2",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"foo\""
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"bar\""
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"baz\""
+										}
+									],
+									"parentNamespaces": []
+								},
 								"name": "inlineStringUnion",
+								"optional": false
+							},
+							{
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "literal",
-											"value": "\"foo\""
+											"parentNamespaces": [],
+											"value": 1
 										},
 										{
 											"kind": "literal",
-											"value": "\"bar\""
+											"parentNamespaces": [],
+											"value": 2
 										},
 										{
 											"kind": "literal",
-											"value": "\"baz\""
+											"parentNamespaces": [],
+											"value": 3
 										}
-									]
-								}
-							},
-							{
-								"nodeType": "parameter",
+									],
+									"parentNamespaces": []
+								},
 								"name": "inlineNumberUnion",
-								"type": {
-									"kind": "union",
-									"types": [
-										{
-											"kind": "literal",
-											"value": 1
-										},
-										{
-											"kind": "literal",
-											"value": 2
-										},
-										{
-											"kind": "literal",
-											"value": 3
-										}
-									]
-								}
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "referencedStringUnion",
 								"type": {
 									"kind": "union",
-									"name": "StringUnion",
 									"types": [
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"foo\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"bar\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"baz\""
 										}
-									]
-								}
+									],
+									"name": "StringUnion",
+									"parentNamespaces": []
+								},
+								"name": "referencedStringUnion",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "referencedNumberUnion",
 								"type": {
 									"kind": "union",
-									"name": "NumberUnion",
 									"types": [
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": 1
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": 2
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": 3
 										}
-									]
-								}
+									],
+									"name": "NumberUnion",
+									"parentNamespaces": []
+								},
+								"name": "referencedNumberUnion",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "unionOfUnions",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "union",
-											"name": "StringUnion",
 											"types": [
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": "\"foo\""
 												},
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": "\"bar\""
 												},
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": "\"baz\""
 												}
-											]
+											],
+											"name": "StringUnion",
+											"parentNamespaces": []
 										},
 										{
 											"kind": "union",
-											"name": "NumberUnion",
 											"types": [
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": 1
 												},
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": 2
 												},
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": 3
 												}
-											]
+											],
+											"name": "NumberUnion",
+											"parentNamespaces": []
 										}
-									]
-								}
+									],
+									"parentNamespaces": []
+								},
+								"name": "unionOfUnions",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "indirectUnion",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "union",
-											"name": "IndirectStringUnion",
 											"types": [
 												{
 													"kind": "union",
-													"name": "StringUnion",
 													"types": [
 														{
 															"kind": "literal",
+															"parentNamespaces": [],
 															"value": "\"foo\""
 														},
 														{
 															"kind": "literal",
+															"parentNamespaces": [],
 															"value": "\"bar\""
 														},
 														{
 															"kind": "literal",
+															"parentNamespaces": [],
 															"value": "\"baz\""
 														}
-													]
+													],
+													"name": "StringUnion",
+													"parentNamespaces": []
 												},
 												{
 													"kind": "literal",
+													"parentNamespaces": [],
 													"value": "\"qux\""
 												}
-											]
+											],
+											"name": "IndirectStringUnion",
+											"parentNamespaces": []
 										},
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "undefined"
 										}
-									]
-								}
+									],
+									"parentNamespaces": []
+								},
+								"name": "indirectUnion",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -442,49 +521,59 @@
 			"type": {
 				"kind": "function",
 				"name": "test3",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "prop",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"inlineStringUnion\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"inlineNumberUnion\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"referencedStringUnion\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"referencedNumberUnion\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"callback\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"unionOfUnions\""
 										},
 										{
 											"kind": "literal",
+											"parentNamespaces": [],
 											"value": "\"indirectUnion\""
 										}
-									]
-								}
+									],
+									"parentNamespaces": []
+								},
+								"name": "prop",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

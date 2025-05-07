@@ -30,18 +30,21 @@ export function resolveType(
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
 	if (typeId !== undefined && typeStack.includes(typeId)) {
-		return new ObjectNode(undefined, [], undefined);
+		return new ObjectNode(undefined, [], [], undefined);
 	}
 
 	if (typeId !== undefined) {
 		typeStack.push(typeId);
 	}
 
+	const namespaces = getTypeNamespaces(type);
+
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
 			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
 			return new TypeParameterNode(
 				type.symbol.name,
+				namespaces,
 				declaration?.constraint?.getText(),
 				declaration?.default
 					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
@@ -52,17 +55,21 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(undefined, resolveType(arrayType, name, context));
+			return new ArrayNode(
+				type.aliasSymbol?.name,
+				namespaces,
+				resolveType(arrayType, name, context),
+			);
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
 			const typeName = getTypeName(type, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
-				return new ReferenceNode('RefCallback');
+				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(getTypeName(type, checker));
+			return new ReferenceNode(getTypeName(type, checker), namespaces);
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -77,7 +84,6 @@ export function resolveType(
 			let symbol = type.aliasSymbol ?? type.getSymbol();
 			if ('value' in type) {
 				// weird edge case - when an enum has one member only, type.getSymbol() returns the symbol of the member
-				// @ts-expect-error internal API
 				symbol = symbol?.parent;
 			}
 
@@ -108,7 +114,9 @@ export function resolveType(
 				}
 			}
 
-			return memberTypes.length === 1 ? memberTypes[0] : new UnionNode(typeName, memberTypes);
+			return memberTypes.length === 1
+				? memberTypes[0]
+				: new UnionNode(typeName, namespaces, memberTypes);
 		}
 
 		if (type.isIntersection()) {
@@ -143,16 +151,17 @@ export function resolveType(
 
 				const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
 				if (objectType) {
-					return new IntersectionNode(typeName, memberTypes, objectType.properties);
+					return new IntersectionNode(typeName, namespaces, memberTypes, objectType.properties);
 				}
 
-				return new IntersectionNode(typeName, memberTypes, []);
+				return new IntersectionNode(typeName, namespaces, memberTypes, []);
 			}
 		}
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
 				undefined,
+				[],
 				(type as ts.TupleType).typeArguments?.map((x) =>
 					resolveType(x, x.getSymbol()?.name || '', context),
 				) ?? [],
@@ -225,7 +234,7 @@ export function resolveType(
 				typeName = undefined;
 			}
 
-			return new ObjectNode(typeName, [], undefined);
+			return new ObjectNode(typeName, namespaces, [], undefined);
 		}
 
 		if (type.flags & ts.TypeFlags.Conditional) {
@@ -274,6 +283,30 @@ const allowedBuiltInReactTypes = new Set([
 	'React.FunctionComponent',
 	'React.ForwardRefExoticComponent',
 ]);
+
+export function getTypeNamespaces(type: ts.Type): string[] {
+	const symbol = type.aliasSymbol ?? type.getSymbol();
+	if (!symbol) {
+		return [];
+	}
+
+	const namespaces: string[] = [];
+	let currentSymbol: ts.Symbol | undefined = symbol.parent;
+
+	while (currentSymbol) {
+		if (
+			currentSymbol &&
+			currentSymbol.valueDeclaration &&
+			ts.isModuleDeclaration(currentSymbol.valueDeclaration)
+		) {
+			namespaces.unshift(currentSymbol.name);
+		}
+
+		currentSymbol = currentSymbol.parent;
+	}
+
+	return namespaces;
+}
 
 function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	const symbol = type.aliasSymbol ?? type.getSymbol();
@@ -330,4 +363,11 @@ function hasFlag(typeFlags: number, flag: number) {
 function getTypeId(type: ts.Type): number | undefined {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (type as any).id;
+}
+
+// Internal API
+declare module 'typescript' {
+	interface Symbol {
+		parent?: ts.Symbol;
+	}
 }

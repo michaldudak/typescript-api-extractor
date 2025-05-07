@@ -6,12 +6,16 @@
 			"type": {
 				"kind": "component",
 				"name": "Test",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "refObject",
 						"type": {
 							"kind": "reference",
-							"name": "RefObject<HTMLInputElement>"
+							"name": "RefObject<HTMLInputElement>",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": false
 					},
@@ -19,7 +23,8 @@
 						"name": "refCallback",
 						"type": {
 							"kind": "reference",
-							"name": "RefCallback"
+							"name": "RefCallback",
+							"parentNamespaces": []
 						},
 						"optional": false
 					},
@@ -27,7 +32,10 @@
 						"name": "ref",
 						"type": {
 							"kind": "reference",
-							"name": "Ref<HTMLInputElement>"
+							"name": "Ref<HTMLInputElement>",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": false
 					},
@@ -38,13 +46,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefObject<HTMLInputElement>"
+									"name": "RefObject<HTMLInputElement>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -55,13 +68,16 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefCallback"
+									"name": "RefCallback",
+									"parentNamespaces": []
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					},
@@ -72,13 +88,18 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "Ref<HTMLInputElement>"
+									"name": "Ref<HTMLInputElement>",
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							]
+							],
+							"parentNamespaces": []
 						},
 						"optional": true
 					}

@@ -5,20 +5,23 @@
 			"name": "test",
 			"type": {
 				"kind": "function",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "param",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
-								}
+								},
+								"name": "param",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					}
@@ -29,11 +32,13 @@
 			"name": "TestComponent",
 			"type": {
 				"kind": "component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "value",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "string"
 						},
 						"optional": false

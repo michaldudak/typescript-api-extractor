@@ -6,11 +6,13 @@
 			"type": {
 				"kind": "function",
 				"name": "inlineExport",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
@@ -22,20 +24,23 @@
 			"type": {
 				"kind": "function",
 				"name": "defaultExport",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
-								}
+								},
+								"name": "a",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					}
@@ -47,36 +52,41 @@
 			"type": {
 				"kind": "function",
 				"name": "overloadedFunction",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
-								}
+								},
+								"name": "a",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					},
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
-								}
+								},
+								"name": "a",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "string"
 						}
 					}
@@ -88,36 +98,41 @@
 			"type": {
 				"kind": "function",
 				"name": "overloadedFunction",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
-								}
+								},
+								"name": "a",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						}
 					},
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
-								}
+								},
+								"name": "a",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "string"
 						}
 					}
@@ -129,39 +144,46 @@
 			"type": {
 				"kind": "function",
 				"name": "functionAndNamespaceDeclaration",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "params",
 								"type": {
 									"kind": "object",
 									"name": "Params",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "params",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "ref",
 								"type": {
 									"kind": "reference",
-									"name": "ForwardedRef<Element>"
-								}
+									"name": "ForwardedRef<Element>",
+									"parentNamespaces": [
+										"React"
+									]
+								},
+								"name": "ref",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "reference",
-							"name": "Element"
+							"name": "Element",
+							"parentNamespaces": []
 						}
 					}
 				]

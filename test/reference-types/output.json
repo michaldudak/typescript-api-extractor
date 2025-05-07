@@ -6,44 +6,49 @@
 			"type": {
 				"kind": "function",
 				"name": "referenceTypes",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "object",
 									"name": "CustomInterface",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "a",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "b",
 								"type": {
 									"kind": "object",
 									"name": "CustomType",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "b",
+								"optional": false
 							}
 						],
 						"returnValueType": {
@@ -52,11 +57,13 @@
 								{
 									"kind": "object",
 									"name": "CustomInterface",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"optional": false
@@ -66,18 +73,21 @@
 								{
 									"kind": "object",
 									"name": "CustomType",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
 								}
-							]
+							],
+							"parentNamespaces": []
 						}
 					}
 				]
@@ -88,46 +98,52 @@
 			"type": {
 				"kind": "function",
 				"name": "inlineTypes",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "a",
 								"type": {
 									"kind": "object",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "number"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "a",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "b",
 								"type": {
 									"kind": "object",
+									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
+												"parentNamespaces": [],
 												"name": "string"
 											},
 											"optional": false
 										}
 									]
-								}
+								},
+								"name": "b",
+								"optional": false
 							}
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}

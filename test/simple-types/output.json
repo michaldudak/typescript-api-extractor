@@ -6,11 +6,13 @@
 			"type": {
 				"kind": "component",
 				"name": "Component",
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "s",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "string"
 						},
 						"optional": false
@@ -19,6 +21,7 @@
 						"name": "nb",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "number"
 						},
 						"optional": false
@@ -27,6 +30,7 @@
 						"name": "b",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "boolean"
 						},
 						"optional": false
@@ -35,6 +39,7 @@
 						"name": "n",
 						"type": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "null"
 						},
 						"optional": false

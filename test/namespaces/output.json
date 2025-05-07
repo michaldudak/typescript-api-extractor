@@ -1,0 +1,60 @@
+{
+	"name": "test/namespaces/input",
+	"exports": [
+		{
+			"name": "fn3",
+			"type": {
+				"kind": "function",
+				"name": "fn3",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"parentNamespaces": [
+										"Root",
+										"Sub"
+									],
+									"properties": [
+										{
+											"name": "s",
+											"type": {
+												"kind": "enum",
+												"name": "Grade",
+												"parentNamespaces": [
+													"Root",
+													"Sub"
+												],
+												"members": [
+													{
+														"name": "good",
+														"value": 0
+													},
+													{
+														"name": "bad",
+														"value": 1
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "params",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}

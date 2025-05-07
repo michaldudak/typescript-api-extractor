@@ -6,60 +6,67 @@
 			"type": {
 				"kind": "function",
 				"name": "test",
+				"parentNamespaces": [],
 				"callSignatures": [
 					{
 						"parameters": [
 							{
-								"nodeType": "parameter",
-								"name": "required",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
-								}
+								},
+								"name": "required",
+								"optional": false
 							},
 							{
-								"nodeType": "parameter",
-								"name": "optional",
 								"type": {
 									"kind": "union",
 									"types": [
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "number"
 										},
 										{
 											"kind": "intrinsic",
+											"parentNamespaces": [],
 											"name": "undefined"
 										}
-									]
+									],
+									"parentNamespaces": []
 								},
+								"name": "optional",
 								"documentation": {
-									"description": "The optional parameter."
+									"description": "The optional parameter.",
+									"tags": []
 								},
 								"optional": true
 							},
 							{
-								"nodeType": "parameter",
-								"name": "withInlineDefault",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "number"
 								},
+								"name": "withInlineDefault",
 								"documentation": {
-									"description": "The parameter with a default value."
+									"description": "The parameter with a default value.",
+									"tags": []
 								},
 								"optional": true,
 								"defaultValue": "42"
 							},
 							{
-								"nodeType": "parameter",
-								"name": "withReferencedDefault",
 								"type": {
 									"kind": "intrinsic",
+									"parentNamespaces": [],
 									"name": "string"
 								},
+								"name": "withReferencedDefault",
 								"documentation": {
-									"description": "The parameter with a default value from a constant."
+									"description": "The parameter with a default value from a constant.",
+									"tags": []
 								},
 								"optional": true,
 								"defaultValue": "\"default\""
@@ -67,13 +74,15 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
+							"parentNamespaces": [],
 							"name": "void"
 						}
 					}
 				]
 			},
 			"documentation": {
-				"description": "Function with optional parameters"
+				"description": "Function with optional parameters",
+				"tags": []
 			}
 		}
 	]
