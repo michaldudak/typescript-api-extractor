@@ -111,7 +111,9 @@
 													"type": {
 														"kind": "object",
 														"name": "State",
-														"parentNamespaces": [],
+														"parentNamespaces": [
+															"BaseUIComponent"
+														],
 														"properties": [
 															{
 																"name": "state",
@@ -243,7 +245,9 @@
 													"type": {
 														"kind": "object",
 														"name": "State",
-														"parentNamespaces": [],
+														"parentNamespaces": [
+															"BaseUIComponent"
+														],
 														"properties": [
 															{
 																"name": "state",

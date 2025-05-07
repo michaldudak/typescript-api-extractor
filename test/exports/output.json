@@ -152,7 +152,9 @@
 								"type": {
 									"kind": "object",
 									"name": "Params",
-									"parentNamespaces": [],
+									"parentNamespaces": [
+										"functionAndNamespaceDeclaration"
+									],
 									"properties": [
 										{
 											"name": "a",
@@ -183,7 +185,9 @@
 						"returnValueType": {
 							"kind": "reference",
 							"name": "Element",
-							"parentNamespaces": []
+							"parentNamespaces": [
+								"JSX"
+							]
 						}
 					}
 				]

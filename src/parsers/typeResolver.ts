@@ -290,19 +290,24 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 		return [];
 	}
 
-	const namespaces: string[] = [];
-	let currentSymbol: ts.Symbol | undefined = symbol.parent;
+	if (symbol.name === '__function' || symbol.name === '__type') {
+		return [];
+	}
 
-	while (currentSymbol) {
-		if (
-			currentSymbol &&
-			currentSymbol.valueDeclaration &&
-			ts.isModuleDeclaration(currentSymbol.valueDeclaration)
-		) {
-			namespaces.unshift(currentSymbol.name);
+	const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
+	if (!declaration) {
+		return [];
+	}
+
+	const namespaces: string[] = [];
+	let currentDeclaration: ts.Node = declaration.parent;
+
+	while (currentDeclaration != null && !ts.isSourceFile(currentDeclaration)) {
+		if (ts.isModuleDeclaration(currentDeclaration)) {
+			namespaces.unshift(currentDeclaration.name.getText());
 		}
 
-		currentSymbol = currentSymbol.parent;
+		currentDeclaration = currentDeclaration.parent;
 	}
 
 	return namespaces;
