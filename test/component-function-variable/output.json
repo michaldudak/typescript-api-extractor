@@ -56,9 +56,7 @@
 			"type": {
 				"kind": "component",
 				"name": "FC",
-				"parentNamespaces": [
-					"React"
-				],
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "className",
@@ -108,9 +106,7 @@
 			"type": {
 				"kind": "component",
 				"name": "FunctionComponent",
-				"parentNamespaces": [
-					"React"
-				],
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "className",

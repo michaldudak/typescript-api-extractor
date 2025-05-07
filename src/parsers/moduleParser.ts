@@ -20,8 +20,11 @@ export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): 
 		if (!parsedExport) {
 			continue;
 		}
-
-		parsedModuleExports.push(parsedExport);
+		if (Array.isArray(parsedExport)) {
+			parsedModuleExports.push(...parsedExport);
+		} else {
+			parsedModuleExports.push(parsedExport);
+		}
 	}
 
 	parsedModuleExports = augmentComponentNodes(parsedModuleExports, context);

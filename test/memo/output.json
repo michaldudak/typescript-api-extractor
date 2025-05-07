@@ -6,9 +6,7 @@
 			"type": {
 				"kind": "component",
 				"name": "NamedExoticComponent",
-				"parentNamespaces": [
-					"React"
-				],
+				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "className",

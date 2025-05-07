@@ -7,12 +7,31 @@ import { ExportNode } from '../models';
 export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ParserContext,
-): ExportNode | undefined {
+	parentNamespaces: string[] = [],
+): ExportNode[] | undefined {
 	const { checker, sourceFile } = parserContext;
 
 	const exportDeclaration = exportSymbol.declarations?.[0];
 	if (!exportDeclaration) {
 		return;
+	}
+
+	if (ts.isModuleDeclaration(exportDeclaration)) {
+		// Handle exported namespace
+		const namespaceSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+		if (!namespaceSymbol) return;
+		const members = checker.getExportsOfModule(namespaceSymbol);
+		const nsName = exportDeclaration.name.getText();
+		const results: ExportNode[] = [];
+		for (const member of members) {
+			const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
+			if (Array.isArray(memberExports)) {
+				results.push(...memberExports);
+			} else if (memberExports) {
+				results.push(memberExports);
+			}
+		}
+		return results;
 	}
 
 	if (ts.isExportSpecifier(exportDeclaration)) {
@@ -38,7 +57,7 @@ export function parseExport(
 		}
 
 		const type = checker.getTypeOfSymbol(targetSymbol);
-		return createExportNode(exportSymbol.name, targetSymbol, type);
+		return createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
 	} else if (ts.isExportAssignment(exportDeclaration)) {
 		// export default x
 		const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.expression);
@@ -51,6 +70,7 @@ export function parseExport(
 			exportSymbol.name,
 			exportedSymbol,
 			checker.getTypeOfSymbol(exportedSymbol),
+			parentNamespaces,
 		);
 	} else if (
 		ts.isVariableDeclaration(exportDeclaration) ||
@@ -69,7 +89,7 @@ export function parseExport(
 		}
 
 		const type = checker.getTypeOfSymbol(exportedSymbol);
-		return createExportNode(exportSymbol.name, exportedSymbol, type);
+		return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
 	} else if (ts.isEnumDeclaration(exportDeclaration)) {
 		// export enum x {}
 		if (!exportDeclaration.name) {
@@ -87,13 +107,22 @@ export function parseExport(
 		}
 
 		const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
-		return createExportNode(exportSymbol.name, exportedSymbol, type);
+		return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
 	}
 
-	function createExportNode(name: string, symbol: ts.Symbol, type: ts.Type) {
+	function createExportNode(
+		name: string,
+		symbol: ts.Symbol,
+		type: ts.Type,
+		parentNamespaces: string[],
+	) {
 		const parsedType = resolveType(type, symbol.getName(), parserContext);
 		if (parsedType) {
-			return new ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker));
+			// Patch parentNamespaces if the type supports it
+			if (parsedType && 'parentNamespaces' in parsedType) {
+				parsedType.parentNamespaces = parentNamespaces;
+			}
+			return [new ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker))];
 		}
 	}
 }

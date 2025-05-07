@@ -55,6 +55,142 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "fn2",
+			"type": {
+				"kind": "function",
+				"name": "fn2",
+				"parentNamespaces": [
+					"Root"
+				],
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "fn1",
+			"type": {
+				"kind": "function",
+				"name": "fn1",
+				"parentNamespaces": [
+					"Root",
+					"Sub"
+				],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"parentNamespaces": [
+										"Root",
+										"Sub"
+									],
+									"properties": [
+										{
+											"name": "s",
+											"type": {
+												"kind": "enum",
+												"name": "Grade",
+												"parentNamespaces": [
+													"Root",
+													"Sub"
+												],
+												"members": [
+													{
+														"name": "good",
+														"value": 0
+													},
+													{
+														"name": "bad",
+														"value": 1
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "params",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Component",
+			"type": {
+				"kind": "component",
+				"name": "Component",
+				"parentNamespaces": [
+					"Root",
+					"Sub"
+				],
+				"props": []
+			}
+		},
+		{
+			"name": "useHook",
+			"type": {
+				"kind": "function",
+				"name": "useHook",
+				"parentNamespaces": [
+					"Root",
+					"Sub"
+				],
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "object",
+							"name": "__object",
+							"parentNamespaces": [
+								"Root",
+								"Sub"
+							],
+							"properties": []
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Grade",
+			"type": {
+				"kind": "enum",
+				"name": "Grade",
+				"parentNamespaces": [
+					"Root",
+					"Sub"
+				],
+				"members": [
+					{
+						"name": "good",
+						"value": 0
+					},
+					{
+						"name": "bad",
+						"value": 1
+					}
+				]
+			}
 		}
 	]
 }
