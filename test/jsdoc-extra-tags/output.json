@@ -8,7 +8,42 @@
 				"name": "test",
 				"callSignatures": [
 					{
-						"parameters": [],
+						"parameters": [
+							{
+								"nodeType": "parameter",
+								"name": "params",
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"properties": [
+										{
+											"name": "s",
+											"type": {
+												"kind": "intrinsic",
+												"name": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "n",
+											"type": {
+												"kind": "intrinsic",
+												"name": "number"
+											},
+											"documentation": {
+												"tags": [
+													{
+														"name": "type",
+														"value": "Integer"
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								}
+							}
+						],
 						"returnValueType": {
 							"kind": "intrinsic",
 							"name": "void"
