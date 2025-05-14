@@ -11,7 +11,7 @@ export function test2(
 
 export function test3(prop: keyof Params) {}
 
-export interface Params {
+interface Params {
 	inlineStringUnion: 'foo' | 'bar' | 'baz';
 	inlineNumberUnion: 1 | 2 | 3;
 	referencedStringUnion: StringUnion;

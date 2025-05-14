@@ -172,6 +172,41 @@
 			}
 		},
 		{
+			"name": "Params",
+			"type": {
+				"kind": "object",
+				"name": "Params",
+				"parentNamespaces": [
+					"Root",
+					"Sub"
+				],
+				"properties": [
+					{
+						"name": "s",
+						"type": {
+							"kind": "enum",
+							"name": "Grade",
+							"parentNamespaces": [
+								"Root",
+								"Sub"
+							],
+							"members": [
+								{
+									"name": "good",
+									"value": 0
+								},
+								{
+									"name": "bad",
+									"value": 1
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
 			"name": "Grade",
 			"type": {
 				"kind": "enum",

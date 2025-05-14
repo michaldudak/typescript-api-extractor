@@ -1,0 +1,110 @@
+{
+	"name": "test/interfaces/input",
+	"exports": [
+		{
+			"name": "Interface1",
+			"type": {
+				"kind": "object",
+				"name": "Interface1",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "s",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "b",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "boolean"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Interface2",
+			"type": {
+				"kind": "object",
+				"name": "Interface2",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "n",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Interface2Alias",
+			"type": {
+				"kind": "object",
+				"name": "Interface2",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "n",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "default",
+			"type": {
+				"kind": "object",
+				"name": "default",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "n1",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "number"
+						},
+						"optional": false
+					},
+					{
+						"name": "n2",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "number"
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "undefined"
+								}
+							],
+							"parentNamespaces": []
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	]
+}

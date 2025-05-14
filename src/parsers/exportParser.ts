@@ -59,7 +59,12 @@ export function parseExport(
 				return;
 			}
 
-			const type = checker.getTypeOfSymbol(targetSymbol);
+			let type: ts.Type;
+			if (targetSymbol.declarations?.length) {
+				type = checker.getTypeAtLocation(targetSymbol.declarations[0]);
+			} else {
+				type = checker.getTypeOfSymbol(targetSymbol);
+			}
 			return createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
 		} else if (ts.isExportAssignment(exportDeclaration)) {
 			// export default x
@@ -95,6 +100,19 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeOfSymbol(exportedSymbol);
+			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
+			// export interface X {}
+			if (!exportDeclaration.name) {
+				return;
+			}
+
+			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+			if (!exportedSymbol) {
+				return;
+			}
+
+			const type = checker.getTypeAtLocation(exportDeclaration);
 			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
 		} else if (ts.isEnumDeclaration(exportDeclaration)) {
 			// export enum x {}
