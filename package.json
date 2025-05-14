@@ -20,6 +20,10 @@
 		}
 	},
 	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/michaldudak/typescript-api-extractor.git"
+	},
 	"scripts": {
 		"prebuild": "rimraf ./dist",
 		"build": "tsc --project tsconfig.json",
