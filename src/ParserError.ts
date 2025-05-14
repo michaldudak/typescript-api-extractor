@@ -16,9 +16,6 @@ export class ParserError extends Error {
 		this.parsedSymbolStack = [...parsedSymbolStack];
 		this.innerError = innerError;
 
-		console.log('Parsed symbol stack:', this.parsedSymbolStack);
-
 		this.message = `Failed to parse ${[...parsedSymbolStack].join(' > ')}\n${this.message}`;
-		console.log({ error: this });
 	}
 }
