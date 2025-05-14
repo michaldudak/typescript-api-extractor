@@ -1,8 +1,8 @@
-# React API extractor
+# Typescript API extractor
 
-A utility for extracting React component API description from [TypeScript](https://www.npmjs.com/package/typescript) definitions using the TypeScript Compiler API.
+A utility for extracting API description from [TypeScript](https://www.npmjs.com/package/typescript) definitions using the TypeScript Compiler API.
 
-This project is based on [typescript-to-proptypes](https://github.com/merceyz/typescript-to-proptypes) created by [Kristoffer K.](https://github.com/merceyz).
+This project was started as a fork of [typescript-to-proptypes](https://github.com/merceyz/typescript-to-proptypes) created by [Kristoffer K.](https://github.com/merceyz).
 
 ## License
 

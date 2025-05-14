@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
-import * as rae from '../src';
+import { loadConfig, parseFromProgram } from '../src';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 
@@ -14,7 +14,7 @@ if (testCases.some((t) => t.includes('.only'))) {
 
 const program = ts.createProgram(
 	testCases,
-	rae.loadConfig(path.resolve(__dirname, 'tsconfig.json')).options,
+	loadConfig(path.resolve(__dirname, 'tsconfig.json')).options,
 );
 
 for (const testCase of testCases) {
@@ -23,7 +23,7 @@ for (const testCase of testCases) {
 	const expectedOutput = path.join(dirname, 'output.json');
 
 	it.skipIf(testCase.includes('.skip'))(testName, async () => {
-		const moduleDefinition = rae.parseFromProgram(testCase, program);
+		const moduleDefinition = parseFromProgram(testCase, program);
 
 		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
 			expect(moduleDefinition).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));

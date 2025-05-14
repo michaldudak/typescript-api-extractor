@@ -1,7 +1,7 @@
 {
-	"name": "react-api-extractor",
+	"name": "typescript-api-extractor",
 	"version": "1.0.0-alpha.1",
-	"description": "Extracts API description from React components",
+	"description": "Extracts API description from TypeScript code",
 	"author": {
 		"name": "Michał Dudak",
 		"email": "michal@dudak.me"
