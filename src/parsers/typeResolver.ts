@@ -256,9 +256,6 @@ export function resolveType(
 		);
 
 		return new IntrinsicNode('any');
-	} catch (error) {
-		console.error(error);
-		throw error;
 	} finally {
 		typeStack.pop();
 	}

@@ -2,6 +2,7 @@ import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
 import { getTypeNamespaces, resolveType } from './typeResolver';
 import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
+import { ParserError } from '../ParserError';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type
@@ -81,44 +82,56 @@ function parseParameter(
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean,
 ): Parameter {
-	const { checker } = context;
-	const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-	const parameterType = resolveType(
-		checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-		parameterSymbol.getName(),
-		context,
-		skipResolvingComplexTypes,
-	);
+	const { checker, parsedSymbolStack } = context;
+	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
 
-	const summary = parameterSymbol
-		.getDocumentationComment(checker)
-		.map((comment) => comment.text)
-		.join('\n')
-		.replace(/^[\s-*:]*/, '');
+	try {
+		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
+		const parameterType = resolveType(
+			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+			parameterSymbol.getName(),
+			context,
+			skipResolvingComplexTypes,
+		);
 
-	const documentation = summary?.length ? new Documentation(summary) : undefined;
+		const summary = parameterSymbol
+			.getDocumentationComment(checker)
+			.map((comment) => comment.text)
+			.join('\n')
+			.replace(/^[\s-*:]*/, '');
 
-	let defaultValue: string | undefined;
-	const initializer = parameterDeclaration.initializer;
-	if (initializer) {
-		const initializerType = checker.getTypeAtLocation(initializer);
-		if (initializerType.flags & ts.TypeFlags.Literal) {
-			if (initializerType.isStringLiteral()) {
-				defaultValue = `"${initializerType.value}"`;
-			} else if (initializerType.isLiteral()) {
-				defaultValue = initializerType.value.toString();
-			} else {
-				defaultValue = initializer.getText();
+		const documentation = summary?.length ? new Documentation(summary) : undefined;
+
+		let defaultValue: string | undefined;
+		const initializer = parameterDeclaration.initializer;
+		if (initializer) {
+			const initializerType = checker.getTypeAtLocation(initializer);
+			if (initializerType.flags & ts.TypeFlags.Literal) {
+				if (initializerType.isStringLiteral()) {
+					defaultValue = `"${initializerType.value}"`;
+				} else if (initializerType.isLiteral()) {
+					defaultValue = initializerType.value.toString();
+				} else {
+					defaultValue = initializer.getText();
+				}
 			}
 		}
-	}
 
-	return new Parameter(
-		parameterType,
-		parameterSymbol.getName(),
-		documentation,
-		parameterDeclaration.questionToken !== undefined ||
-			parameterDeclaration.initializer !== undefined,
-		defaultValue,
-	);
+		return new Parameter(
+			parameterType,
+			parameterSymbol.getName(),
+			documentation,
+			parameterDeclaration.questionToken !== undefined ||
+				parameterDeclaration.initializer !== undefined,
+			defaultValue,
+		);
+	} catch (error) {
+		if (!(error instanceof ParserError)) {
+			throw new ParserError(error, parsedSymbolStack);
+		}
+
+		throw error;
+	} finally {
+		parsedSymbolStack.pop();
+	}
 }
