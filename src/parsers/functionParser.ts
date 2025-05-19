@@ -1,7 +1,14 @@
 import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
 import { getTypeNamespaces, resolveType } from './typeResolver';
-import { FunctionNode, CallSignature, Documentation, Parameter } from '../models';
+import {
+	FunctionNode,
+	CallSignature,
+	Documentation,
+	DocumentationTag,
+	Parameter,
+	Visibility,
+} from '../models';
 import { ParserError } from '../ParserError';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
@@ -100,7 +107,31 @@ function parseParameter(
 			.join('\n')
 			.replace(/^[\s-*:]*/, '');
 
-		const documentation = summary?.length ? new Documentation(summary) : undefined;
+		const rawTags = parameterSymbol.getJsDocTags();
+
+		const docTags: DocumentationTag[] = rawTags
+			.filter((t) => t.name !== 'param')
+			.map((t) => {
+				const text = t.text?.map((t) => t.text).join(' ');
+				return {
+					name: t.name,
+					value: text,
+				};
+			});
+
+		let visibility: Visibility | undefined;
+		if (rawTags.some((tag) => tag.name === 'private')) {
+			visibility = 'private';
+		} else if (rawTags.some((tag) => tag.name === 'internal')) {
+			visibility = 'internal';
+		} else if (rawTags.some((tag) => tag.name === 'public')) {
+			visibility = 'public';
+		}
+
+		const documentation =
+			summary?.length || docTags.length
+				? new Documentation(summary, undefined, visibility, docTags)
+				: undefined;
 
 		let defaultValue: string | undefined;
 		const initializer = parameterDeclaration.initializer;

@@ -16,4 +16,14 @@ interface Params {
 	 * @type {Integer}
 	 */
 	n: number;
+	onChange: (
+		event: React.ChangeEvent<HTMLInputElement>,
+		/** @type ChangeReason */
+		reason: string | undefined,
+	) => void;
+	/**
+	 * For internal use only
+	 * @internal
+	 */
+	_id?: string;
 }

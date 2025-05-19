@@ -2,7 +2,7 @@ export class Documentation {
 	constructor(
 		public description: string | undefined,
 		public defaultValue: unknown | undefined = undefined,
-		public visibility: 'public' | 'private' | 'internal' | undefined = undefined,
+		public visibility: Visibility | undefined = undefined,
 		public tags: DocumentationTag[] = [],
 	) {}
 
@@ -19,3 +19,5 @@ export interface DocumentationTag {
 	name: string;
 	value: string | undefined;
 }
+
+export type Visibility = 'public' | 'private' | 'internal';
