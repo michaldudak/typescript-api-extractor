@@ -1,11 +1,11 @@
 import * as React from 'react';
 
 export function Component(props: Props): React.ReactElement {
-	return <div {...props} />;
+	return <div />;
 }
 
 interface Props {
-	onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+	onChange: (event: React.ChangeEvent<HTMLInputElement>, reason: string | undefined) => void;
 	onClosing: OnClosingCallback;
 	onOpen: OnOpenCallback;
 	onClosed?: () => void;
