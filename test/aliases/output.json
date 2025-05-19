@@ -1,0 +1,36 @@
+{
+	"name": "test/aliases/input",
+	"exports": [
+		{
+			"name": "A",
+			"type": {
+				"kind": "object",
+				"name": "A",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": 1
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": 2
+								}
+							],
+							"name": "SomeType",
+							"parentNamespaces": []
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

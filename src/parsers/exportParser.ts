@@ -149,7 +149,7 @@ export function parseExport(
 		type: ts.Type,
 		parentNamespaces: string[],
 	) {
-		const parsedType = resolveType(type, symbol.getName(), parserContext);
+		const parsedType = resolveType(type, parserContext);
 		if (parsedType) {
 			// Patch parentNamespaces if the type supports it
 			if (parsedType && 'parentNamespaces' in parsedType) {

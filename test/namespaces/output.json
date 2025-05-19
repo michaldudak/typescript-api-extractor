@@ -40,6 +40,32 @@
 												]
 											},
 											"optional": false
+										},
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"one\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"two\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"three\""
+													}
+												],
+												"name": "OutsideType",
+												"parentNamespaces": []
+											},
+											"optional": false
 										}
 									]
 								},
@@ -116,6 +142,32 @@
 														"value": 1
 													}
 												]
+											},
+											"optional": false
+										},
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"one\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"two\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"three\""
+													}
+												],
+												"name": "OutsideType",
+												"parentNamespaces": []
 											},
 											"optional": false
 										}
@@ -200,6 +252,32 @@
 									"value": 1
 								}
 							]
+						},
+						"optional": false
+					},
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"one\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"two\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"three\""
+								}
+							],
+							"name": "OutsideType",
+							"parentNamespaces": []
 						},
 						"optional": false
 					}

@@ -75,11 +75,7 @@ function parseFunctionSignature(
 		parseParameter(parameterSymbol, context, skipResolvingComplexTypes),
 	);
 
-	const returnValueType = resolveType(
-		signature.getReturnType(),
-		signature.getDeclaration().name?.getText() || '',
-		context,
-	);
+	const returnValueType = resolveType(signature.getReturnType(), context);
 
 	return new CallSignature(parameters, returnValueType);
 }
@@ -94,9 +90,9 @@ function parseParameter(
 
 	try {
 		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
+
 		const parameterType = resolveType(
 			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-			parameterSymbol.getName(),
 			context,
 			skipResolvingComplexTypes,
 		);

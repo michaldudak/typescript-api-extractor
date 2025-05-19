@@ -6,7 +6,6 @@ import { getTypeNamespaces } from './typeResolver';
 
 export function parseObjectType(
 	type: ts.Type,
-	name: string,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean,
 ): ObjectNode | undefined {
@@ -25,9 +24,13 @@ export function parseObjectType(
 	if (properties.length) {
 		if (
 			!skipResolvingComplexTypes &&
-			shouldResolveObject({ name, propertyCount: properties.length, depth: typeStack.length })
+			shouldResolveObject({
+				name: typeName ?? '',
+				propertyCount: properties.length,
+				depth: typeStack.length,
+			})
 		) {
-			const filtered = properties.filter((property) => {
+			const filteredProperties = properties.filter((property) => {
 				const declaration =
 					property.valueDeclaration ??
 					(property.declarations?.[0] as ts.PropertySignature | undefined);
@@ -37,11 +40,11 @@ export function parseObjectType(
 					shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 				);
 			});
-			if (filtered.length > 0) {
+			if (filteredProperties.length > 0) {
 				return new ObjectNode(
 					typeName,
 					getTypeNamespaces(type),
-					filtered.map((property) => {
+					filteredProperties.map((property) => {
 						return parseProperty(
 							property,
 							property.valueDeclaration as ts.PropertySignature,

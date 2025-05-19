@@ -36,7 +36,7 @@ export function parseProperty(
 			parsedType = new IntrinsicNode('any');
 			isOptional = Boolean(propertySignature.questionToken);
 		} else {
-			parsedType = resolveType(type, propertySymbol.getName(), context, skipResolvingComplexTypes);
+			parsedType = resolveType(type, context, skipResolvingComplexTypes);
 			isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 		}
 

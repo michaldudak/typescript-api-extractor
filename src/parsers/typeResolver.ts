@@ -19,7 +19,6 @@ import {
 
 export function resolveType(
 	type: ts.Type,
-	name: string,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean = false,
 ): TypeNode {
@@ -47,7 +46,7 @@ export function resolveType(
 				namespaces,
 				declaration?.constraint?.getText(),
 				declaration?.default
-					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
+					? resolveType(checker.getTypeAtLocation(declaration.default), context)
 					: undefined,
 			);
 		}
@@ -55,11 +54,7 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(
-				type.aliasSymbol?.name,
-				namespaces,
-				resolveType(arrayType, name, context),
-			);
+			return new ArrayNode(type.aliasSymbol?.name, namespaces, resolveType(arrayType, context));
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
@@ -106,11 +101,11 @@ export function resolveType(
 			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
 				for (const memberType of type.origin.types) {
-					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+					memberTypes.push(resolveType(memberType, context));
 				}
 			} else {
 				for (const memberType of type.types) {
-					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+					memberTypes.push(resolveType(memberType, context));
 				}
 			}
 
@@ -128,7 +123,7 @@ export function resolveType(
 			}
 
 			for (const memberType of type.types) {
-				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+				memberTypes.push(resolveType(memberType, context));
 			}
 
 			if (memberTypes.length === 0) {
@@ -149,7 +144,7 @@ export function resolveType(
 					return parseFunctionType(type, context)!;
 				}
 
-				const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+				const objectType = parseObjectType(type, context, skipResolvingComplexTypes);
 				if (objectType) {
 					return new IntersectionNode(typeName, namespaces, memberTypes, objectType.properties);
 				}
@@ -160,11 +155,9 @@ export function resolveType(
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
-				undefined,
+				type.aliasSymbol?.name,
 				[],
-				(type as ts.TupleType).typeArguments?.map((x) =>
-					resolveType(x, x.getSymbol()?.name || '', context),
-				) ?? [],
+				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, context)) ?? [],
 			);
 		}
 
@@ -218,7 +211,7 @@ export function resolveType(
 			return parseFunctionType(type, context)!;
 		}
 
-		const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+		const objectType = parseObjectType(type, context, skipResolvingComplexTypes);
 		if (objectType) {
 			return objectType;
 		}
@@ -247,7 +240,7 @@ export function resolveType(
 				const trueType = checker.getTypeFromTypeNode(
 					type.aliasSymbol.declarations[0].type.trueType,
 				);
-				return resolveType(trueType, name, context);
+				return resolveType(trueType, context);
 			}
 		}
 
@@ -292,19 +285,23 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 	}
 
 	const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
-	if (!declaration) {
+	return getNodeNamespaces(declaration);
+}
+
+export function getNodeNamespaces(node: ts.Node | undefined): string[] {
+	if (!node) {
 		return [];
 	}
 
 	const namespaces: string[] = [];
-	let currentDeclaration: ts.Node = declaration.parent;
+	let currentNode = node.parent;
 
-	while (currentDeclaration != null && !ts.isSourceFile(currentDeclaration)) {
-		if (ts.isModuleDeclaration(currentDeclaration)) {
-			namespaces.unshift(currentDeclaration.name.getText());
+	while (currentNode != null && !ts.isSourceFile(currentNode)) {
+		if (ts.isModuleDeclaration(currentNode)) {
+			namespaces.unshift(currentNode.name.getText());
 		}
 
-		currentDeclaration = currentDeclaration.parent;
+		currentNode = currentNode.parent;
 	}
 
 	return namespaces;
