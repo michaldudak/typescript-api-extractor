@@ -2,6 +2,56 @@
 	"name": "test/aliases/input",
 	"exports": [
 		{
+			"name": "fn1",
+			"type": {
+				"kind": "function",
+				"name": "fn1",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 1
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 2
+										}
+									],
+									"name": "Alias",
+									"parentNamespaces": []
+								},
+								"name": "a",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"name": "MyRecord",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								"name": "r",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
 			"name": "A",
 			"type": {
 				"kind": "object",
@@ -26,6 +76,16 @@
 							],
 							"name": "Alias",
 							"parentNamespaces": []
+						},
+						"optional": false
+					},
+					{
+						"name": "r",
+						"type": {
+							"kind": "object",
+							"name": "MyRecord",
+							"parentNamespaces": [],
+							"properties": []
 						},
 						"optional": false
 					}

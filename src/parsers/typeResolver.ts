@@ -41,7 +41,6 @@ export function resolveType(
 		typeNode && ts.isTypeReferenceNode(typeNode)
 			? checker.getSymbolAtLocation((typeNode as ts.TypeReferenceNode).typeName)
 			: undefined;
-	const declaredType = typeNodeSymbol ? checker.getDeclaredTypeOfSymbol(typeNodeSymbol) : undefined;
 	const namespaces = typeNodeSymbol
 		? getTypeSymbolNamespaces(typeNodeSymbol)
 		: getTypeNamespaces(type);
