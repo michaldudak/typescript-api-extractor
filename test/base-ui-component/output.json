@@ -85,7 +85,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "RefObject",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					},
@@ -209,7 +212,7 @@
 																]
 															}
 														],
-														"name": "GenericHTMLProps",
+														"name": "Props",
 														"parentNamespaces": [],
 														"properties": [
 															{

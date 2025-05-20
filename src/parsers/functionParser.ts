@@ -94,6 +94,7 @@ function parseParameter(
 		const parameterType = resolveType(
 			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
 			context,
+			parameterDeclaration.type,
 			skipResolvingComplexTypes,
 		);
 

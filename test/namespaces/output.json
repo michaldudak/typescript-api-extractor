@@ -55,21 +55,60 @@
 														"kind": "literal",
 														"parentNamespaces": [],
 														"value": "\"two\""
-													},
-													{
-														"kind": "literal",
-														"parentNamespaces": [],
-														"value": "\"three\""
 													}
 												],
-												"name": "OutsideType",
-												"parentNamespaces": []
+												"name": "NamespacedType",
+												"parentNamespaces": [
+													"Root"
+												]
 											},
 											"optional": false
 										}
 									]
 								},
 								"name": "params",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "fn4",
+			"type": {
+				"kind": "function",
+				"name": "fn4",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"one\""
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"two\""
+										}
+									],
+									"name": "NamespacedType",
+									"parentNamespaces": [
+										"Root"
+									]
+								},
+								"name": "a",
 								"optional": false
 							}
 						],
@@ -159,15 +198,12 @@
 														"kind": "literal",
 														"parentNamespaces": [],
 														"value": "\"two\""
-													},
-													{
-														"kind": "literal",
-														"parentNamespaces": [],
-														"value": "\"three\""
 													}
 												],
-												"name": "OutsideType",
-												"parentNamespaces": []
+												"name": "NamespacedType",
+												"parentNamespaces": [
+													"Root"
+												]
 											},
 											"optional": false
 										}
@@ -269,15 +305,12 @@
 									"kind": "literal",
 									"parentNamespaces": [],
 									"value": "\"two\""
-								},
-								{
-									"kind": "literal",
-									"parentNamespaces": [],
-									"value": "\"three\""
 								}
 							],
-							"name": "OutsideType",
-							"parentNamespaces": []
+							"name": "NamespacedType",
+							"parentNamespaces": [
+								"Root"
+							]
 						},
 						"optional": false
 					}

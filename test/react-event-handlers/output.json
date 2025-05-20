@@ -37,7 +37,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "KeyboardEventHandler",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					},
@@ -70,7 +73,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "FocusEventHandler",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					}

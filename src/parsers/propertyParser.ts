@@ -16,11 +16,12 @@ export function parseProperty(
 
 	try {
 		let type: ts.Type;
+
 		if (propertySignature) {
-			if (!propertySignature.type) {
-				type = checker.getAnyType();
-			} else {
+			if (propertySignature.type) {
 				type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+			} else {
+				type = checker.getAnyType();
 			}
 		} else {
 			type = checker.getTypeOfSymbol(propertySymbol);
@@ -36,7 +37,7 @@ export function parseProperty(
 			parsedType = new IntrinsicNode('any');
 			isOptional = Boolean(propertySignature.questionToken);
 		} else {
-			parsedType = resolveType(type, context, skipResolvingComplexTypes);
+			parsedType = resolveType(type, context, propertySignature?.type, skipResolvingComplexTypes);
 			isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 		}
 

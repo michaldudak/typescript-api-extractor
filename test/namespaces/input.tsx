@@ -28,4 +28,6 @@ export namespace Root {
 
 export function fn3(params: Root.Sub.Params) {}
 
-type OutsideType = 'one' | 'two' | 'three';
+export function fn4(a: Root.NamespacedType) {}
+
+type OutsideType = 'one' | 'two';

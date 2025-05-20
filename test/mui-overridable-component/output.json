@@ -100,7 +100,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "CSSProperties",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					}

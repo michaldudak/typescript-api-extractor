@@ -110,7 +110,9 @@
 									"type": {
 										"kind": "reference",
 										"name": "RefCallback",
-										"parentNamespaces": []
+										"parentNamespaces": [
+											"React"
+										]
 									},
 									"optional": false
 								}

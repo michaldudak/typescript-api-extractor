@@ -131,6 +131,7 @@
 							{
 								"type": {
 									"kind": "tuple",
+									"name": "Parameters",
 									"parentNamespaces": [],
 									"types": [
 										{

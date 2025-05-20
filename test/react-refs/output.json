@@ -24,7 +24,9 @@
 						"type": {
 							"kind": "reference",
 							"name": "RefCallback",
-							"parentNamespaces": []
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": false
 					},
@@ -57,7 +59,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "RefObject",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					},
@@ -77,7 +82,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "RefCallback",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					},
@@ -99,7 +107,10 @@
 									"name": "undefined"
 								}
 							],
-							"parentNamespaces": []
+							"name": "Ref",
+							"parentNamespaces": [
+								"React"
+							]
 						},
 						"optional": true
 					}

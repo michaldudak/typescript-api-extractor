@@ -20,6 +20,7 @@ import {
 export function resolveType(
 	type: ts.Type,
 	context: ParserContext,
+	typeNode?: ts.TypeNode,
 	skipResolvingComplexTypes: boolean = false,
 ): TypeNode {
 	const { checker, typeStack, includeExternalTypes } = context;
@@ -36,7 +37,24 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	const namespaces = getTypeNamespaces(type);
+	const typeNodeSymbol =
+		typeNode && ts.isTypeReferenceNode(typeNode)
+			? checker.getSymbolAtLocation((typeNode as ts.TypeReferenceNode).typeName)
+			: undefined;
+	const declaredType = typeNodeSymbol ? checker.getDeclaredTypeOfSymbol(typeNodeSymbol) : undefined;
+	const namespaces = typeNodeSymbol
+		? getTypeSymbolNamespaces(typeNodeSymbol)
+		: getTypeNamespaces(type);
+
+	let typeSymbol: ts.Symbol | undefined;
+	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+		if (ts.isIdentifier(typeNodeName)) {
+			typeSymbol = checker.getSymbolAtLocation(typeNodeName);
+		} else if (ts.isQualifiedName(typeNodeName)) {
+			typeSymbol = checker.getSymbolAtLocation(typeNodeName.right);
+		}
+	}
 
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
@@ -58,13 +76,13 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			const typeName = getTypeName(type, checker);
+			const typeName = getTypeName(type, typeSymbol, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
 				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(getTypeName(type, checker), namespaces);
+			return new ReferenceNode(getTypeName(type, typeSymbol, checker), namespaces);
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -91,7 +109,7 @@ export function resolveType(
 
 		if (type.isUnion()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = type.aliasSymbol ?? type.getSymbol();
+			const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 			let typeName = symbol?.getName();
 			if (typeName === '__type') {
 				typeName = undefined;
@@ -116,7 +134,7 @@ export function resolveType(
 
 		if (type.isIntersection()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = type.aliasSymbol ?? type.getSymbol();
+			const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 			let typeName = symbol?.getName();
 			if (typeName === '__type') {
 				typeName = undefined;
@@ -155,7 +173,7 @@ export function resolveType(
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
-				type.aliasSymbol?.name,
+				typeSymbol?.name ?? type.aliasSymbol?.name,
 				[],
 				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, context)) ?? [],
 			);
@@ -280,14 +298,17 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 		return [];
 	}
 
-	if (symbol.name === '__function' || symbol.name === '__type') {
+	return getTypeSymbolNamespaces(symbol);
+}
+
+function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
+	if (typeSymbol.name === '__function' || typeSymbol.name === '__type') {
 		return [];
 	}
 
-	const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
+	const declaration = typeSymbol.valueDeclaration ?? typeSymbol.declarations?.[0];
 	return getNodeNamespaces(declaration);
 }
-
 export function getNodeNamespaces(node: ts.Node | undefined): string[] {
 	if (!node) {
 		return [];
@@ -326,8 +347,12 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	);
 }
 
-function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
-	const symbol = type.aliasSymbol ?? type.getSymbol();
+function getTypeName(
+	type: ts.Type,
+	typeSymbol: ts.Symbol | undefined,
+	checker: ts.TypeChecker,
+): string {
+	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
 		return checker.typeToString(type);
 	}
@@ -341,11 +366,11 @@ function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
 	if ('target' in type) {
 		typeArguments = checker
 			.getTypeArguments(type as ts.TypeReference)
-			?.map((x) => getTypeName(x, checker));
+			?.map((x) => getTypeName(x, undefined, checker));
 	}
 
 	if (!typeArguments?.length) {
-		typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker)) ?? [];
+		typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, undefined, checker)) ?? [];
 	}
 
 	if (typeArguments && typeArguments.length > 0) {

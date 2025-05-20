@@ -24,7 +24,7 @@
 									"value": 2
 								}
 							],
-							"name": "SomeType",
+							"name": "Alias",
 							"parentNamespaces": []
 						},
 						"optional": false
