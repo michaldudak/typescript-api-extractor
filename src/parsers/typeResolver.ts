@@ -238,14 +238,21 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.Conditional) {
-			return new UnionNode(
-				undefined,
-				[],
-				[
-					resolveType((type as ts.ConditionalType).resolvedTrueType!, '', context),
-					resolveType((type as ts.ConditionalType).resolvedFalseType!, '', context),
-				],
-			);
+			const conditionalType = type as ts.ConditionalType;
+			if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
+				return new UnionNode(
+					undefined,
+					[],
+					[
+						resolveType((type as ts.ConditionalType).resolvedTrueType!, '', context),
+						resolveType((type as ts.ConditionalType).resolvedFalseType!, '', context),
+					],
+				);
+			} else if (conditionalType.resolvedTrueType) {
+				return resolveType(conditionalType.resolvedTrueType, '', context);
+			} else if (conditionalType.resolvedFalseType) {
+				return resolveType(conditionalType.resolvedFalseType, '', context);
+			}
 		}
 
 		console.warn(
