@@ -37,7 +37,12 @@ export function parseProperty(
 			parsedType = new IntrinsicNode('any');
 			isOptional = Boolean(propertySignature.questionToken);
 		} else {
-			parsedType = resolveType(type, context, propertySignature?.type, skipResolvingComplexTypes);
+			parsedType = resolveType(
+				type,
+				context,
+				isTypeParameterLike(type) ? undefined : propertySignature?.type,
+				skipResolvingComplexTypes,
+			);
 			isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 		}
 
@@ -58,4 +63,26 @@ export function parseProperty(
 	} finally {
 		parsedSymbolStack.pop();
 	}
+}
+
+function isTypeParameterLike(type: ts.Type): boolean {
+	// Check if the type is a type parameter
+	return (
+		(type.flags & ts.TypeFlags.TypeParameter) !== 0 ||
+		((type.flags & ts.TypeFlags.Union) !== 0 && isOptionalTypeParameter(type as ts.UnionType))
+	);
+}
+
+function isOptionalTypeParameter(type: ts.UnionType): boolean {
+	// Check if the type is defined as
+	// foo?: T
+	// where T is a type parameter
+
+	return (
+		type.types.length === 2 &&
+		type.types.some((t) => t.flags & ts.TypeFlags.Undefined) &&
+		type.types.some(
+			(t) => 'objectFlags' in t && ((t.objectFlags as number) & ts.ObjectFlags.Instantiated) !== 0,
+		)
+	);
 }

@@ -1,0 +1,219 @@
+{
+	"name": "test/generics-closed/input",
+	"exports": [
+		{
+			"name": "fn",
+			"type": {
+				"kind": "function",
+				"name": "fn",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Props",
+									"parentNamespaces": [
+										"MyComponent"
+									],
+									"properties": [
+										{
+											"name": "className",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "string"
+													},
+													{
+														"kind": "function",
+														"parentNamespaces": [],
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "object",
+																			"name": "State",
+																			"parentNamespaces": [
+																				"MyComponent"
+																			],
+																			"properties": [
+																				{
+																					"name": "disabled",
+																					"type": {
+																						"kind": "intrinsic",
+																						"parentNamespaces": [],
+																						"name": "boolean"
+																					},
+																					"optional": false
+																				}
+																			]
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"parentNamespaces": [],
+																	"name": "string"
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "undefined"
+													}
+												],
+												"parentNamespaces": []
+											},
+											"optional": true
+										},
+										{
+											"name": "render",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "function",
+														"name": "ComponentRenderFn",
+														"parentNamespaces": [],
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "intersection",
+																			"types": [
+																				{
+																					"kind": "reference",
+																					"name": "HTMLAttributes<any>",
+																					"parentNamespaces": [
+																						"React"
+																					]
+																				},
+																				{
+																					"kind": "object",
+																					"parentNamespaces": [],
+																					"properties": [
+																						{
+																							"name": "ref",
+																							"type": {
+																								"kind": "union",
+																								"types": [
+																									{
+																										"kind": "reference",
+																										"name": "Ref<any>",
+																										"parentNamespaces": [
+																											"React"
+																										]
+																									},
+																									{
+																										"kind": "intrinsic",
+																										"parentNamespaces": [],
+																										"name": "undefined"
+																									}
+																								],
+																								"parentNamespaces": []
+																							},
+																							"optional": true
+																						}
+																					]
+																				}
+																			],
+																			"name": "Props",
+																			"parentNamespaces": [],
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "reference",
+																								"name": "Ref<any>",
+																								"parentNamespaces": [
+																									"React"
+																								]
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"parentNamespaces": [],
+																								"name": "undefined"
+																							}
+																						],
+																						"parentNamespaces": []
+																					},
+																					"optional": true
+																				}
+																			]
+																		},
+																		"name": "props",
+																		"optional": false
+																	},
+																	{
+																		"type": {
+																			"kind": "object",
+																			"name": "State",
+																			"parentNamespaces": [
+																				"MyComponent"
+																			],
+																			"properties": [
+																				{
+																					"name": "disabled",
+																					"type": {
+																						"kind": "intrinsic",
+																						"parentNamespaces": [],
+																						"name": "boolean"
+																					},
+																					"optional": false
+																				}
+																			]
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "reference",
+																	"name": "ReactElement<unknown, string | JSXElementConstructor<any>>",
+																	"parentNamespaces": [
+																		"React"
+																	]
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "undefined"
+													}
+												],
+												"parentNamespaces": []
+											},
+											"optional": true
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}
