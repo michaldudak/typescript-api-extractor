@@ -238,17 +238,14 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.Conditional) {
-			// We don't fully support conditional types. We assume the condition is always true.
-			if (
-				type.aliasSymbol?.declarations?.[0] &&
-				ts.isTypeAliasDeclaration(type.aliasSymbol.declarations[0]) &&
-				ts.isConditionalTypeNode(type.aliasSymbol.declarations[0].type)
-			) {
-				const trueType = checker.getTypeFromTypeNode(
-					type.aliasSymbol.declarations[0].type.trueType,
-				);
-				return resolveType(trueType, name, context);
-			}
+			return new UnionNode(
+				undefined,
+				[],
+				[
+					resolveType((type as ts.ConditionalType).resolvedTrueType!, '', context),
+					resolveType((type as ts.ConditionalType).resolvedFalseType!, '', context),
+				],
+			);
 		}
 
 		console.warn(
