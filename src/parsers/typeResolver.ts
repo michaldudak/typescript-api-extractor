@@ -37,14 +37,6 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	const typeNodeSymbol =
-		typeNode && ts.isTypeReferenceNode(typeNode)
-			? checker.getSymbolAtLocation((typeNode as ts.TypeReferenceNode).typeName)
-			: undefined;
-	const namespaces = typeNodeSymbol
-		? getTypeSymbolNamespaces(typeNodeSymbol)
-		: getTypeNamespaces(type);
-
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -68,6 +60,8 @@ export function resolveType(
 			}
 		}
 	}
+
+	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
 
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
