@@ -45,13 +45,27 @@ export function resolveType(
 		? getTypeSymbolNamespaces(typeNodeSymbol)
 		: getTypeNamespaces(type);
 
+	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
+	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
+	//
+	// However, this also covers cases where the type is a type parameter (as in `type Generic<T> = { value: T }`).
+	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
 	let typeSymbol: ts.Symbol | undefined;
 	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
 		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
-		if (ts.isIdentifier(typeNodeName)) {
-			typeSymbol = checker.getSymbolAtLocation(typeNodeName);
-		} else if (ts.isQualifiedName(typeNodeName)) {
-			typeSymbol = checker.getSymbolAtLocation(typeNodeName.right);
+		if (ts.isIdentifier(typeNodeName) && typeNodeName.text !== type.aliasSymbol?.name) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+				typeSymbol = typeSymbolCandidate;
+			}
+		} else if (
+			ts.isQualifiedName(typeNodeName) &&
+			typeNodeName.right.text !== type.aliasSymbol?.name
+		) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+				typeSymbol = typeSymbolCandidate;
+			}
 		}
 	}
 
