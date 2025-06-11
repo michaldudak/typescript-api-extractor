@@ -75,8 +75,7 @@
 																			"parentNamespaces": [],
 																			"name": "undefined"
 																		}
-																	],
-																	"parentNamespaces": []
+																	]
 																},
 																"name": "reason",
 																"documentation": {
@@ -116,8 +115,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"documentation": {
 												"description": "For internal use only",

@@ -19,8 +19,8 @@ import {
 
 export function resolveType(
 	type: ts.Type,
-	name: string,
 	context: ParserContext,
+	typeNode?: ts.TypeNode,
 	skipResolvingComplexTypes: boolean = false,
 ): TypeNode {
 	const { checker, typeStack, includeExternalTypes } = context;
@@ -37,7 +37,31 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	const namespaces = getTypeNamespaces(type);
+	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
+	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
+	//
+	// However, this also covers cases where the type is a type parameter (as in `type Generic<T> = { value: T }`).
+	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
+	let typeSymbol: ts.Symbol | undefined;
+	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+		if (ts.isIdentifier(typeNodeName) && typeNodeName.text !== type.aliasSymbol?.name) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+				typeSymbol = typeSymbolCandidate;
+			}
+		} else if (
+			ts.isQualifiedName(typeNodeName) &&
+			typeNodeName.right.text !== type.aliasSymbol?.name
+		) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+				typeSymbol = typeSymbolCandidate;
+			}
+		}
+	}
+
+	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
 
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
@@ -47,7 +71,7 @@ export function resolveType(
 				namespaces,
 				declaration?.constraint?.getText(),
 				declaration?.default
-					? resolveType(checker.getTypeAtLocation(declaration.default), '', context)
+					? resolveType(checker.getTypeAtLocation(declaration.default), context)
 					: undefined,
 			);
 		}
@@ -55,21 +79,17 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(
-				type.aliasSymbol?.name,
-				namespaces,
-				resolveType(arrayType, name, context),
-			);
+			return new ArrayNode(type.aliasSymbol?.name, namespaces, resolveType(arrayType, context));
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			const typeName = getTypeName(type, checker);
+			const typeName = getTypeName(type, typeSymbol, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
 				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(getTypeName(type, checker), namespaces);
+			return new ReferenceNode(typeName ?? checker.typeToString(type), namespaces);
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -96,21 +116,17 @@ export function resolveType(
 
 		if (type.isUnion()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = type.aliasSymbol ?? type.getSymbol();
-			let typeName = symbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			// @ts-expect-error - Internal API
 			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
 				for (const memberType of type.origin.types) {
-					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+					memberTypes.push(resolveType(memberType, context));
 				}
 			} else {
 				for (const memberType of type.types) {
-					memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+					memberTypes.push(resolveType(memberType, context));
 				}
 			}
 
@@ -121,14 +137,10 @@ export function resolveType(
 
 		if (type.isIntersection()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = type.aliasSymbol ?? type.getSymbol();
-			let typeName = symbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			for (const memberType of type.types) {
-				memberTypes.push(resolveType(memberType, memberType.getSymbol()?.name || '', context));
+				memberTypes.push(resolveType(memberType, context));
 			}
 
 			if (memberTypes.length === 0) {
@@ -149,7 +161,7 @@ export function resolveType(
 					return parseFunctionType(type, context)!;
 				}
 
-				const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+				const objectType = parseObjectType(type, context, skipResolvingComplexTypes);
 				if (objectType) {
 					return new IntersectionNode(typeName, namespaces, memberTypes, objectType.properties);
 				}
@@ -160,11 +172,9 @@ export function resolveType(
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
-				undefined,
+				typeSymbol?.name ?? type.aliasSymbol?.name,
 				[],
-				(type as ts.TupleType).typeArguments?.map((x) =>
-					resolveType(x, x.getSymbol()?.name || '', context),
-				) ?? [],
+				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, context)) ?? [],
 			);
 		}
 
@@ -218,7 +228,7 @@ export function resolveType(
 			return parseFunctionType(type, context)!;
 		}
 
-		const objectType = parseObjectType(type, name, context, skipResolvingComplexTypes);
+		const objectType = parseObjectType(type, context, skipResolvingComplexTypes);
 		if (objectType) {
 			return objectType;
 		}
@@ -228,12 +238,7 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
-			let typeName = typeSymbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
-
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 			return new ObjectNode(typeName, namespaces, [], undefined);
 		}
 
@@ -244,14 +249,14 @@ export function resolveType(
 					undefined,
 					[],
 					[
-						resolveType((type as ts.ConditionalType).resolvedTrueType!, '', context),
-						resolveType((type as ts.ConditionalType).resolvedFalseType!, '', context),
+						resolveType((type as ts.ConditionalType).resolvedTrueType!, context),
+						resolveType((type as ts.ConditionalType).resolvedFalseType!, context),
 					],
 				);
 			} else if (conditionalType.resolvedTrueType) {
-				return resolveType(conditionalType.resolvedTrueType, '', context);
+				return resolveType(conditionalType.resolvedTrueType, context);
 			} else if (conditionalType.resolvedFalseType) {
-				return resolveType(conditionalType.resolvedFalseType, '', context);
+				return resolveType(conditionalType.resolvedFalseType, context);
 			}
 		}
 
@@ -291,24 +296,31 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 		return [];
 	}
 
-	if (symbol.name === '__function' || symbol.name === '__type') {
+	return getTypeSymbolNamespaces(symbol);
+}
+
+function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
+	if (typeSymbol.name === '__function' || typeSymbol.name === '__type') {
 		return [];
 	}
 
-	const declaration = symbol.valueDeclaration ?? symbol.declarations?.[0];
-	if (!declaration) {
+	const declaration = typeSymbol.valueDeclaration ?? typeSymbol.declarations?.[0];
+	return getNodeNamespaces(declaration);
+}
+export function getNodeNamespaces(node: ts.Node | undefined): string[] {
+	if (!node) {
 		return [];
 	}
 
 	const namespaces: string[] = [];
-	let currentDeclaration: ts.Node = declaration.parent;
+	let currentNode = node.parent;
 
-	while (currentDeclaration != null && !ts.isSourceFile(currentDeclaration)) {
-		if (ts.isModuleDeclaration(currentDeclaration)) {
-			namespaces.unshift(currentDeclaration.name.getText());
+	while (currentNode != null && !ts.isSourceFile(currentNode)) {
+		if (ts.isModuleDeclaration(currentNode)) {
+			namespaces.unshift(currentNode.name.getText());
 		}
 
-		currentDeclaration = currentDeclaration.parent;
+		currentNode = currentNode.parent;
 	}
 
 	return namespaces;
@@ -333,26 +345,43 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	);
 }
 
-function getTypeName(type: ts.Type, checker: ts.TypeChecker): string {
-	const symbol = type.aliasSymbol ?? type.getSymbol();
+export function getTypeName(
+	type: ts.Type,
+	typeSymbol: ts.Symbol | undefined,
+	checker: ts.TypeChecker,
+	useFallback: boolean = true,
+): string | undefined {
+	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
-		return checker.typeToString(type);
+		return useFallback ? checker.typeToString(type) : undefined;
+	}
+
+	if (typeSymbol && !type.aliasSymbol && !type.symbol) {
+		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
 	const typeName = symbol.getName();
 	if (typeName === '__type') {
-		return checker.typeToString(type);
+		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
 	let typeArguments: string[] | undefined;
-	if ('target' in type) {
-		typeArguments = checker
-			.getTypeArguments(type as ts.TypeReference)
-			?.map((x) => getTypeName(x, checker));
-	}
 
-	if (!typeArguments?.length) {
-		typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, checker)) ?? [];
+	if (type.aliasSymbol && !type.aliasTypeArguments) {
+		typeArguments = [];
+	} else {
+		if ('target' in type) {
+			typeArguments = checker
+				.getTypeArguments(type as ts.TypeReference)
+				?.map((x) => getTypeName(x, undefined, checker, true) ?? 'unknown');
+		}
+
+		if (!typeArguments?.length) {
+			typeArguments =
+				type.aliasTypeArguments?.map(
+					(x) => getTypeName(x, undefined, checker, true) ?? 'unknown',
+				) ?? [];
+		}
 	}
 
 	if (typeArguments && typeArguments.length > 0) {

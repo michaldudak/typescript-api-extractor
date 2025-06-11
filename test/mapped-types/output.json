@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial",
+									"name": "Partial<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -31,8 +31,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										},
@@ -51,8 +50,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}
@@ -83,7 +81,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required",
+									"name": "Required<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -131,7 +129,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial",
+									"name": "Partial<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -149,8 +147,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										},
@@ -169,8 +166,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}
@@ -201,7 +197,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required",
+									"name": "Required<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{

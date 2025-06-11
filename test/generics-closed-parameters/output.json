@@ -1,0 +1,56 @@
+{
+	"name": "test/generics-closed-parameters/input",
+	"exports": [
+		{
+			"name": "test",
+			"type": {
+				"kind": "function",
+				"name": "test",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "GenericObject<MyUnion>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "x",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "number"
+													}
+												],
+												"parentNamespaces": [],
+												"name": "MyUnion"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "null"
+						}
+					}
+				]
+			}
+		}
+	]
+}

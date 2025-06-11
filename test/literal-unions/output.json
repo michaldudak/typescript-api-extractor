@@ -36,8 +36,7 @@
 														"parentNamespaces": [],
 														"value": "\"baz\""
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										},
@@ -61,8 +60,7 @@
 														"parentNamespaces": [],
 														"value": 3
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										},
@@ -87,8 +85,8 @@
 														"value": "\"baz\""
 													}
 												],
-												"name": "StringUnion",
-												"parentNamespaces": []
+												"parentNamespaces": [],
+												"name": "StringUnion"
 											},
 											"optional": false
 										},
@@ -113,8 +111,8 @@
 														"value": 3
 													}
 												],
-												"name": "NumberUnion",
-												"parentNamespaces": []
+												"parentNamespaces": [],
+												"name": "NumberUnion"
 											},
 											"optional": false
 										},
@@ -149,16 +147,15 @@
 																					"value": "\"baz\""
 																				}
 																			],
-																			"name": "StringUnion",
-																			"parentNamespaces": []
+																			"parentNamespaces": [],
+																			"name": "StringUnion"
 																		},
 																		{
 																			"kind": "intrinsic",
 																			"parentNamespaces": [],
 																			"name": "undefined"
 																		}
-																	],
-																	"parentNamespaces": []
+																	]
 																},
 																"name": "ref",
 																"optional": false
@@ -198,8 +195,8 @@
 																"value": "\"baz\""
 															}
 														],
-														"name": "StringUnion",
-														"parentNamespaces": []
+														"parentNamespaces": [],
+														"name": "StringUnion"
 													},
 													{
 														"kind": "union",
@@ -220,11 +217,10 @@
 																"value": 3
 															}
 														],
-														"name": "NumberUnion",
-														"parentNamespaces": []
+														"parentNamespaces": [],
+														"name": "NumberUnion"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										},
@@ -255,8 +251,8 @@
 																		"value": "\"baz\""
 																	}
 																],
-																"name": "StringUnion",
-																"parentNamespaces": []
+																"parentNamespaces": [],
+																"name": "StringUnion"
 															},
 															{
 																"kind": "literal",
@@ -264,16 +260,15 @@
 																"value": "\"qux\""
 															}
 														],
-														"name": "IndirectStringUnion",
-														"parentNamespaces": []
+														"parentNamespaces": [],
+														"name": "IndirectStringUnion"
 													},
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										}
@@ -320,8 +315,7 @@
 											"parentNamespaces": [],
 											"value": "\"baz\""
 										}
-									],
-									"parentNamespaces": []
+									]
 								},
 								"name": "inlineStringUnion",
 								"optional": false
@@ -345,8 +339,7 @@
 											"parentNamespaces": [],
 											"value": 3
 										}
-									],
-									"parentNamespaces": []
+									]
 								},
 								"name": "inlineNumberUnion",
 								"optional": false
@@ -371,8 +364,8 @@
 											"value": "\"baz\""
 										}
 									],
-									"name": "StringUnion",
-									"parentNamespaces": []
+									"parentNamespaces": [],
+									"name": "StringUnion"
 								},
 								"name": "referencedStringUnion",
 								"optional": false
@@ -397,8 +390,8 @@
 											"value": 3
 										}
 									],
-									"name": "NumberUnion",
-									"parentNamespaces": []
+									"parentNamespaces": [],
+									"name": "NumberUnion"
 								},
 								"name": "referencedNumberUnion",
 								"optional": false
@@ -426,8 +419,8 @@
 													"value": "\"baz\""
 												}
 											],
-											"name": "StringUnion",
-											"parentNamespaces": []
+											"parentNamespaces": [],
+											"name": "StringUnion"
 										},
 										{
 											"kind": "union",
@@ -448,11 +441,10 @@
 													"value": 3
 												}
 											],
-											"name": "NumberUnion",
-											"parentNamespaces": []
+											"parentNamespaces": [],
+											"name": "NumberUnion"
 										}
-									],
-									"parentNamespaces": []
+									]
 								},
 								"name": "unionOfUnions",
 								"optional": false
@@ -483,8 +475,8 @@
 															"value": "\"baz\""
 														}
 													],
-													"name": "StringUnion",
-													"parentNamespaces": []
+													"parentNamespaces": [],
+													"name": "StringUnion"
 												},
 												{
 													"kind": "literal",
@@ -492,16 +484,15 @@
 													"value": "\"qux\""
 												}
 											],
-											"name": "IndirectStringUnion",
-											"parentNamespaces": []
+											"parentNamespaces": [],
+											"name": "IndirectStringUnion"
 										},
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
 											"name": "undefined"
 										}
-									],
-									"parentNamespaces": []
+									]
 								},
 								"name": "indirectUnion",
 								"optional": false
@@ -564,8 +555,7 @@
 											"parentNamespaces": [],
 											"value": "\"indirectUnion\""
 										}
-									],
-									"parentNamespaces": []
+									]
 								},
 								"name": "prop",
 								"optional": false

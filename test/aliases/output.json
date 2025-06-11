@@ -1,0 +1,116 @@
+{
+	"name": "test/aliases/input",
+	"exports": [
+		{
+			"name": "fn1",
+			"type": {
+				"kind": "function",
+				"name": "fn1",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 1
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 2
+										}
+									],
+									"parentNamespaces": [],
+									"name": "Alias"
+								},
+								"name": "a",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"name": "MyRecord<string, string>",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								"name": "r",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"name": "AliasToGeneric",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								"name": "s",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "A",
+			"type": {
+				"kind": "object",
+				"name": "A",
+				"parentNamespaces": [],
+				"properties": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": 1
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": 2
+								}
+							],
+							"parentNamespaces": [],
+							"name": "Alias"
+						},
+						"optional": false
+					},
+					{
+						"name": "r",
+						"type": {
+							"kind": "object",
+							"name": "MyRecord<string, string>",
+							"parentNamespaces": [],
+							"properties": []
+						},
+						"optional": false
+					},
+					{
+						"name": "s",
+						"type": {
+							"kind": "object",
+							"name": "AliasToGeneric",
+							"parentNamespaces": [],
+							"properties": []
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

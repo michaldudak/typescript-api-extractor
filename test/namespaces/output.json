@@ -40,10 +40,75 @@
 												]
 											},
 											"optional": false
+										},
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"one\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"two\""
+													}
+												],
+												"parentNamespaces": [
+													"Root"
+												],
+												"name": "NamespacedType"
+											},
+											"optional": false
 										}
 									]
 								},
 								"name": "params",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "fn4",
+			"type": {
+				"kind": "function",
+				"name": "fn4",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"one\""
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"two\""
+										}
+									],
+									"parentNamespaces": [
+										"Root"
+									],
+									"name": "NamespacedType"
+								},
+								"name": "a",
 								"optional": false
 							}
 						],
@@ -116,6 +181,29 @@
 														"value": 1
 													}
 												]
+											},
+											"optional": false
+										},
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"one\""
+													},
+													{
+														"kind": "literal",
+														"parentNamespaces": [],
+														"value": "\"two\""
+													}
+												],
+												"parentNamespaces": [
+													"Root"
+												],
+												"name": "NamespacedType"
 											},
 											"optional": false
 										}
@@ -200,6 +288,29 @@
 									"value": 1
 								}
 							]
+						},
+						"optional": false
+					},
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"one\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"two\""
+								}
+							],
+							"parentNamespaces": [
+								"Root"
+							],
+							"name": "NamespacedType"
 						},
 						"optional": false
 					}

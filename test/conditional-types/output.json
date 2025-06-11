@@ -34,8 +34,7 @@
 									"parentNamespaces": [],
 									"name": "null"
 								}
-							],
-							"parentNamespaces": []
+							]
 						}
 					}
 				]
@@ -53,7 +52,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Props",
+									"name": "Props<Multiple>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -80,8 +79,7 @@
 														"parentNamespaces": [],
 														"name": "null"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										}

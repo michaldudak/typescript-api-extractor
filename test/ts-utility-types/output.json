@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Pick",
+									"name": "Pick<Base, \"a\" | \"b\">",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -40,8 +40,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}
@@ -72,7 +71,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Omit",
+									"name": "Omit<Base, \"c\">",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -99,8 +98,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}
@@ -131,11 +129,12 @@
 							{
 								"type": {
 									"kind": "tuple",
+									"name": "Parameters",
 									"parentNamespaces": [],
 									"types": [
 										{
 											"kind": "object",
-											"name": "Pick",
+											"name": "Pick<Base, \"a\" | \"b\">",
 											"parentNamespaces": [],
 											"properties": [
 												{
@@ -162,8 +161,7 @@
 																"parentNamespaces": [],
 																"name": "undefined"
 															}
-														],
-														"parentNamespaces": []
+														]
 													},
 													"optional": true
 												}

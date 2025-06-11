@@ -8,16 +8,18 @@ export class UnionNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
-		public parentNamespaces: string[],
+		parentNamespaces: string[],
 		types: TypeNode[],
 	) {
 		const flatTypes = flattenTypes(types, UnionNode);
 		sanitizeBooleanLiterals(flatTypes);
 		sortMemberTypes(flatTypes);
 		this.types = deduplicateMemberTypes(flatTypes);
+		this.parentNamespaces = name ? parentNamespaces : undefined;
 	}
 
 	types: readonly TypeNode[];
+	parentNamespaces: string[] | undefined;
 }
 
 /**

@@ -1,13 +1,13 @@
 import * as React from 'react';
 
-export const BaseUIComponent = React.forwardRef(function BaseUIComponent(
-	props: BaseUIComponent.Props,
+export const BaseUIComponent1 = React.forwardRef(function BaseUIComponent(
+	props: BaseUIComponent1.Props,
 	ref: React.ForwardedRef<HTMLDivElement>,
 ) {
 	return <div ref={ref} />;
 });
 
-export namespace BaseUIComponent {
+export namespace BaseUIComponent1 {
 	export interface Props extends BaseUIComponentProps<'div', State> {
 		value?: string;
 		onValueChange?: (value: string) => void;
@@ -23,36 +23,47 @@ export namespace BaseUIComponent {
 	}
 }
 
+export const BaseUIComponent2 = React.forwardRef(function BaseUIComponent(
+	props: BaseUIComponent2.Props,
+	ref: React.ForwardedRef<HTMLDivElement>,
+) {
+	return <div ref={ref} />;
+});
+
+export namespace BaseUIComponent2 {
+	export interface Props extends BaseUIComponentProps<'div', State> {}
+
+	export interface State {}
+}
+
 type BaseUIComponentProps<
 	ElementType extends React.ElementType,
 	State,
-	RenderFunctionProps = GenericHTMLProps,
-> = Omit<WithBaseUIEvent<React.ComponentPropsWithoutRef<ElementType>>, 'className'> & {
-	/**
-	 * CSS class applied to the element, or a function that
-	 * returns a class based on the component’s state.
-	 */
+	RenderFunctionProps = HTMLProps,
+> = Omit<
+	WithBaseUIEvent<React.ComponentPropsWithoutRef<ElementType>>,
+	'className' | 'color' | 'defaultValue' | 'defaultChecked'
+> & {
 	className?: string | ((state: State) => string);
-	/**
-	 * Allows you to replace the component’s HTML element
-	 * with a different tag, or compose it with another component.
-	 *
-	 * Accepts a `ReactElement` or a function that returns the element to render.
-	 */
 	render?:
 		| ComponentRenderFn<RenderFunctionProps, State>
 		| React.ReactElement<Record<string, unknown>>;
 };
 
-type ComponentRenderFn<Props, State> = (props: Props, state: State) => React.ReactElement<unknown>;
+export type ComponentRenderFn<Props, State> = (
+	props: Props,
+	state: State,
+) => React.ReactElement<unknown>;
 
 type WithBaseUIEvent<T> = {
 	[K in keyof T]: WithPreventBaseUIHandler<T[K]>;
 };
 
-export type GenericHTMLProps = React.HTMLAttributes<any> & { ref?: React.Ref<any> | undefined };
+type HTMLProps<T = any> = React.HTMLAttributes<T> & {
+	ref?: React.Ref<T> | undefined;
+};
 
-export type BaseUIEvent<E extends React.SyntheticEvent<Element, Event>> = E & {
+type BaseUIEvent<E extends React.SyntheticEvent<Element, Event>> = E & {
 	preventBaseUIHandler: () => void;
 	readonly baseUIHandlerPrevented?: boolean;
 };

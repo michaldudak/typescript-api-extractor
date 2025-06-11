@@ -7,14 +7,16 @@ export class IntersectionNode implements TypeNode {
 
 	constructor(
 		public name: string | undefined,
-		public parentNamespaces: string[],
+		parentNamespaces: string[],
 		types: TypeNode[],
 		public properties: PropertyNode[],
 	) {
 		const flatTypes = flattenTypes(types, IntersectionNode);
 		sortMemberTypes(flatTypes);
 		this.types = deduplicateMemberTypes(flatTypes);
+		this.parentNamespaces = name ? parentNamespaces : undefined;
 	}
 
 	types: readonly TypeNode[];
+	parentNamespaces: string[] | undefined;
 }
