@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial",
+									"name": "Partial<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -83,7 +83,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required",
+									"name": "Required<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -131,7 +131,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial",
+									"name": "Partial<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -201,7 +201,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required",
+									"name": "Required<Base>",
 									"parentNamespaces": [],
 									"properties": [
 										{

@@ -2,24 +2,20 @@ import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
 import { ObjectNode } from '../models';
-import { getTypeNamespaces } from './typeResolver';
+import { getTypeName, getTypeNamespaces } from './typeResolver';
 
 export function parseObjectType(
 	type: ts.Type,
 	context: ParserContext,
 	skipResolvingComplexTypes: boolean,
 ): ObjectNode | undefined {
-	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
+	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, checker } = context;
 
 	const properties = type
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
 
-	const typeSymbol = type.aliasSymbol ?? type.getSymbol();
-	let typeName = typeSymbol?.getName();
-	if (typeName === '__type') {
-		typeName = undefined;
-	}
+	const typeName = getTypeName(type, undefined, checker, false);
 
 	if (properties.length) {
 		if (

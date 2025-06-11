@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "GenericFunctionParameters",
+									"name": "GenericFunctionParameters<T>",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -30,14 +30,14 @@
 											"name": "nestedGenericType",
 											"type": {
 												"kind": "object",
-												"name": "GenericInterface",
+												"name": "GenericInterface<GenericInterface<string>>",
 												"parentNamespaces": [],
 												"properties": [
 													{
 														"name": "data",
 														"type": {
 															"kind": "object",
-															"name": "GenericInterface",
+															"name": "GenericInterface<string>",
 															"parentNamespaces": [],
 															"properties": [
 																{

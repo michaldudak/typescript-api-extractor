@@ -53,7 +53,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Props",
+									"name": "Props<Multiple>",
 									"parentNamespaces": [],
 									"properties": [
 										{

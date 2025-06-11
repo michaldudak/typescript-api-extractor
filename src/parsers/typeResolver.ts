@@ -89,7 +89,10 @@ export function resolveType(
 				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(getTypeName(type, typeSymbol, checker), namespaces);
+			return new ReferenceNode(
+				getTypeName(type, typeSymbol, checker) ?? checker.typeToString(type),
+				namespaces,
+			);
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -116,11 +119,7 @@ export function resolveType(
 
 		if (type.isUnion()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
-			let typeName = symbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			// @ts-expect-error - Internal API
 			if (type.origin?.isUnion()) {
@@ -141,11 +140,7 @@ export function resolveType(
 
 		if (type.isIntersection()) {
 			const memberTypes: TypeNode[] = [];
-			const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
-			let typeName = symbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			for (const memberType of type.types) {
 				memberTypes.push(resolveType(memberType, context));
@@ -246,12 +241,7 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			const typeSymbol = type.aliasSymbol ?? type.getSymbol();
-			let typeName = typeSymbol?.getName();
-			if (typeName === '__type') {
-				typeName = undefined;
-			}
-
+			const typeName = getTypeName(type, typeSymbol, checker, false);
 			return new ObjectNode(typeName, namespaces, [], undefined);
 		}
 
@@ -358,30 +348,39 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	);
 }
 
-function getTypeName(
+export function getTypeName(
 	type: ts.Type,
 	typeSymbol: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
-): string {
+	useFallback: boolean = true,
+): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
-		return checker.typeToString(type);
+		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
 	const typeName = symbol.getName();
 	if (typeName === '__type') {
-		return checker.typeToString(type);
+		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
 	let typeArguments: string[] | undefined;
-	if ('target' in type) {
-		typeArguments = checker
-			.getTypeArguments(type as ts.TypeReference)
-			?.map((x) => getTypeName(x, undefined, checker));
-	}
 
-	if (!typeArguments?.length) {
-		typeArguments = type.aliasTypeArguments?.map((x) => getTypeName(x, undefined, checker)) ?? [];
+	if (type.aliasSymbol && !type.aliasTypeArguments) {
+		typeArguments = [];
+	} else {
+		if ('target' in type) {
+			typeArguments = checker
+				.getTypeArguments(type as ts.TypeReference)
+				?.map((x) => getTypeName(x, undefined, checker, true) ?? 'unknown');
+		}
+
+		if (!typeArguments?.length) {
+			typeArguments =
+				type.aliasTypeArguments?.map(
+					(x) => getTypeName(x, undefined, checker, true) ?? 'unknown',
+				) ?? [];
+		}
 	}
 
 	if (typeArguments && typeArguments.length > 0) {

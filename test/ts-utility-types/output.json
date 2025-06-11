@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Pick",
+									"name": "Pick<Base, \"a\" | \"b\">",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -72,7 +72,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "Omit",
+									"name": "Omit<Base, \"c\">",
 									"parentNamespaces": [],
 									"properties": [
 										{
@@ -136,7 +136,7 @@
 									"types": [
 										{
 											"kind": "object",
-											"name": "Pick",
+											"name": "Pick<Base, \"a\" | \"b\">",
 											"parentNamespaces": [],
 											"properties": [
 												{

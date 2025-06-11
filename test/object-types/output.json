@@ -79,6 +79,7 @@
 							{
 								"type": {
 									"kind": "object",
+									"name": "ObjectKeyword",
 									"parentNamespaces": [],
 									"properties": []
 								},
@@ -153,6 +154,7 @@
 											"name": "objectKeyword",
 											"type": {
 												"kind": "object",
+												"name": "ObjectKeyword",
 												"parentNamespaces": [],
 												"properties": []
 											},

@@ -34,11 +34,21 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "MyRecord",
+									"name": "MyRecord<string, string>",
 									"parentNamespaces": [],
 									"properties": []
 								},
 								"name": "r",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"name": "AliasToGeneric",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								"name": "s",
 								"optional": false
 							}
 						],
@@ -83,7 +93,17 @@
 						"name": "r",
 						"type": {
 							"kind": "object",
-							"name": "MyRecord",
+							"name": "MyRecord<string, string>",
+							"parentNamespaces": [],
+							"properties": []
+						},
+						"optional": false
+					},
+					{
+						"name": "s",
+						"type": {
+							"kind": "object",
+							"name": "AliasToGeneric",
 							"parentNamespaces": [],
 							"properties": []
 						},

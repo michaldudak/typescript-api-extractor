@@ -13,7 +13,7 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "GenericObject",
+									"name": "GenericObject<MyUnion>",
 									"parentNamespaces": [],
 									"properties": [
 										{

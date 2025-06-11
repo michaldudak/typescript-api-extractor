@@ -208,7 +208,7 @@
 																]
 															}
 														],
-														"name": "HTMLProps",
+														"name": "HTMLProps<any>",
 														"parentNamespaces": [],
 														"properties": [
 															{
@@ -397,7 +397,7 @@
 																]
 															}
 														],
-														"name": "HTMLProps",
+														"name": "HTMLProps<any>",
 														"parentNamespaces": [],
 														"properties": [
 															{
