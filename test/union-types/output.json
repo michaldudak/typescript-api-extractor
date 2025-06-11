@@ -32,8 +32,7 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"parentNamespaces": []
+							]
 						},
 						"optional": true
 					},
@@ -52,8 +51,7 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"parentNamespaces": []
+							]
 						},
 						"optional": true
 					},
@@ -72,8 +70,7 @@
 									"parentNamespaces": [],
 									"name": "number"
 								}
-							],
-							"parentNamespaces": []
+							]
 						},
 						"optional": false
 					},
@@ -92,8 +89,7 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"parentNamespaces": []
+							]
 						},
 						"optional": true
 					}

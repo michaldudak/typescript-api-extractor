@@ -57,10 +57,10 @@
 														"value": "\"two\""
 													}
 												],
-												"name": "NamespacedType",
 												"parentNamespaces": [
 													"Root"
-												]
+												],
+												"name": "NamespacedType"
 											},
 											"optional": false
 										}
@@ -103,10 +103,10 @@
 											"value": "\"two\""
 										}
 									],
-									"name": "NamespacedType",
 									"parentNamespaces": [
 										"Root"
-									]
+									],
+									"name": "NamespacedType"
 								},
 								"name": "a",
 								"optional": false
@@ -200,10 +200,10 @@
 														"value": "\"two\""
 													}
 												],
-												"name": "NamespacedType",
 												"parentNamespaces": [
 													"Root"
-												]
+												],
+												"name": "NamespacedType"
 											},
 											"optional": false
 										}
@@ -307,10 +307,10 @@
 									"value": "\"two\""
 								}
 							],
-							"name": "NamespacedType",
 							"parentNamespaces": [
 								"Root"
-							]
+							],
+							"name": "NamespacedType"
 						},
 						"optional": false
 					}

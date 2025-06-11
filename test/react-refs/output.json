@@ -9,39 +9,6 @@
 				"parentNamespaces": [],
 				"props": [
 					{
-						"name": "refObject",
-						"type": {
-							"kind": "reference",
-							"name": "RefObject<HTMLInputElement>",
-							"parentNamespaces": [
-								"React"
-							]
-						},
-						"optional": false
-					},
-					{
-						"name": "refCallback",
-						"type": {
-							"kind": "reference",
-							"name": "RefCallback",
-							"parentNamespaces": [
-								"React"
-							]
-						},
-						"optional": false
-					},
-					{
-						"name": "ref",
-						"type": {
-							"kind": "reference",
-							"name": "Ref<HTMLInputElement>",
-							"parentNamespaces": [
-								"React"
-							]
-						},
-						"optional": false
-					},
-					{
 						"name": "optionalRefObject",
 						"type": {
 							"kind": "union",
@@ -58,10 +25,6 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"name": "RefObject",
-							"parentNamespaces": [
-								"React"
 							]
 						},
 						"optional": true
@@ -81,8 +44,7 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"parentNamespaces": []
+							]
 						},
 						"optional": true
 					},
@@ -103,10 +65,6 @@
 									"parentNamespaces": [],
 									"name": "undefined"
 								}
-							],
-							"name": "Ref",
-							"parentNamespaces": [
-								"React"
 							]
 						},
 						"optional": true

@@ -32,8 +32,8 @@
 														"name": "number"
 													}
 												],
-												"name": "MyUnion",
-												"parentNamespaces": []
+												"parentNamespaces": [],
+												"name": "MyUnion"
 											},
 											"optional": false
 										}

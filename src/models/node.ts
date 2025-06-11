@@ -1,5 +1,5 @@
 export interface TypeNode {
 	readonly kind: string;
 	name: string | undefined;
-	parentNamespaces: string[];
+	parentNamespaces: string[] | undefined;
 }

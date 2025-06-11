@@ -89,10 +89,7 @@ export function resolveType(
 				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(
-				getTypeName(type, typeSymbol, checker) ?? checker.typeToString(type),
-				namespaces,
-			);
+			return new ReferenceNode(typeName ?? checker.typeToString(type), namespaces);
 		}
 
 		if (hasFlag(type.flags, ts.TypeFlags.Boolean)) {
@@ -356,6 +353,10 @@ export function getTypeName(
 ): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
+		return useFallback ? checker.typeToString(type) : undefined;
+	}
+
+	if (typeSymbol && !type.aliasSymbol && !type.symbol) {
 		return useFallback ? checker.typeToString(type) : undefined;
 	}
 

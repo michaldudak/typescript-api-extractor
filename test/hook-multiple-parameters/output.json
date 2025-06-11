@@ -70,8 +70,8 @@
 											"value": "\"high\""
 										}
 									],
-									"name": "Severity",
-									"parentNamespaces": []
+									"parentNamespaces": [],
+									"name": "Severity"
 								},
 								"name": "severity",
 								"documentation": {

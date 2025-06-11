@@ -59,8 +59,7 @@
 																"parentNamespaces": [],
 																"name": "undefined"
 															}
-														],
-														"parentNamespaces": []
+														]
 													},
 													"optional": true
 												},
@@ -79,15 +78,13 @@
 																"parentNamespaces": [],
 																"name": "undefined"
 															}
-														],
-														"parentNamespaces": []
+														]
 													},
 													"optional": true
 												}
 											]
 										}
 									],
-									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
@@ -122,8 +119,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}
@@ -200,8 +196,7 @@
 																"parentNamespaces": [],
 																"name": "undefined"
 															}
-														],
-														"parentNamespaces": []
+														]
 													},
 													"optional": true
 												},
@@ -220,16 +215,15 @@
 																"parentNamespaces": [],
 																"name": "undefined"
 															}
-														],
-														"parentNamespaces": []
+														]
 													},
 													"optional": true
 												}
 											]
 										}
 									],
-									"name": "AB",
 									"parentNamespaces": [],
+									"name": "AB",
 									"properties": [
 										{
 											"name": "a",
@@ -264,8 +258,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}

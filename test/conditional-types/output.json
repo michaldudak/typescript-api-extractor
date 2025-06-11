@@ -34,8 +34,7 @@
 									"parentNamespaces": [],
 									"name": "null"
 								}
-							],
-							"parentNamespaces": []
+							]
 						}
 					}
 				]
@@ -80,8 +79,7 @@
 														"parentNamespaces": [],
 														"name": "null"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": false
 										}

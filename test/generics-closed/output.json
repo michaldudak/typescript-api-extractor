@@ -70,8 +70,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										},
@@ -119,16 +118,15 @@
 																										"parentNamespaces": [],
 																										"name": "undefined"
 																									}
-																								],
-																								"parentNamespaces": []
+																								]
 																							},
 																							"optional": true
 																						}
 																					]
 																				}
 																			],
-																			"name": "GenericHTMLProps",
 																			"parentNamespaces": [],
+																			"name": "GenericHTMLProps",
 																			"properties": [
 																				{
 																					"name": "ref",
@@ -147,8 +145,7 @@
 																								"parentNamespaces": [],
 																								"name": "undefined"
 																							}
-																						],
-																						"parentNamespaces": []
+																						]
 																					},
 																					"optional": true
 																				}
@@ -195,8 +192,7 @@
 														"parentNamespaces": [],
 														"name": "undefined"
 													}
-												],
-												"parentNamespaces": []
+												]
 											},
 											"optional": true
 										}

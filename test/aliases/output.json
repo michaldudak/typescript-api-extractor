@@ -25,8 +25,8 @@
 											"value": 2
 										}
 									],
-									"name": "Alias",
-									"parentNamespaces": []
+									"parentNamespaces": [],
+									"name": "Alias"
 								},
 								"name": "a",
 								"optional": false
@@ -84,8 +84,8 @@
 									"value": 2
 								}
 							],
-							"name": "Alias",
-							"parentNamespaces": []
+							"parentNamespaces": [],
+							"name": "Alias"
 						},
 						"optional": false
 					},
