@@ -1,0 +1,104 @@
+{
+	"name": "test/conditional-types/input",
+	"exports": [
+		{
+			"name": "fn",
+			"type": {
+				"kind": "function",
+				"name": "fn",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "typeParameter",
+									"name": "T",
+									"parentNamespaces": [],
+									"constraint": "boolean"
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "number"
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "null"
+								}
+							],
+							"parentNamespaces": []
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Component1",
+			"type": {
+				"kind": "function",
+				"name": "Component1",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Props",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "value",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "string"
+													},
+													{
+														"kind": "array",
+														"parentNamespaces": [],
+														"elementType": {
+															"kind": "intrinsic",
+															"parentNamespaces": [],
+															"name": "string"
+														}
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"name": "null"
+													}
+												],
+												"parentNamespaces": []
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "null"
+						}
+					}
+				]
+			}
+		}
+	]
+}
