@@ -24,12 +24,12 @@
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "string"
+														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "number"
+														"intrinsic": "number"
 													}
 												],
 												"parentNamespaces": [],
@@ -46,7 +46,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "null"
+							"intrinsic": "null"
 						}
 					}
 				]

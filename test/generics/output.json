@@ -45,7 +45,7 @@
 																	"type": {
 																		"kind": "intrinsic",
 																		"parentNamespaces": [],
-																		"name": "string"
+																		"intrinsic": "string"
 																	},
 																	"optional": false
 																}

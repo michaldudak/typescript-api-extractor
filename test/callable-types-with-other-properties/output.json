@@ -13,7 +13,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "number"
+									"intrinsic": "number"
 								},
 								"name": "param",
 								"optional": false
@@ -22,7 +22,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "number"
+							"intrinsic": "number"
 						}
 					}
 				]
@@ -39,7 +39,7 @@
 						"type": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "string"
+							"intrinsic": "string"
 						},
 						"optional": false
 					}

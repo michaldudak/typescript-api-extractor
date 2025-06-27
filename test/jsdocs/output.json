@@ -16,12 +16,12 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "string"
+									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
@@ -39,12 +39,12 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "number"
+									"intrinsic": "number"
 								},
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
@@ -76,7 +76,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "number"
+									"intrinsic": "number"
 								},
 								"name": "p1",
 								"documentation": {
@@ -92,12 +92,12 @@
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "number"
+											"intrinsic": "number"
 										},
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "undefined"
+											"intrinsic": "undefined"
 										}
 									]
 								},
@@ -112,7 +112,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "number"
+							"intrinsic": "number"
 						}
 					},
 					{
@@ -121,7 +121,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "string"
+									"intrinsic": "string"
 								},
 								"name": "p1",
 								"documentation": {
@@ -137,12 +137,12 @@
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "number"
+											"intrinsic": "number"
 										},
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "undefined"
+											"intrinsic": "undefined"
 										}
 									]
 								},
@@ -157,7 +157,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "number"
+							"intrinsic": "number"
 						}
 					}
 				]

@@ -21,7 +21,7 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
@@ -54,7 +54,7 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
@@ -68,12 +68,12 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "string"
+									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
@@ -94,7 +94,7 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},

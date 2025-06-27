@@ -40,7 +40,7 @@
 						"type": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "null"
+							"intrinsic": "null"
 						},
 						"optional": false
 					}

@@ -14,7 +14,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "string"
+									"intrinsic": "string"
 								},
 								"name": "value",
 								"documentation": {
@@ -34,7 +34,7 @@
 													"type": {
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "string"
+														"intrinsic": "string"
 													},
 													"name": "newValue",
 													"optional": false
@@ -43,7 +43,7 @@
 											"returnValueType": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "void"
+												"intrinsic": "void"
 											}
 										}
 									]
@@ -85,7 +85,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "number"
+							"intrinsic": "number"
 						}
 					}
 				]

@@ -21,7 +21,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "string"
+												"intrinsic": "string"
 											},
 											"optional": false
 										},
@@ -30,7 +30,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "number"
+												"intrinsic": "number"
 											},
 											"documentation": {
 												"tags": [
@@ -68,12 +68,12 @@
 																		{
 																			"kind": "intrinsic",
 																			"parentNamespaces": [],
-																			"name": "string"
+																			"intrinsic": "string"
 																		},
 																		{
 																			"kind": "intrinsic",
 																			"parentNamespaces": [],
-																			"name": "undefined"
+																			"intrinsic": "undefined"
 																		}
 																	]
 																},
@@ -93,7 +93,7 @@
 														"returnValueType": {
 															"kind": "intrinsic",
 															"parentNamespaces": [],
-															"name": "void"
+															"intrinsic": "void"
 														}
 													}
 												]
@@ -108,12 +108,12 @@
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "string"
+														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "undefined"
+														"intrinsic": "undefined"
 													}
 												]
 											},
@@ -133,7 +133,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]

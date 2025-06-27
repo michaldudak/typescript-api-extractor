@@ -15,16 +15,16 @@ type IntrinsicType =
 export class IntrinsicNode implements TypeNode {
 	kind = 'intrinsic';
 	parentNamespaces: string[];
-	name: IntrinsicType;
-	alias: string | undefined;
+	intrinsic: IntrinsicType;
+	name: string | undefined;
 
 	constructor(
-		name: IntrinsicType,
-		alias: string | undefined = undefined,
+		intrinsic: IntrinsicType,
+		name: string | undefined = undefined,
 		parentNamespaces: string[] = [],
 	) {
+		this.intrinsic = intrinsic;
 		this.name = name;
-		this.alias = alias;
 		this.parentNamespaces = parentNamespaces;
 	}
 }

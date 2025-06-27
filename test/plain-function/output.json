@@ -21,7 +21,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "string"
+												"intrinsic": "string"
 											},
 											"optional": false
 										}
@@ -34,7 +34,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]
@@ -59,7 +59,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "string"
+												"intrinsic": "string"
 											},
 											"optional": false
 										}
@@ -72,7 +72,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]
@@ -97,7 +97,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "string"
+												"intrinsic": "string"
 											},
 											"optional": false
 										}
@@ -110,7 +110,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]

@@ -28,8 +28,12 @@ export function deduplicateMemberTypes(types: TypeNode[]): TypeNode[] {
 			return x.value;
 		}
 
-		if (x instanceof IntrinsicNode || x instanceof ReferenceNode) {
+		if (x instanceof ReferenceNode) {
 			return x.name;
+		}
+
+		if (x instanceof IntrinsicNode) {
+			return x.name ?? x.intrinsic;
 		}
 
 		return x;
@@ -39,11 +43,11 @@ export function deduplicateMemberTypes(types: TypeNode[]): TypeNode[] {
 export function sortMemberTypes(members: TypeNode[]) {
 	// move undefined and null to the end
 
-	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.name === 'null');
+	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.intrinsic === 'null');
 	members.push(members.splice(nullIndex, 1)[0]);
 
 	const undefinedIndex = members.findIndex(
-		(x) => x instanceof IntrinsicNode && x.name === 'undefined',
+		(x) => x instanceof IntrinsicNode && x.intrinsic === 'undefined',
 	);
 	members.push(members.splice(undefinedIndex, 1)[0]);
 }

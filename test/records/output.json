@@ -23,7 +23,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]

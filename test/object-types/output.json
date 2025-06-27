@@ -41,7 +41,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]
@@ -99,7 +99,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]
@@ -195,7 +195,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]

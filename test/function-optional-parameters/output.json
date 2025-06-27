@@ -14,7 +14,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "number"
+									"intrinsic": "number"
 								},
 								"name": "required",
 								"optional": false
@@ -26,12 +26,12 @@
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "number"
+											"intrinsic": "number"
 										},
 										{
 											"kind": "intrinsic",
 											"parentNamespaces": [],
-											"name": "undefined"
+											"intrinsic": "undefined"
 										}
 									]
 								},
@@ -46,7 +46,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "number"
+									"intrinsic": "number"
 								},
 								"name": "withInlineDefault",
 								"documentation": {
@@ -60,7 +60,7 @@
 								"type": {
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "string"
+									"intrinsic": "string"
 								},
 								"name": "withReferencedDefault",
 								"documentation": {
@@ -74,7 +74,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"parentNamespaces": [],
-							"name": "void"
+							"intrinsic": "void"
 						}
 					}
 				]

@@ -135,7 +135,9 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 function markPropertyAsOptional(property: PropertyNode, context: ParserContext) {
 	const canBeUndefined =
 		property.type instanceof UnionNode &&
-		property.type.types.some((type) => type instanceof IntrinsicNode && type.name === 'undefined');
+		property.type.types.some(
+			(type) => type instanceof IntrinsicNode && type.intrinsic === 'undefined',
+		);
 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {

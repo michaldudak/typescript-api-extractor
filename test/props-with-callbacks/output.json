@@ -34,12 +34,12 @@
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "string"
+														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
 														"parentNamespaces": [],
-														"name": "undefined"
+														"intrinsic": "undefined"
 													}
 												]
 											},
@@ -50,7 +50,7 @@
 									"returnValueType": {
 										"kind": "intrinsic",
 										"parentNamespaces": [],
-										"name": "void"
+										"intrinsic": "void"
 									}
 								}
 							]
@@ -70,7 +70,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "boolean"
+												"intrinsic": "boolean"
 											},
 											"name": "animated",
 											"optional": false
@@ -79,7 +79,7 @@
 									"returnValueType": {
 										"kind": "intrinsic",
 										"parentNamespaces": [],
-										"name": "boolean"
+										"intrinsic": "boolean"
 									}
 								}
 							]
@@ -99,7 +99,7 @@
 											"type": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "boolean"
+												"intrinsic": "boolean"
 											},
 											"name": "animated",
 											"optional": false
@@ -108,7 +108,7 @@
 									"returnValueType": {
 										"kind": "intrinsic",
 										"parentNamespaces": [],
-										"name": "void"
+										"intrinsic": "void"
 									}
 								}
 							]
@@ -129,7 +129,7 @@
 											"returnValueType": {
 												"kind": "intrinsic",
 												"parentNamespaces": [],
-												"name": "void"
+												"intrinsic": "void"
 											}
 										}
 									]
@@ -137,7 +137,7 @@
 								{
 									"kind": "intrinsic",
 									"parentNamespaces": [],
-									"name": "undefined"
+									"intrinsic": "undefined"
 								}
 							]
 						},
