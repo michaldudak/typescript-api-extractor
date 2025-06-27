@@ -5,6 +5,8 @@ export namespace Root {
 		export interface Params {
 			s: Grade;
 			a: NamespacedType;
+			os?: Grade;
+			oa?: NamespacedType;
 		}
 
 		export enum Grade {
@@ -24,6 +26,10 @@ export namespace Root {
 	export function fn2() {}
 
 	export type NamespacedType = OutsideType;
+}
+
+export namespace Other {
+	export type Orientation = 'horizontal' | 'vertical';
 }
 
 export function fn3(params: Root.Sub.Params) {}

@@ -90,7 +90,7 @@
 												}
 											],
 											"parentNamespaces": [],
-											"name": "SomeType"
+											"name": "Alias"
 										},
 										{
 											"kind": "intrinsic",
@@ -260,7 +260,7 @@
 										}
 									],
 									"parentNamespaces": [],
-									"name": "SomeType"
+									"name": "Alias"
 								},
 								{
 									"kind": "intrinsic",

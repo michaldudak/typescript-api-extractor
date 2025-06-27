@@ -52,7 +52,8 @@ export function resolveType(
 			}
 		} else if (
 			ts.isQualifiedName(typeNodeName) &&
-			typeNodeName.right.text !== type.aliasSymbol?.name
+			typeNodeName.right.text !== type.aliasSymbol?.name /*&&
+			typeNodeName.left.getFullText() !== getTypeNamespaces(type).join('.')*/
 		) {
 			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
 			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
@@ -115,24 +116,30 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			const memberTypes: TypeNode[] = [];
+			let memberTypes: ts.Type[] = type.types;
+			const parsedMemberTypes: TypeNode[] = [];
 			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			// @ts-expect-error - Internal API
 			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
-				for (const memberType of type.origin.types) {
-					memberTypes.push(resolveType(memberType, context));
+				memberTypes = type.origin.types;
+			}
+
+			if (memberTypes.length === 2 && memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined)) {
+				// If the union is `T | undefined`, we propagate the typeNode of T to the union member so that any aliases are resolved correctly.
+				for (const memberType of memberTypes) {
+					parsedMemberTypes.push(resolveType(memberType, context, typeNode));
 				}
 			} else {
-				for (const memberType of type.types) {
-					memberTypes.push(resolveType(memberType, context));
+				for (const memberType of memberTypes) {
+					parsedMemberTypes.push(resolveType(memberType, context));
 				}
 			}
 
-			return memberTypes.length === 1
-				? memberTypes[0]
-				: new UnionNode(typeName, namespaces, memberTypes);
+			return parsedMemberTypes.length === 1
+				? parsedMemberTypes[0]
+				: new UnionNode(typeName, namespaces, parsedMemberTypes);
 		}
 
 		if (type.isIntersection()) {

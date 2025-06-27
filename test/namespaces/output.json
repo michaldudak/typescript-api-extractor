@@ -63,6 +63,71 @@
 												"name": "NamespacedType"
 											},
 											"optional": false
+										},
+										{
+											"name": "os",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "enum",
+														"name": "Grade",
+														"parentNamespaces": [
+															"Root",
+															"Sub"
+														],
+														"members": [
+															{
+																"name": "good",
+																"value": 0
+															},
+															{
+																"name": "bad",
+																"value": 1
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "oa",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"types": [
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": "\"one\""
+															},
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": "\"two\""
+															}
+														],
+														"parentNamespaces": [
+															"Root"
+														],
+														"name": "NamespacedType"
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
 										}
 									]
 								},
@@ -206,6 +271,71 @@
 												"name": "NamespacedType"
 											},
 											"optional": false
+										},
+										{
+											"name": "os",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "enum",
+														"name": "Grade",
+														"parentNamespaces": [
+															"Root",
+															"Sub"
+														],
+														"members": [
+															{
+																"name": "good",
+																"value": 0
+															},
+															{
+																"name": "bad",
+																"value": 1
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "oa",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"types": [
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": "\"one\""
+															},
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": "\"two\""
+															}
+														],
+														"parentNamespaces": [
+															"Root"
+														],
+														"name": "NamespacedType"
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
 										}
 									]
 								},
@@ -313,6 +443,71 @@
 							"name": "NamespacedType"
 						},
 						"optional": false
+					},
+					{
+						"name": "os",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "enum",
+									"name": "Grade",
+									"parentNamespaces": [
+										"Root",
+										"Sub"
+									],
+									"members": [
+										{
+											"name": "good",
+											"value": 0
+										},
+										{
+											"name": "bad",
+											"value": 1
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "oa",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"one\""
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": "\"two\""
+										}
+									],
+									"parentNamespaces": [
+										"Root"
+									],
+									"name": "NamespacedType"
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
 					}
 				]
 			}
