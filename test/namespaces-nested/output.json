@@ -1,0 +1,121 @@
+{
+	"name": "test/namespaces-nested/input",
+	"exports": [
+		{
+			"name": "Component",
+			"type": {
+				"kind": "component",
+				"name": "Component",
+				"parentNamespaces": [],
+				"props": [
+					{
+						"name": "foo",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"a\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"b\""
+								}
+							],
+							"parentNamespaces": [
+								"Root"
+							],
+							"name": "Foo"
+						},
+						"optional": false
+					},
+					{
+						"name": "nestedFoo",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"a\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"b\""
+								}
+							],
+							"parentNamespaces": [
+								"Root",
+								"Nested"
+							],
+							"name": "Foo"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Props",
+			"type": {
+				"kind": "object",
+				"name": "Props",
+				"parentNamespaces": [
+					"Root"
+				],
+				"properties": [
+					{
+						"name": "foo",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"a\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"b\""
+								}
+							],
+							"parentNamespaces": [
+								"Root"
+							],
+							"name": "Foo"
+						},
+						"optional": false
+					},
+					{
+						"name": "nestedFoo",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"a\""
+								},
+								{
+									"kind": "literal",
+									"parentNamespaces": [],
+									"value": "\"b\""
+								}
+							],
+							"parentNamespaces": [
+								"Root",
+								"Nested"
+							],
+							"name": "Foo"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

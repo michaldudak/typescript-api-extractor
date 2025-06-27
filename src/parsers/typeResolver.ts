@@ -45,18 +45,27 @@ export function resolveType(
 	let typeSymbol: ts.Symbol | undefined;
 	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
 		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
-		if (ts.isIdentifier(typeNodeName) && typeNodeName.text !== type.aliasSymbol?.name) {
+		if (ts.isIdentifier(typeNodeName)) {
 			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
-			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+
+			if (
+				typeSymbolCandidate &&
+				(typeNodeName.text !== type.aliasSymbol?.name ||
+					getTypeSymbolNamespaces(typeSymbolCandidate).join('.') !==
+						getTypeNamespaces(type).join('.')) &&
+				!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
+			) {
 				typeSymbol = typeSymbolCandidate;
 			}
-		} else if (
-			ts.isQualifiedName(typeNodeName) &&
-			typeNodeName.right.text !== type.aliasSymbol?.name /*&&
-			typeNodeName.left.getFullText() !== getTypeNamespaces(type).join('.')*/
-		) {
+		} else if (ts.isQualifiedName(typeNodeName)) {
 			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
-			if (typeSymbolCandidate && !(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)) {
+			if (
+				typeSymbolCandidate &&
+				(typeNodeName.right.text !== type.aliasSymbol?.name ||
+					getTypeSymbolNamespaces(typeSymbolCandidate).join('.') !==
+						getTypeNamespaces(type).join('.')) &&
+				!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
+			) {
 				typeSymbol = typeSymbolCandidate;
 			}
 		}
@@ -123,6 +132,9 @@ export function resolveType(
 			// @ts-expect-error - Internal API
 			if (type.origin?.isUnion()) {
 				// @ts-expect-error - Internal API
+
+				// If a union type contains another union, `type.types` will contain the flattened types.
+				// To resolve the original union type, we need to use the internal `type.origin.types`.
 				memberTypes = type.origin.types;
 			}
 
