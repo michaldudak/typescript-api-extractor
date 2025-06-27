@@ -173,7 +173,7 @@ export function resolveType(
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
 				typeSymbol?.name ?? type.aliasSymbol?.name,
-				[],
+				namespaces,
 				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, context)) ?? [],
 			);
 		}
@@ -195,11 +195,11 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.Any) {
-			return new IntrinsicNode('any');
+			return new IntrinsicNode('any', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
 		}
 
 		if (type.flags & ts.TypeFlags.Unknown) {
-			return new IntrinsicNode('unknown');
+			return new IntrinsicNode('unknown', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
 		}
 
 		if (type.flags & ts.TypeFlags.Literal) {
@@ -264,7 +264,7 @@ export function resolveType(
 			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
 		);
 
-		return new IntrinsicNode('any');
+		return new IntrinsicNode('any', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
 	} finally {
 		typeStack.pop();
 	}

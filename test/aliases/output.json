@@ -50,6 +50,117 @@
 								},
 								"name": "s",
 								"optional": false
+							},
+							{
+								"type": {
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "any",
+									"alias": "AliasedAny"
+								},
+								"name": "n",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "unknown",
+									"alias": "AliasedUnknown"
+								},
+								"name": "u",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "union",
+											"types": [
+												{
+													"kind": "literal",
+													"parentNamespaces": [],
+													"value": 1
+												},
+												{
+													"kind": "literal",
+													"parentNamespaces": [],
+													"value": 2
+												}
+											],
+											"parentNamespaces": [],
+											"name": "SomeType"
+										},
+										{
+											"kind": "intrinsic",
+											"parentNamespaces": [],
+											"name": "undefined"
+										}
+									]
+								},
+								"name": "oa",
+								"optional": true
+							},
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "object",
+											"name": "MyRecord<string, string>",
+											"parentNamespaces": [],
+											"properties": []
+										},
+										{
+											"kind": "intrinsic",
+											"parentNamespaces": [],
+											"name": "undefined"
+										}
+									]
+								},
+								"name": "or",
+								"optional": true
+							},
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "object",
+											"name": "AliasToGeneric",
+											"parentNamespaces": [],
+											"properties": []
+										},
+										{
+											"kind": "intrinsic",
+											"parentNamespaces": [],
+											"name": "undefined"
+										}
+									]
+								},
+								"name": "os",
+								"optional": true
+							},
+							{
+								"type": {
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "any",
+									"alias": "AliasedAny"
+								},
+								"name": "on",
+								"optional": true
+							},
+							{
+								"type": {
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "unknown",
+									"alias": "AliasedUnknown"
+								},
+								"name": "ou",
+								"optional": true
 							}
 						],
 						"returnValueType": {
@@ -108,6 +219,117 @@
 							"properties": []
 						},
 						"optional": false
+					},
+					{
+						"name": "n",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "any",
+							"alias": "AliasedAny"
+						},
+						"optional": false
+					},
+					{
+						"name": "u",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "unknown",
+							"alias": "AliasedUnknown"
+						},
+						"optional": false
+					},
+					{
+						"name": "oa",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "union",
+									"types": [
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 1
+										},
+										{
+											"kind": "literal",
+											"parentNamespaces": [],
+											"value": 2
+										}
+									],
+									"parentNamespaces": [],
+									"name": "SomeType"
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "or",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "object",
+									"name": "MyRecord<string, string>",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "os",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "object",
+									"name": "AliasToGeneric",
+									"parentNamespaces": [],
+									"properties": []
+								},
+								{
+									"kind": "intrinsic",
+									"parentNamespaces": [],
+									"name": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "on",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "any",
+							"alias": "AliasedAny"
+						},
+						"optional": true
+					},
+					{
+						"name": "ou",
+						"type": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"name": "unknown",
+							"alias": "AliasedUnknown"
+						},
+						"optional": true
 					}
 				]
 			}

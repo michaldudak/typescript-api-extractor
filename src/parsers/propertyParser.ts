@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { type ParserContext } from '../parser';
 import { resolveType } from './typeResolver';
-import { IntrinsicNode, PropertyNode, TypeNode } from '../models';
+import { PropertyNode } from '../models';
 import { ParserError } from '../ParserError';
 
 export function parseProperty(
@@ -32,17 +32,15 @@ export function parseProperty(
 		// Typechecker only gives the type "any" if it's present in a union
 		// This means the type of "a" in {a?:any} isn't "any | undefined"
 		// So instead we check for the questionmark to detect optional types
-		let parsedType: TypeNode;
+		const parsedType = resolveType(
+			type,
+			context,
+			isTypeParameterLike(type) ? undefined : propertySignature?.type,
+			skipResolvingComplexTypes,
+		);
 		if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
-			parsedType = new IntrinsicNode('any');
 			isOptional = Boolean(propertySignature.questionToken);
 		} else {
-			parsedType = resolveType(
-				type,
-				context,
-				isTypeParameterLike(type) ? undefined : propertySignature?.type,
-				skipResolvingComplexTypes,
-			);
 			isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
 		}
 

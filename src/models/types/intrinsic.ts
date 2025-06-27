@@ -14,7 +14,17 @@ type IntrinsicType =
 
 export class IntrinsicNode implements TypeNode {
 	kind = 'intrinsic';
-	parentNamespaces: string[] = [];
+	parentNamespaces: string[];
+	name: IntrinsicType;
+	alias: string | undefined;
 
-	constructor(public name: IntrinsicType) {}
+	constructor(
+		name: IntrinsicType,
+		alias: string | undefined = undefined,
+		parentNamespaces: string[] = [],
+	) {
+		this.name = name;
+		this.alias = alias;
+		this.parentNamespaces = parentNamespaces;
+	}
 }
