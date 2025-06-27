@@ -29,15 +29,16 @@ export function parseProperty(
 
 		let isOptional = false;
 
-		// Typechecker only gives the type "any" if it's present in a union
-		// This means the type of "a" in {a?:any} isn't "any | undefined"
-		// So instead we check for the questionmark to detect optional types
 		const parsedType = resolveType(
 			type,
 			context,
 			isTypeParameterLike(type) ? undefined : propertySignature?.type,
 			skipResolvingComplexTypes,
 		);
+
+		// Typechecker only gives the type "any" if it's present in a union
+		// This means the type of "a" in {a?:any} isn't "any | undefined"
+		// So instead we check for the questionmark to detect optional types
 		if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
 			isOptional = Boolean(propertySignature.questionToken);
 		} else {

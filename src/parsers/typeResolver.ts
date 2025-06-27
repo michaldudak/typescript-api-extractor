@@ -37,6 +37,32 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
+	function areEquivalent(typeNodeName: ts.EntityName, type: ts.Type): boolean | undefined {
+		if (ts.isIdentifier(typeNodeName)) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+			if (!typeSymbolCandidate) {
+				return undefined;
+			}
+
+			return (
+				typeNodeName.text === type.aliasSymbol?.name &&
+				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+			);
+		} else if (ts.isQualifiedName(typeNodeName)) {
+			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+			if (!typeSymbolCandidate) {
+				return undefined;
+			}
+
+			return (
+				typeNodeName.right.text === type.aliasSymbol?.name &&
+				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+			);
+		}
+
+		return undefined;
+	}
+
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -45,29 +71,19 @@ export function resolveType(
 	let typeSymbol: ts.Symbol | undefined;
 	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
 		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+		let typeSymbolCandidate: ts.Symbol | undefined;
 		if (ts.isIdentifier(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
-
-			if (
-				typeSymbolCandidate &&
-				(typeNodeName.text !== type.aliasSymbol?.name ||
-					getTypeSymbolNamespaces(typeSymbolCandidate).join('.') !==
-						getTypeNamespaces(type).join('.')) &&
-				!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
-			) {
-				typeSymbol = typeSymbolCandidate;
-			}
+			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
 		} else if (ts.isQualifiedName(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
-			if (
-				typeSymbolCandidate &&
-				(typeNodeName.right.text !== type.aliasSymbol?.name ||
-					getTypeSymbolNamespaces(typeSymbolCandidate).join('.') !==
-						getTypeNamespaces(type).join('.')) &&
-				!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
-			) {
-				typeSymbol = typeSymbolCandidate;
-			}
+			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+		}
+
+		if (
+			typeSymbolCandidate &&
+			!areEquivalent(typeNodeName, type) &&
+			!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
+		) {
+			typeSymbol = typeSymbolCandidate;
 		}
 	}
 
