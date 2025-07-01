@@ -37,32 +37,6 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	function areEquivalent(typeNodeName: ts.EntityName, type: ts.Type): boolean | undefined {
-		if (ts.isIdentifier(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
-			if (!typeSymbolCandidate) {
-				return undefined;
-			}
-
-			return (
-				typeNodeName.text === type.aliasSymbol?.name &&
-				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
-			);
-		} else if (ts.isQualifiedName(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
-			if (!typeSymbolCandidate) {
-				return undefined;
-			}
-
-			return (
-				typeNodeName.right.text === type.aliasSymbol?.name &&
-				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
-			);
-		}
-
-		return undefined;
-	}
-
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -80,7 +54,7 @@ export function resolveType(
 
 		if (
 			typeSymbolCandidate &&
-			!areEquivalent(typeNodeName, type) &&
+			!areEquivalent(typeNodeName, type, checker) &&
 			!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
 		) {
 			typeSymbol = typeSymbolCandidate;
@@ -154,14 +128,47 @@ export function resolveType(
 				memberTypes = type.origin.types;
 			}
 
-			if (memberTypes.length === 2 && memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined)) {
-				// If the union is `T | undefined`, we propagate the typeNode of T to the union member so that any aliases are resolved correctly.
+			if (typeNode && ts.isUnionTypeNode(typeNode)) {
 				for (const memberType of memberTypes) {
-					parsedMemberTypes.push(resolveType(memberType, context, typeNode));
+					let memberTypeNode: ts.TypeNode | undefined;
+
+					// If the typeNode is a union type, we need to find the corresponding member
+					// type node for the current member type.
+
+					const index = typeNode.types.findIndex((memberTypeNode) => {
+						const memberTypeFromTypeNode = checker.getTypeFromTypeNode(memberTypeNode);
+						return (
+							memberType === memberTypeFromTypeNode ||
+							('target' in memberType &&
+								memberType.target != undefined &&
+								(('target' in memberTypeFromTypeNode &&
+									memberType.target === memberTypeFromTypeNode.target) ||
+									memberType.target === memberTypeFromTypeNode))
+						);
+					});
+
+					if (index !== -1) {
+						memberTypeNode = typeNode.types[index];
+					}
+
+					parsedMemberTypes.push(resolveType(memberType, context, memberTypeNode || typeNode));
 				}
 			} else {
-				for (const memberType of memberTypes) {
-					parsedMemberTypes.push(resolveType(memberType, context));
+				// `type` is an union type, but `typeNode` is not.
+				// This could happen for optional properties: `foo?: T` is resolved as `T | undefined`.
+				if (
+					memberTypes.length === 2 &&
+					memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined) &&
+					typeNode &&
+					ts.isTypeReferenceNode(typeNode)
+				) {
+					for (const memberType of memberTypes) {
+						parsedMemberTypes.push(resolveType(memberType, context, typeNode));
+					}
+				} else {
+					for (const memberType of memberTypes) {
+						parsedMemberTypes.push(resolveType(memberType, context));
+					}
 				}
 			}
 
@@ -433,6 +440,36 @@ function hasFlag(typeFlags: number, flag: number) {
 function getTypeId(type: ts.Type): number | undefined {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (type as any).id;
+}
+
+function areEquivalent(
+	typeNodeName: ts.EntityName,
+	type: ts.Type,
+	checker: ts.TypeChecker,
+): boolean | undefined {
+	if (ts.isIdentifier(typeNodeName)) {
+		const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+		if (!typeSymbolCandidate) {
+			return undefined;
+		}
+
+		return (
+			typeNodeName.text === type.aliasSymbol?.name &&
+			getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+		);
+	} else if (ts.isQualifiedName(typeNodeName)) {
+		const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+		if (!typeSymbolCandidate) {
+			return undefined;
+		}
+
+		return (
+			typeNodeName.right.text === type.aliasSymbol?.name &&
+			getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+		);
+	}
+
+	return undefined;
 }
 
 // Internal API
