@@ -117,7 +117,8 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			return resolveUnionType(type, typeSymbol, typeNode, context, namespaces);
+			const typeName = getTypeName(type, typeSymbol, checker, false);
+			return resolveUnionType(type, typeName, typeNode, context, namespaces);
 		}
 
 		if (type.isIntersection()) {
