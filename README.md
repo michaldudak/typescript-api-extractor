@@ -45,12 +45,12 @@ const program = ts.createProgram(config.fileNames, config.options);
 
 // Parse all files in the project
 for (const file of config.fileNames) {
-  try {
-    const moduleInfo: ModuleNode = parseFromProgram(file, program);
-    console.log(`Extracted API from ${file}:`, moduleInfo);
-  } catch (error) {
-    console.error(`Failed to parse ${file}:`, error);
-  }
+	try {
+		const moduleInfo: ModuleNode = parseFromProgram(file, program);
+		console.log(`Extracted API from ${file}:`, moduleInfo);
+	} catch (error) {
+		console.error(`Failed to parse ${file}:`, error);
+	}
 }
 ```
 
@@ -90,9 +90,9 @@ The parser accepts optional configuration through the `ParserOptions` interface:
 
 ```typescript
 interface ParserOptions {
-  includePrivateMembers?: boolean;
-  followReferences?: boolean;
-  maxDepth?: number;
+	includePrivateMembers?: boolean;
+	followReferences?: boolean;
+	maxDepth?: number;
 }
 ```
 
@@ -102,14 +102,14 @@ The parser returns a `ModuleNode` object with the following structure:
 
 ```typescript
 interface ModuleNode {
-  name: string;
-  exports: ExportNode[];
+	name: string;
+	exports: ExportNode[];
 }
 
 interface ExportNode {
-  name: string;
-  type: TypeNode;
-  documentation?: DocumentationNode;
+	name: string;
+	type: TypeNode;
+	documentation?: DocumentationNode;
 }
 ```
 
@@ -136,40 +136,40 @@ The extractor would produce:
 
 ```json
 {
-  "name": "MyComponent",
-  "exports": [
-    {
-      "name": "MyComponent",
-      "type": {
-        "kind": "component",
-        "name": "MyComponent",
-        "props": [
-          {
-            "name": "title",
-            "type": {
-              "kind": "intrinsic",
-              "intrinsic": "string"
-            },
-            "optional": false,
-            "documentation": {
-              "description": "The title to display"
-            }
-          },
-          {
-            "name": "disabled",
-            "type": {
-              "kind": "intrinsic",
-              "intrinsic": "boolean"
-            },
-            "optional": true,
-            "documentation": {
-              "description": "Whether the component is disabled"
-            }
-          }
-        ]
-      }
-    }
-  ]
+	"name": "MyComponent",
+	"exports": [
+		{
+			"name": "MyComponent",
+			"type": {
+				"kind": "component",
+				"name": "MyComponent",
+				"props": [
+					{
+						"name": "title",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"documentation": {
+							"description": "The title to display"
+						}
+					},
+					{
+						"name": "disabled",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "boolean"
+						},
+						"optional": true,
+						"documentation": {
+							"description": "Whether the component is disabled"
+						}
+					}
+				]
+			}
+		}
+	]
 }
 ```
 
