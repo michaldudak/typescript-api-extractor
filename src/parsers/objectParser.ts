@@ -2,7 +2,8 @@ import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
 import { ObjectNode } from '../models';
-import { getTypeName, getTypeNamespaces } from './typeResolver';
+import { getTypeNamespaces } from './typeResolver';
+import { getTypeName } from './common';
 
 export function parseObjectType(
 	type: ts.Type,

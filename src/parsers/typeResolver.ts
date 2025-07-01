@@ -16,6 +16,8 @@ import {
 	LiteralNode,
 	IntersectionNode,
 } from '../models';
+import { resolveUnionType } from './unionTypeResolver';
+import { getTypeName } from './common';
 
 export function resolveType(
 	type: ts.Type,
@@ -115,66 +117,7 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			let memberTypes: ts.Type[] = type.types;
-			const parsedMemberTypes: TypeNode[] = [];
-			const typeName = getTypeName(type, typeSymbol, checker, false);
-
-			// @ts-expect-error - Internal API
-			if (type.origin?.isUnion()) {
-				// @ts-expect-error - Internal API
-
-				// If a union type contains another union, `type.types` will contain the flattened types.
-				// To resolve the original union type, we need to use the internal `type.origin.types`.
-				memberTypes = type.origin.types;
-			}
-
-			if (typeNode && ts.isUnionTypeNode(typeNode)) {
-				for (const memberType of memberTypes) {
-					let memberTypeNode: ts.TypeNode | undefined;
-
-					// If the typeNode is a union type, we need to find the corresponding member
-					// type node for the current member type.
-
-					const index = typeNode.types.findIndex((memberTypeNode) => {
-						const memberTypeFromTypeNode = checker.getTypeFromTypeNode(memberTypeNode);
-						return (
-							memberType === memberTypeFromTypeNode ||
-							('target' in memberType &&
-								memberType.target != undefined &&
-								(('target' in memberTypeFromTypeNode &&
-									memberType.target === memberTypeFromTypeNode.target) ||
-									memberType.target === memberTypeFromTypeNode))
-						);
-					});
-
-					if (index !== -1) {
-						memberTypeNode = typeNode.types[index];
-					}
-
-					parsedMemberTypes.push(resolveType(memberType, context, memberTypeNode || typeNode));
-				}
-			} else {
-				// `type` is an union type, but `typeNode` is not.
-				// This could happen for optional properties: `foo?: T` is resolved as `T | undefined`.
-				if (
-					memberTypes.length === 2 &&
-					memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined) &&
-					typeNode &&
-					ts.isTypeReferenceNode(typeNode)
-				) {
-					for (const memberType of memberTypes) {
-						parsedMemberTypes.push(resolveType(memberType, context, typeNode));
-					}
-				} else {
-					for (const memberType of memberTypes) {
-						parsedMemberTypes.push(resolveType(memberType, context));
-					}
-				}
-			}
-
-			return parsedMemberTypes.length === 1
-				? parsedMemberTypes[0]
-				: new UnionNode(typeName, namespaces, parsedMemberTypes);
+			return resolveUnionType(type, typeSymbol, typeNode, context, namespaces);
 		}
 
 		if (type.isIntersection()) {
@@ -385,52 +328,6 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 			);
 		}) ?? false
 	);
-}
-
-export function getTypeName(
-	type: ts.Type,
-	typeSymbol: ts.Symbol | undefined,
-	checker: ts.TypeChecker,
-	useFallback: boolean = true,
-): string | undefined {
-	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
-	if (!symbol) {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	if (typeSymbol && !type.aliasSymbol && !type.symbol) {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	const typeName = symbol.getName();
-	if (typeName === '__type') {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	let typeArguments: string[] | undefined;
-
-	if (type.aliasSymbol && !type.aliasTypeArguments) {
-		typeArguments = [];
-	} else {
-		if ('target' in type) {
-			typeArguments = checker
-				.getTypeArguments(type as ts.TypeReference)
-				?.map((x) => getTypeName(x, undefined, checker, true) ?? 'unknown');
-		}
-
-		if (!typeArguments?.length) {
-			typeArguments =
-				type.aliasTypeArguments?.map(
-					(x) => getTypeName(x, undefined, checker, true) ?? 'unknown',
-				) ?? [];
-		}
-	}
-
-	if (typeArguments && typeArguments.length > 0) {
-		return `${typeName}<${typeArguments.join(', ')}>`;
-	}
-
-	return typeName;
 }
 
 function hasFlag(typeFlags: number, flag: number) {
