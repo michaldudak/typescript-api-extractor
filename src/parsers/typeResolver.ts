@@ -16,6 +16,8 @@ import {
 	LiteralNode,
 	IntersectionNode,
 } from '../models';
+import { resolveUnionType } from './unionTypeResolver';
+import { getTypeName } from './common';
 
 export function resolveType(
 	type: ts.Type,
@@ -37,32 +39,6 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	function areEquivalent(typeNodeName: ts.EntityName, type: ts.Type): boolean | undefined {
-		if (ts.isIdentifier(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
-			if (!typeSymbolCandidate) {
-				return undefined;
-			}
-
-			return (
-				typeNodeName.text === type.aliasSymbol?.name &&
-				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
-			);
-		} else if (ts.isQualifiedName(typeNodeName)) {
-			const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
-			if (!typeSymbolCandidate) {
-				return undefined;
-			}
-
-			return (
-				typeNodeName.right.text === type.aliasSymbol?.name &&
-				getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
-			);
-		}
-
-		return undefined;
-	}
-
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -80,7 +56,7 @@ export function resolveType(
 
 		if (
 			typeSymbolCandidate &&
-			!areEquivalent(typeNodeName, type) &&
+			!areEquivalent(typeNodeName, type, checker) &&
 			!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
 		) {
 			typeSymbol = typeSymbolCandidate;
@@ -141,33 +117,8 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			let memberTypes: ts.Type[] = type.types;
-			const parsedMemberTypes: TypeNode[] = [];
 			const typeName = getTypeName(type, typeSymbol, checker, false);
-
-			// @ts-expect-error - Internal API
-			if (type.origin?.isUnion()) {
-				// @ts-expect-error - Internal API
-
-				// If a union type contains another union, `type.types` will contain the flattened types.
-				// To resolve the original union type, we need to use the internal `type.origin.types`.
-				memberTypes = type.origin.types;
-			}
-
-			if (memberTypes.length === 2 && memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined)) {
-				// If the union is `T | undefined`, we propagate the typeNode of T to the union member so that any aliases are resolved correctly.
-				for (const memberType of memberTypes) {
-					parsedMemberTypes.push(resolveType(memberType, context, typeNode));
-				}
-			} else {
-				for (const memberType of memberTypes) {
-					parsedMemberTypes.push(resolveType(memberType, context));
-				}
-			}
-
-			return parsedMemberTypes.length === 1
-				? parsedMemberTypes[0]
-				: new UnionNode(typeName, namespaces, parsedMemberTypes);
+			return resolveUnionType(type, typeName, typeNode, context, namespaces);
 		}
 
 		if (type.isIntersection()) {
@@ -380,52 +331,6 @@ function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
 	);
 }
 
-export function getTypeName(
-	type: ts.Type,
-	typeSymbol: ts.Symbol | undefined,
-	checker: ts.TypeChecker,
-	useFallback: boolean = true,
-): string | undefined {
-	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
-	if (!symbol) {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	if (typeSymbol && !type.aliasSymbol && !type.symbol) {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	const typeName = symbol.getName();
-	if (typeName === '__type') {
-		return useFallback ? checker.typeToString(type) : undefined;
-	}
-
-	let typeArguments: string[] | undefined;
-
-	if (type.aliasSymbol && !type.aliasTypeArguments) {
-		typeArguments = [];
-	} else {
-		if ('target' in type) {
-			typeArguments = checker
-				.getTypeArguments(type as ts.TypeReference)
-				?.map((x) => getTypeName(x, undefined, checker, true) ?? 'unknown');
-		}
-
-		if (!typeArguments?.length) {
-			typeArguments =
-				type.aliasTypeArguments?.map(
-					(x) => getTypeName(x, undefined, checker, true) ?? 'unknown',
-				) ?? [];
-		}
-	}
-
-	if (typeArguments && typeArguments.length > 0) {
-		return `${typeName}<${typeArguments.join(', ')}>`;
-	}
-
-	return typeName;
-}
-
 function hasFlag(typeFlags: number, flag: number) {
 	return (typeFlags & flag) === flag;
 }
@@ -433,6 +338,36 @@ function hasFlag(typeFlags: number, flag: number) {
 function getTypeId(type: ts.Type): number | undefined {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (type as any).id;
+}
+
+function areEquivalent(
+	typeNodeName: ts.EntityName,
+	type: ts.Type,
+	checker: ts.TypeChecker,
+): boolean | undefined {
+	if (ts.isIdentifier(typeNodeName)) {
+		const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+		if (!typeSymbolCandidate) {
+			return undefined;
+		}
+
+		return (
+			typeNodeName.text === type.aliasSymbol?.name &&
+			getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+		);
+	} else if (ts.isQualifiedName(typeNodeName)) {
+		const typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+		if (!typeSymbolCandidate) {
+			return undefined;
+		}
+
+		return (
+			typeNodeName.right.text === type.aliasSymbol?.name &&
+			getTypeSymbolNamespaces(typeSymbolCandidate).join('.') === getTypeNamespaces(type).join('.')
+		);
+	}
+
+	return undefined;
 }
 
 // Internal API

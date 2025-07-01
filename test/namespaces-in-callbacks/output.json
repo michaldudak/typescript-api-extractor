@@ -1,0 +1,67 @@
+{
+	"name": "test/namespaces-in-callbacks/input",
+	"exports": [
+		{
+			"name": "Component",
+			"type": {
+				"kind": "component",
+				"name": "Component",
+				"parentNamespaces": [],
+				"props": [
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"parentNamespaces": [],
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"types": [
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": 0
+															},
+															{
+																"kind": "literal",
+																"parentNamespaces": [],
+																"value": 1
+															}
+														],
+														"parentNamespaces": [
+															"RootNamespace"
+														],
+														"name": "Alias"
+													},
+													{
+														"kind": "intrinsic",
+														"parentNamespaces": [],
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"name": "p",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"parentNamespaces": [],
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}
