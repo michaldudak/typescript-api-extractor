@@ -19,10 +19,17 @@ import {
 import { resolveUnionType } from './unionTypeResolver';
 import { getTypeName } from './common';
 
+/**
+ *
+ * @param type TypeScript type to resolve
+ * @param typeNode TypeScript TypeNode associated with the type, if available. It can be used to preserve the authored type name.
+ * @param context Parser context containing TypeScript checker and other utilities.
+ * @param skipResolvingComplexTypes If true, complex types like functions and objects will be resolved to their intrinsic types (e.g., 'function', 'object').
+ */
 export function resolveType(
 	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
-	typeNode?: ts.TypeNode,
 	skipResolvingComplexTypes: boolean = false,
 ): TypeNode {
 	const { checker, typeStack, includeExternalTypes } = context;
@@ -73,7 +80,7 @@ export function resolveType(
 				namespaces,
 				declaration?.constraint?.getText(),
 				declaration?.default
-					? resolveType(checker.getTypeAtLocation(declaration.default), context)
+					? resolveType(checker.getTypeAtLocation(declaration.default), undefined, context)
 					: undefined,
 			);
 		}
@@ -81,7 +88,11 @@ export function resolveType(
 		if (checker.isArrayType(type)) {
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(type.aliasSymbol?.name, namespaces, resolveType(arrayType, context));
+			return new ArrayNode(
+				type.aliasSymbol?.name,
+				namespaces,
+				resolveType(arrayType, undefined, context),
+			);
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
@@ -126,7 +137,7 @@ export function resolveType(
 			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			for (const memberType of type.types) {
-				memberTypes.push(resolveType(memberType, context));
+				memberTypes.push(resolveType(memberType, undefined, context));
 			}
 
 			if (memberTypes.length === 0) {
@@ -160,7 +171,7 @@ export function resolveType(
 			return new TupleNode(
 				typeSymbol?.name ?? type.aliasSymbol?.name,
 				namespaces,
-				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, context)) ?? [],
+				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, undefined, context)) ?? [],
 			);
 		}
 
@@ -235,14 +246,15 @@ export function resolveType(
 					undefined,
 					[],
 					[
-						resolveType((type as ts.ConditionalType).resolvedTrueType!, context),
-						resolveType((type as ts.ConditionalType).resolvedFalseType!, context),
+						// TODO: Pass TypeNode here to resolve aliases correctly
+						resolveType((type as ts.ConditionalType).resolvedTrueType!, undefined, context),
+						resolveType((type as ts.ConditionalType).resolvedFalseType!, undefined, context),
 					],
 				);
 			} else if (conditionalType.resolvedTrueType) {
-				return resolveType(conditionalType.resolvedTrueType, context);
+				return resolveType(conditionalType.resolvedTrueType, undefined, context);
 			} else if (conditionalType.resolvedFalseType) {
-				return resolveType(conditionalType.resolvedFalseType, context);
+				return resolveType(conditionalType.resolvedFalseType, undefined, context);
 			}
 		}
 

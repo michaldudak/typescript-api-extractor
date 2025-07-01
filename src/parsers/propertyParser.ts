@@ -31,8 +31,8 @@ export function parseProperty(
 
 		const parsedType = resolveType(
 			type,
-			context,
 			isTypeParameterLike(type) ? undefined : propertySignature?.type,
+			context,
 			skipResolvingComplexTypes,
 		);
 

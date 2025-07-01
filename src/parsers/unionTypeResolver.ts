@@ -60,7 +60,7 @@ export function resolveUnionType(
 				memberTypeNode = typeNode.types[index];
 			}
 
-			result.push(resolveType(memberType, context, memberTypeNode || typeNode));
+			result.push(resolveType(memberType, memberTypeNode || typeNode, context));
 		}
 	} else {
 		// Type is an union type, but TypeNode is not.
@@ -74,11 +74,11 @@ export function resolveUnionType(
 			// In such case propagate the parent TypeNode to the member types.
 			// It will help to resolve T correctly and won't have any effect on the `undefined` type.
 			for (const memberType of memberTypes) {
-				result.push(resolveType(memberType, context, typeNode));
+				result.push(resolveType(memberType, typeNode, context));
 			}
 		} else {
 			for (const memberType of memberTypes) {
-				result.push(resolveType(memberType, context));
+				result.push(resolveType(memberType, undefined, context));
 			}
 		}
 	}
