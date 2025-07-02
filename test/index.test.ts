@@ -28,20 +28,7 @@ for (const testCase of testCases) {
 		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
 			expect(moduleDefinition).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
 		} else {
-			fs.writeFileSync(
-				expectedOutput,
-				JSON.stringify(
-					moduleDefinition,
-					(key, value) => {
-						// These are TypeScript internals that change depending on the number of symbols created during test
-						if (key === '$$id') {
-							return undefined;
-						}
-						return value;
-					},
-					'\t',
-				),
-			);
+			fs.writeFileSync(expectedOutput, JSON.stringify(moduleDefinition, null, '\t'));
 		}
 	});
 }

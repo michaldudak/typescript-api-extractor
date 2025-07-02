@@ -53,26 +53,13 @@ function hasReactNodeLikeReturnType(type: FunctionNode) {
 
 function squashComponentProps(callSignatures: CallSignature[], context: ParserContext) {
 	// squash props
-	// { variant: 'a', href: string } & { variant: 'b' }
+	// { variant: 'a', href: string } | { variant: 'b' }
 	// to
 	// { variant: 'a' | 'b', href?: string }
-	const props: Record<string, PropertyNode> = {};
+	const props: Map<string, PropertyNode> = new Map<string, PropertyNode>();
 	const usedPropsPerSignature: Set<string>[] = [];
 
-	function unwrapUnionType(type: UnionNode): ObjectNode[] {
-		return type.types
-			.map((type) => {
-				if (type instanceof ObjectNode) {
-					return type;
-				} else if (type instanceof UnionNode) {
-					return unwrapUnionType(type);
-				}
-			})
-			.flat()
-			.filter((t) => !!t);
-	}
-
-	const allParametersUnionMembers = callSignatures
+	const propsFromCallSignatures = callSignatures
 		.map((signature) => {
 			const propsParameter = signature.parameters[0];
 			if (!propsParameter) {
@@ -94,42 +81,59 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 		.flat()
 		.filter((t) => !!t);
 
-	allParametersUnionMembers.forEach((propUnionMember) => {
+	propsFromCallSignatures.forEach((propsObject) => {
 		const usedProps: Set<string> = new Set();
 
-		propUnionMember.properties.forEach((propNode) => {
+		propsObject.properties.forEach((propNode) => {
 			usedProps.add(propNode.name);
 
-			let { [propNode.name]: currentTypeNode } = props;
-			if (currentTypeNode === undefined) {
-				currentTypeNode = propNode;
-			} else if (currentTypeNode.$$id !== propNode.$$id) {
-				const mergedPropType = new UnionNode(undefined, [], [currentTypeNode.type, propNode.type]);
+			// Check if a prop with a given name has already been encountered.
+			const existingPropNode = props.get(propNode.name);
+			if (existingPropNode === undefined) {
+				// If not, we can just add it.
+				props.set(propNode.name, propNode);
+			} else {
+				// If it has, we need to merge the types in a union.
+				// If both prop objects define the prop with the same type, the UnionNode constructor will deduplicate them.
+				const mergedPropType = new UnionNode(undefined, [], [existingPropNode.type, propNode.type]);
 
-				currentTypeNode = new PropertyNode(
-					currentTypeNode.name,
+				// If the current prop is optional, the whole union will be optional.
+				const mergedPropNode = new PropertyNode(
+					existingPropNode.name,
 					mergedPropType.types.length === 1 ? mergedPropType.types[0] : mergedPropType,
-					currentTypeNode.documentation,
-					currentTypeNode.optional || propNode.optional,
-					undefined,
+					existingPropNode.documentation,
+					existingPropNode.optional || propNode.optional,
 				);
-			}
 
-			props[propNode.name] = currentTypeNode;
+				props.set(propNode.name, mergedPropNode);
+			}
 		});
 
 		usedPropsPerSignature.push(usedProps);
 	});
 
-	return Object.entries(props).map(([name, property]) => {
+	// If a prop is used in some signatures, but not in others, we need to mark it as optional.
+	return [...props.entries()].map(([name, property]) => {
 		const onlyUsedInSomeSignatures = usedPropsPerSignature.some((props) => !props.has(name));
 		if (onlyUsedInSomeSignatures) {
-			// mark as optional
 			return markPropertyAsOptional(property, context);
 		}
 
 		return property;
 	});
+}
+
+function unwrapUnionType(type: UnionNode): ObjectNode[] {
+	return type.types
+		.map((type) => {
+			if (type instanceof ObjectNode) {
+				return type;
+			} else if (type instanceof UnionNode) {
+				return unwrapUnionType(type);
+			}
+		})
+		.flat()
+		.filter((t) => !!t);
 }
 
 function markPropertyAsOptional(property: PropertyNode, context: ParserContext) {
@@ -142,8 +146,8 @@ function markPropertyAsOptional(property: PropertyNode, context: ParserContext) 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
 		const newType = new UnionNode(undefined, [], [property.type, new IntrinsicNode('undefined')]);
-		return new PropertyNode(property.name, newType, property.documentation, true, undefined);
+		return new PropertyNode(property.name, newType, property.documentation, true);
 	}
 
-	return new PropertyNode(property.name, property.type, property.documentation, true, undefined);
+	return new PropertyNode(property.name, property.type, property.documentation, true);
 }

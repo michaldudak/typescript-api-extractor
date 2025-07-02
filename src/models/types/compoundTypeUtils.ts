@@ -5,6 +5,7 @@ import { ReferenceNode } from './reference';
 import { TypeNode } from '../node';
 import { IntersectionNode } from './intersection';
 import { UnionNode } from './union';
+import { TypeParameterNode } from './typeParameter';
 
 export function flattenTypes(
 	nodes: readonly TypeNode[],
@@ -28,7 +29,7 @@ export function deduplicateMemberTypes(types: TypeNode[]): TypeNode[] {
 			return x.value;
 		}
 
-		if (x instanceof ReferenceNode) {
+		if (x instanceof ReferenceNode || x instanceof TypeParameterNode) {
 			return x.name;
 		}
 

@@ -36,8 +36,8 @@ export function parseProperty(
 			skipResolvingComplexTypes,
 		);
 
-		// Typechecker only gives the type "any" if it's present in a union
-		// This means the type of "a" in {a?:any} isn't "any | undefined"
+		// Typechecker only gives the type "any" if it's present in a union.
+		// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
 		// So instead we check for the questionmark to detect optional types
 		if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
 			isOptional = Boolean(propertySignature.questionToken);
@@ -50,8 +50,6 @@ export function parseProperty(
 			parsedType,
 			getDocumentationFromSymbol(propertySymbol, checker),
 			isOptional,
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(propertySymbol as any).id,
 		);
 	} catch (error) {
 		if (!(error instanceof ParserError)) {
