@@ -9,7 +9,6 @@ export function parseProperty(
 	propertySymbol: ts.Symbol,
 	propertySignature: ts.PropertySignature | undefined,
 	context: ParserContext,
-	skipResolvingComplexTypes: boolean = false,
 ): PropertyNode {
 	const { checker, parsedSymbolStack } = context;
 	parsedSymbolStack.push(`property: ${propertySymbol.name}`);
@@ -33,7 +32,6 @@ export function parseProperty(
 			type,
 			isTypeParameterLike(type) ? undefined : propertySignature?.type,
 			context,
-			skipResolvingComplexTypes,
 		);
 
 		// Typechecker only gives the type "any" if it's present in a union.
