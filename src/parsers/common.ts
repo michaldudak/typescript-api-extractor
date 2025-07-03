@@ -4,7 +4,7 @@ export function getTypeName(
 	type: ts.Type,
 	typeSymbol: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
-	useFallback: boolean = true,
+	useFallback: boolean = false,
 ): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {

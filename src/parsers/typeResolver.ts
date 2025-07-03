@@ -70,6 +70,7 @@ export function resolveType(
 		}
 	}
 
+	const typeName = getTypeName(type, typeSymbol, checker);
 	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
 
 	try {
@@ -100,7 +101,6 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			const typeName = getTypeName(type, typeSymbol, checker);
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
 				return new ReferenceNode('RefCallback', []);
@@ -132,13 +132,11 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			const typeName = getTypeName(type, typeSymbol, checker, false);
 			return resolveUnionType(type, typeName, typeNode, context, namespaces);
 		}
 
 		if (type.isIntersection()) {
 			const memberTypes: TypeNode[] = [];
-			const typeName = getTypeName(type, typeSymbol, checker, false);
 
 			for (const memberType of type.types) {
 				memberTypes.push(resolveType(memberType, undefined, context));
@@ -239,7 +237,6 @@ export function resolveType(
 			type.flags & ts.TypeFlags.Object ||
 			(type.flags & ts.TypeFlags.NonPrimitive && checker.typeToString(type) === 'object')
 		) {
-			const typeName = getTypeName(type, typeSymbol, checker, false);
 			return new ObjectNode(typeName, namespaces, [], undefined);
 		}
 
