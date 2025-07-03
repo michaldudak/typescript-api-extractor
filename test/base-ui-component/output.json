@@ -254,7 +254,7 @@
 											],
 											"returnValueType": {
 												"kind": "reference",
-												"name": "ReactElement<unknown, string | JSXElementConstructor<any>>",
+												"name": "ReactElement",
 												"parentNamespaces": [
 													"React"
 												]
@@ -429,7 +429,7 @@
 											],
 											"returnValueType": {
 												"kind": "reference",
-												"name": "ReactElement<unknown, string | JSXElementConstructor<any>>",
+												"name": "ReactElement",
 												"parentNamespaces": [
 													"React"
 												]
