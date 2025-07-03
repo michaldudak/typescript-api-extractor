@@ -53,7 +53,7 @@
 			"name": "TestComponent2",
 			"type": {
 				"kind": "component",
-				"name": "FC",
+				"name": "FC<Props>",
 				"parentNamespaces": [],
 				"props": [
 					{
@@ -101,7 +101,7 @@
 			"name": "TestComponent3",
 			"type": {
 				"kind": "component",
-				"name": "FunctionComponent",
+				"name": "FunctionComponent<Props>",
 				"parentNamespaces": [],
 				"props": [
 					{

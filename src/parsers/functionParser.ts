@@ -1,6 +1,6 @@
 import ts, { FunctionDeclaration } from 'typescript';
 import { type ParserContext } from '../parser';
-import { getTypeNamespaces, resolveType } from './typeResolver';
+import { resolveType } from './typeResolver';
 import {
 	FunctionNode,
 	CallSignature,
@@ -10,6 +10,7 @@ import {
 	Visibility,
 } from '../models';
 import { ParserError } from '../ParserError';
+import { getFullyQualifiedName } from './common';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type
@@ -21,10 +22,14 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 	}
 
 	const symbol = type.aliasSymbol ?? type.getSymbol();
-	let name = symbol?.getName();
-	if (name === '__type') {
-		name = undefined;
-	}
+
+	const { name: originalName, namespaces } = getFullyQualifiedName(
+		type,
+		undefined,
+		context.checker,
+	);
+
+	let name = originalName;
 
 	// Functions with `export default` are named "default" in the type checker.
 	// Their original name is stored in the value declaration.
@@ -33,7 +38,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
 	}
 
-	return new FunctionNode(name, getTypeNamespaces(type), parsedCallSignatures);
+	return new FunctionNode(name, namespaces, parsedCallSignatures);
 }
 
 function parseFunctionSignature(signature: ts.Signature, context: ParserContext): CallSignature {

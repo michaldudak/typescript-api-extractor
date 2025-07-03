@@ -81,7 +81,7 @@
 												"types": [
 													{
 														"kind": "function",
-														"name": "ComponentRenderFn",
+														"name": "ComponentRenderFn<GenericHTMLProps, State>",
 														"parentNamespaces": [],
 														"callSignatures": [
 															{

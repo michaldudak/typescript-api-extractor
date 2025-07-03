@@ -2,8 +2,7 @@ import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
 import { ObjectNode } from '../models';
-import { getTypeNamespaces } from './typeResolver';
-import { getTypeName } from './common';
+import { getFullyQualifiedName } from './common';
 
 export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, checker } = context;
@@ -12,7 +11,7 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
 
-	const typeName = getTypeName(type, undefined, checker, false);
+	const { name: typeName, namespaces } = getFullyQualifiedName(type, undefined, checker);
 
 	if (properties.length) {
 		if (
@@ -35,7 +34,7 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 			if (filteredProperties.length > 0) {
 				return new ObjectNode(
 					typeName,
-					getTypeNamespaces(type),
+					namespaces,
 					filteredProperties.map((property) => {
 						return parseProperty(
 							property,
@@ -48,7 +47,7 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 			}
 		}
 
-		return new ObjectNode(typeName ?? undefined, getTypeNamespaces(type), [], undefined);
+		return new ObjectNode(typeName, namespaces, [], undefined);
 	}
 }
 
