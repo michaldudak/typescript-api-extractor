@@ -22,7 +22,13 @@
 												"kind": "typeParameter",
 												"name": "T",
 												"parentNamespaces": [],
-												"constraint": "React.HTMLAttributes<HTMLElement>"
+												"constraint": {
+													"kind": "reference",
+													"name": "HTMLAttributes<HTMLElement>",
+													"parentNamespaces": [
+														"React"
+													]
+												}
 											},
 											"optional": false
 										},
@@ -67,7 +73,13 @@
 							"kind": "typeParameter",
 							"name": "T",
 							"parentNamespaces": [],
-							"constraint": "React.HTMLAttributes<HTMLElement>"
+							"constraint": {
+								"kind": "reference",
+								"name": "HTMLAttributes<HTMLElement>",
+								"parentNamespaces": [
+									"React"
+								]
+							}
 						}
 					}
 				]

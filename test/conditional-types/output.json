@@ -15,7 +15,11 @@
 									"kind": "typeParameter",
 									"name": "T",
 									"parentNamespaces": [],
-									"constraint": "boolean"
+									"constraint": {
+										"kind": "intrinsic",
+										"parentNamespaces": [],
+										"intrinsic": "boolean"
+									}
 								},
 								"name": "x",
 								"optional": false
