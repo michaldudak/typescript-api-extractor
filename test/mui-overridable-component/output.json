@@ -16,7 +16,13 @@
 									"kind": "typeParameter",
 									"name": "RootComponent",
 									"parentNamespaces": [],
-									"constraint": "React.ElementType"
+									"constraint": {
+										"kind": "reference",
+										"name": "ElementType<any, keyof IntrinsicElements>",
+										"parentNamespaces": [
+											"React"
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",

@@ -6,7 +6,7 @@ export class TypeParameterNode implements TypeNode {
 	constructor(
 		public name: string,
 		public parentNamespaces: string[],
-		public constraint: string | undefined,
+		public constraint: TypeNode | undefined,
 		public defaultValue: TypeNode | undefined,
 	) {}
 }

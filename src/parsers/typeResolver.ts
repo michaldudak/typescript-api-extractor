@@ -75,10 +75,14 @@ export function resolveType(
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
 			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+			const constraintType = declaration?.constraint
+				? checker.getBaseConstraintOfType(type)
+				: undefined;
+
 			return new TypeParameterNode(
 				type.symbol.name,
 				namespaces,
-				declaration?.constraint?.getText(),
+				constraintType ? resolveType(constraintType, undefined, context) : undefined,
 				declaration?.default
 					? resolveType(checker.getTypeAtLocation(declaration.default), undefined, context)
 					: undefined,
