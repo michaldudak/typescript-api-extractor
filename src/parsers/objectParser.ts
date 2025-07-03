@@ -5,11 +5,7 @@ import { ObjectNode } from '../models';
 import { getTypeNamespaces } from './typeResolver';
 import { getTypeName } from './common';
 
-export function parseObjectType(
-	type: ts.Type,
-	context: ParserContext,
-	skipResolvingComplexTypes: boolean,
-): ObjectNode | undefined {
+export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, checker } = context;
 
 	const properties = type
@@ -20,7 +16,6 @@ export function parseObjectType(
 
 	if (properties.length) {
 		if (
-			!skipResolvingComplexTypes &&
 			shouldResolveObject({
 				name: typeName ?? '',
 				propertyCount: properties.length,

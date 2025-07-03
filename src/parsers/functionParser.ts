@@ -36,11 +36,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 	return new FunctionNode(name, getTypeNamespaces(type), parsedCallSignatures);
 }
 
-function parseFunctionSignature(
-	signature: ts.Signature,
-	context: ParserContext,
-	skipResolvingComplexTypes: boolean = false,
-): CallSignature {
+function parseFunctionSignature(signature: ts.Signature, context: ParserContext): CallSignature {
 	// Node that possibly has JSDocs attached to it
 	let documentationNodeCandidate: ts.Node | undefined = undefined;
 
@@ -72,7 +68,7 @@ function parseFunctionSignature(
 	}
 
 	const parameters = signature.parameters.map((parameterSymbol) =>
-		parseParameter(parameterSymbol, context, skipResolvingComplexTypes),
+		parseParameter(parameterSymbol, context),
 	);
 
 	const returnValueType = resolveType(signature.getReturnType(), undefined, context);
@@ -80,11 +76,7 @@ function parseFunctionSignature(
 	return new CallSignature(parameters, returnValueType);
 }
 
-function parseParameter(
-	parameterSymbol: ts.Symbol,
-	context: ParserContext,
-	skipResolvingComplexTypes: boolean,
-): Parameter {
+function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
 	const { checker, parsedSymbolStack } = context;
 	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
 
@@ -95,7 +87,6 @@ function parseParameter(
 			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
 			parameterDeclaration.type,
 			context,
-			skipResolvingComplexTypes,
 		);
 
 		const summary = parameterSymbol
