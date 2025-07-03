@@ -101,13 +101,21 @@ function getTypeName(
 		if ('target' in type) {
 			typeArguments = checker
 				.getTypeArguments(type as ts.TypeReference)
-				?.map((x) => getTypeName(x, undefined, checker) ?? checker.typeToString(x) ?? 'unknown');
+				?.map(
+					(x) =>
+						getFullyQualifiedNameAsString(x, undefined, checker) ??
+						checker.typeToString(x) ??
+						'unknown',
+				);
 		}
 
 		if (!typeArguments?.length) {
 			typeArguments =
 				type.aliasTypeArguments?.map(
-					(x) => getTypeName(x, undefined, checker) ?? checker.typeToString(x) ?? 'unknown',
+					(x) =>
+						getFullyQualifiedNameAsString(x, undefined, checker) ??
+						checker.typeToString(x) ??
+						'unknown',
 				) ?? [];
 		}
 	}
@@ -121,6 +129,23 @@ function getTypeName(
 	}
 
 	return typeName;
+}
+
+function getFullyQualifiedNameAsString(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+) {
+	const { name, namespaces } = getFullyQualifiedName(type, typeNode, checker);
+	if (!name) {
+		return undefined;
+	}
+
+	if (namespaces.length > 0) {
+		return `${namespaces.join('.')}.${name}`;
+	}
+
+	return name;
 }
 
 function areAllGenericArgumentsSameAsDefault(

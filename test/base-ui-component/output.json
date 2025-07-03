@@ -72,7 +72,7 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "RefObject<Actions>",
+									"name": "RefObject<BaseUIComponent1.Actions>",
 									"parentNamespaces": [
 										"React"
 									]
@@ -156,7 +156,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn<HTMLProps<any>, State>",
+									"name": "ComponentRenderFn<HTMLProps<any>, BaseUIComponent1.State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
@@ -341,7 +341,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn<HTMLProps<any>, State>",
+									"name": "ComponentRenderFn<HTMLProps<any>, BaseUIComponent2.State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
