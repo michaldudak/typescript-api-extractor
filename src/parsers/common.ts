@@ -112,11 +112,71 @@ function getTypeName(
 		}
 	}
 
-	if (typeArguments && typeArguments.length > 0) {
+	if (
+		typeArguments &&
+		typeArguments.length > 0 &&
+		!areAllGenericArgumentsSameAsDefault(type, checker)
+	) {
 		return `${typeName}<${typeArguments.join(', ')}>`;
 	}
 
 	return typeName;
+}
+
+function areAllGenericArgumentsSameAsDefault(
+	type: ts.Type, // The instantiated type, e.g., Props<string>
+	checker: ts.TypeChecker,
+): boolean {
+	if (
+		!(type.flags & ts.TypeFlags.Object) ||
+		!((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference)
+	) {
+		return false;
+	}
+
+	const typeArguments = checker.getTypeArguments(type as ts.TypeReference);
+	if (typeArguments.length === 0) {
+		return true; // No arguments to compare
+	}
+
+	const targetType = (type as ts.TypeReference).target;
+	const targetSymbol = targetType.getSymbol();
+	if (!targetSymbol?.declarations || targetSymbol.declarations.length === 0) {
+		return false;
+	}
+
+	const declaration = targetSymbol.declarations[0];
+
+	if (
+		!ts.isInterfaceDeclaration(declaration) &&
+		!ts.isTypeAliasDeclaration(declaration) &&
+		!ts.isClassDeclaration(declaration) &&
+		!ts.isFunctionDeclaration(declaration)
+	) {
+		return false;
+	}
+
+	const typeParameters = declaration.typeParameters;
+	if (!typeParameters || typeParameters.length < typeArguments.length) {
+		return false;
+	}
+
+	for (let i = 0; i < typeArguments.length; i++) {
+		const argumentType = typeArguments[i];
+		const typeParameterDeclaration = typeParameters[i];
+
+		if (!typeParameterDeclaration.default) {
+			return false; // Argument provided for a parameter without a default
+		}
+
+		const defaultType = checker.getTypeFromTypeNode(typeParameterDeclaration.default);
+
+		if (argumentType !== defaultType) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 function areEquivalent(
