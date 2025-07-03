@@ -5,7 +5,7 @@
 			"name": "TestComponent",
 			"type": {
 				"kind": "component",
-				"name": "ForwardRefExoticComponent",
+				"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
 				"parentNamespaces": [],
 				"props": [
 					{

@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { EnumNode, EnumMember } from '../models';
 import { getDocumentationFromSymbol } from './documentationParser';
-import { getTypeNamespaces } from './typeResolver';
+import { getTypeNamespaces } from './common';
 import { ParserError } from '../ParserError';
 
 export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {

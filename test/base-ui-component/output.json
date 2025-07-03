@@ -5,7 +5,7 @@
 			"name": "BaseUIComponent1",
 			"type": {
 				"kind": "component",
-				"name": "ForwardRefExoticComponent",
+				"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
 				"parentNamespaces": [],
 				"props": [
 					{
@@ -156,7 +156,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn",
+									"name": "ComponentRenderFn<HTMLProps<any>, State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
@@ -278,7 +278,7 @@
 			"name": "BaseUIComponent2",
 			"type": {
 				"kind": "component",
-				"name": "ForwardRefExoticComponent",
+				"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
 				"parentNamespaces": [],
 				"props": [
 					{
@@ -341,7 +341,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn",
+									"name": "ComponentRenderFn<HTMLProps<any>, State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
