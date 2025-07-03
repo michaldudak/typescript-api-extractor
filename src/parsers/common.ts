@@ -11,7 +11,7 @@ export function getTypeName(
 		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
-	if (typeSymbol && !type.aliasSymbol && !type.symbol) {
+	if (typeSymbol && !type.aliasSymbol && !type.symbol && !isAnyOrUnknown(type)) {
 		return useFallback ? checker.typeToString(type) : undefined;
 	}
 
@@ -44,4 +44,8 @@ export function getTypeName(
 	}
 
 	return typeName;
+}
+
+function isAnyOrUnknown(type: ts.Type): boolean {
+	return (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) > 0;
 }

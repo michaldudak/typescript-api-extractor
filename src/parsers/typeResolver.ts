@@ -46,32 +46,7 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
-	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
-	//
-	// However, this also covers cases where the type is a type parameter (as in `type Generic<T> = { value: T }`).
-	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
-	let typeSymbol: ts.Symbol | undefined;
-	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
-		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
-		let typeSymbolCandidate: ts.Symbol | undefined;
-		if (ts.isIdentifier(typeNodeName)) {
-			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
-		} else if (ts.isQualifiedName(typeNodeName)) {
-			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
-		}
-
-		if (
-			typeSymbolCandidate &&
-			!areEquivalent(typeNodeName, type, checker) &&
-			!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
-		) {
-			typeSymbol = typeSymbolCandidate;
-		}
-	}
-
-	const typeName = getTypeName(type, typeSymbol, checker);
-	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
+	const { name: typeName, namespaces } = getFullyQualifiedName(type, typeNode, checker);
 
 	try {
 		if (type.flags & ts.TypeFlags.TypeParameter && type.symbol) {
@@ -171,7 +146,7 @@ export function resolveType(
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
-				typeSymbol?.name ?? type.aliasSymbol?.name,
+				typeName,
 				namespaces,
 				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, undefined, context)) ?? [],
 			);
@@ -194,11 +169,11 @@ export function resolveType(
 		}
 
 		if (type.flags & ts.TypeFlags.Any) {
-			return new IntrinsicNode('any', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
+			return new IntrinsicNode('any', typeName, namespaces);
 		}
 
 		if (type.flags & ts.TypeFlags.Unknown) {
-			return new IntrinsicNode('unknown', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
+			return new IntrinsicNode('unknown', typeName, namespaces);
 		}
 
 		if (type.flags & ts.TypeFlags.Literal) {
@@ -263,7 +238,7 @@ export function resolveType(
 			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
 		);
 
-		return new IntrinsicNode('any', typeSymbol?.name ?? type.aliasSymbol?.name, namespaces);
+		return new IntrinsicNode('any', typeName, namespaces);
 	} finally {
 		typeStack.pop();
 	}
@@ -288,6 +263,44 @@ const allowedBuiltInReactTypes = new Set([
 	'React.FunctionComponent',
 	'React.ForwardRefExoticComponent',
 ]);
+
+function getFullyQualifiedName(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+) {
+	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
+	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
+	//
+	// However, this also covers cases where the type is a type parameter (as in `type Generic<T> = { value: T }`).
+	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
+	let typeSymbol: ts.Symbol | undefined;
+	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+		let typeSymbolCandidate: ts.Symbol | undefined;
+		if (ts.isIdentifier(typeNodeName)) {
+			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
+		} else if (ts.isQualifiedName(typeNodeName)) {
+			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+		}
+
+		if (
+			typeSymbolCandidate &&
+			!areEquivalent(typeNodeName, type, checker) &&
+			!(typeSymbolCandidate.flags & ts.SymbolFlags.TypeParameter)
+		) {
+			typeSymbol = typeSymbolCandidate;
+		}
+	}
+
+	const name = getTypeName(type, typeSymbol, checker);
+	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
+
+	return {
+		name,
+		namespaces,
+	};
+}
 
 export function getTypeNamespaces(type: ts.Type): string[] {
 	const symbol = type.aliasSymbol ?? type.getSymbol();
