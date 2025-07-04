@@ -93,38 +93,39 @@ function getTypeName(
 		return undefined;
 	}
 
+	// If all generic arguments are default, omit them entirely
+	if (areAllGenericArgumentsSameAsDefault(type, checker)) {
+		return typeName;
+	}
+
 	let typeArguments: string[] | undefined;
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];
 	} else {
 		if ('target' in type) {
-			typeArguments = checker
-				.getTypeArguments(type as ts.TypeReference)
-				?.map(
-					(x) =>
-						getFullyQualifiedNameAsString(x, undefined, checker) ??
-						checker.typeToString(x) ??
-						'unknown',
+			typeArguments = checker.getTypeArguments(type as ts.TypeReference)?.map((x) => {
+				return (
+					getFullyQualifiedNameAsString(x, undefined, checker) ??
+					checker.typeToString(x) ??
+					'unknown'
 				);
+			});
 		}
 
 		if (!typeArguments?.length) {
 			typeArguments =
-				type.aliasTypeArguments?.map(
-					(x) =>
+				type.aliasTypeArguments?.map((x) => {
+					return (
 						getFullyQualifiedNameAsString(x, undefined, checker) ??
 						checker.typeToString(x) ??
-						'unknown',
-				) ?? [];
+						'unknown'
+					);
+				}) ?? [];
 		}
 	}
 
-	if (
-		typeArguments &&
-		typeArguments.length > 0 &&
-		!areAllGenericArgumentsSameAsDefault(type, checker)
-	) {
+	if (typeArguments && typeArguments.length > 0) {
 		return `${typeName}<${typeArguments.join(', ')}>`;
 	}
 
@@ -135,7 +136,7 @@ function getFullyQualifiedNameAsString(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
-) {
+): string | undefined {
 	const { name, namespaces } = getFullyQualifiedName(type, typeNode, checker);
 	if (!name) {
 		return undefined;
@@ -152,20 +153,25 @@ function areAllGenericArgumentsSameAsDefault(
 	type: ts.Type, // The instantiated type, e.g., Props<string>
 	checker: ts.TypeChecker,
 ): boolean {
+	let typeArguments: readonly ts.Type[] | undefined;
+	let targetSymbol: ts.Symbol | undefined;
+
 	if (
-		!(type.flags & ts.TypeFlags.Object) ||
-		!((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference)
+		type.flags & ts.TypeFlags.Object &&
+		(type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference
 	) {
-		return false;
+		typeArguments = checker.getTypeArguments(type as ts.TypeReference);
+		const targetType = (type as ts.TypeReference).target;
+		targetSymbol = targetType.getSymbol();
+	} else {
+		typeArguments = type.aliasTypeArguments;
+		targetSymbol = type.aliasSymbol;
 	}
 
-	const typeArguments = checker.getTypeArguments(type as ts.TypeReference);
-	if (typeArguments.length === 0) {
+	if (!typeArguments || typeArguments.length === 0) {
 		return true; // No arguments to compare
 	}
 
-	const targetType = (type as ts.TypeReference).target;
-	const targetSymbol = targetType.getSymbol();
 	if (!targetSymbol?.declarations || targetSymbol.declarations.length === 0) {
 		return false;
 	}

@@ -18,7 +18,7 @@
 									"parentNamespaces": [],
 									"constraint": {
 										"kind": "reference",
-										"name": "ElementType<any, keyof IntrinsicElements>",
+										"name": "ElementType",
 										"parentNamespaces": [
 											"React"
 										]
