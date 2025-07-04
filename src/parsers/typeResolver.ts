@@ -6,7 +6,6 @@ import { parseObjectType } from './objectParser';
 import { parseEnum } from './enumParser';
 import {
 	ObjectNode,
-	TypeNode,
 	TypeParameterNode,
 	ArrayNode,
 	ExternalTypeNode,
@@ -15,9 +14,11 @@ import {
 	TupleNode,
 	LiteralNode,
 	IntersectionNode,
+	AnyType,
 } from '../models';
 import { resolveUnionType } from './unionTypeResolver';
 import { getFullyQualifiedName } from './common';
+import { TypeName } from '../models/typeName';
 
 /**
  *
@@ -29,7 +30,7 @@ export function resolveType(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
-): TypeNode {
+): AnyType {
 	const { checker, typeStack, includeExternalTypes } = context;
 
 	const typeId = getTypeId(type);
@@ -37,14 +38,14 @@ export function resolveType(
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
 	if (typeId !== undefined && typeStack.includes(typeId)) {
-		return new ObjectNode(undefined, [], [], undefined);
+		return new ObjectNode(undefined, [], undefined);
 	}
 
 	if (typeId !== undefined) {
 		typeStack.push(typeId);
 	}
 
-	const { name: typeName, namespaces } = getFullyQualifiedName(type, typeNode, checker);
+	const typeName = getFullyQualifiedName(type, typeNode, checker);
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
@@ -55,7 +56,6 @@ export function resolveType(
 
 			return new TypeParameterNode(
 				type.symbol.name,
-				namespaces,
 				constraintType ? resolveType(constraintType, undefined, context) : undefined,
 				declaration?.default
 					? resolveType(checker.getTypeAtLocation(declaration.default), undefined, context)
@@ -67,21 +67,29 @@ export function resolveType(
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
 			return new ArrayNode(
-				type.aliasSymbol?.name,
-				namespaces,
+				type.aliasSymbol?.name
+					? new TypeName(type.aliasSymbol?.name, typeName?.namespaces)
+					: undefined,
 				resolveType(arrayType, undefined, context),
 			);
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
+			if (!typeName) {
+				return new IntrinsicNode('any');
+			}
+
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
-			if (typeName === 'bivarianceHack') {
-				return new ExternalTypeNode('RefCallback', ['React']);
+			if (typeName.name === 'bivarianceHack') {
+				return new ExternalTypeNode(new TypeName('RefCallback', ['React']));
 			}
 
 			return new ExternalTypeNode(
-				typeName || (type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
-				namespaces,
+				new TypeName(
+					typeName.name ||
+						(type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
+					typeName.namespaces,
+				),
 			);
 		}
 
@@ -108,11 +116,11 @@ export function resolveType(
 		}
 
 		if (type.isUnion()) {
-			return resolveUnionType(type, typeName, typeNode, context, namespaces);
+			return resolveUnionType(type, typeName, typeNode, context);
 		}
 
 		if (type.isIntersection()) {
-			const memberTypes: TypeNode[] = [];
+			const memberTypes: AnyType[] = [];
 
 			for (const memberType of type.types) {
 				memberTypes.push(resolveType(memberType, undefined, context));
@@ -134,17 +142,16 @@ export function resolveType(
 
 				const objectType = parseObjectType(type, context);
 				if (objectType) {
-					return new IntersectionNode(typeName, namespaces, memberTypes, objectType.properties);
+					return new IntersectionNode(typeName, memberTypes, objectType.properties);
 				}
 
-				return new IntersectionNode(typeName, namespaces, memberTypes, []);
+				return new IntersectionNode(typeName, memberTypes, []);
 			}
 		}
 
 		if (checker.isTupleType(type)) {
 			return new TupleNode(
 				typeName,
-				namespaces,
 				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, undefined, context)) ?? [],
 			);
 		}
@@ -166,20 +173,22 @@ export function resolveType(
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Any)) {
-			return new IntrinsicNode('any', typeName, namespaces);
+			return new IntrinsicNode('any', typeName);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Unknown)) {
-			return new IntrinsicNode('unknown', typeName, namespaces);
+			return new IntrinsicNode('unknown', typeName);
 		}
 
 		if (includesCompositeFlag(type, ts.TypeFlags.Literal)) {
 			if (type.isLiteral()) {
 				return new LiteralNode(
 					type.isStringLiteral() ? `"${type.value}"` : type.value,
+					typeName,
 					getDocumentationFromSymbol(type.symbol, checker),
 				);
 			}
+
 			return new LiteralNode(checker.typeToString(type));
 		}
 
@@ -205,21 +214,17 @@ export function resolveType(
 			hasExactFlag(type, ts.TypeFlags.Object) ||
 			(hasExactFlag(type, ts.TypeFlags.NonPrimitive) && checker.typeToString(type) === 'object')
 		) {
-			return new ObjectNode(typeName, namespaces, [], undefined);
+			return new ObjectNode(typeName, [], undefined);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Conditional)) {
 			const conditionalType = type as ts.ConditionalType;
 			if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
-				return new UnionNode(
-					undefined,
-					[],
-					[
-						// TODO: Pass TypeNode here to resolve aliases correctly
-						resolveType((type as ts.ConditionalType).resolvedTrueType!, undefined, context),
-						resolveType((type as ts.ConditionalType).resolvedFalseType!, undefined, context),
-					],
-				);
+				return new UnionNode(undefined, [
+					// TODO: Pass TypeNode here to resolve aliases correctly
+					resolveType((type as ts.ConditionalType).resolvedTrueType!, undefined, context),
+					resolveType((type as ts.ConditionalType).resolvedFalseType!, undefined, context),
+				]);
 			} else if (conditionalType.resolvedTrueType) {
 				return resolveType(conditionalType.resolvedTrueType, undefined, context);
 			} else if (conditionalType.resolvedFalseType) {
@@ -231,7 +236,7 @@ export function resolveType(
 			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
 		);
 
-		return new IntrinsicNode('any', typeName, namespaces);
+		return new IntrinsicNode('any', typeName);
 	} finally {
 		typeStack.pop();
 	}

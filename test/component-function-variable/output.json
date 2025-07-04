@@ -5,8 +5,9 @@
 			"name": "TestComponent1",
 			"type": {
 				"kind": "component",
-				"name": "TestComponent",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "TestComponent"
+				},
 				"props": [
 					{
 						"name": "className",
@@ -15,12 +16,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -34,12 +33,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -53,8 +50,12 @@
 			"name": "TestComponent2",
 			"type": {
 				"kind": "component",
-				"name": "FC<Props>",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "FC<Props>",
+					"namespaces": [
+						"React"
+					]
+				},
 				"props": [
 					{
 						"name": "className",
@@ -63,12 +64,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -82,12 +81,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -101,8 +98,12 @@
 			"name": "TestComponent3",
 			"type": {
 				"kind": "component",
-				"name": "FunctionComponent<Props>",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "FunctionComponent<Props>",
+					"namespaces": [
+						"React"
+					]
+				},
 				"props": [
 					{
 						"name": "className",
@@ -111,12 +112,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -130,12 +129,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]

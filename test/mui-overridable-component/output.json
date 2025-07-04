@@ -5,7 +5,6 @@
 			"name": "default",
 			"type": {
 				"kind": "component",
-				"parentNamespaces": [],
 				"props": [
 					{
 						"name": "component",
@@ -15,18 +14,18 @@
 								{
 									"kind": "typeParameter",
 									"name": "RootComponent",
-									"parentNamespaces": [],
 									"constraint": {
 										"kind": "external",
-										"name": "ElementType",
-										"parentNamespaces": [
-											"React"
-										]
+										"typeName": {
+											"name": "ElementType",
+											"namespaces": [
+												"React"
+											]
+										}
 									}
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -44,22 +43,18 @@
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"small\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"default\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"large\""
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -73,12 +68,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -92,14 +85,24 @@
 							"types": [
 								{
 									"kind": "external",
-									"name": "CSSProperties",
-									"parentNamespaces": [
-										"React"
-									]
+									"typeName": {
+										"name": "CSSProperties",
+										"namespaces": [
+											"React"
+										]
+									}
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "CSSProperties",
+										"namespaces": [
+											"React"
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]

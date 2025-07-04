@@ -5,16 +5,18 @@
 			"name": "test1",
 			"type": {
 				"kind": "function",
-				"name": "test1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial<Base>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Partial<Base>"
+									},
 									"properties": [
 										{
 											"name": "a",
@@ -23,12 +25,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "boolean"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -42,12 +42,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -62,7 +60,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -73,22 +70,23 @@
 			"name": "test2",
 			"type": {
 				"kind": "function",
-				"name": "test2",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test2"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required<Base>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Required<Base>"
+									},
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "boolean"
 											},
 											"optional": false
@@ -97,7 +95,6 @@
 											"name": "b",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -110,7 +107,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -121,16 +117,18 @@
 			"name": "test3",
 			"type": {
 				"kind": "function",
-				"name": "test3",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test3"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Partial<Base>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Partial<Base>"
+									},
 									"properties": [
 										{
 											"name": "a",
@@ -139,12 +137,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "boolean"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -158,12 +154,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -178,7 +172,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -189,22 +182,23 @@
 			"name": "test4",
 			"type": {
 				"kind": "function",
-				"name": "test4",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test4"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Required<Base>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Required<Base>"
+									},
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "boolean"
 											},
 											"optional": false
@@ -213,7 +207,6 @@
 											"name": "b",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -226,7 +219,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

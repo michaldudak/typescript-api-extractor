@@ -5,23 +5,21 @@
 			"name": "testFunction1",
 			"type": {
 				"kind": "function",
-				"name": "testFunction1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "testFunction1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
-							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								}
 							]
@@ -34,23 +32,21 @@
 			"name": "testFunction2",
 			"type": {
 				"kind": "function",
-				"name": "testFunction2",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "testFunction2"
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
-							"parentNamespaces": [],
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								}
 							]
@@ -63,24 +59,24 @@
 			"name": "testFunction3",
 			"type": {
 				"kind": "function",
-				"name": "testFunction3",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "testFunction3"
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
-							"name": "TupleType",
-							"parentNamespaces": [],
+							"typeName": {
+								"name": "TupleType"
+							},
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								}
 							]
@@ -93,24 +89,24 @@
 			"name": "testFunction4",
 			"type": {
 				"kind": "function",
-				"name": "testFunction4",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "testFunction4"
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "tuple",
-							"name": "NamedTupleType",
-							"parentNamespaces": [],
+							"typeName": {
+								"name": "NamedTupleType"
+							},
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								}
 							]

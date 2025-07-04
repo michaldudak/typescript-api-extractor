@@ -5,22 +5,23 @@
 			"name": "test",
 			"type": {
 				"kind": "function",
-				"name": "test",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Params",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Params"
+									},
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -29,7 +30,6 @@
 											"name": "n",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"documentation": {
@@ -46,17 +46,18 @@
 											"name": "onChange",
 											"type": {
 												"kind": "function",
-												"parentNamespaces": [],
 												"callSignatures": [
 													{
 														"parameters": [
 															{
 																"type": {
 																	"kind": "external",
-																	"name": "ChangeEvent<HTMLInputElement>",
-																	"parentNamespaces": [
-																		"React"
-																	]
+																	"typeName": {
+																		"name": "ChangeEvent<HTMLInputElement>",
+																		"namespaces": [
+																			"React"
+																		]
+																	}
 																},
 																"name": "event",
 																"optional": false
@@ -67,12 +68,10 @@
 																	"types": [
 																		{
 																			"kind": "intrinsic",
-																			"parentNamespaces": [],
 																			"intrinsic": "string"
 																		},
 																		{
 																			"kind": "intrinsic",
-																			"parentNamespaces": [],
 																			"intrinsic": "undefined"
 																		}
 																	]
@@ -92,7 +91,6 @@
 														],
 														"returnValueType": {
 															"kind": "intrinsic",
-															"parentNamespaces": [],
 															"intrinsic": "void"
 														}
 													}
@@ -107,12 +105,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -132,7 +128,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

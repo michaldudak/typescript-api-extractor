@@ -1,32 +1,28 @@
-import { TypeNode } from '../node';
+import { AnyType, TypeNode } from '../node';
 import { LiteralNode } from './literal';
 import { IntrinsicNode } from './intrinsic';
 import { deduplicateMemberTypes, flattenTypes, sortMemberTypes } from './compoundTypeUtils';
+import { TypeName } from '../typeName';
 
 export class UnionNode implements TypeNode {
-	kind = 'union';
+	readonly kind = 'union';
+	typeName: TypeName | undefined;
+	types: readonly AnyType[];
 
-	constructor(
-		public name: string | undefined,
-		parentNamespaces: string[],
-		types: TypeNode[],
-	) {
+	constructor(name: TypeName | undefined, types: AnyType[]) {
 		const flatTypes = flattenTypes(types, UnionNode);
 		sanitizeBooleanLiterals(flatTypes);
 		sortMemberTypes(flatTypes);
 		this.types = deduplicateMemberTypes(flatTypes);
-		this.parentNamespaces = name ? parentNamespaces : undefined;
+		this.typeName = name;
 	}
-
-	types: readonly TypeNode[];
-	parentNamespaces: string[] | undefined;
 }
 
 /**
  * Typescript parses foo?: boolean as a union of `true | false | undefined`.
  * We want to simplify this to just `boolean | undefined`.
  */
-function sanitizeBooleanLiterals(members: TypeNode[]): void {
+function sanitizeBooleanLiterals(members: AnyType[]): void {
 	const trueLiteralIndex = members.findIndex((x) => x instanceof LiteralNode && x.value === 'true');
 	const falseLiteralIndex = members.findIndex(
 		(x) => x instanceof LiteralNode && x.value === 'false',

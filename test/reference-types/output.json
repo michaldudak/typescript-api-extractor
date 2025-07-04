@@ -5,22 +5,23 @@
 			"name": "referenceTypes",
 			"type": {
 				"kind": "function",
-				"name": "referenceTypes",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "referenceTypes"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "CustomInterface",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "CustomInterface"
+									},
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -33,14 +34,14 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "CustomType",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "CustomType"
+									},
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -56,14 +57,14 @@
 							"types": [
 								{
 									"kind": "object",
-									"name": "CustomInterface",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "CustomInterface"
+									},
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -72,14 +73,14 @@
 								},
 								{
 									"kind": "object",
-									"name": "CustomType",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "CustomType"
+									},
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -96,21 +97,20 @@
 			"name": "inlineTypes",
 			"type": {
 				"kind": "function",
-				"name": "inlineTypes",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "inlineTypes"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -123,13 +123,11 @@
 							{
 								"type": {
 									"kind": "object",
-									"parentNamespaces": [],
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -142,7 +140,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

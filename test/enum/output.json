@@ -5,8 +5,9 @@
 			"name": "Side",
 			"type": {
 				"kind": "enum",
-				"name": "Side",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Side"
+				},
 				"members": [
 					{
 						"name": "left",
@@ -39,8 +40,9 @@
 			"name": "Flags",
 			"type": {
 				"kind": "enum",
-				"name": "Flags",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Flags"
+				},
 				"members": [
 					{
 						"name": "flag1",
@@ -69,8 +71,9 @@
 			"name": "DegenerateN",
 			"type": {
 				"kind": "enum",
-				"name": "DegenerateN",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "DegenerateN"
+				},
 				"members": [
 					{
 						"name": "theOnlyItem",
@@ -83,8 +86,9 @@
 			"name": "DegenerateS",
 			"type": {
 				"kind": "enum",
-				"name": "DegenerateS",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "DegenerateS"
+				},
 				"members": [
 					{
 						"name": "theOnlyItem",

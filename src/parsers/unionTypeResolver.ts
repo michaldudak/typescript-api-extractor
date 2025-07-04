@@ -1,19 +1,19 @@
 import ts from 'typescript';
-import { TypeNode, UnionNode } from '../models';
+import { AnyType, UnionNode } from '../models';
 import { resolveType } from './typeResolver';
 import { ParserContext } from '../parser';
+import { TypeName } from '../models/typeName';
 
 export function resolveUnionType(
 	type: ts.UnionType,
-	typeName: string | undefined,
+	typeName: TypeName | undefined,
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
-	namespaces: string[],
-): TypeNode {
+): AnyType {
 	const { checker } = context;
 
 	let memberTypes: ts.Type[] = type.types;
-	const result: TypeNode[] = [];
+	const result: AnyType[] = [];
 
 	// @ts-expect-error - Internal API
 	if (type.origin?.isUnion()) {
@@ -83,7 +83,9 @@ export function resolveUnionType(
 		}
 	}
 
-	return result.length === 1 ? result[0] : new UnionNode(typeName, namespaces, result);
+	const typeNameToUse = typeName?.name ? typeName : undefined;
+
+	return result.length === 1 ? result[0] : new UnionNode(typeNameToUse, result);
 }
 
 function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {

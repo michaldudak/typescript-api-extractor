@@ -5,15 +5,15 @@
 			"name": "test1",
 			"type": {
 				"kind": "function",
-				"name": "test1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"parentNamespaces": [],
 									"properties": []
 								},
 								"name": "emptyObject",
@@ -22,7 +22,6 @@
 							{
 								"type": {
 									"kind": "object",
-									"parentNamespaces": [],
 									"properties": []
 								},
 								"name": "objectKeyword",
@@ -31,8 +30,9 @@
 							{
 								"type": {
 									"kind": "external",
-									"name": "Record<string, any>",
-									"parentNamespaces": []
+									"typeName": {
+										"name": "Record<string, any>"
+									}
 								},
 								"name": "record",
 								"optional": false
@@ -40,7 +40,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -51,16 +50,18 @@
 			"name": "test2",
 			"type": {
 				"kind": "function",
-				"name": "test2",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test2"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "EmptyInterface",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "EmptyInterface"
+									},
 									"properties": []
 								},
 								"name": "emptyInterface",
@@ -69,8 +70,9 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "EmptyObject",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "EmptyObject"
+									},
 									"properties": []
 								},
 								"name": "emptyObject",
@@ -79,7 +81,6 @@
 							{
 								"type": {
 									"kind": "object",
-									"parentNamespaces": [],
 									"properties": []
 								},
 								"name": "objectKeyword",
@@ -88,8 +89,9 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "RecordType",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "RecordType"
+									},
 									"properties": []
 								},
 								"name": "recordType",
@@ -98,7 +100,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -109,23 +110,26 @@
 			"name": "test3",
 			"type": {
 				"kind": "function",
-				"name": "test3",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test3"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Params",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Params"
+									},
 									"properties": [
 										{
 											"name": "emptyInterface",
 											"type": {
 												"kind": "object",
-												"name": "EmptyInterface",
-												"parentNamespaces": [],
+												"typeName": {
+													"name": "EmptyInterface"
+												},
 												"properties": []
 											},
 											"optional": false
@@ -134,8 +138,9 @@
 											"name": "emptyObject",
 											"type": {
 												"kind": "object",
-												"name": "EmptyObject",
-												"parentNamespaces": [],
+												"typeName": {
+													"name": "EmptyObject"
+												},
 												"properties": []
 											},
 											"optional": false
@@ -144,7 +149,6 @@
 											"name": "inlineEmptyObject",
 											"type": {
 												"kind": "object",
-												"parentNamespaces": [],
 												"properties": []
 											},
 											"optional": false
@@ -153,7 +157,6 @@
 											"name": "objectKeyword",
 											"type": {
 												"kind": "object",
-												"parentNamespaces": [],
 												"properties": []
 											},
 											"optional": false
@@ -162,7 +165,6 @@
 											"name": "inlineObjectKeyword",
 											"type": {
 												"kind": "object",
-												"parentNamespaces": [],
 												"properties": []
 											},
 											"optional": false
@@ -171,8 +173,9 @@
 											"name": "recordType",
 											"type": {
 												"kind": "object",
-												"name": "RecordType",
-												"parentNamespaces": [],
+												"typeName": {
+													"name": "RecordType"
+												},
 												"properties": []
 											},
 											"optional": false
@@ -181,8 +184,9 @@
 											"name": "inlineRecordType",
 											"type": {
 												"kind": "external",
-												"name": "Record<string, any>",
-												"parentNamespaces": []
+												"typeName": {
+													"name": "Record<string, any>"
+												}
 											},
 											"optional": false
 										}
@@ -194,7 +198,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

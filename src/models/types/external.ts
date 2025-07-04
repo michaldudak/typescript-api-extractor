@@ -1,10 +1,8 @@
 import { TypeNode } from '../node';
+import { TypeName } from '../typeName';
 
 export class ExternalTypeNode implements TypeNode {
-	kind = 'external';
+	readonly kind = 'external';
 
-	constructor(
-		public name: string,
-		public parentNamespaces: string[],
-	) {}
+	constructor(public typeName: TypeName) {}
 }

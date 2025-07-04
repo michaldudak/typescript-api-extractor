@@ -5,8 +5,9 @@
 			"name": "test1",
 			"type": {
 				"kind": "function",
-				"name": "test1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
@@ -16,14 +17,14 @@
 									"types": [
 										{
 											"kind": "object",
-											"name": "A",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "A"
+											},
 											"properties": [
 												{
 													"name": "a",
 													"type": {
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													"optional": false
@@ -32,7 +33,6 @@
 													"name": "b",
 													"type": {
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "number"
 													},
 													"optional": false
@@ -41,8 +41,9 @@
 										},
 										{
 											"kind": "object",
-											"name": "B",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "B"
+											},
 											"properties": [
 												{
 													"name": "a",
@@ -51,12 +52,10 @@
 														"types": [
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "string"
 															},
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "undefined"
 															}
 														]
@@ -70,12 +69,10 @@
 														"types": [
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "number"
 															},
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "undefined"
 															}
 														]
@@ -90,7 +87,6 @@
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -99,7 +95,6 @@
 											"name": "b",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -111,12 +106,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "number"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -131,7 +124,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -142,25 +134,29 @@
 			"name": "test2",
 			"type": {
 				"kind": "function",
-				"name": "test2",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test2"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intersection",
+									"typeName": {
+										"name": "AB"
+									},
 									"types": [
 										{
 											"kind": "object",
-											"name": "A",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "A"
+											},
 											"properties": [
 												{
 													"name": "a",
 													"type": {
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													"optional": false
@@ -169,7 +165,6 @@
 													"name": "b",
 													"type": {
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "number"
 													},
 													"optional": false
@@ -178,8 +173,9 @@
 										},
 										{
 											"kind": "object",
-											"name": "B",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "B"
+											},
 											"properties": [
 												{
 													"name": "a",
@@ -188,12 +184,10 @@
 														"types": [
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "string"
 															},
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "undefined"
 															}
 														]
@@ -207,12 +201,10 @@
 														"types": [
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "number"
 															},
 															{
 																"kind": "intrinsic",
-																"parentNamespaces": [],
 																"intrinsic": "undefined"
 															}
 														]
@@ -222,14 +214,11 @@
 											]
 										}
 									],
-									"parentNamespaces": [],
-									"name": "AB",
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -238,7 +227,6 @@
 											"name": "b",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -250,12 +238,10 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "number"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -270,7 +256,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

@@ -1,29 +1,29 @@
 import { Documentation } from '../documentation';
-import { TypeNode } from '../node';
+import { AnyType, TypeNode } from '../node';
+import { TypeName } from '../typeName';
 
 export class FunctionNode implements TypeNode {
-	kind = 'function';
-	name: string | undefined;
+	readonly kind = 'function';
+	typeName: TypeName | undefined;
+	callSignatures: CallSignature[];
 
-	constructor(
-		name: string | undefined,
-		public parentNamespaces: string[],
-		public callSignatures: CallSignature[],
-	) {
-		this.name = name === '__function' ? undefined : name;
+	constructor(typeName: TypeName | undefined, callSignatures: CallSignature[]) {
+		this.typeName =
+			typeName?.name === '__function' || typeName?.name === undefined ? undefined : typeName;
+		this.callSignatures = callSignatures;
 	}
 }
 
 export class CallSignature {
 	constructor(
 		public parameters: Parameter[],
-		public returnValueType: TypeNode,
+		public returnValueType: AnyType,
 	) {}
 }
 
 export class Parameter {
 	constructor(
-		public type: TypeNode,
+		public type: AnyType,
 		public name: string,
 		public documentation: Documentation | undefined,
 		public optional: boolean,

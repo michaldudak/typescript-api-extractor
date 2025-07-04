@@ -5,15 +5,15 @@
 			"name": "useHook",
 			"type": {
 				"kind": "function",
-				"name": "useHook",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "useHook"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								"name": "s",
@@ -26,7 +26,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "string"
 						}
 					},
@@ -35,7 +34,6 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "n",
@@ -48,7 +46,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "number"
 						}
 					}

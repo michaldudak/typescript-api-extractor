@@ -5,28 +5,28 @@
 			"name": "fn1",
 			"type": {
 				"kind": "function",
-				"name": "fn1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "fn1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "union",
+									"typeName": {
+										"name": "Alias"
+									},
 									"types": [
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": 1
 										},
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": 2
 										}
-									],
-									"parentNamespaces": [],
-									"name": "Alias"
+									]
 								},
 								"name": "a",
 								"optional": false
@@ -34,8 +34,9 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "MyRecord<string, string>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "MyRecord<string, string>"
+									},
 									"properties": []
 								},
 								"name": "r",
@@ -44,8 +45,9 @@
 							{
 								"type": {
 									"kind": "object",
-									"name": "AliasToGeneric",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "AliasToGeneric"
+									},
 									"properties": []
 								},
 								"name": "s",
@@ -54,9 +56,10 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
-									"intrinsic": "any",
-									"name": "AliasedAny"
+									"typeName": {
+										"name": "AliasedAny"
+									},
+									"intrinsic": "any"
 								},
 								"name": "n",
 								"optional": false
@@ -64,9 +67,10 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
-									"intrinsic": "unknown",
-									"name": "AliasedUnknown"
+									"typeName": {
+										"name": "AliasedUnknown"
+									},
+									"intrinsic": "unknown"
 								},
 								"name": "u",
 								"optional": false
@@ -77,24 +81,22 @@
 									"types": [
 										{
 											"kind": "union",
+											"typeName": {
+												"name": "Alias"
+											},
 											"types": [
 												{
 													"kind": "literal",
-													"parentNamespaces": [],
 													"value": 1
 												},
 												{
 													"kind": "literal",
-													"parentNamespaces": [],
 													"value": 2
 												}
-											],
-											"parentNamespaces": [],
-											"name": "Alias"
+											]
 										},
 										{
 											"kind": "intrinsic",
-											"parentNamespaces": [],
 											"intrinsic": "undefined"
 										}
 									]
@@ -108,13 +110,13 @@
 									"types": [
 										{
 											"kind": "object",
-											"name": "MyRecord<string, string>",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "MyRecord<string, string>"
+											},
 											"properties": []
 										},
 										{
 											"kind": "intrinsic",
-											"parentNamespaces": [],
 											"intrinsic": "undefined"
 										}
 									]
@@ -128,13 +130,13 @@
 									"types": [
 										{
 											"kind": "object",
-											"name": "AliasToGeneric",
-											"parentNamespaces": [],
+											"typeName": {
+												"name": "AliasToGeneric"
+											},
 											"properties": []
 										},
 										{
 											"kind": "intrinsic",
-											"parentNamespaces": [],
 											"intrinsic": "undefined"
 										}
 									]
@@ -145,9 +147,10 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
-									"intrinsic": "any",
-									"name": "AliasedAny"
+									"typeName": {
+										"name": "AliasedAny"
+									},
+									"intrinsic": "any"
 								},
 								"name": "on",
 								"optional": true
@@ -155,9 +158,10 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
-									"intrinsic": "unknown",
-									"name": "AliasedUnknown"
+									"typeName": {
+										"name": "AliasedUnknown"
+									},
+									"intrinsic": "unknown"
 								},
 								"name": "ou",
 								"optional": true
@@ -165,7 +169,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -176,27 +179,27 @@
 			"name": "A",
 			"type": {
 				"kind": "object",
-				"name": "A",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "A"
+				},
 				"properties": [
 					{
 						"name": "a",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Alias"
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": 1
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": 2
 								}
-							],
-							"parentNamespaces": [],
-							"name": "Alias"
+							]
 						},
 						"optional": false
 					},
@@ -204,8 +207,9 @@
 						"name": "r",
 						"type": {
 							"kind": "object",
-							"name": "MyRecord<string, string>",
-							"parentNamespaces": [],
+							"typeName": {
+								"name": "MyRecord<string, string>"
+							},
 							"properties": []
 						},
 						"optional": false
@@ -214,8 +218,9 @@
 						"name": "s",
 						"type": {
 							"kind": "object",
-							"name": "AliasToGeneric",
-							"parentNamespaces": [],
+							"typeName": {
+								"name": "AliasToGeneric"
+							},
 							"properties": []
 						},
 						"optional": false
@@ -224,9 +229,10 @@
 						"name": "n",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
-							"intrinsic": "any",
-							"name": "AliasedAny"
+							"typeName": {
+								"name": "AliasedAny"
+							},
+							"intrinsic": "any"
 						},
 						"optional": false
 					},
@@ -234,9 +240,10 @@
 						"name": "u",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
-							"intrinsic": "unknown",
-							"name": "AliasedUnknown"
+							"typeName": {
+								"name": "AliasedUnknown"
+							},
+							"intrinsic": "unknown"
 						},
 						"optional": false
 					},
@@ -247,24 +254,22 @@
 							"types": [
 								{
 									"kind": "union",
+									"typeName": {
+										"name": "Alias"
+									},
 									"types": [
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": 1
 										},
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": 2
 										}
-									],
-									"parentNamespaces": [],
-									"name": "Alias"
+									]
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -278,13 +283,13 @@
 							"types": [
 								{
 									"kind": "object",
-									"name": "MyRecord<string, string>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "MyRecord<string, string>"
+									},
 									"properties": []
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -298,13 +303,13 @@
 							"types": [
 								{
 									"kind": "object",
-									"name": "AliasToGeneric",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "AliasToGeneric"
+									},
 									"properties": []
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -315,9 +320,10 @@
 						"name": "on",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
-							"intrinsic": "any",
-							"name": "AliasedAny"
+							"typeName": {
+								"name": "AliasedAny"
+							},
+							"intrinsic": "any"
 						},
 						"optional": true
 					},
@@ -325,9 +331,10 @@
 						"name": "ou",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
-							"intrinsic": "unknown",
-							"name": "AliasedUnknown"
+							"typeName": {
+								"name": "AliasedUnknown"
+							},
+							"intrinsic": "unknown"
 						},
 						"optional": true
 					}

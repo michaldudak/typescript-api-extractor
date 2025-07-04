@@ -1,12 +1,11 @@
-import { TypeNode } from '../node';
+import { AnyType } from '../node';
 
-export class TypeParameterNode implements TypeNode {
-	kind = 'typeParameter';
+export class TypeParameterNode {
+	readonly kind = 'typeParameter';
 
 	constructor(
 		public name: string,
-		public parentNamespaces: string[],
-		public constraint: TypeNode | undefined,
-		public defaultValue: TypeNode | undefined,
+		public constraint: AnyType | undefined,
+		public defaultValue: AnyType | undefined,
 	) {}
 }

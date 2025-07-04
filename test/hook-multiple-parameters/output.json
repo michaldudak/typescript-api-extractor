@@ -5,15 +5,15 @@
 			"name": "useHook",
 			"type": {
 				"kind": "function",
-				"name": "useHook",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "useHook"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								"name": "value",
@@ -26,14 +26,12 @@
 							{
 								"type": {
 									"kind": "function",
-									"parentNamespaces": [],
 									"callSignatures": [
 										{
 											"parameters": [
 												{
 													"type": {
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													"name": "newValue",
@@ -42,7 +40,6 @@
 											],
 											"returnValueType": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "void"
 											}
 										}
@@ -58,20 +55,19 @@
 							{
 								"type": {
 									"kind": "union",
+									"typeName": {
+										"name": "Severity"
+									},
 									"types": [
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"low\""
 										},
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"high\""
 										}
-									],
-									"parentNamespaces": [],
-									"name": "Severity"
+									]
 								},
 								"name": "severity",
 								"documentation": {
@@ -84,7 +80,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "number"
 						}
 					}

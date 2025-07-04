@@ -5,29 +5,34 @@
 			"name": "fn3",
 			"type": {
 				"kind": "function",
-				"name": "fn3",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "fn3"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Params",
-									"parentNamespaces": [
-										"Root",
-										"Sub"
-									],
+									"typeName": {
+										"name": "Params",
+										"namespaces": [
+											"Root",
+											"Sub"
+										]
+									},
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "enum",
-												"name": "Grade",
-												"parentNamespaces": [
-													"Root",
-													"Sub"
-												],
+												"typeName": {
+													"name": "Grade",
+													"namespaces": [
+														"Root",
+														"Sub"
+													]
+												},
 												"members": [
 													{
 														"name": "good",
@@ -45,22 +50,22 @@
 											"name": "a",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "NamespacedType",
+													"namespaces": [
+														"Root"
+													]
+												},
 												"types": [
 													{
 														"kind": "literal",
-														"parentNamespaces": [],
 														"value": "\"one\""
 													},
 													{
 														"kind": "literal",
-														"parentNamespaces": [],
 														"value": "\"two\""
 													}
-												],
-												"parentNamespaces": [
-													"Root"
-												],
-												"name": "NamespacedType"
+												]
 											},
 											"optional": false
 										},
@@ -71,11 +76,13 @@
 												"types": [
 													{
 														"kind": "enum",
-														"name": "Grade",
-														"parentNamespaces": [
-															"Root",
-															"Sub"
-														],
+														"typeName": {
+															"name": "Grade",
+															"namespaces": [
+																"Root",
+																"Sub"
+															]
+														},
 														"members": [
 															{
 																"name": "good",
@@ -89,7 +96,6 @@
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -103,26 +109,25 @@
 												"types": [
 													{
 														"kind": "union",
+														"typeName": {
+															"name": "NamespacedType",
+															"namespaces": [
+																"Root"
+															]
+														},
 														"types": [
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": "\"one\""
 															},
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": "\"two\""
 															}
-														],
-														"parentNamespaces": [
-															"Root"
-														],
-														"name": "NamespacedType"
+														]
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -137,7 +142,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -148,30 +152,31 @@
 			"name": "fn4",
 			"type": {
 				"kind": "function",
-				"name": "fn4",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "fn4"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "union",
+									"typeName": {
+										"name": "NamespacedType",
+										"namespaces": [
+											"Root"
+										]
+									},
 									"types": [
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"one\""
 										},
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"two\""
 										}
-									],
-									"parentNamespaces": [
-										"Root"
-									],
-									"name": "NamespacedType"
+									]
 								},
 								"name": "a",
 								"optional": false
@@ -179,7 +184,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -190,16 +194,17 @@
 			"name": "fn2",
 			"type": {
 				"kind": "function",
-				"name": "fn2",
-				"parentNamespaces": [
-					"Root"
-				],
+				"typeName": {
+					"name": "fn2",
+					"namespaces": [
+						"Root"
+					]
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -210,32 +215,38 @@
 			"name": "fn1",
 			"type": {
 				"kind": "function",
-				"name": "fn1",
-				"parentNamespaces": [
-					"Root",
-					"Sub"
-				],
+				"typeName": {
+					"name": "fn1",
+					"namespaces": [
+						"Root",
+						"Sub"
+					]
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Params",
-									"parentNamespaces": [
-										"Root",
-										"Sub"
-									],
+									"typeName": {
+										"name": "Params",
+										"namespaces": [
+											"Root",
+											"Sub"
+										]
+									},
 									"properties": [
 										{
 											"name": "s",
 											"type": {
 												"kind": "enum",
-												"name": "Grade",
-												"parentNamespaces": [
-													"Root",
-													"Sub"
-												],
+												"typeName": {
+													"name": "Grade",
+													"namespaces": [
+														"Root",
+														"Sub"
+													]
+												},
 												"members": [
 													{
 														"name": "good",
@@ -253,22 +264,22 @@
 											"name": "a",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "NamespacedType",
+													"namespaces": [
+														"Root"
+													]
+												},
 												"types": [
 													{
 														"kind": "literal",
-														"parentNamespaces": [],
 														"value": "\"one\""
 													},
 													{
 														"kind": "literal",
-														"parentNamespaces": [],
 														"value": "\"two\""
 													}
-												],
-												"parentNamespaces": [
-													"Root"
-												],
-												"name": "NamespacedType"
+												]
 											},
 											"optional": false
 										},
@@ -279,11 +290,13 @@
 												"types": [
 													{
 														"kind": "enum",
-														"name": "Grade",
-														"parentNamespaces": [
-															"Root",
-															"Sub"
-														],
+														"typeName": {
+															"name": "Grade",
+															"namespaces": [
+																"Root",
+																"Sub"
+															]
+														},
 														"members": [
 															{
 																"name": "good",
@@ -297,7 +310,6 @@
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -311,26 +323,25 @@
 												"types": [
 													{
 														"kind": "union",
+														"typeName": {
+															"name": "NamespacedType",
+															"namespaces": [
+																"Root"
+															]
+														},
 														"types": [
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": "\"one\""
 															},
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": "\"two\""
 															}
-														],
-														"parentNamespaces": [
-															"Root"
-														],
-														"name": "NamespacedType"
+														]
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -345,7 +356,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -356,11 +366,13 @@
 			"name": "Component",
 			"type": {
 				"kind": "component",
-				"name": "Component",
-				"parentNamespaces": [
-					"Root",
-					"Sub"
-				],
+				"typeName": {
+					"name": "Component",
+					"namespaces": [
+						"Root",
+						"Sub"
+					]
+				},
 				"props": []
 			}
 		},
@@ -368,21 +380,25 @@
 			"name": "useHook",
 			"type": {
 				"kind": "function",
-				"name": "useHook",
-				"parentNamespaces": [
-					"Root",
-					"Sub"
-				],
+				"typeName": {
+					"name": "useHook",
+					"namespaces": [
+						"Root",
+						"Sub"
+					]
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "object",
-							"name": "__object",
-							"parentNamespaces": [
-								"Root",
-								"Sub"
-							],
+							"typeName": {
+								"name": "__object",
+								"namespaces": [
+									"Root",
+									"Sub"
+								]
+							},
 							"properties": []
 						}
 					}
@@ -393,21 +409,25 @@
 			"name": "Params",
 			"type": {
 				"kind": "object",
-				"name": "Params",
-				"parentNamespaces": [
-					"Root",
-					"Sub"
-				],
+				"typeName": {
+					"name": "Params",
+					"namespaces": [
+						"Root",
+						"Sub"
+					]
+				},
 				"properties": [
 					{
 						"name": "s",
 						"type": {
 							"kind": "enum",
-							"name": "Grade",
-							"parentNamespaces": [
-								"Root",
-								"Sub"
-							],
+							"typeName": {
+								"name": "Grade",
+								"namespaces": [
+									"Root",
+									"Sub"
+								]
+							},
 							"members": [
 								{
 									"name": "good",
@@ -425,22 +445,22 @@
 						"name": "a",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "NamespacedType",
+								"namespaces": [
+									"Root"
+								]
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"one\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"two\""
 								}
-							],
-							"parentNamespaces": [
-								"Root"
-							],
-							"name": "NamespacedType"
+							]
 						},
 						"optional": false
 					},
@@ -451,11 +471,13 @@
 							"types": [
 								{
 									"kind": "enum",
-									"name": "Grade",
-									"parentNamespaces": [
-										"Root",
-										"Sub"
-									],
+									"typeName": {
+										"name": "Grade",
+										"namespaces": [
+											"Root",
+											"Sub"
+										]
+									},
 									"members": [
 										{
 											"name": "good",
@@ -469,7 +491,6 @@
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -483,26 +504,25 @@
 							"types": [
 								{
 									"kind": "union",
+									"typeName": {
+										"name": "NamespacedType",
+										"namespaces": [
+											"Root"
+										]
+									},
 									"types": [
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"one\""
 										},
 										{
 											"kind": "literal",
-											"parentNamespaces": [],
 											"value": "\"two\""
 										}
-									],
-									"parentNamespaces": [
-										"Root"
-									],
-									"name": "NamespacedType"
+									]
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -516,11 +536,13 @@
 			"name": "Grade",
 			"type": {
 				"kind": "enum",
-				"name": "Grade",
-				"parentNamespaces": [
-					"Root",
-					"Sub"
-				],
+				"typeName": {
+					"name": "Grade",
+					"namespaces": [
+						"Root",
+						"Sub"
+					]
+				},
 				"members": [
 					{
 						"name": "good",

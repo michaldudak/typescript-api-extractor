@@ -1,4 +1,5 @@
 import { TypeNode } from '../node';
+import { TypeName } from '../typeName';
 
 type IntrinsicType =
 	| 'string'
@@ -13,18 +14,12 @@ type IntrinsicType =
 	| 'function';
 
 export class IntrinsicNode implements TypeNode {
-	kind = 'intrinsic';
-	parentNamespaces: string[];
+	readonly kind = 'intrinsic';
+	typeName: TypeName | undefined;
 	intrinsic: IntrinsicType;
-	name: string | undefined;
 
-	constructor(
-		intrinsic: IntrinsicType,
-		name: string | undefined = undefined,
-		parentNamespaces: string[] = [],
-	) {
+	constructor(intrinsic: IntrinsicType, typeName: TypeName | undefined = undefined) {
 		this.intrinsic = intrinsic;
-		this.name = name;
-		this.parentNamespaces = parentNamespaces;
+		this.typeName = typeName?.name ? typeName : undefined;
 	}
 }

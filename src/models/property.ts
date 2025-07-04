@@ -1,10 +1,10 @@
 import { Documentation } from './documentation';
-import { TypeNode } from './node';
+import { AnyType } from './node';
 
 export class PropertyNode {
 	constructor(
 		public name: string,
-		public type: TypeNode,
+		public type: AnyType,
 		public documentation: Documentation | undefined,
 		public optional: boolean,
 	) {}

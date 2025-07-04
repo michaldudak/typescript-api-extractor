@@ -1,10 +1,13 @@
-import { TypeNode } from '../node';
+import { AnyType, TypeNode } from '../node';
+import { TypeName } from '../typeName';
 
 export class TupleNode implements TypeNode {
-	kind = 'tuple';
-	constructor(
-		public name: string | undefined,
-		public parentNamespaces: string[],
-		public types: TypeNode[],
-	) {}
+	readonly kind = 'tuple';
+	public typeName: TypeName | undefined;
+	public types: AnyType[];
+
+	constructor(typeName: TypeName | undefined, types: AnyType[]) {
+		this.typeName = typeName?.name ? typeName : undefined;
+		this.types = types;
+	}
 }

@@ -5,14 +5,14 @@
 			"name": "Component",
 			"type": {
 				"kind": "component",
-				"name": "Component",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Component"
+				},
 				"props": [
 					{
 						"name": "onChange",
 						"type": {
 							"kind": "function",
-							"parentNamespaces": [],
 							"callSignatures": [
 								{
 									"parameters": [
@@ -22,26 +22,25 @@
 												"types": [
 													{
 														"kind": "union",
+														"typeName": {
+															"name": "Alias",
+															"namespaces": [
+																"RootNamespace"
+															]
+														},
 														"types": [
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": 0
 															},
 															{
 																"kind": "literal",
-																"parentNamespaces": [],
 																"value": 1
 															}
-														],
-														"parentNamespaces": [
-															"RootNamespace"
-														],
-														"name": "Alias"
+														]
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -52,7 +51,6 @@
 									],
 									"returnValueType": {
 										"kind": "intrinsic",
-										"parentNamespaces": [],
 										"intrinsic": "void"
 									}
 								}

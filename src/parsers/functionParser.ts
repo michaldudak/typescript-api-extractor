@@ -11,6 +11,7 @@ import {
 } from '../models';
 import { ParserError } from '../ParserError';
 import { getFullyQualifiedName } from './common';
+import { TypeName } from '../models/typeName';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type
@@ -23,13 +24,9 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 
 	const symbol = type.aliasSymbol ?? type.getSymbol();
 
-	const { name: originalName, namespaces } = getFullyQualifiedName(
-		type,
-		undefined,
-		context.checker,
-	);
+	const fqn = getFullyQualifiedName(type, undefined, context.checker);
 
-	let name = originalName;
+	let name = fqn?.name;
 
 	// Functions with `export default` are named "default" in the type checker.
 	// Their original name is stored in the value declaration.
@@ -38,7 +35,9 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
 	}
 
-	return new FunctionNode(name, namespaces, parsedCallSignatures);
+	const typeName = name !== undefined ? new TypeName(name, fqn?.namespaces) : undefined;
+
+	return new FunctionNode(typeName, parsedCallSignatures);
 }
 
 function parseFunctionSignature(signature: ts.Signature, context: ParserContext): CallSignature {

@@ -1,12 +1,12 @@
 import { Documentation } from '../documentation';
 import { TypeNode } from '../node';
+import { TypeName } from '../typeName';
 
 export class EnumNode implements TypeNode {
-	kind = 'enum';
+	readonly kind = 'enum';
 
 	constructor(
-		public name: string,
-		public parentNamespaces: string[],
+		public typeName: TypeName,
 		public members: EnumMember[],
 		public documentation: Documentation | undefined,
 	) {}

@@ -5,8 +5,9 @@
 			"name": "fn",
 			"type": {
 				"kind": "function",
-				"name": "fn",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "fn"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
@@ -14,10 +15,8 @@
 								"type": {
 									"kind": "typeParameter",
 									"name": "T",
-									"parentNamespaces": [],
 									"constraint": {
 										"kind": "intrinsic",
-										"parentNamespaces": [],
 										"intrinsic": "boolean"
 									}
 								},
@@ -30,12 +29,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "null"
 								}
 							]
@@ -48,16 +45,18 @@
 			"name": "Component1",
 			"type": {
 				"kind": "function",
-				"name": "Component1",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Component1"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Props<Multiple>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "Props<Multiple>"
+									},
 									"properties": [
 										{
 											"name": "value",
@@ -66,21 +65,17 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "array",
-														"parentNamespaces": [],
 														"elementType": {
 															"kind": "intrinsic",
-															"parentNamespaces": [],
 															"intrinsic": "string"
 														}
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "null"
 													}
 												]
@@ -95,7 +90,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "null"
 						}
 					}

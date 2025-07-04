@@ -5,29 +5,30 @@
 			"name": "Component",
 			"type": {
 				"kind": "component",
-				"name": "Component",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Component"
+				},
 				"props": [
 					{
 						"name": "foo",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Foo",
+								"namespaces": [
+									"Root"
+								]
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"a\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"b\""
 								}
-							],
-							"parentNamespaces": [
-								"Root"
-							],
-							"name": "Foo"
+							]
 						},
 						"optional": false
 					},
@@ -35,23 +36,23 @@
 						"name": "nestedFoo",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Foo",
+								"namespaces": [
+									"Root",
+									"Nested"
+								]
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"a\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"b\""
 								}
-							],
-							"parentNamespaces": [
-								"Root",
-								"Nested"
-							],
-							"name": "Foo"
+							]
 						},
 						"optional": false
 					}
@@ -62,31 +63,33 @@
 			"name": "Props",
 			"type": {
 				"kind": "object",
-				"name": "Props",
-				"parentNamespaces": [
-					"Root"
-				],
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"Root"
+					]
+				},
 				"properties": [
 					{
 						"name": "foo",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Foo",
+								"namespaces": [
+									"Root"
+								]
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"a\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"b\""
 								}
-							],
-							"parentNamespaces": [
-								"Root"
-							],
-							"name": "Foo"
+							]
 						},
 						"optional": false
 					},
@@ -94,23 +97,23 @@
 						"name": "nestedFoo",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Foo",
+								"namespaces": [
+									"Root",
+									"Nested"
+								]
+							},
 							"types": [
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"a\""
 								},
 								{
 									"kind": "literal",
-									"parentNamespaces": [],
 									"value": "\"b\""
 								}
-							],
-							"parentNamespaces": [
-								"Root",
-								"Nested"
-							],
-							"name": "Foo"
+							]
 						},
 						"optional": false
 					}

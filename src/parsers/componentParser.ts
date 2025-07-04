@@ -10,12 +10,13 @@ import {
 	UnionNode,
 	IntersectionNode,
 } from '../models';
+import { TypeName } from '../models/typeName';
 import { ParserContext } from '../parser';
 
 const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
 
 function isReactReturnType(type: ExternalTypeNode) {
-	return componentReturnTypes.some((regex) => regex.test(type.name));
+	return componentReturnTypes.some((regex) => regex.test(type.typeName?.name ?? ''));
 }
 
 export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext): ExportNode[] {
@@ -30,7 +31,10 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			return new ExportNode(
 				node.name,
-				new ComponentNode(node.type.name, node.type.parentNamespaces, newCallSignatures),
+				new ComponentNode(
+					new TypeName(node.type.typeName?.name, node.type.typeName?.namespaces),
+					newCallSignatures,
+				),
 				node.documentation,
 			);
 		}
@@ -95,7 +99,7 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			} else {
 				// If it has, we need to merge the types in a union.
 				// If both prop objects define the prop with the same type, the UnionNode constructor will deduplicate them.
-				const mergedPropType = new UnionNode(undefined, [], [existingPropNode.type, propNode.type]);
+				const mergedPropType = new UnionNode(undefined, [existingPropNode.type, propNode.type]);
 
 				// If the current prop is optional, the whole union will be optional.
 				const mergedPropNode = new PropertyNode(
@@ -145,7 +149,7 @@ function markPropertyAsOptional(property: PropertyNode, context: ParserContext) 
 
 	const { compilerOptions } = context;
 	if (!canBeUndefined && !compilerOptions.exactOptionalPropertyTypes) {
-		const newType = new UnionNode(undefined, [], [property.type, new IntrinsicNode('undefined')]);
+		const newType = new UnionNode(undefined, [property.type, new IntrinsicNode('undefined')]);
 		return new PropertyNode(property.name, newType, property.documentation, true);
 	}
 

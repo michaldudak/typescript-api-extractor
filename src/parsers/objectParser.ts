@@ -11,12 +11,12 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
 
-	const { name: typeName, namespaces } = getFullyQualifiedName(type, undefined, checker);
+	const typeName = getFullyQualifiedName(type, undefined, checker);
 
 	if (properties.length) {
 		if (
 			shouldResolveObject({
-				name: typeName ?? '',
+				name: typeName?.name ?? '',
 				propertyCount: properties.length,
 				depth: typeStack.length,
 			})
@@ -34,7 +34,6 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 			if (filteredProperties.length > 0) {
 				return new ObjectNode(
 					typeName,
-					namespaces,
 					filteredProperties.map((property) => {
 						return parseProperty(
 							property,
@@ -47,7 +46,7 @@ export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNo
 			}
 		}
 
-		return new ObjectNode(typeName, namespaces, [], undefined);
+		return new ObjectNode(typeName, [], undefined);
 	}
 }
 

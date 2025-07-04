@@ -5,8 +5,12 @@
 			"name": "TestComponent",
 			"type": {
 				"kind": "component",
-				"name": "NamedExoticComponent<Props>",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "NamedExoticComponent<Props>",
+					"namespaces": [
+						"React"
+					]
+				},
 				"props": [
 					{
 						"name": "className",
@@ -15,12 +19,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -34,12 +36,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]

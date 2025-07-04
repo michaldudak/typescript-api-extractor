@@ -2,18 +2,18 @@ import { uniqBy } from 'lodash';
 import { IntrinsicNode } from './intrinsic';
 import { LiteralNode } from './literal';
 import { ExternalTypeNode } from './external';
-import { TypeNode } from '../node';
+import { AnyType } from '../node';
 import { IntersectionNode } from './intersection';
 import { UnionNode } from './union';
 import { TypeParameterNode } from './typeParameter';
 
 export function flattenTypes(
-	nodes: readonly TypeNode[],
+	nodes: readonly AnyType[],
 	nodeToProcess: typeof UnionNode | typeof IntersectionNode,
-): TypeNode[] {
-	let flatTypes: TypeNode[] = [];
+): AnyType[] {
+	let flatTypes: AnyType[] = [];
 	nodes.forEach((node) => {
-		if (node instanceof nodeToProcess && !node.name) {
+		if (node instanceof nodeToProcess && !node.typeName) {
 			flatTypes = flatTypes.concat(flattenTypes(node.types, nodeToProcess));
 		} else {
 			flatTypes.push(node);
@@ -23,25 +23,29 @@ export function flattenTypes(
 	return flatTypes;
 }
 
-export function deduplicateMemberTypes(types: TypeNode[]): TypeNode[] {
+export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
 	return uniqBy(types, (x) => {
 		if (x instanceof LiteralNode) {
 			return x.value;
 		}
 
-		if (x instanceof ExternalTypeNode || x instanceof TypeParameterNode) {
+		if (x instanceof ExternalTypeNode) {
+			return x.typeName;
+		}
+
+		if (x instanceof TypeParameterNode) {
 			return x.name;
 		}
 
 		if (x instanceof IntrinsicNode) {
-			return x.name ?? x.intrinsic;
+			return x.typeName ?? x.intrinsic;
 		}
 
 		return x;
 	});
 }
 
-export function sortMemberTypes(members: TypeNode[]) {
+export function sortMemberTypes(members: AnyType[]) {
 	// move undefined and null to the end
 
 	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.intrinsic === 'null');

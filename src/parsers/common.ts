@@ -1,10 +1,11 @@
 import ts from 'typescript';
+import { TypeName } from '../models/typeName';
 
 export function getFullyQualifiedName(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
-) {
+): TypeName | undefined {
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -32,10 +33,11 @@ export function getFullyQualifiedName(
 	const name = getTypeName(type, typeSymbol, checker);
 	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
 
-	return {
-		name,
-		namespaces,
-	};
+	if (name === undefined) {
+		return undefined;
+	}
+
+	return new TypeName(name, namespaces.length > 0 ? namespaces : undefined);
 }
 
 export function getTypeNamespaces(type: ts.Type): string[] {
@@ -134,16 +136,8 @@ function getFullyQualifiedNameAsString(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): string | undefined {
-	const { name, namespaces } = getFullyQualifiedName(type, typeNode, checker);
-	if (!name) {
-		return undefined;
-	}
-
-	if (namespaces.length > 0) {
-		return `${namespaces.join('.')}.${name}`;
-	}
-
-	return name;
+	const fqn = getFullyQualifiedName(type, typeNode, checker);
+	return fqn?.toString();
 }
 
 function areAllGenericArgumentsSameAsDefault(

@@ -4,6 +4,7 @@ import { EnumNode, EnumMember } from '../models';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { getTypeNamespaces } from './common';
 import { ParserError } from '../ParserError';
+import { TypeName } from '../models/typeName';
 
 export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 	const { checker, parsedSymbolStack } = context;
@@ -28,9 +29,10 @@ export function parseEnum(symbol: ts.Symbol, context: ParserContext): EnumNode {
 
 		const symbolType = checker.getTypeOfSymbol(symbol);
 
+		const namespaces = getTypeNamespaces(symbolType);
+
 		return new EnumNode(
-			symbol.getName(),
-			getTypeNamespaces(symbolType),
+			new TypeName(symbol.getName(), namespaces.length > 0 ? namespaces : undefined),
 			members,
 			getDocumentationFromSymbol(symbol, checker),
 		);

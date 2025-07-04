@@ -5,22 +5,23 @@
 			"name": "useHook",
 			"type": {
 				"kind": "function",
-				"name": "useHook",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "useHook"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "HookParameters",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "HookParameters"
+									},
 									"properties": [
 										{
 											"name": "value",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "string"
 											},
 											"optional": false
@@ -29,7 +30,6 @@
 											"name": "severity",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -38,14 +38,12 @@
 											"name": "onChange",
 											"type": {
 												"kind": "function",
-												"parentNamespaces": [],
 												"callSignatures": [
 													{
 														"parameters": [
 															{
 																"type": {
 																	"kind": "intrinsic",
-																	"parentNamespaces": [],
 																	"intrinsic": "string"
 																},
 																"name": "value",
@@ -54,7 +52,6 @@
 														],
 														"returnValueType": {
 															"kind": "intrinsic",
-															"parentNamespaces": [],
 															"intrinsic": "void"
 														}
 													}
@@ -70,24 +67,26 @@
 						],
 						"returnValueType": {
 							"kind": "object",
-							"name": "HookReturnValue",
-							"parentNamespaces": [],
+							"typeName": {
+								"name": "HookReturnValue"
+							},
 							"properties": [
 								{
 									"name": "getProps",
 									"type": {
 										"kind": "function",
-										"parentNamespaces": [],
 										"callSignatures": [
 											{
 												"parameters": [
 													{
 														"type": {
 															"kind": "external",
-															"name": "HTMLAttributes<HTMLElement>",
-															"parentNamespaces": [
-																"React"
-															]
+															"typeName": {
+																"name": "HTMLAttributes<HTMLElement>",
+																"namespaces": [
+																	"React"
+																]
+															}
 														},
 														"name": "externalProps",
 														"optional": false
@@ -95,10 +94,12 @@
 												],
 												"returnValueType": {
 													"kind": "external",
-													"name": "HTMLAttributes<HTMLElement>",
-													"parentNamespaces": [
-														"React"
-													]
+													"typeName": {
+														"name": "HTMLAttributes<HTMLElement>",
+														"namespaces": [
+															"React"
+														]
+													}
 												}
 											}
 										]
@@ -109,10 +110,12 @@
 									"name": "ref",
 									"type": {
 										"kind": "external",
-										"name": "RefCallback",
-										"parentNamespaces": [
-											"React"
-										]
+										"typeName": {
+											"name": "RefCallback",
+											"namespaces": [
+												"React"
+											]
+										}
 									},
 									"optional": false
 								}

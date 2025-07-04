@@ -5,18 +5,21 @@
 			"name": "fn",
 			"type": {
 				"kind": "function",
-				"name": "fn",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "fn"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Props",
-									"parentNamespaces": [
-										"MyComponent"
-									],
+									"typeName": {
+										"name": "Props",
+										"namespaces": [
+											"MyComponent"
+										]
+									},
 									"properties": [
 										{
 											"name": "className",
@@ -25,28 +28,27 @@
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "function",
-														"parentNamespaces": [],
 														"callSignatures": [
 															{
 																"parameters": [
 																	{
 																		"type": {
 																			"kind": "object",
-																			"name": "State",
-																			"parentNamespaces": [
-																				"MyComponent"
-																			],
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"MyComponent"
+																				]
+																			},
 																			"properties": [
 																				{
 																					"name": "disabled",
 																					"type": {
 																						"kind": "intrinsic",
-																						"parentNamespaces": [],
 																						"intrinsic": "boolean"
 																					},
 																					"optional": false
@@ -59,7 +61,6 @@
 																],
 																"returnValueType": {
 																	"kind": "intrinsic",
-																	"parentNamespaces": [],
 																	"intrinsic": "string"
 																}
 															}
@@ -67,7 +68,6 @@
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -81,25 +81,30 @@
 												"types": [
 													{
 														"kind": "function",
-														"name": "ComponentRenderFn<GenericHTMLProps, MyComponent.State>",
-														"parentNamespaces": [],
+														"typeName": {
+															"name": "ComponentRenderFn<GenericHTMLProps, MyComponent.State>"
+														},
 														"callSignatures": [
 															{
 																"parameters": [
 																	{
 																		"type": {
 																			"kind": "intersection",
+																			"typeName": {
+																				"name": "GenericHTMLProps"
+																			},
 																			"types": [
 																				{
 																					"kind": "external",
-																					"name": "HTMLAttributes<any>",
-																					"parentNamespaces": [
-																						"React"
-																					]
+																					"typeName": {
+																						"name": "HTMLAttributes<any>",
+																						"namespaces": [
+																							"React"
+																						]
+																					}
 																				},
 																				{
 																					"kind": "object",
-																					"parentNamespaces": [],
 																					"properties": [
 																						{
 																							"name": "ref",
@@ -108,14 +113,15 @@
 																								"types": [
 																									{
 																										"kind": "external",
-																										"name": "Ref<any>",
-																										"parentNamespaces": [
-																											"React"
-																										]
+																										"typeName": {
+																											"name": "Ref<any>",
+																											"namespaces": [
+																												"React"
+																											]
+																										}
 																									},
 																									{
 																										"kind": "intrinsic",
-																										"parentNamespaces": [],
 																										"intrinsic": "undefined"
 																									}
 																								]
@@ -125,8 +131,6 @@
 																					]
 																				}
 																			],
-																			"parentNamespaces": [],
-																			"name": "GenericHTMLProps",
 																			"properties": [
 																				{
 																					"name": "ref",
@@ -135,14 +139,15 @@
 																						"types": [
 																							{
 																								"kind": "external",
-																								"name": "Ref<any>",
-																								"parentNamespaces": [
-																									"React"
-																								]
+																								"typeName": {
+																									"name": "Ref<any>",
+																									"namespaces": [
+																										"React"
+																									]
+																								}
 																							},
 																							{
 																								"kind": "intrinsic",
-																								"parentNamespaces": [],
 																								"intrinsic": "undefined"
 																							}
 																						]
@@ -157,16 +162,17 @@
 																	{
 																		"type": {
 																			"kind": "object",
-																			"name": "State",
-																			"parentNamespaces": [
-																				"MyComponent"
-																			],
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"MyComponent"
+																				]
+																			},
 																			"properties": [
 																				{
 																					"name": "disabled",
 																					"type": {
 																						"kind": "intrinsic",
-																						"parentNamespaces": [],
 																						"intrinsic": "boolean"
 																					},
 																					"optional": false
@@ -179,17 +185,18 @@
 																],
 																"returnValueType": {
 																	"kind": "external",
-																	"name": "ReactElement",
-																	"parentNamespaces": [
-																		"React"
-																	]
+																	"typeName": {
+																		"name": "ReactElement",
+																		"namespaces": [
+																			"React"
+																		]
+																	}
 																}
 															}
 														]
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "undefined"
 													}
 												]
@@ -204,7 +211,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

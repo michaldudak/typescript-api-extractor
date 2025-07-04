@@ -5,14 +5,14 @@
 			"name": "inlineExport",
 			"type": {
 				"kind": "function",
-				"name": "inlineExport",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "inlineExport"
+				},
 				"callSignatures": [
 					{
 						"parameters": [],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}
@@ -23,15 +23,15 @@
 			"name": "default",
 			"type": {
 				"kind": "function",
-				"name": "defaultExport",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "defaultExport"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "a",
@@ -40,7 +40,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "number"
 						}
 					}
@@ -51,15 +50,15 @@
 			"name": "overloadedFunction",
 			"type": {
 				"kind": "function",
-				"name": "overloadedFunction",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "overloadedFunction"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "a",
@@ -68,7 +67,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "number"
 						}
 					},
@@ -77,7 +75,6 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								"name": "a",
@@ -86,7 +83,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "string"
 						}
 					}
@@ -97,15 +93,15 @@
 			"name": "aliasedOverloadedFunction",
 			"type": {
 				"kind": "function",
-				"name": "overloadedFunction",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "overloadedFunction"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "a",
@@ -114,7 +110,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "number"
 						}
 					},
@@ -123,7 +118,6 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								"name": "a",
@@ -132,7 +126,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "string"
 						}
 					}
@@ -143,24 +136,26 @@
 			"name": "functionAndNamespaceDeclaration",
 			"type": {
 				"kind": "function",
-				"name": "functionAndNamespaceDeclaration",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "functionAndNamespaceDeclaration"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "Params",
-									"parentNamespaces": [
-										"functionAndNamespaceDeclaration"
-									],
+									"typeName": {
+										"name": "Params",
+										"namespaces": [
+											"functionAndNamespaceDeclaration"
+										]
+									},
 									"properties": [
 										{
 											"name": "a",
 											"type": {
 												"kind": "intrinsic",
-												"parentNamespaces": [],
 												"intrinsic": "number"
 											},
 											"optional": false
@@ -173,10 +168,12 @@
 							{
 								"type": {
 									"kind": "external",
-									"name": "ForwardedRef<Element>",
-									"parentNamespaces": [
-										"React"
-									]
+									"typeName": {
+										"name": "ForwardedRef<Element>",
+										"namespaces": [
+											"React"
+										]
+									}
 								},
 								"name": "ref",
 								"optional": false
@@ -184,10 +181,12 @@
 						],
 						"returnValueType": {
 							"kind": "external",
-							"name": "Element",
-							"parentNamespaces": [
-								"JSX"
-							]
+							"typeName": {
+								"name": "Element",
+								"namespaces": [
+									"JSX"
+								]
+							}
 						}
 					}
 				]

@@ -5,17 +5,20 @@
 			"name": "Test",
 			"type": {
 				"kind": "component",
-				"name": "Test",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Test"
+				},
 				"props": [
 					{
 						"name": "refObject",
 						"type": {
 							"kind": "external",
-							"name": "RefObject<HTMLInputElement>",
-							"parentNamespaces": [
-								"React"
-							]
+							"typeName": {
+								"name": "RefObject<HTMLInputElement>",
+								"namespaces": [
+									"React"
+								]
+							}
 						},
 						"optional": false
 					},
@@ -23,10 +26,12 @@
 						"name": "refCallback",
 						"type": {
 							"kind": "external",
-							"name": "RefCallback",
-							"parentNamespaces": [
-								"React"
-							]
+							"typeName": {
+								"name": "RefCallback",
+								"namespaces": [
+									"React"
+								]
+							}
 						},
 						"optional": false
 					},
@@ -34,10 +39,12 @@
 						"name": "ref",
 						"type": {
 							"kind": "external",
-							"name": "Ref<HTMLInputElement>",
-							"parentNamespaces": [
-								"React"
-							]
+							"typeName": {
+								"name": "Ref<HTMLInputElement>",
+								"namespaces": [
+									"React"
+								]
+							}
 						},
 						"optional": false
 					},
@@ -48,14 +55,15 @@
 							"types": [
 								{
 									"kind": "external",
-									"name": "RefObject<HTMLInputElement>",
-									"parentNamespaces": [
-										"React"
-									]
+									"typeName": {
+										"name": "RefObject<HTMLInputElement>",
+										"namespaces": [
+											"React"
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -69,14 +77,15 @@
 							"types": [
 								{
 									"kind": "external",
-									"name": "RefCallback",
-									"parentNamespaces": [
-										"React"
-									]
+									"typeName": {
+										"name": "RefCallback",
+										"namespaces": [
+											"React"
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -90,14 +99,15 @@
 							"types": [
 								{
 									"kind": "external",
-									"name": "Ref<HTMLInputElement>",
-									"parentNamespaces": [
-										"React"
-									]
+									"typeName": {
+										"name": "Ref<HTMLInputElement>",
+										"namespaces": [
+											"React"
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]

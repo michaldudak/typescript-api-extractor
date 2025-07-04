@@ -5,16 +5,18 @@
 			"name": "test",
 			"type": {
 				"kind": "function",
-				"name": "test",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "external",
-									"name": "Record<string, unknown>",
-									"parentNamespaces": []
+									"typeName": {
+										"name": "Record<string, unknown>"
+									}
 								},
 								"name": "params",
 								"optional": false
@@ -22,7 +24,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

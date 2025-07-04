@@ -5,14 +5,14 @@
 			"name": "Component",
 			"type": {
 				"kind": "component",
-				"name": "Component",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "Component"
+				},
 				"props": [
 					{
 						"name": "requiredString",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "string"
 						},
 						"optional": false
@@ -24,12 +24,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -43,12 +41,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]
@@ -59,7 +55,6 @@
 						"name": "requiredBoolean",
 						"type": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "boolean"
 						},
 						"optional": false
@@ -71,12 +66,10 @@
 							"types": [
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "boolean"
 								},
 								{
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "undefined"
 								}
 							]

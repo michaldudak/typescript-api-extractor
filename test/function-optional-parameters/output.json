@@ -5,15 +5,15 @@
 			"name": "test",
 			"type": {
 				"kind": "function",
-				"name": "test",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "required",
@@ -25,12 +25,10 @@
 									"types": [
 										{
 											"kind": "intrinsic",
-											"parentNamespaces": [],
 											"intrinsic": "number"
 										},
 										{
 											"kind": "intrinsic",
-											"parentNamespaces": [],
 											"intrinsic": "undefined"
 										}
 									]
@@ -45,7 +43,6 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "number"
 								},
 								"name": "withInlineDefault",
@@ -59,7 +56,6 @@
 							{
 								"type": {
 									"kind": "intrinsic",
-									"parentNamespaces": [],
 									"intrinsic": "string"
 								},
 								"name": "withReferencedDefault",
@@ -73,7 +69,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "void"
 						}
 					}

@@ -5,35 +5,36 @@
 			"name": "test",
 			"type": {
 				"kind": "function",
-				"name": "test",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "test"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "GenericObject<MyUnion>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "GenericObject<MyUnion>"
+									},
 									"properties": [
 										{
 											"name": "x",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "MyUnion"
+												},
 												"types": [
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "string"
 													},
 													{
 														"kind": "intrinsic",
-														"parentNamespaces": [],
 														"intrinsic": "number"
 													}
-												],
-												"parentNamespaces": [],
-												"name": "MyUnion"
+												]
 											},
 											"optional": false
 										}
@@ -45,7 +46,6 @@
 						],
 						"returnValueType": {
 							"kind": "intrinsic",
-							"parentNamespaces": [],
 							"intrinsic": "null"
 						}
 					}

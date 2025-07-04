@@ -5,29 +5,32 @@
 			"name": "genericFunction",
 			"type": {
 				"kind": "function",
-				"name": "genericFunction",
-				"parentNamespaces": [],
+				"typeName": {
+					"name": "genericFunction"
+				},
 				"callSignatures": [
 					{
 						"parameters": [
 							{
 								"type": {
 									"kind": "object",
-									"name": "GenericFunctionParameters<T>",
-									"parentNamespaces": [],
+									"typeName": {
+										"name": "GenericFunctionParameters<T>"
+									},
 									"properties": [
 										{
 											"name": "value",
 											"type": {
 												"kind": "typeParameter",
 												"name": "T",
-												"parentNamespaces": [],
 												"constraint": {
 													"kind": "external",
-													"name": "HTMLAttributes<HTMLElement>",
-													"parentNamespaces": [
-														"React"
-													]
+													"typeName": {
+														"name": "HTMLAttributes<HTMLElement>",
+														"namespaces": [
+															"React"
+														]
+													}
 												}
 											},
 											"optional": false
@@ -36,21 +39,22 @@
 											"name": "nestedGenericType",
 											"type": {
 												"kind": "object",
-												"name": "GenericInterface<GenericInterface<string>>",
-												"parentNamespaces": [],
+												"typeName": {
+													"name": "GenericInterface<GenericInterface<string>>"
+												},
 												"properties": [
 													{
 														"name": "data",
 														"type": {
 															"kind": "object",
-															"name": "GenericInterface<string>",
-															"parentNamespaces": [],
+															"typeName": {
+																"name": "GenericInterface<string>"
+															},
 															"properties": [
 																{
 																	"name": "data",
 																	"type": {
 																		"kind": "intrinsic",
-																		"parentNamespaces": [],
 																		"intrinsic": "string"
 																	},
 																	"optional": false
@@ -72,13 +76,14 @@
 						"returnValueType": {
 							"kind": "typeParameter",
 							"name": "T",
-							"parentNamespaces": [],
 							"constraint": {
 								"kind": "external",
-								"name": "HTMLAttributes<HTMLElement>",
-								"parentNamespaces": [
-									"React"
-								]
+								"typeName": {
+									"name": "HTMLAttributes<HTMLElement>",
+									"namespaces": [
+										"React"
+									]
+								}
 							}
 						}
 					}
