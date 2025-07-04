@@ -51,9 +51,53 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "FC<Props>",
+					"name": "FC",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "object",
+							"typeName": {
+								"name": "Props"
+							},
+							"properties": [
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "id",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [
@@ -99,9 +143,53 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "FunctionComponent<Props>",
+					"name": "FunctionComponent",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "object",
+							"typeName": {
+								"name": "Props"
+							},
+							"properties": [
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "id",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [

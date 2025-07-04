@@ -20,9 +20,17 @@
 											"type": {
 												"kind": "external",
 												"typeName": {
-													"name": "ChangeEvent<HTMLInputElement>",
+													"name": "ChangeEvent",
 													"namespaces": [
 														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "HTMLInputElement"
+															}
+														}
 													]
 												}
 											},

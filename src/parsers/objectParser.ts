@@ -2,16 +2,16 @@ import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
 import { ObjectNode } from '../models';
-import { getFullyQualifiedName } from './common';
+import { getFullName } from './common';
 
 export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNode | undefined {
-	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, checker } = context;
+	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
 
 	const properties = type
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
 
-	const typeName = getFullyQualifiedName(type, undefined, checker);
+	const typeName = getFullName(type, undefined, context);
 
 	if (properties.length) {
 		if (

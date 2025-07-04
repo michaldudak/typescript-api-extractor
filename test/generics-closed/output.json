@@ -82,7 +82,114 @@
 													{
 														"kind": "function",
 														"typeName": {
-															"name": "ComponentRenderFn<GenericHTMLProps, MyComponent.State>"
+															"name": "ComponentRenderFn",
+															"typeArguments": [
+																{
+																	"kind": "intersection",
+																	"typeName": {
+																		"name": "GenericHTMLProps"
+																	},
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLAttributes",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		}
+																	],
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																{
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"MyComponent"
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "disabled",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "boolean"
+																			},
+																			"optional": false
+																		}
+																	]
+																}
+															]
 														},
 														"callSignatures": [
 															{
@@ -97,9 +204,15 @@
 																				{
 																					"kind": "external",
 																					"typeName": {
-																						"name": "HTMLAttributes<any>",
+																						"name": "HTMLAttributes",
 																						"namespaces": [
 																							"React"
+																						],
+																						"typeArguments": [
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "any"
+																							}
 																						]
 																					}
 																				},
@@ -114,9 +227,15 @@
 																									{
 																										"kind": "external",
 																										"typeName": {
-																											"name": "Ref<any>",
+																											"name": "Ref",
 																											"namespaces": [
 																												"React"
+																											],
+																											"typeArguments": [
+																												{
+																													"kind": "intrinsic",
+																													"intrinsic": "any"
+																												}
 																											]
 																										}
 																									},
@@ -140,9 +259,15 @@
 																							{
 																								"kind": "external",
 																								"typeName": {
-																									"name": "Ref<any>",
+																									"name": "Ref",
 																									"namespaces": [
 																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
 																									]
 																								}
 																							},
@@ -189,6 +314,36 @@
 																		"name": "ReactElement",
 																		"namespaces": [
 																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "unknown"
+																			},
+																			{
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "JSXElementConstructor",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					}
+																				]
+																			}
 																		]
 																	}
 																}

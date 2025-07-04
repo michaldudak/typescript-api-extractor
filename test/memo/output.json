@@ -6,9 +6,53 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "NamedExoticComponent<Props>",
+					"name": "NamedExoticComponent",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "object",
+							"typeName": {
+								"name": "Props"
+							},
+							"properties": [
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "id",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [

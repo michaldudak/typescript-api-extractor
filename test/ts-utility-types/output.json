@@ -15,7 +15,63 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Pick<Base, \"a\" | \"b\">"
+										"name": "Pick",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													},
+													{
+														"name": "c",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													}
+												]
+											},
+											{
+												"kind": "union",
+												"types": [
+													{
+														"kind": "literal",
+														"value": "\"a\""
+													},
+													{
+														"kind": "literal",
+														"value": "\"b\""
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{
@@ -71,7 +127,54 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Omit<Base, \"c\">"
+										"name": "Omit",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													},
+													{
+														"name": "c",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													}
+												]
+											},
+											{
+												"kind": "literal",
+												"value": "\"c\""
+											}
+										]
 									},
 									"properties": [
 										{
@@ -130,7 +233,63 @@
 										{
 											"kind": "object",
 											"typeName": {
-												"name": "Pick<Base, \"a\" | \"b\">"
+												"name": "Pick",
+												"typeArguments": [
+													{
+														"kind": "object",
+														"typeName": {
+															"name": "Base"
+														},
+														"properties": [
+															{
+																"name": "a",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															},
+															{
+																"name": "b",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "undefined"
+																		}
+																	]
+																},
+																"optional": true
+															},
+															{
+																"name": "c",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "number"
+																},
+																"optional": false
+															}
+														]
+													},
+													{
+														"kind": "union",
+														"types": [
+															{
+																"kind": "literal",
+																"value": "\"a\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"b\""
+															}
+														]
+													}
+												]
 											},
 											"properties": [
 												{

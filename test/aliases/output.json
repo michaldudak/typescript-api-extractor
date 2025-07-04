@@ -35,7 +35,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "MyRecord<string, string>"
+										"name": "MyRecord",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											}
+										]
 									},
 									"properties": []
 								},
@@ -111,7 +121,17 @@
 										{
 											"kind": "object",
 											"typeName": {
-												"name": "MyRecord<string, string>"
+												"name": "MyRecord",
+												"typeArguments": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													}
+												]
 											},
 											"properties": []
 										},
@@ -208,7 +228,17 @@
 						"type": {
 							"kind": "object",
 							"typeName": {
-								"name": "MyRecord<string, string>"
+								"name": "MyRecord",
+								"typeArguments": [
+									{
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									},
+									{
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									}
+								]
 							},
 							"properties": []
 						},
@@ -284,7 +314,17 @@
 								{
 									"kind": "object",
 									"typeName": {
-										"name": "MyRecord<string, string>"
+										"name": "MyRecord",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											}
+										]
 									},
 									"properties": []
 								},

@@ -169,9 +169,17 @@
 								"type": {
 									"kind": "external",
 									"typeName": {
-										"name": "ForwardedRef<Element>",
+										"name": "ForwardedRef",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "Element"
+												}
+											}
 										]
 									}
 								},

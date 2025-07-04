@@ -15,7 +15,42 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Partial<Base>"
+										"name": "Partial",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{
@@ -80,7 +115,42 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Required<Base>"
+										"name": "Required",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{
@@ -127,7 +197,42 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Partial<Base>"
+										"name": "Partial",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{
@@ -192,7 +297,42 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Required<Base>"
+										"name": "Required",
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Base"
+												},
+												"properties": [
+													{
+														"name": "a",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "boolean"
+														},
+														"optional": false
+													},
+													{
+														"name": "b",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{

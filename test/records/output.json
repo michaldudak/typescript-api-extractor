@@ -15,7 +15,17 @@
 								"type": {
 									"kind": "external",
 									"typeName": {
-										"name": "Record<string, unknown>"
+										"name": "Record",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "unknown"
+											}
+										]
 									}
 								},
 								"name": "params",

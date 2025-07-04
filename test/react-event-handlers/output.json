@@ -17,6 +17,14 @@
 								"name": "MouseEventHandler",
 								"namespaces": [
 									"React"
+								],
+								"typeArguments": [
+									{
+										"kind": "external",
+										"typeName": {
+											"name": "Element"
+										}
+									}
 								]
 							}
 						},
@@ -33,6 +41,14 @@
 										"name": "KeyboardEventHandler",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "Element"
+												}
+											}
 										]
 									}
 								},
@@ -49,9 +65,17 @@
 						"type": {
 							"kind": "external",
 							"typeName": {
-								"name": "FocusEventHandler<HTMLDivElement>",
+								"name": "FocusEventHandler",
 								"namespaces": [
 									"React"
+								],
+								"typeArguments": [
+									{
+										"kind": "external",
+										"typeName": {
+											"name": "HTMLDivElement"
+										}
+									}
 								]
 							}
 						},
@@ -65,9 +89,17 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "FocusEventHandler<HTMLDivElement>",
+										"name": "FocusEventHandler",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLDivElement"
+												}
+											}
 										]
 									}
 								},

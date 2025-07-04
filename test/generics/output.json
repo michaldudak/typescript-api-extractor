@@ -15,7 +15,30 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "GenericFunctionParameters<T>"
+										"name": "GenericFunctionParameters",
+										"typeArguments": [
+											{
+												"kind": "typeParameter",
+												"name": "T",
+												"constraint": {
+													"kind": "external",
+													"typeName": {
+														"name": "HTMLAttributes",
+														"namespaces": [
+															"React"
+														],
+														"typeArguments": [
+															{
+																"kind": "external",
+																"typeName": {
+																	"name": "HTMLElement"
+																}
+															}
+														]
+													}
+												}
+											}
+										]
 									},
 									"properties": [
 										{
@@ -26,9 +49,17 @@
 												"constraint": {
 													"kind": "external",
 													"typeName": {
-														"name": "HTMLAttributes<HTMLElement>",
+														"name": "HTMLAttributes",
 														"namespaces": [
 															"React"
+														],
+														"typeArguments": [
+															{
+																"kind": "external",
+																"typeName": {
+																	"name": "HTMLElement"
+																}
+															}
 														]
 													}
 												}
@@ -40,7 +71,31 @@
 											"type": {
 												"kind": "object",
 												"typeName": {
-													"name": "GenericInterface<GenericInterface<string>>"
+													"name": "GenericInterface",
+													"typeArguments": [
+														{
+															"kind": "object",
+															"typeName": {
+																"name": "GenericInterface",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	}
+																]
+															},
+															"properties": [
+																{
+																	"name": "data",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	"optional": false
+																}
+															]
+														}
+													]
 												},
 												"properties": [
 													{
@@ -48,7 +103,13 @@
 														"type": {
 															"kind": "object",
 															"typeName": {
-																"name": "GenericInterface<string>"
+																"name": "GenericInterface",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	}
+																]
 															},
 															"properties": [
 																{
@@ -79,9 +140,17 @@
 							"constraint": {
 								"kind": "external",
 								"typeName": {
-									"name": "HTMLAttributes<HTMLElement>",
+									"name": "HTMLAttributes",
 									"namespaces": [
 										"React"
+									],
+									"typeArguments": [
+										{
+											"kind": "external",
+											"typeName": {
+												"name": "HTMLElement"
+											}
+										}
 									]
 								}
 							}

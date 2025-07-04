@@ -6,9 +6,1050 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
+					"name": "ForwardRefExoticComponent",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "intersection",
+							"types": [
+								{
+									"kind": "object",
+									"typeName": {
+										"name": "Props",
+										"namespaces": [
+											"BaseUIComponent1"
+										]
+									},
+									"properties": [
+										{
+											"name": "value",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "onValueChange",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "function",
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		"name": "value",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"intrinsic": "void"
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "actionsRef",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "RefObject",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "object",
+																	"typeName": {
+																		"name": "Actions",
+																		"namespaces": [
+																			"BaseUIComponent1"
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "ping",
+																			"type": {
+																				"kind": "function",
+																				"callSignatures": [
+																					{
+																						"parameters": [],
+																						"returnValueType": {
+																							"kind": "intrinsic",
+																							"intrinsic": "void"
+																						}
+																					}
+																				]
+																			},
+																			"optional": false
+																		}
+																	]
+																}
+															]
+														}
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "className",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "function",
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "object",
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"BaseUIComponent1"
+																				]
+																			},
+																			"properties": [
+																				{
+																					"name": "state",
+																					"type": {
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					"optional": false
+																				}
+																			]
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "render",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "ReactElement",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "Record",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "unknown"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "JSXElementConstructor",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		}
+																	]
+																}
+															]
+														}
+													},
+													{
+														"kind": "function",
+														"typeName": {
+															"name": "ComponentRenderFn",
+															"typeArguments": [
+																{
+																	"kind": "intersection",
+																	"typeName": {
+																		"name": "HTMLProps",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	},
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLAttributes",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		}
+																	],
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																{
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent1"
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "state",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			"optional": false
+																		}
+																	]
+																}
+															]
+														},
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "intersection",
+																			"typeName": {
+																				"name": "HTMLProps",
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			},
+																			"types": [
+																				{
+																					"kind": "external",
+																					"typeName": {
+																						"name": "HTMLAttributes",
+																						"namespaces": [
+																							"React"
+																						],
+																						"typeArguments": [
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "any"
+																							}
+																						]
+																					}
+																				},
+																				{
+																					"kind": "object",
+																					"properties": [
+																						{
+																							"name": "ref",
+																							"type": {
+																								"kind": "union",
+																								"types": [
+																									{
+																										"kind": "external",
+																										"typeName": {
+																											"name": "Ref",
+																											"namespaces": [
+																												"React"
+																											],
+																											"typeArguments": [
+																												{
+																													"kind": "intrinsic",
+																													"intrinsic": "any"
+																												}
+																											]
+																										}
+																									},
+																									{
+																										"kind": "intrinsic",
+																										"intrinsic": "undefined"
+																									}
+																								]
+																							},
+																							"optional": true
+																						}
+																					]
+																				}
+																			],
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		},
+																		"name": "props",
+																		"optional": false
+																	},
+																	{
+																		"type": {
+																			"kind": "object",
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"BaseUIComponent1"
+																				]
+																			},
+																			"properties": [
+																				{
+																					"name": "state",
+																					"type": {
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					"optional": false
+																				}
+																			]
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "ReactElement",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "unknown"
+																			},
+																			{
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "JSXElementConstructor",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					}
+																				]
+																			}
+																		]
+																	}
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "RefAttributes",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLDivElement"
+												}
+											}
+										]
+									}
+								}
+							],
+							"properties": [
+								{
+									"name": "value",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "onValueChange",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																"name": "value",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"intrinsic": "void"
+														}
+													}
+												]
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "actionsRef",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "RefObject",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "object",
+															"typeName": {
+																"name": "Actions",
+																"namespaces": [
+																	"BaseUIComponent1"
+																]
+															},
+															"properties": [
+																{
+																	"name": "ping",
+																	"type": {
+																		"kind": "function",
+																		"callSignatures": [
+																			{
+																				"parameters": [],
+																				"returnValueType": {
+																					"kind": "intrinsic",
+																					"intrinsic": "void"
+																				}
+																			}
+																		]
+																	},
+																	"optional": false
+																}
+															]
+														}
+													]
+												}
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent1"
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "state",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			"optional": false
+																		}
+																	]
+																},
+																"name": "state",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														}
+													}
+												]
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "render",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "ReactElement",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "Record",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "unknown"
+																	}
+																]
+															}
+														},
+														{
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "JSXElementConstructor",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																}
+															]
+														}
+													]
+												}
+											},
+											{
+												"kind": "function",
+												"typeName": {
+													"name": "ComponentRenderFn",
+													"typeArguments": [
+														{
+															"kind": "intersection",
+															"typeName": {
+																"name": "HTMLProps",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "any"
+																	}
+																]
+															},
+															"types": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLAttributes",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "object",
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																}
+															],
+															"properties": [
+																{
+																	"name": "ref",
+																	"type": {
+																		"kind": "union",
+																		"types": [
+																			{
+																				"kind": "external",
+																				"typeName": {
+																					"name": "Ref",
+																					"namespaces": [
+																						"React"
+																					],
+																					"typeArguments": [
+																						{
+																							"kind": "intrinsic",
+																							"intrinsic": "any"
+																						}
+																					]
+																				}
+																			},
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "undefined"
+																			}
+																		]
+																	},
+																	"optional": true
+																}
+															]
+														},
+														{
+															"kind": "object",
+															"typeName": {
+																"name": "State",
+																"namespaces": [
+																	"BaseUIComponent1"
+																]
+															},
+															"properties": [
+																{
+																	"name": "state",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	"optional": false
+																}
+															]
+														}
+													]
+												},
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "intersection",
+																	"typeName": {
+																		"name": "HTMLProps",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	},
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLAttributes",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		}
+																	],
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																"name": "props",
+																"optional": false
+															},
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent1"
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "state",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			"optional": false
+																		}
+																	]
+																},
+																"name": "state",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "external",
+															"typeName": {
+																"name": "ReactElement",
+																"namespaces": [
+																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "unknown"
+																	},
+																	{
+																		"kind": "union",
+																		"types": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			{
+																				"kind": "external",
+																				"typeName": {
+																					"name": "JSXElementConstructor",
+																					"namespaces": [
+																						"React"
+																					],
+																					"typeArguments": [
+																						{
+																							"kind": "intrinsic",
+																							"intrinsic": "any"
+																						}
+																					]
+																				}
+																			}
+																		]
+																	}
+																]
+															}
+														}
+													}
+												]
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [
@@ -71,9 +1112,38 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "RefObject<BaseUIComponent1.Actions>",
+										"name": "RefObject",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "Actions",
+													"namespaces": [
+														"BaseUIComponent1"
+													]
+												},
+												"properties": [
+													{
+														"name": "ping",
+														"type": {
+															"kind": "function",
+															"callSignatures": [
+																{
+																	"parameters": [],
+																	"returnValueType": {
+																		"kind": "intrinsic",
+																		"intrinsic": "void"
+																	}
+																}
+															]
+														},
+														"optional": false
+													}
+												]
+											}
 										]
 									}
 								},
@@ -146,16 +1216,171 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>",
+										"name": "ReactElement",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "Record",
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "unknown"
+														}
+													]
+												}
+											},
+											{
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "JSXElementConstructor",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
+														}
+													}
+												]
+											}
 										]
 									}
 								},
 								{
 									"kind": "function",
 									"typeName": {
-										"name": "ComponentRenderFn<HTMLProps, BaseUIComponent1.State>"
+										"name": "ComponentRenderFn",
+										"typeArguments": [
+											{
+												"kind": "intersection",
+												"typeName": {
+													"name": "HTMLProps",
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "any"
+														}
+													]
+												},
+												"types": [
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLAttributes",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
+														}
+													},
+													{
+														"kind": "object",
+														"properties": [
+															{
+																"name": "ref",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "Ref",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "undefined"
+																		}
+																	]
+																},
+																"optional": true
+															}
+														]
+													}
+												],
+												"properties": [
+													{
+														"name": "ref",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "Ref",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											},
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "State",
+													"namespaces": [
+														"BaseUIComponent1"
+													]
+												},
+												"properties": [
+													{
+														"name": "state",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														"optional": false
+													}
+												]
+											}
+										]
 									},
 									"callSignatures": [
 										{
@@ -164,15 +1389,27 @@
 													"type": {
 														"kind": "intersection",
 														"typeName": {
-															"name": "HTMLProps"
+															"name": "HTMLProps",
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
 														},
 														"types": [
 															{
 																"kind": "external",
 																"typeName": {
-																	"name": "HTMLAttributes<any>",
+																	"name": "HTMLAttributes",
 																	"namespaces": [
 																		"React"
+																	],
+																	"typeArguments": [
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "any"
+																		}
 																	]
 																}
 															},
@@ -187,9 +1424,15 @@
 																				{
 																					"kind": "external",
 																					"typeName": {
-																						"name": "Ref<any>",
+																						"name": "Ref",
 																						"namespaces": [
 																							"React"
+																						],
+																						"typeArguments": [
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "any"
+																							}
 																						]
 																					}
 																				},
@@ -213,9 +1456,15 @@
 																		{
 																			"kind": "external",
 																			"typeName": {
-																				"name": "Ref<any>",
+																				"name": "Ref",
 																				"namespaces": [
 																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
 																				]
 																			}
 																		},
@@ -262,6 +1511,36 @@
 													"name": "ReactElement",
 													"namespaces": [
 														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "unknown"
+														},
+														{
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "JSXElementConstructor",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																}
+															]
+														}
 													]
 												}
 											}
@@ -284,9 +1563,792 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
+					"name": "ForwardRefExoticComponent",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "intersection",
+							"types": [
+								{
+									"kind": "object",
+									"typeName": {
+										"name": "Props",
+										"namespaces": [
+											"BaseUIComponent2"
+										]
+									},
+									"properties": [
+										{
+											"name": "className",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "function",
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "object",
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"BaseUIComponent2"
+																				]
+																			},
+																			"properties": []
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "render",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "ReactElement",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "Record",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "unknown"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "JSXElementConstructor",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		}
+																	]
+																}
+															]
+														}
+													},
+													{
+														"kind": "function",
+														"typeName": {
+															"name": "ComponentRenderFn",
+															"typeArguments": [
+																{
+																	"kind": "intersection",
+																	"typeName": {
+																		"name": "HTMLProps",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	},
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLAttributes",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		}
+																	],
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																{
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent2"
+																		]
+																	},
+																	"properties": []
+																}
+															]
+														},
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "intersection",
+																			"typeName": {
+																				"name": "HTMLProps",
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			},
+																			"types": [
+																				{
+																					"kind": "external",
+																					"typeName": {
+																						"name": "HTMLAttributes",
+																						"namespaces": [
+																							"React"
+																						],
+																						"typeArguments": [
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "any"
+																							}
+																						]
+																					}
+																				},
+																				{
+																					"kind": "object",
+																					"properties": [
+																						{
+																							"name": "ref",
+																							"type": {
+																								"kind": "union",
+																								"types": [
+																									{
+																										"kind": "external",
+																										"typeName": {
+																											"name": "Ref",
+																											"namespaces": [
+																												"React"
+																											],
+																											"typeArguments": [
+																												{
+																													"kind": "intrinsic",
+																													"intrinsic": "any"
+																												}
+																											]
+																										}
+																									},
+																									{
+																										"kind": "intrinsic",
+																										"intrinsic": "undefined"
+																									}
+																								]
+																							},
+																							"optional": true
+																						}
+																					]
+																				}
+																			],
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		},
+																		"name": "props",
+																		"optional": false
+																	},
+																	{
+																		"type": {
+																			"kind": "object",
+																			"typeName": {
+																				"name": "State",
+																				"namespaces": [
+																					"BaseUIComponent2"
+																				]
+																			},
+																			"properties": []
+																		},
+																		"name": "state",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "ReactElement",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "unknown"
+																			},
+																			{
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "JSXElementConstructor",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					}
+																				]
+																			}
+																		]
+																	}
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "RefAttributes",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLDivElement"
+												}
+											}
+										]
+									}
+								}
+							],
+							"properties": [
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent2"
+																		]
+																	},
+																	"properties": []
+																},
+																"name": "state",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														}
+													}
+												]
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "render",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "ReactElement",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "Record",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "unknown"
+																	}
+																]
+															}
+														},
+														{
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "JSXElementConstructor",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																}
+															]
+														}
+													]
+												}
+											},
+											{
+												"kind": "function",
+												"typeName": {
+													"name": "ComponentRenderFn",
+													"typeArguments": [
+														{
+															"kind": "intersection",
+															"typeName": {
+																"name": "HTMLProps",
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "any"
+																	}
+																]
+															},
+															"types": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLAttributes",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "object",
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																}
+															],
+															"properties": [
+																{
+																	"name": "ref",
+																	"type": {
+																		"kind": "union",
+																		"types": [
+																			{
+																				"kind": "external",
+																				"typeName": {
+																					"name": "Ref",
+																					"namespaces": [
+																						"React"
+																					],
+																					"typeArguments": [
+																						{
+																							"kind": "intrinsic",
+																							"intrinsic": "any"
+																						}
+																					]
+																				}
+																			},
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "undefined"
+																			}
+																		]
+																	},
+																	"optional": true
+																}
+															]
+														},
+														{
+															"kind": "object",
+															"typeName": {
+																"name": "State",
+																"namespaces": [
+																	"BaseUIComponent2"
+																]
+															},
+															"properties": []
+														}
+													]
+												},
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "intersection",
+																	"typeName": {
+																		"name": "HTMLProps",
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	},
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLAttributes",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "ref",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "external",
+																								"typeName": {
+																									"name": "Ref",
+																									"namespaces": [
+																										"React"
+																									],
+																									"typeArguments": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "any"
+																										}
+																									]
+																								}
+																							},
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "undefined"
+																							}
+																						]
+																					},
+																					"optional": true
+																				}
+																			]
+																		}
+																	],
+																	"properties": [
+																		{
+																			"name": "ref",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "external",
+																						"typeName": {
+																							"name": "Ref",
+																							"namespaces": [
+																								"React"
+																							],
+																							"typeArguments": [
+																								{
+																									"kind": "intrinsic",
+																									"intrinsic": "any"
+																								}
+																							]
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																"name": "props",
+																"optional": false
+															},
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "State",
+																		"namespaces": [
+																			"BaseUIComponent2"
+																		]
+																	},
+																	"properties": []
+																},
+																"name": "state",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "external",
+															"typeName": {
+																"name": "ReactElement",
+																"namespaces": [
+																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "unknown"
+																	},
+																	{
+																		"kind": "union",
+																		"types": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			{
+																				"kind": "external",
+																				"typeName": {
+																					"name": "JSXElementConstructor",
+																					"namespaces": [
+																						"React"
+																					],
+																					"typeArguments": [
+																						{
+																							"kind": "intrinsic",
+																							"intrinsic": "any"
+																						}
+																					]
+																				}
+																			}
+																		]
+																	}
+																]
+															}
+														}
+													}
+												]
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [
@@ -342,16 +2404,162 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>",
+										"name": "ReactElement",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "Record",
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "unknown"
+														}
+													]
+												}
+											},
+											{
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "JSXElementConstructor",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
+														}
+													}
+												]
+											}
 										]
 									}
 								},
 								{
 									"kind": "function",
 									"typeName": {
-										"name": "ComponentRenderFn<HTMLProps, BaseUIComponent2.State>"
+										"name": "ComponentRenderFn",
+										"typeArguments": [
+											{
+												"kind": "intersection",
+												"typeName": {
+													"name": "HTMLProps",
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "any"
+														}
+													]
+												},
+												"types": [
+													{
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLAttributes",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
+														}
+													},
+													{
+														"kind": "object",
+														"properties": [
+															{
+																"name": "ref",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "external",
+																			"typeName": {
+																				"name": "Ref",
+																				"namespaces": [
+																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
+																				]
+																			}
+																		},
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "undefined"
+																		}
+																	]
+																},
+																"optional": true
+															}
+														]
+													}
+												],
+												"properties": [
+													{
+														"name": "ref",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "Ref",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											},
+											{
+												"kind": "object",
+												"typeName": {
+													"name": "State",
+													"namespaces": [
+														"BaseUIComponent2"
+													]
+												},
+												"properties": []
+											}
+										]
 									},
 									"callSignatures": [
 										{
@@ -360,15 +2568,27 @@
 													"type": {
 														"kind": "intersection",
 														"typeName": {
-															"name": "HTMLProps"
+															"name": "HTMLProps",
+															"typeArguments": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "any"
+																}
+															]
 														},
 														"types": [
 															{
 																"kind": "external",
 																"typeName": {
-																	"name": "HTMLAttributes<any>",
+																	"name": "HTMLAttributes",
 																	"namespaces": [
 																		"React"
+																	],
+																	"typeArguments": [
+																		{
+																			"kind": "intrinsic",
+																			"intrinsic": "any"
+																		}
 																	]
 																}
 															},
@@ -383,9 +2603,15 @@
 																				{
 																					"kind": "external",
 																					"typeName": {
-																						"name": "Ref<any>",
+																						"name": "Ref",
 																						"namespaces": [
 																							"React"
+																						],
+																						"typeArguments": [
+																							{
+																								"kind": "intrinsic",
+																								"intrinsic": "any"
+																							}
 																						]
 																					}
 																				},
@@ -409,9 +2635,15 @@
 																		{
 																			"kind": "external",
 																			"typeName": {
-																				"name": "Ref<any>",
+																				"name": "Ref",
 																				"namespaces": [
 																					"React"
+																				],
+																				"typeArguments": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					}
 																				]
 																			}
 																		},
@@ -449,6 +2681,36 @@
 													"name": "ReactElement",
 													"namespaces": [
 														"React"
+													],
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "unknown"
+														},
+														{
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "string"
+																},
+																{
+																	"kind": "external",
+																	"typeName": {
+																		"name": "JSXElementConstructor",
+																		"namespaces": [
+																			"React"
+																		],
+																		"typeArguments": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "any"
+																			}
+																		]
+																	}
+																}
+															]
+														}
 													]
 												}
 											}

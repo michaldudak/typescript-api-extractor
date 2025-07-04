@@ -10,7 +10,7 @@ import {
 	Visibility,
 } from '../models';
 import { ParserError } from '../ParserError';
-import { getFullyQualifiedName } from './common';
+import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
@@ -24,7 +24,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 
 	const symbol = type.aliasSymbol ?? type.getSymbol();
 
-	const fqn = getFullyQualifiedName(type, undefined, context.checker);
+	const fqn = getFullName(type, undefined, context);
 
 	let name = fqn?.name;
 
@@ -35,7 +35,8 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
 	}
 
-	const typeName = name !== undefined ? new TypeName(name, fqn?.namespaces) : undefined;
+	const typeName =
+		name !== undefined ? new TypeName(name, fqn?.namespaces, fqn?.typeArguments) : undefined;
 
 	return new FunctionNode(typeName, parsedCallSignatures);
 }

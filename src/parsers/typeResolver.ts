@@ -17,7 +17,7 @@ import {
 	AnyType,
 } from '../models';
 import { resolveUnionType } from './unionTypeResolver';
-import { getFullyQualifiedName } from './common';
+import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
 
 /**
@@ -45,7 +45,7 @@ export function resolveType(
 		typeStack.push(typeId);
 	}
 
-	const typeName = getFullyQualifiedName(type, typeNode, checker);
+	const typeName = getFullName(type, typeNode, context);
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
@@ -68,7 +68,7 @@ export function resolveType(
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
 			return new ArrayNode(
 				type.aliasSymbol?.name
-					? new TypeName(type.aliasSymbol?.name, typeName?.namespaces)
+					? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 					: undefined,
 				resolveType(arrayType, undefined, context),
 			);
@@ -81,7 +81,7 @@ export function resolveType(
 
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName.name === 'bivarianceHack') {
-				return new ExternalTypeNode(new TypeName('RefCallback', ['React']));
+				return new ExternalTypeNode(new TypeName('RefCallback', ['React'], typeName.typeArguments));
 			}
 
 			return new ExternalTypeNode(
@@ -89,6 +89,7 @@ export function resolveType(
 					typeName.name ||
 						(type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
 					typeName.namespaces,
+					typeName.typeArguments,
 				),
 			);
 		}

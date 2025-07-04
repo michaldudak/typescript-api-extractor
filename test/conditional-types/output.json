@@ -55,7 +55,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Props<Multiple>"
+										"name": "Props",
+										"typeArguments": [
+											{
+												"kind": "typeParameter",
+												"name": "Multiple",
+												"constraint": {
+													"kind": "intrinsic",
+													"intrinsic": "boolean"
+												}
+											}
+										]
 									},
 									"properties": [
 										{

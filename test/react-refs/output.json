@@ -14,9 +14,17 @@
 						"type": {
 							"kind": "external",
 							"typeName": {
-								"name": "RefObject<HTMLInputElement>",
+								"name": "RefObject",
 								"namespaces": [
 									"React"
+								],
+								"typeArguments": [
+									{
+										"kind": "external",
+										"typeName": {
+											"name": "HTMLInputElement"
+										}
+									}
 								]
 							}
 						},
@@ -40,9 +48,17 @@
 						"type": {
 							"kind": "external",
 							"typeName": {
-								"name": "Ref<HTMLInputElement>",
+								"name": "Ref",
 								"namespaces": [
 									"React"
+								],
+								"typeArguments": [
+									{
+										"kind": "external",
+										"typeName": {
+											"name": "HTMLInputElement"
+										}
+									}
 								]
 							}
 						},
@@ -56,9 +72,17 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "RefObject<HTMLInputElement>",
+										"name": "RefObject",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLInputElement"
+												}
+											}
 										]
 									}
 								},
@@ -100,9 +124,17 @@
 								{
 									"kind": "external",
 									"typeName": {
-										"name": "Ref<HTMLInputElement>",
+										"name": "Ref",
 										"namespaces": [
 											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLInputElement"
+												}
+											}
 										]
 									}
 								},

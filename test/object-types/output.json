@@ -31,7 +31,17 @@
 								"type": {
 									"kind": "external",
 									"typeName": {
-										"name": "Record<string, any>"
+										"name": "Record",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "any"
+											}
+										]
 									}
 								},
 								"name": "record",
@@ -185,7 +195,17 @@
 											"type": {
 												"kind": "external",
 												"typeName": {
-													"name": "Record<string, any>"
+													"name": "Record",
+													"typeArguments": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "any"
+														}
+													]
 												}
 											},
 											"optional": false

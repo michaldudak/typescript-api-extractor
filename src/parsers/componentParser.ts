@@ -30,7 +30,11 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			const typeName = node.type.typeName
-				? new TypeName(node.type.typeName?.name, node.type.typeName?.namespaces)
+				? new TypeName(
+						node.type.typeName?.name,
+						node.type.typeName?.namespaces,
+						node.type.typeName?.typeArguments,
+					)
 				: undefined;
 			return new ExportNode(
 				node.name,

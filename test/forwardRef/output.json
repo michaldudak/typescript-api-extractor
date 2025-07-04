@@ -6,9 +6,111 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "ForwardRefExoticComponent<Props & RefAttributes<HTMLDivElement>>",
+					"name": "ForwardRefExoticComponent",
 					"namespaces": [
 						"React"
+					],
+					"typeArguments": [
+						{
+							"kind": "intersection",
+							"types": [
+								{
+									"kind": "object",
+									"typeName": {
+										"name": "Props"
+									},
+									"properties": [
+										{
+											"name": "className",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "id",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "RefAttributes",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLDivElement"
+												}
+											}
+										]
+									}
+								}
+							],
+							"properties": [
+								{
+									"name": "className",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								},
+								{
+									"name": "id",
+									"type": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
+									},
+									"optional": true
+								}
+							]
+						}
 					]
 				},
 				"props": [

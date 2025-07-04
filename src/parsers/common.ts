@@ -1,11 +1,16 @@
 import ts from 'typescript';
 import { TypeName } from '../models/typeName';
+import { AnyType } from '../models';
+import { resolveType } from './typeResolver';
+import { ParserContext } from '../parser';
 
-export function getFullyQualifiedName(
+export function getFullName(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
-	checker: ts.TypeChecker,
+	context: ParserContext,
 ): TypeName | undefined {
+	const { checker } = context;
+
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
 	// TypeScript resolves the alias automatically, but we want to preserve the original type symbol if it exists.
 	//
@@ -32,12 +37,17 @@ export function getFullyQualifiedName(
 
 	const name = getTypeName(type, typeSymbol, checker);
 	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
+	const typeArguments = getTypeArguments(type, context);
 
 	if (name === undefined) {
 		return undefined;
 	}
 
-	return new TypeName(name, namespaces.length > 0 ? namespaces : undefined);
+	return new TypeName(
+		name,
+		namespaces.length > 0 ? namespaces : undefined,
+		typeArguments.length > 0 ? typeArguments : undefined,
+	);
 }
 
 export function getTypeNamespaces(type: ts.Type): string[] {
@@ -97,47 +107,30 @@ function getTypeName(
 		return typeName;
 	}
 
-	let typeArguments: string[] | undefined;
+	return typeName;
+}
+
+function getTypeArguments(type: ts.Type, context: ParserContext): AnyType[] {
+	let typeArguments: AnyType[] = [];
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];
 	} else {
 		if ('target' in type) {
-			typeArguments = checker.getTypeArguments(type as ts.TypeReference)?.map((x) => {
-				return (
-					getFullyQualifiedNameAsString(x, undefined, checker) ??
-					checker.typeToString(x) ??
-					'unknown'
-				);
+			typeArguments = context.checker.getTypeArguments(type as ts.TypeReference)?.map((x) => {
+				return resolveType(x, undefined, context);
 			});
 		}
 
-		if (!typeArguments?.length) {
+		if (!typeArguments.length) {
 			typeArguments =
 				type.aliasTypeArguments?.map((x) => {
-					return (
-						getFullyQualifiedNameAsString(x, undefined, checker) ??
-						checker.typeToString(x) ??
-						'unknown'
-					);
+					return resolveType(x, undefined, context);
 				}) ?? [];
 		}
 	}
 
-	if (typeArguments && typeArguments.length > 0) {
-		return `${typeName}<${typeArguments.join(', ')}>`;
-	}
-
-	return typeName;
-}
-
-function getFullyQualifiedNameAsString(
-	type: ts.Type,
-	typeNode: ts.TypeNode | undefined,
-	checker: ts.TypeChecker,
-): string | undefined {
-	const fqn = getFullyQualifiedName(type, typeNode, checker);
-	return fqn?.toString();
+	return typeArguments;
 }
 
 function areAllGenericArgumentsSameAsDefault(

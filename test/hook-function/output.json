@@ -82,9 +82,17 @@
 														"type": {
 															"kind": "external",
 															"typeName": {
-																"name": "HTMLAttributes<HTMLElement>",
+																"name": "HTMLAttributes",
 																"namespaces": [
 																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"kind": "external",
+																		"typeName": {
+																			"name": "HTMLElement"
+																		}
+																	}
 																]
 															}
 														},
@@ -95,9 +103,17 @@
 												"returnValueType": {
 													"kind": "external",
 													"typeName": {
-														"name": "HTMLAttributes<HTMLElement>",
+														"name": "HTMLAttributes",
 														"namespaces": [
 															"React"
+														],
+														"typeArguments": [
+															{
+																"kind": "external",
+																"typeName": {
+																	"name": "HTMLElement"
+																}
+															}
 														]
 													}
 												}

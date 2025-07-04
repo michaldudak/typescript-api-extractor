@@ -15,7 +15,25 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "GenericObject<MyUnion>"
+										"name": "GenericObject",
+										"typeArguments": [
+											{
+												"kind": "union",
+												"typeName": {
+													"name": "MyUnion"
+												},
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "number"
+													}
+												]
+											}
+										]
 									},
 									"properties": [
 										{

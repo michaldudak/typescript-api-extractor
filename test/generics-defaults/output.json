@@ -15,7 +15,13 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params"
+										"name": "Params",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -54,7 +60,13 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params"
+										"name": "Params",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -93,7 +105,13 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params<number>"
+										"name": "Params",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -132,7 +150,13 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params<T>"
+										"name": "Params",
+										"typeArguments": [
+											{
+												"kind": "typeParameter",
+												"name": "T"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -171,7 +195,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params2"
+										"name": "Params2",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -218,7 +252,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params2<string, string>"
+										"name": "Params2",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -265,7 +309,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params2<number, number>"
+										"name": "Params2",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -312,7 +366,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params2"
+										"name": "Params2",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
 									},
 									"properties": [
 										{
@@ -359,7 +423,17 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Params2<number, number>"
+										"name": "Params2",
+										"typeArguments": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
 									},
 									"properties": [
 										{
