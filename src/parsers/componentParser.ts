@@ -29,12 +29,12 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 			hasReactNodeLikeReturnType(node.type)
 		) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
+			const typeName = node.type.typeName
+				? new TypeName(node.type.typeName?.name, node.type.typeName?.namespaces)
+				: undefined;
 			return new ExportNode(
 				node.name,
-				new ComponentNode(
-					new TypeName(node.type.typeName?.name, node.type.typeName?.namespaces),
-					newCallSignatures,
-				),
+				new ComponentNode(typeName, newCallSignatures),
 				node.documentation,
 			);
 		}
