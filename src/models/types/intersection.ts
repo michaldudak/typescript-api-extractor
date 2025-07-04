@@ -1,5 +1,5 @@
 import { AnyType, TypeNode } from '../node';
-import { PropertyNode } from '../property';
+import { PropertyNode } from './object';
 import { TypeName } from '../typeName';
 import { deduplicateMemberTypes, flattenTypes, sortMemberTypes } from './compoundTypeUtils';
 
@@ -16,5 +16,13 @@ export class IntersectionNode implements TypeNode {
 
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.properties = properties;
+	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return '(' + this.types.map((type) => type.toString()).join(' & ') + ')';
 	}
 }

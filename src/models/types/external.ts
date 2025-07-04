@@ -5,4 +5,8 @@ export class ExternalTypeNode implements TypeNode {
 	readonly kind = 'external';
 
 	constructor(public typeName: TypeName) {}
+
+	toString(): string {
+		return this.typeName.toString();
+	}
 }

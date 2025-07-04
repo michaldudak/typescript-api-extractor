@@ -1,4 +1,4 @@
-import { PropertyNode } from '../property';
+import { PropertyNode } from './object';
 import { TypeNode } from '../node';
 import { TypeName } from '../typeName';
 
@@ -10,5 +10,13 @@ export class ComponentNode implements TypeNode {
 	constructor(typeName: TypeName | undefined, props: PropertyNode[]) {
 		this.props = props;
 		this.typeName = typeName?.name ? typeName : undefined;
+	}
+
+	toString() {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return '';
 	}
 }

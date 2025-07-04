@@ -3,7 +3,6 @@ export * from './export';
 export * from './module';
 export * from './node';
 export * from './program';
-export * from './property';
 export * from './typeName';
 
 export * from './types/array';

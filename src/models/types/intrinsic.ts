@@ -22,4 +22,12 @@ export class IntrinsicNode implements TypeNode {
 		this.intrinsic = intrinsic;
 		this.typeName = typeName?.name ? typeName : undefined;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return this.intrinsic;
+	}
 }

@@ -10,4 +10,12 @@ export class ArrayNode implements TypeNode {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.elementType = elementType;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName?.toString();
+		}
+
+		return `${this.elementType.toString()}[]`;
+	}
 }

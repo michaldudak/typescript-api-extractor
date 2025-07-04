@@ -10,6 +10,10 @@ export class EnumNode implements TypeNode {
 		public members: EnumMember[],
 		public documentation: Documentation | undefined,
 	) {}
+
+	toString(): string {
+		return this.typeName.toString();
+	}
 }
 
 export class EnumMember {

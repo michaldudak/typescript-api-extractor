@@ -16,6 +16,14 @@ export class UnionNode implements TypeNode {
 		this.types = deduplicateMemberTypes(flatTypes);
 		this.typeName = name;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return '(' + this.types.map((type) => type.toString()).join(' | ') + ')';
+	}
 }
 
 /**

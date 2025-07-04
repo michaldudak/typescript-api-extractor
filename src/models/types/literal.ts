@@ -17,4 +17,12 @@ export class LiteralNode implements TypeNode {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.documentation = documentation;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return JSON.stringify(this.value);
+	}
 }

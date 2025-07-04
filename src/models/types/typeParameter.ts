@@ -8,4 +8,8 @@ export class TypeParameterNode {
 		public constraint: AnyType | undefined,
 		public defaultValue: AnyType | undefined,
 	) {}
+
+	toString(): string {
+		return this.name;
+	}
 }

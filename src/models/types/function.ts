@@ -12,6 +12,14 @@ export class FunctionNode implements TypeNode {
 			typeName?.name === '__function' || typeName?.name === undefined ? undefined : typeName;
 		this.callSignatures = callSignatures;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return this.callSignatures.map((signature) => signature.toString()).join(' | ');
+	}
 }
 
 export class CallSignature {
@@ -19,6 +27,10 @@ export class CallSignature {
 		public parameters: Parameter[],
 		public returnValueType: AnyType,
 	) {}
+
+	toString(): string {
+		return `(${this.parameters.map((p) => p.toString()).join(', ')}) => ${this.returnValueType.toString()}`;
+	}
 }
 
 export class Parameter {
@@ -29,4 +41,8 @@ export class Parameter {
 		public optional: boolean,
 		public defaultValue: unknown | undefined,
 	) {}
+
+	toString(): string {
+		return `${this.name}: ${this.type.toString()}${this.optional ? '?' : ''}${this.defaultValue !== undefined ? ` = ${this.defaultValue}` : ''}`;
+	}
 }

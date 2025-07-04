@@ -10,4 +10,12 @@ export class TupleNode implements TypeNode {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.types = types;
 	}
+
+	toString(): string {
+		if (this.typeName) {
+			return this.typeName.toString();
+		}
+
+		return `[${this.types.map((type) => type.toString()).join(', ')}]`;
+	}
 }
