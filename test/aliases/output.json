@@ -38,12 +38,18 @@
 										"name": "MyRecord",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -124,12 +130,18 @@
 												"name": "MyRecord",
 												"typeArguments": [
 													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														"equalToDefault": false
 													},
 													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														"equalToDefault": false
 													}
 												]
 											},
@@ -231,12 +243,18 @@
 								"name": "MyRecord",
 								"typeArguments": [
 									{
-										"kind": "intrinsic",
-										"intrinsic": "string"
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"equalToDefault": false
 									},
 									{
-										"kind": "intrinsic",
-										"intrinsic": "string"
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"equalToDefault": false
 									}
 								]
 							},
@@ -317,12 +335,18 @@
 										"name": "MyRecord",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											}
 										]
 									},

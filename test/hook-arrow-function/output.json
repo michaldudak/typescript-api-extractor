@@ -85,10 +85,13 @@
 																],
 																"typeArguments": [
 																	{
-																		"kind": "external",
-																		"typeName": {
-																			"name": "HTMLElement"
-																		}
+																		"type": {
+																			"kind": "external",
+																			"typeName": {
+																				"name": "HTMLElement"
+																			}
+																		},
+																		"equalToDefault": false
 																	}
 																]
 															}
@@ -106,10 +109,13 @@
 														],
 														"typeArguments": [
 															{
-																"kind": "external",
-																"typeName": {
-																	"name": "HTMLElement"
-																}
+																"type": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLElement"
+																	}
+																},
+																"equalToDefault": false
 															}
 														]
 													}

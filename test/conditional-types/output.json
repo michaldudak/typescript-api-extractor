@@ -58,12 +58,15 @@
 										"name": "Props",
 										"typeArguments": [
 											{
-												"kind": "typeParameter",
-												"name": "Multiple",
-												"constraint": {
-													"kind": "intrinsic",
-													"intrinsic": "boolean"
-												}
+												"type": {
+													"kind": "typeParameter",
+													"name": "Multiple",
+													"constraint": {
+														"kind": "intrinsic",
+														"intrinsic": "boolean"
+													}
+												},
+												"equalToDefault": false
 											}
 										]
 									},

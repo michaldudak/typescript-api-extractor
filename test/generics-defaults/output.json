@@ -18,8 +18,11 @@
 										"name": "Params",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": true
 											}
 										]
 									},
@@ -63,8 +66,11 @@
 										"name": "Params",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": true
 											}
 										]
 									},
@@ -108,8 +114,11 @@
 										"name": "Params",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -153,8 +162,11 @@
 										"name": "Params",
 										"typeArguments": [
 											{
-												"kind": "typeParameter",
-												"name": "T"
+												"type": {
+													"kind": "typeParameter",
+													"name": "T"
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -198,12 +210,18 @@
 										"name": "Params2",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": true
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": true
 											}
 										]
 									},
@@ -255,12 +273,18 @@
 										"name": "Params2",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": true
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -312,12 +336,18 @@
 										"name": "Params2",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": true
 											}
 										]
 									},
@@ -369,12 +399,18 @@
 										"name": "Params2",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": true
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": true
 											}
 										]
 									},
@@ -426,12 +462,18 @@
 										"name": "Params2",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												},
+												"equalToDefault": true
 											}
 										]
 									},

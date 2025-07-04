@@ -1,6 +1,5 @@
 import ts from 'typescript';
-import { TypeName } from '../models/typeName';
-import { AnyType } from '../models';
+import { TypeArgument, TypeName } from '../models/typeName';
 import { resolveType } from './typeResolver';
 import { ParserContext } from '../parser';
 
@@ -35,7 +34,7 @@ export function getFullName(
 		}
 	}
 
-	const name = getTypeName(type, typeSymbol, checker);
+	const name = getTypeName(type, typeSymbol);
 	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
 	const typeArguments = getTypeArguments(type, context);
 
@@ -83,11 +82,7 @@ function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
 	return namespaces;
 }
 
-function getTypeName(
-	type: ts.Type,
-	typeSymbol: ts.Symbol | undefined,
-	checker: ts.TypeChecker,
-): string | undefined {
+function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
 		return undefined;
@@ -102,30 +97,40 @@ function getTypeName(
 		return undefined;
 	}
 
-	// If all generic arguments are default, omit them entirely
-	if (areAllGenericArgumentsSameAsDefault(type, checker)) {
-		return typeName;
-	}
-
 	return typeName;
 }
 
-function getTypeArguments(type: ts.Type, context: ParserContext): AnyType[] {
-	let typeArguments: AnyType[] = [];
+function getTypeArguments(type: ts.Type, context: ParserContext): TypeArgument[] {
+	let typeArguments: TypeArgument[] = [];
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];
 	} else {
 		if ('target' in type) {
-			typeArguments = context.checker.getTypeArguments(type as ts.TypeReference)?.map((x) => {
-				return resolveType(x, undefined, context);
-			});
+			typeArguments = context.checker
+				.getTypeArguments(type as ts.TypeReference)
+				?.map((arg, index) => {
+					const parameterType = resolveType(arg, undefined, context);
+					const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
+
+					return {
+						type: parameterType,
+						equalToDefault,
+					} satisfies TypeArgument;
+				});
 		}
 
 		if (!typeArguments.length) {
 			typeArguments =
-				type.aliasTypeArguments?.map((x) => {
-					return resolveType(x, undefined, context);
+				type.aliasTypeArguments?.map((arg, index) => {
+					const parameterType = resolveType(arg, undefined, context);
+					resolveType(arg, undefined, context);
+					const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
+
+					return {
+						type: parameterType,
+						equalToDefault,
+					} satisfies TypeArgument;
 				}) ?? [];
 		}
 	}
@@ -133,8 +138,9 @@ function getTypeArguments(type: ts.Type, context: ParserContext): AnyType[] {
 	return typeArguments;
 }
 
-function areAllGenericArgumentsSameAsDefault(
+function isGenericArgumentsSameAsDefault(
 	type: ts.Type, // The instantiated type, e.g., Props<string>
+	argumentIndex: number,
 	checker: ts.TypeChecker,
 ): boolean {
 	let typeArguments: readonly ts.Type[] | undefined;
@@ -176,19 +182,17 @@ function areAllGenericArgumentsSameAsDefault(
 		return false;
 	}
 
-	for (let i = 0; i < typeArguments.length; i++) {
-		const argumentType = typeArguments[i];
-		const typeParameterDeclaration = typeParameters[i];
+	const argumentType = typeArguments[argumentIndex];
+	const typeParameterDeclaration = typeParameters[argumentIndex];
 
-		if (!typeParameterDeclaration.default) {
-			return false; // Argument provided for a parameter without a default
-		}
+	if (!typeParameterDeclaration.default) {
+		return false; // Argument provided for a parameter without a default
+	}
 
-		const defaultType = checker.getTypeFromTypeNode(typeParameterDeclaration.default);
+	const defaultType = checker.getTypeFromTypeNode(typeParameterDeclaration.default);
 
-		if (argumentType !== defaultType) {
-			return false;
-		}
+	if (argumentType !== defaultType) {
+		return false;
 	}
 
 	return true;

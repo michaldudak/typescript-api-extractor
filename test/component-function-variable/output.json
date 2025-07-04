@@ -57,46 +57,49 @@
 					],
 					"typeArguments": [
 						{
-							"kind": "object",
-							"typeName": {
-								"name": "Props"
-							},
-							"properties": [
-								{
-									"name": "className",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
-									},
-									"optional": true
+							"type": {
+								"kind": "object",
+								"typeName": {
+									"name": "Props"
 								},
-								{
-									"name": "id",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
+								"properties": [
+									{
+										"name": "className",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
 									},
-									"optional": true
-								}
-							]
+									{
+										"name": "id",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
+									}
+								]
+							},
+							"equalToDefault": false
 						}
 					]
 				},
@@ -149,46 +152,49 @@
 					],
 					"typeArguments": [
 						{
-							"kind": "object",
-							"typeName": {
-								"name": "Props"
-							},
-							"properties": [
-								{
-									"name": "className",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
-									},
-									"optional": true
+							"type": {
+								"kind": "object",
+								"typeName": {
+									"name": "Props"
 								},
-								{
-									"name": "id",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
+								"properties": [
+									{
+										"name": "className",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
 									},
-									"optional": true
-								}
-							]
+									{
+										"name": "id",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
+									}
+								]
+							},
+							"equalToDefault": false
 						}
 					]
 				},

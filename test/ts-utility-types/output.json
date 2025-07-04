@@ -18,58 +18,64 @@
 										"name": "Pick",
 										"typeArguments": [
 											{
-												"kind": "object",
-												"typeName": {
-													"name": "Base"
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "Base"
+													},
+													"properties": [
+														{
+															"name": "a",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "boolean"
+															},
+															"optional": false
+														},
+														{
+															"name": "b",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														},
+														{
+															"name": "c",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															},
+															"optional": false
+														}
+													]
 												},
-												"properties": [
-													{
-														"name": "a",
-														"type": {
-															"kind": "intrinsic",
-															"intrinsic": "boolean"
-														},
-														"optional": false
-													},
-													{
-														"name": "b",
-														"type": {
-															"kind": "union",
-															"types": [
-																{
-																	"kind": "intrinsic",
-																	"intrinsic": "string"
-																},
-																{
-																	"kind": "intrinsic",
-																	"intrinsic": "undefined"
-																}
-															]
-														},
-														"optional": true
-													},
-													{
-														"name": "c",
-														"type": {
-															"kind": "intrinsic",
-															"intrinsic": "number"
-														},
-														"optional": false
-													}
-												]
+												"equalToDefault": false
 											},
 											{
-												"kind": "union",
-												"types": [
-													{
-														"kind": "literal",
-														"value": "\"a\""
-													},
-													{
-														"kind": "literal",
-														"value": "\"b\""
-													}
-												]
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "literal",
+															"value": "\"a\""
+														},
+														{
+															"kind": "literal",
+															"value": "\"b\""
+														}
+													]
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -130,49 +136,55 @@
 										"name": "Omit",
 										"typeArguments": [
 											{
-												"kind": "object",
-												"typeName": {
-													"name": "Base"
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "Base"
+													},
+													"properties": [
+														{
+															"name": "a",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "boolean"
+															},
+															"optional": false
+														},
+														{
+															"name": "b",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														},
+														{
+															"name": "c",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															},
+															"optional": false
+														}
+													]
 												},
-												"properties": [
-													{
-														"name": "a",
-														"type": {
-															"kind": "intrinsic",
-															"intrinsic": "boolean"
-														},
-														"optional": false
-													},
-													{
-														"name": "b",
-														"type": {
-															"kind": "union",
-															"types": [
-																{
-																	"kind": "intrinsic",
-																	"intrinsic": "string"
-																},
-																{
-																	"kind": "intrinsic",
-																	"intrinsic": "undefined"
-																}
-															]
-														},
-														"optional": true
-													},
-													{
-														"name": "c",
-														"type": {
-															"kind": "intrinsic",
-															"intrinsic": "number"
-														},
-														"optional": false
-													}
-												]
+												"equalToDefault": false
 											},
 											{
-												"kind": "literal",
-												"value": "\"c\""
+												"type": {
+													"kind": "literal",
+													"value": "\"c\""
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -236,58 +248,64 @@
 												"name": "Pick",
 												"typeArguments": [
 													{
-														"kind": "object",
-														"typeName": {
-															"name": "Base"
+														"type": {
+															"kind": "object",
+															"typeName": {
+																"name": "Base"
+															},
+															"properties": [
+																{
+																	"name": "a",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "boolean"
+																	},
+																	"optional": false
+																},
+																{
+																	"name": "b",
+																	"type": {
+																		"kind": "union",
+																		"types": [
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			{
+																				"kind": "intrinsic",
+																				"intrinsic": "undefined"
+																			}
+																		]
+																	},
+																	"optional": true
+																},
+																{
+																	"name": "c",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "number"
+																	},
+																	"optional": false
+																}
+															]
 														},
-														"properties": [
-															{
-																"name": "a",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "boolean"
-																},
-																"optional": false
-															},
-															{
-																"name": "b",
-																"type": {
-																	"kind": "union",
-																	"types": [
-																		{
-																			"kind": "intrinsic",
-																			"intrinsic": "string"
-																		},
-																		{
-																			"kind": "intrinsic",
-																			"intrinsic": "undefined"
-																		}
-																	]
-																},
-																"optional": true
-															},
-															{
-																"name": "c",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															}
-														]
+														"equalToDefault": false
 													},
 													{
-														"kind": "union",
-														"types": [
-															{
-																"kind": "literal",
-																"value": "\"a\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"b\""
-															}
-														]
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "literal",
+																	"value": "\"a\""
+																},
+																{
+																	"kind": "literal",
+																	"value": "\"b\""
+																}
+															]
+														},
+														"equalToDefault": false
 													}
 												]
 											},

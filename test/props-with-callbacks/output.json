@@ -26,10 +26,13 @@
 													],
 													"typeArguments": [
 														{
-															"kind": "external",
-															"typeName": {
-																"name": "HTMLInputElement"
-															}
+															"type": {
+																"kind": "external",
+																"typeName": {
+																	"name": "HTMLInputElement"
+																}
+															},
+															"equalToDefault": false
 														}
 													]
 												}

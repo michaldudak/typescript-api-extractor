@@ -18,25 +18,31 @@
 										"name": "GenericFunctionParameters",
 										"typeArguments": [
 											{
-												"kind": "typeParameter",
-												"name": "T",
-												"constraint": {
-													"kind": "external",
-													"typeName": {
-														"name": "HTMLAttributes",
-														"namespaces": [
-															"React"
-														],
-														"typeArguments": [
-															{
-																"kind": "external",
-																"typeName": {
-																	"name": "HTMLElement"
+												"type": {
+													"kind": "typeParameter",
+													"name": "T",
+													"constraint": {
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLAttributes",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"type": {
+																		"kind": "external",
+																		"typeName": {
+																			"name": "HTMLElement"
+																		}
+																	},
+																	"equalToDefault": false
 																}
-															}
-														]
+															]
+														}
 													}
-												}
+												},
+												"equalToDefault": false
 											}
 										]
 									},
@@ -55,10 +61,13 @@
 														],
 														"typeArguments": [
 															{
-																"kind": "external",
-																"typeName": {
-																	"name": "HTMLElement"
-																}
+																"type": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLElement"
+																	}
+																},
+																"equalToDefault": false
 															}
 														]
 													}
@@ -74,26 +83,32 @@
 													"name": "GenericInterface",
 													"typeArguments": [
 														{
-															"kind": "object",
-															"typeName": {
-																"name": "GenericInterface",
-																"typeArguments": [
+															"type": {
+																"kind": "object",
+																"typeName": {
+																	"name": "GenericInterface",
+																	"typeArguments": [
+																		{
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			},
+																			"equalToDefault": false
+																		}
+																	]
+																},
+																"properties": [
 																	{
-																		"kind": "intrinsic",
-																		"intrinsic": "string"
+																		"name": "data",
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		"optional": false
 																	}
 																]
 															},
-															"properties": [
-																{
-																	"name": "data",
-																	"type": {
-																		"kind": "intrinsic",
-																		"intrinsic": "string"
-																	},
-																	"optional": false
-																}
-															]
+															"equalToDefault": false
 														}
 													]
 												},
@@ -106,8 +121,11 @@
 																"name": "GenericInterface",
 																"typeArguments": [
 																	{
-																		"kind": "intrinsic",
-																		"intrinsic": "string"
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "string"
+																		},
+																		"equalToDefault": false
 																	}
 																]
 															},
@@ -146,10 +164,13 @@
 									],
 									"typeArguments": [
 										{
-											"kind": "external",
-											"typeName": {
-												"name": "HTMLElement"
-											}
+											"type": {
+												"kind": "external",
+												"typeName": {
+													"name": "HTMLElement"
+												}
+											},
+											"equalToDefault": false
 										}
 									]
 								}

@@ -20,10 +20,13 @@
 								],
 								"typeArguments": [
 									{
-										"kind": "external",
-										"typeName": {
-											"name": "Element"
-										}
+										"type": {
+											"kind": "external",
+											"typeName": {
+												"name": "Element"
+											}
+										},
+										"equalToDefault": true
 									}
 								]
 							}
@@ -44,10 +47,13 @@
 										],
 										"typeArguments": [
 											{
-												"kind": "external",
-												"typeName": {
-													"name": "Element"
-												}
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "Element"
+													}
+												},
+												"equalToDefault": true
 											}
 										]
 									}
@@ -71,10 +77,13 @@
 								],
 								"typeArguments": [
 									{
-										"kind": "external",
-										"typeName": {
-											"name": "HTMLDivElement"
-										}
+										"type": {
+											"kind": "external",
+											"typeName": {
+												"name": "HTMLDivElement"
+											}
+										},
+										"equalToDefault": false
 									}
 								]
 							}
@@ -95,10 +104,13 @@
 										],
 										"typeArguments": [
 											{
-												"kind": "external",
-												"typeName": {
-													"name": "HTMLDivElement"
-												}
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "HTMLDivElement"
+													}
+												},
+												"equalToDefault": false
 											}
 										]
 									}

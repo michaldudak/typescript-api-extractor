@@ -175,10 +175,13 @@
 										],
 										"typeArguments": [
 											{
-												"kind": "external",
-												"typeName": {
-													"name": "Element"
-												}
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "Element"
+													}
+												},
+												"equalToDefault": false
 											}
 										]
 									}

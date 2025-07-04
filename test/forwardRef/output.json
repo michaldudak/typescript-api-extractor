@@ -12,104 +12,110 @@
 					],
 					"typeArguments": [
 						{
-							"kind": "intersection",
-							"types": [
-								{
-									"kind": "object",
-									"typeName": {
-										"name": "Props"
-									},
-									"properties": [
-										{
-											"name": "className",
-											"type": {
-												"kind": "union",
-												"types": [
-													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
-													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "undefined"
-													}
-												]
-											},
-											"optional": true
+							"type": {
+								"kind": "intersection",
+								"types": [
+									{
+										"kind": "object",
+										"typeName": {
+											"name": "Props"
 										},
-										{
-											"name": "id",
-											"type": {
-												"kind": "union",
-												"types": [
-													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
+										"properties": [
+											{
+												"name": "className",
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "undefined"
+														}
+													]
+												},
+												"optional": true
+											},
+											{
+												"name": "id",
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "undefined"
+														}
+													]
+												},
+												"optional": true
+											}
+										]
+									},
+									{
+										"kind": "external",
+										"typeName": {
+											"name": "RefAttributes",
+											"namespaces": [
+												"React"
+											],
+											"typeArguments": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLDivElement"
+														}
 													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "undefined"
-													}
-												]
-											},
-											"optional": true
-										}
-									]
-								},
-								{
-									"kind": "external",
-									"typeName": {
-										"name": "RefAttributes",
-										"namespaces": [
-											"React"
-										],
-										"typeArguments": [
-											{
-												"kind": "external",
-												"typeName": {
-													"name": "HTMLDivElement"
+													"equalToDefault": false
 												}
-											}
-										]
+											]
+										}
 									}
-								}
-							],
-							"properties": [
-								{
-									"name": "className",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
+								],
+								"properties": [
+									{
+										"name": "className",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
 									},
-									"optional": true
-								},
-								{
-									"name": "id",
-									"type": {
-										"kind": "union",
-										"types": [
-											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "undefined"
-											}
-										]
-									},
-									"optional": true
-								}
-							]
+									{
+										"name": "id",
+										"type": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "undefined"
+												}
+											]
+										},
+										"optional": true
+									}
+								]
+							},
+							"equalToDefault": false
 						}
 					]
 				},

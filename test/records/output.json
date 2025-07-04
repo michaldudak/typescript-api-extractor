@@ -18,12 +18,18 @@
 										"name": "Record",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "unknown"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "unknown"
+												},
+												"equalToDefault": false
 											}
 										]
 									}

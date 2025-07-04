@@ -18,20 +18,23 @@
 										"name": "GenericObject",
 										"typeArguments": [
 											{
-												"kind": "union",
-												"typeName": {
-													"name": "MyUnion"
-												},
-												"types": [
-													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
+												"type": {
+													"kind": "union",
+													"typeName": {
+														"name": "MyUnion"
 													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "number"
-													}
-												]
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														}
+													]
+												},
+												"equalToDefault": false
 											}
 										]
 									},

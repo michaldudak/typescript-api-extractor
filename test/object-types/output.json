@@ -34,12 +34,18 @@
 										"name": "Record",
 										"typeArguments": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"equalToDefault": false
 											},
 											{
-												"kind": "intrinsic",
-												"intrinsic": "any"
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "any"
+												},
+												"equalToDefault": false
 											}
 										]
 									}
@@ -198,12 +204,18 @@
 													"name": "Record",
 													"typeArguments": [
 														{
-															"kind": "intrinsic",
-															"intrinsic": "string"
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "string"
+															},
+															"equalToDefault": false
 														},
 														{
-															"kind": "intrinsic",
-															"intrinsic": "any"
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "any"
+															},
+															"equalToDefault": false
 														}
 													]
 												}
