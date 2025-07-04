@@ -53,15 +53,12 @@ function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
 	}
 
 	const declaration = typeSymbol.valueDeclaration ?? typeSymbol.declarations?.[0];
-	return getNodeNamespaces(declaration);
-}
-function getNodeNamespaces(node: ts.Node | undefined): string[] {
-	if (!node) {
+	if (!declaration) {
 		return [];
 	}
 
 	const namespaces: string[] = [];
-	let currentNode = node.parent;
+	let currentNode = declaration.parent;
 
 	while (currentNode != null && !ts.isSourceFile(currentNode)) {
 		if (ts.isModuleDeclaration(currentNode)) {
