@@ -79,7 +79,10 @@ export function resolveType(
 				return new ReferenceNode('RefCallback', []);
 			}
 
-			return new ReferenceNode(typeName ?? checker.typeToString(type), namespaces);
+			return new ReferenceNode(
+				typeName || (type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
+				namespaces,
+			);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Boolean)) {

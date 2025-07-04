@@ -156,7 +156,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn<HTMLProps<any>, BaseUIComponent1.State>",
+									"name": "ComponentRenderFn<HTMLProps, BaseUIComponent1.State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
@@ -201,7 +201,7 @@
 															}
 														],
 														"parentNamespaces": [],
-														"name": "HTMLProps<any>",
+														"name": "HTMLProps",
 														"properties": [
 															{
 																"name": "ref",
@@ -341,7 +341,7 @@
 								},
 								{
 									"kind": "function",
-									"name": "ComponentRenderFn<HTMLProps<any>, BaseUIComponent2.State>",
+									"name": "ComponentRenderFn<HTMLProps, BaseUIComponent2.State>",
 									"parentNamespaces": [],
 									"callSignatures": [
 										{
@@ -386,7 +386,7 @@
 															}
 														],
 														"parentNamespaces": [],
-														"name": "HTMLProps<any>",
+														"name": "HTMLProps",
 														"properties": [
 															{
 																"name": "ref",

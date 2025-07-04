@@ -1,0 +1,401 @@
+{
+	"name": "test/generics-defaults/input",
+	"exports": [
+		{
+			"name": "f1",
+			"type": {
+				"kind": "function",
+				"name": "f1",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f2",
+			"type": {
+				"kind": "function",
+				"name": "f2",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f3",
+			"type": {
+				"kind": "function",
+				"name": "f3",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params<number>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f4",
+			"type": {
+				"kind": "function",
+				"name": "f4",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params<T>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "typeParameter",
+												"name": "T",
+												"parentNamespaces": []
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f5",
+			"type": {
+				"kind": "function",
+				"name": "f5",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params2",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "u",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f6",
+			"type": {
+				"kind": "function",
+				"name": "f6",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params2<string, string>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "u",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f7",
+			"type": {
+				"kind": "function",
+				"name": "f7",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params2<number, number>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										},
+										{
+											"name": "u",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f8",
+			"type": {
+				"kind": "function",
+				"name": "f8",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params2",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "u",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "f9",
+			"type": {
+				"kind": "function",
+				"name": "f9",
+				"parentNamespaces": [],
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"name": "Params2<number, number>",
+									"parentNamespaces": [],
+									"properties": [
+										{
+											"name": "v",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										},
+										{
+											"name": "u",
+											"type": {
+												"kind": "intrinsic",
+												"parentNamespaces": [],
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"parentNamespaces": [],
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}

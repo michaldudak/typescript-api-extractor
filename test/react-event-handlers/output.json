@@ -12,7 +12,7 @@
 						"name": "onClick",
 						"type": {
 							"kind": "reference",
-							"name": "MouseEventHandler<Element>",
+							"name": "MouseEventHandler",
 							"parentNamespaces": [
 								"React"
 							]
@@ -26,7 +26,7 @@
 							"types": [
 								{
 									"kind": "reference",
-									"name": "KeyboardEventHandler<Element>",
+									"name": "KeyboardEventHandler",
 									"parentNamespaces": [
 										"React"
 									]
