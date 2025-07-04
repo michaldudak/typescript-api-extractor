@@ -1,7 +1,7 @@
 import { TypeNode } from '../node';
 
-export class ReferenceNode implements TypeNode {
-	kind = 'reference';
+export class ExternalTypeNode implements TypeNode {
+	kind = 'external';
 
 	constructor(
 		public name: string,

@@ -9,7 +9,7 @@ import {
 	TypeNode,
 	TypeParameterNode,
 	ArrayNode,
-	ReferenceNode,
+	ExternalTypeNode,
 	IntrinsicNode,
 	UnionNode,
 	TupleNode,
@@ -76,10 +76,10 @@ export function resolveType(
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (typeName === 'bivarianceHack') {
-				return new ReferenceNode('RefCallback', []);
+				return new ExternalTypeNode('RefCallback', ['React']);
 			}
 
-			return new ReferenceNode(
+			return new ExternalTypeNode(
 				typeName || (type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
 				namespaces,
 			);

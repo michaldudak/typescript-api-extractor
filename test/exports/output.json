@@ -172,7 +172,7 @@
 							},
 							{
 								"type": {
-									"kind": "reference",
+									"kind": "external",
 									"name": "ForwardedRef<Element>",
 									"parentNamespaces": [
 										"React"
@@ -183,7 +183,7 @@
 							}
 						],
 						"returnValueType": {
-							"kind": "reference",
+							"kind": "external",
 							"name": "Element",
 							"parentNamespaces": [
 								"JSX"

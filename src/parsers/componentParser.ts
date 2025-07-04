@@ -6,7 +6,7 @@ import {
 	IntrinsicNode,
 	PropertyNode,
 	ObjectNode,
-	ReferenceNode,
+	ExternalTypeNode,
 	UnionNode,
 	IntersectionNode,
 } from '../models';
@@ -14,7 +14,7 @@ import { ParserContext } from '../parser';
 
 const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
 
-function isReactReturnType(type: ReferenceNode) {
+function isReactReturnType(type: ExternalTypeNode) {
 	return componentReturnTypes.some((regex) => regex.test(type.name));
 }
 
@@ -42,11 +42,11 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 function hasReactNodeLikeReturnType(type: FunctionNode) {
 	return type.callSignatures.some(
 		(signature) =>
-			(signature.returnValueType instanceof ReferenceNode &&
+			(signature.returnValueType instanceof ExternalTypeNode &&
 				isReactReturnType(signature.returnValueType)) ||
 			(signature.returnValueType instanceof UnionNode &&
 				signature.returnValueType.types.some(
-					(type) => type instanceof ReferenceNode && isReactReturnType(type),
+					(type) => type instanceof ExternalTypeNode && isReactReturnType(type),
 				)),
 	);
 }

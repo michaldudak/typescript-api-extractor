@@ -71,7 +71,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "RefObject<BaseUIComponent1.Actions>",
 									"parentNamespaces": [
 										"React"
@@ -148,7 +148,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>",
 									"parentNamespaces": [
 										"React"
@@ -166,7 +166,7 @@
 														"kind": "intersection",
 														"types": [
 															{
-																"kind": "reference",
+																"kind": "external",
 																"name": "HTMLAttributes<any>",
 																"parentNamespaces": [
 																	"React"
@@ -182,7 +182,7 @@
 																			"kind": "union",
 																			"types": [
 																				{
-																					"kind": "reference",
+																					"kind": "external",
 																					"name": "Ref<any>",
 																					"parentNamespaces": [
 																						"React"
@@ -209,7 +209,7 @@
 																	"kind": "union",
 																	"types": [
 																		{
-																			"kind": "reference",
+																			"kind": "external",
 																			"name": "Ref<any>",
 																			"parentNamespaces": [
 																				"React"
@@ -253,7 +253,7 @@
 												}
 											],
 											"returnValueType": {
-												"kind": "reference",
+												"kind": "external",
 												"name": "ReactElement",
 												"parentNamespaces": [
 													"React"
@@ -333,7 +333,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "ReactElement<Record<string, unknown>, string | JSXElementConstructor<any>>",
 									"parentNamespaces": [
 										"React"
@@ -351,7 +351,7 @@
 														"kind": "intersection",
 														"types": [
 															{
-																"kind": "reference",
+																"kind": "external",
 																"name": "HTMLAttributes<any>",
 																"parentNamespaces": [
 																	"React"
@@ -367,7 +367,7 @@
 																			"kind": "union",
 																			"types": [
 																				{
-																					"kind": "reference",
+																					"kind": "external",
 																					"name": "Ref<any>",
 																					"parentNamespaces": [
 																						"React"
@@ -394,7 +394,7 @@
 																	"kind": "union",
 																	"types": [
 																		{
-																			"kind": "reference",
+																			"kind": "external",
 																			"name": "Ref<any>",
 																			"parentNamespaces": [
 																				"React"
@@ -428,7 +428,7 @@
 												}
 											],
 											"returnValueType": {
-												"kind": "reference",
+												"kind": "external",
 												"name": "ReactElement",
 												"parentNamespaces": [
 													"React"

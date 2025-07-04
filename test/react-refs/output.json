@@ -11,7 +11,7 @@
 					{
 						"name": "refObject",
 						"type": {
-							"kind": "reference",
+							"kind": "external",
 							"name": "RefObject<HTMLInputElement>",
 							"parentNamespaces": [
 								"React"
@@ -22,7 +22,7 @@
 					{
 						"name": "refCallback",
 						"type": {
-							"kind": "reference",
+							"kind": "external",
 							"name": "RefCallback",
 							"parentNamespaces": [
 								"React"
@@ -33,7 +33,7 @@
 					{
 						"name": "ref",
 						"type": {
-							"kind": "reference",
+							"kind": "external",
 							"name": "Ref<HTMLInputElement>",
 							"parentNamespaces": [
 								"React"
@@ -47,7 +47,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "RefObject<HTMLInputElement>",
 									"parentNamespaces": [
 										"React"
@@ -68,9 +68,11 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "RefCallback",
-									"parentNamespaces": []
+									"parentNamespaces": [
+										"React"
+									]
 								},
 								{
 									"kind": "intrinsic",
@@ -87,7 +89,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "Ref<HTMLInputElement>",
 									"parentNamespaces": [
 										"React"

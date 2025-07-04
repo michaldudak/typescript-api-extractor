@@ -82,7 +82,7 @@
 												"parameters": [
 													{
 														"type": {
-															"kind": "reference",
+															"kind": "external",
 															"name": "HTMLAttributes<HTMLElement>",
 															"parentNamespaces": [
 																"React"
@@ -93,7 +93,7 @@
 													}
 												],
 												"returnValueType": {
-													"kind": "reference",
+													"kind": "external",
 													"name": "HTMLAttributes<HTMLElement>",
 													"parentNamespaces": [
 														"React"
@@ -107,7 +107,7 @@
 								{
 									"name": "ref",
 									"type": {
-										"kind": "reference",
+										"kind": "external",
 										"name": "RefCallback",
 										"parentNamespaces": [
 											"React"

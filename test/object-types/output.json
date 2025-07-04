@@ -30,7 +30,7 @@
 							},
 							{
 								"type": {
-									"kind": "reference",
+									"kind": "external",
 									"name": "Record<string, any>",
 									"parentNamespaces": []
 								},
@@ -180,7 +180,7 @@
 										{
 											"name": "inlineRecordType",
 											"type": {
-												"kind": "reference",
+												"kind": "external",
 												"name": "Record<string, any>",
 												"parentNamespaces": []
 											},

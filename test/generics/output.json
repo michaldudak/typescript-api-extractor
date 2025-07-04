@@ -23,7 +23,7 @@
 												"name": "T",
 												"parentNamespaces": [],
 												"constraint": {
-													"kind": "reference",
+													"kind": "external",
 													"name": "HTMLAttributes<HTMLElement>",
 													"parentNamespaces": [
 														"React"
@@ -74,7 +74,7 @@
 							"name": "T",
 							"parentNamespaces": [],
 							"constraint": {
-								"kind": "reference",
+								"kind": "external",
 								"name": "HTMLAttributes<HTMLElement>",
 								"parentNamespaces": [
 									"React"

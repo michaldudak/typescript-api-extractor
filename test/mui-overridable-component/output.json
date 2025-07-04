@@ -17,7 +17,7 @@
 									"name": "RootComponent",
 									"parentNamespaces": [],
 									"constraint": {
-										"kind": "reference",
+										"kind": "external",
 										"name": "ElementType",
 										"parentNamespaces": [
 											"React"
@@ -91,7 +91,7 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "reference",
+									"kind": "external",
 									"name": "CSSProperties",
 									"parentNamespaces": [
 										"React"

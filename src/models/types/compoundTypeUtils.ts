@@ -1,7 +1,7 @@
 import { uniqBy } from 'lodash';
 import { IntrinsicNode } from './intrinsic';
 import { LiteralNode } from './literal';
-import { ReferenceNode } from './reference';
+import { ExternalTypeNode } from './external';
 import { TypeNode } from '../node';
 import { IntersectionNode } from './intersection';
 import { UnionNode } from './union';
@@ -29,7 +29,7 @@ export function deduplicateMemberTypes(types: TypeNode[]): TypeNode[] {
 			return x.value;
 		}
 
-		if (x instanceof ReferenceNode || x instanceof TypeParameterNode) {
+		if (x instanceof ExternalTypeNode || x instanceof TypeParameterNode) {
 			return x.name;
 		}
 

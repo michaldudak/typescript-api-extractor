@@ -12,7 +12,7 @@
 						"parameters": [
 							{
 								"type": {
-									"kind": "reference",
+									"kind": "external",
 									"name": "Record<string, unknown>",
 									"parentNamespaces": []
 								},

@@ -52,7 +52,7 @@
 														"parameters": [
 															{
 																"type": {
-																	"kind": "reference",
+																	"kind": "external",
 																	"name": "ChangeEvent<HTMLInputElement>",
 																	"parentNamespaces": [
 																		"React"

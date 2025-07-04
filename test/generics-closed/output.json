@@ -91,7 +91,7 @@
 																			"kind": "intersection",
 																			"types": [
 																				{
-																					"kind": "reference",
+																					"kind": "external",
 																					"name": "HTMLAttributes<any>",
 																					"parentNamespaces": [
 																						"React"
@@ -107,7 +107,7 @@
 																								"kind": "union",
 																								"types": [
 																									{
-																										"kind": "reference",
+																										"kind": "external",
 																										"name": "Ref<any>",
 																										"parentNamespaces": [
 																											"React"
@@ -134,7 +134,7 @@
 																						"kind": "union",
 																						"types": [
 																							{
-																								"kind": "reference",
+																								"kind": "external",
 																								"name": "Ref<any>",
 																								"parentNamespaces": [
 																									"React"
@@ -178,7 +178,7 @@
 																	}
 																],
 																"returnValueType": {
-																	"kind": "reference",
+																	"kind": "external",
 																	"name": "ReactElement",
 																	"parentNamespaces": [
 																		"React"
