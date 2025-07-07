@@ -36,7 +36,7 @@ export function getFullName(
 
 	const name = getTypeName(type, typeSymbol);
 	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
-	const typeArguments = getTypeArguments(type, context);
+	const typeArguments = getTypeArguments(type, typeNode, context);
 
 	if (name === undefined) {
 		return undefined;
@@ -100,8 +100,17 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 	return typeName;
 }
 
-function getTypeArguments(type: ts.Type, context: ParserContext): TypeArgument[] {
+function getTypeArguments(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
+
+	const nodeTypeArguments =
+		typeNode && ts.isTypeReferenceNode(typeNode)
+			? ((typeNode as ts.TypeReferenceNode).typeArguments ?? [])
+			: [];
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];
@@ -110,7 +119,7 @@ function getTypeArguments(type: ts.Type, context: ParserContext): TypeArgument[]
 			typeArguments = context.checker
 				.getTypeArguments(type as ts.TypeReference)
 				?.map((arg, index) => {
-					const parameterType = resolveType(arg, undefined, context);
+					const parameterType = resolveType(arg, nodeTypeArguments[index], context);
 					const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
 
 					return {
@@ -123,7 +132,7 @@ function getTypeArguments(type: ts.Type, context: ParserContext): TypeArgument[]
 		if (!typeArguments.length) {
 			typeArguments =
 				type.aliasTypeArguments?.map((arg, index) => {
-					const parameterType = resolveType(arg, undefined, context);
+					const parameterType = resolveType(arg, nodeTypeArguments[index], context);
 					resolveType(arg, undefined, context);
 					const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
 

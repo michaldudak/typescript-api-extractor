@@ -141,7 +141,7 @@ export function resolveType(
 					return parseFunctionType(type, context)!;
 				}
 
-				const objectType = parseObjectType(type, context);
+				const objectType = parseObjectType(type, typeName, context);
 				if (objectType) {
 					return new IntersectionNode(typeName, memberTypes, objectType.properties);
 				}
@@ -205,7 +205,7 @@ export function resolveType(
 			return parseFunctionType(type, context)!;
 		}
 
-		const objectType = parseObjectType(type, context);
+		const objectType = parseObjectType(type, typeName, context);
 		if (objectType) {
 			return objectType;
 		}

@@ -1,17 +1,18 @@
 import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
-import { ObjectNode } from '../models';
-import { getFullName } from './common';
+import { ObjectNode, TypeName } from '../models';
 
-export function parseObjectType(type: ts.Type, context: ParserContext): ObjectNode | undefined {
+export function parseObjectType(
+	type: ts.Type,
+	typeName: TypeName | undefined,
+	context: ParserContext,
+): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
 
 	const properties = type
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
-
-	const typeName = getFullName(type, undefined, context);
 
 	if (properties.length) {
 		if (

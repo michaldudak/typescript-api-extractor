@@ -15,7 +15,7 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Partial",
+										"name": "PartialType",
 										"typeArguments": [
 											{
 												"type": {
@@ -118,7 +118,7 @@
 								"type": {
 									"kind": "object",
 									"typeName": {
-										"name": "Required",
+										"name": "RequiredType",
 										"typeArguments": [
 											{
 												"type": {
