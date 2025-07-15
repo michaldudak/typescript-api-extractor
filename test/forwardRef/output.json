@@ -161,5 +161,8 @@
 				"tags": []
 			}
 		}
+	],
+	"imports": [
+		"react"
 	]
 }
