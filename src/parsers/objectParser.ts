@@ -22,16 +22,22 @@ export function parseObjectType(
 				depth: typeStack.length,
 			})
 		) {
-			const filteredProperties = properties.filter((property) => {
-				const declaration =
-					property.valueDeclaration ??
-					(property.declarations?.[0] as ts.PropertySignature | undefined);
-				return (
-					declaration &&
-					ts.isPropertySignature(declaration) &&
-					shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
-				);
-			});
+			let filteredProperties: ts.Symbol[];
+			if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped) {
+				filteredProperties = properties;
+			} else {
+				filteredProperties = properties.filter((property) => {
+					const declaration =
+						property.valueDeclaration ??
+						(property.declarations?.[0] as ts.PropertySignature | undefined);
+					return (
+						declaration &&
+						ts.isPropertySignature(declaration) &&
+						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
+					);
+				});
+			}
+
 			if (filteredProperties.length > 0) {
 				return new ObjectNode(
 					typeName,
