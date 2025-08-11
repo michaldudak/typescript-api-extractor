@@ -38,14 +38,18 @@ export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): 
 			.replace(/\\/g, '/');
 
 		const imports: string[] = sourceFile.statements
-			.filter(s => ts.isImportDeclaration(s) && s.moduleSpecifier)
+			.filter((s) => ts.isImportDeclaration(s) && s.moduleSpecifier)
 			.map((statement) => {
 				const importDeclaraion = statement as ts.ImportDeclaration;
 				const text = importDeclaraion.moduleSpecifier.getText();
 				return text.substring(1, text.length - 1); // Remove quotes
 			});
 
-		return new ModuleNode(relativeModulePath, parsedModuleExports, imports.length > 0 ? imports : undefined);
+		return new ModuleNode(
+			relativeModulePath,
+			parsedModuleExports,
+			imports.length > 0 ? imports : undefined,
+		);
 	} catch (error) {
 		if (!(error instanceof ParserError)) {
 			throw new ParserError(error, parsedSymbolStack);
