@@ -1,0 +1,56 @@
+{
+	"name": "test/aliases-in-unions/input",
+	"exports": [
+		{
+			"name": "f",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "f"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"typeName": {
+										"name": "Params"
+									},
+									"types": [
+										{
+											"kind": "literal",
+											"value": 0
+										},
+										{
+											"kind": "union",
+											"typeName": {
+												"name": "Alias"
+											},
+											"types": [
+												{
+													"kind": "literal",
+													"value": 1
+												},
+												{
+													"kind": "literal",
+													"value": 2
+												}
+											]
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}

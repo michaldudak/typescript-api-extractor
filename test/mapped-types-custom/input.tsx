@@ -1,8 +1,7 @@
 export function Comp(props: Props) {}
 
 export interface Props {
-	coords?: Coords;
-	rect?: Rect;
+	r: Rect;
 }
 
 // types from Floating UI Utils:

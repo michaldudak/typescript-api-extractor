@@ -19,91 +19,48 @@
 									},
 									"properties": [
 										{
-											"name": "coords",
+											"name": "r",
 											"type": {
-												"kind": "union",
-												"types": [
+												"kind": "object",
+												"typeName": {
+													"name": "Rect"
+												},
+												"properties": [
 													{
-														"kind": "object",
-														"typeName": {
-															"name": "Coords"
+														"name": "x",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
 														},
-														"properties": [
-															{
-																"name": "x",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															},
-															{
-																"name": "y",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															}
-														]
+														"optional": false
 													},
 													{
-														"kind": "intrinsic",
-														"intrinsic": "undefined"
+														"name": "y",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													},
+													{
+														"name": "width",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													},
+													{
+														"name": "height",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
 													}
 												]
 											},
-											"optional": true
-										},
-										{
-											"name": "rect",
-											"type": {
-												"kind": "union",
-												"types": [
-													{
-														"kind": "object",
-														"properties": [
-															{
-																"name": "x",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															},
-															{
-																"name": "y",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															},
-															{
-																"name": "width",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															},
-															{
-																"name": "height",
-																"type": {
-																	"kind": "intrinsic",
-																	"intrinsic": "number"
-																},
-																"optional": false
-															}
-														]
-													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "undefined"
-													}
-												]
-											},
-											"optional": true
+											"optional": false
 										}
 									]
 								},
@@ -128,91 +85,48 @@
 				},
 				"properties": [
 					{
-						"name": "coords",
+						"name": "r",
 						"type": {
-							"kind": "union",
-							"types": [
+							"kind": "object",
+							"typeName": {
+								"name": "Rect"
+							},
+							"properties": [
 								{
-									"kind": "object",
-									"typeName": {
-										"name": "Coords"
+									"name": "x",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
 									},
-									"properties": [
-										{
-											"name": "x",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										},
-										{
-											"name": "y",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										}
-									]
+									"optional": false
 								},
 								{
-									"kind": "intrinsic",
-									"intrinsic": "undefined"
+									"name": "y",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								},
+								{
+									"name": "width",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								},
+								{
+									"name": "height",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
 								}
 							]
 						},
-						"optional": true
-					},
-					{
-						"name": "rect",
-						"type": {
-							"kind": "union",
-							"types": [
-								{
-									"kind": "object",
-									"properties": [
-										{
-											"name": "x",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										},
-										{
-											"name": "y",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										},
-										{
-											"name": "width",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										},
-										{
-											"name": "height",
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "number"
-											},
-											"optional": false
-										}
-									]
-								},
-								{
-									"kind": "intrinsic",
-									"intrinsic": "undefined"
-								}
-							]
-						},
-						"optional": true
+						"optional": false
 					}
 				]
 			}

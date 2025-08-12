@@ -30,6 +30,16 @@ export function resolveUnionType(
 		memberTypes = type.origin.types;
 	}
 
+	const typeAliasDeclaration = type.aliasSymbol?.declarations?.[0];
+
+	if (
+		typeAliasDeclaration &&
+		ts.isTypeAliasDeclaration(typeAliasDeclaration) &&
+		ts.isUnionTypeNode(typeAliasDeclaration.type)
+	) {
+		typeNode = typeAliasDeclaration.type;
+	}
+
 	if (typeNode && ts.isUnionTypeNode(typeNode)) {
 		// Here we're trying to match the union member types with TypeNodes
 		// (what TS resolves to what was authored in code).
