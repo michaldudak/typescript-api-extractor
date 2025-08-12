@@ -51,6 +51,49 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props"
+				},
+				"properties": [
+					{
+						"name": "x",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "Params"
+							},
+							"types": [
+								{
+									"kind": "literal",
+									"value": 0
+								},
+								{
+									"kind": "union",
+									"typeName": {
+										"name": "Alias"
+									},
+									"types": [
+										{
+											"kind": "literal",
+											"value": 1
+										},
+										{
+											"kind": "literal",
+											"value": 2
+										}
+									]
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
 		}
 	]
 }

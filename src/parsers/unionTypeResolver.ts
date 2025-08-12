@@ -30,9 +30,19 @@ export function resolveUnionType(
 		memberTypes = type.origin.types;
 	}
 
+	// If there's no provided type node or it's is not a union,
+	// We check if the type declaration is an alias.
+	// If so, it can point to the original union type.
+	//
+	// For example:
+	// function f(x: Params) {}
+	// type Params = SomeType | SomeOtherType;
+	//
+	// In this case `typeNode` will be set to the type reference of the function parameter,
+	// so we extract the needed union definition.
 	const typeAliasDeclaration = type.aliasSymbol?.declarations?.[0];
-
 	if (
+		(!typeNode || !ts.isUnionTypeNode(typeNode)) &&
 		typeAliasDeclaration &&
 		ts.isTypeAliasDeclaration(typeAliasDeclaration) &&
 		ts.isUnionTypeNode(typeAliasDeclaration.type)
