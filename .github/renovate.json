@@ -1,0 +1,20 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [":semanticCommitsDisabled", "config:recommended"],
+	"commitMessageAction": "Update",
+	"commitMessageExtra": "to {{newValue}}",
+	"commitMessageTopic": "{{depName}}",
+	"dependencyDashboard": true,
+	"postUpdateOptions": ["pnpmDedupe"],
+	"schedule": "* 0-4 * * 5",
+	"lockFileMaintenance": {
+		"schedule": "* 0-4 1 * *"
+	},
+	"packageRules": [
+		{
+			"groupName": "Ignore peer dependencies",
+			"matchDepTypes": ["peerDependencies"],
+			"enabled": false
+		}
+	]
+}
