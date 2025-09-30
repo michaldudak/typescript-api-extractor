@@ -1,4 +1,4 @@
-import { uniqBy } from 'lodash';
+import { uniqBy } from 'es-toolkit';
 import { IntrinsicNode } from './intrinsic';
 import { LiteralNode } from './literal';
 import { ExternalTypeNode } from './external';

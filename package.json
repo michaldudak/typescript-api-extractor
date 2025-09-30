@@ -33,14 +33,13 @@
 		"lint": "eslint . && prettier --check ."
 	},
 	"dependencies": {
-		"lodash": "^4.17.21"
+		"es-toolkit": "^1.39.10"
 	},
 	"peerDependencies": {
 		"typescript": "^5.8"
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.33.0",
-		"@types/lodash": "^4.17.20",
 		"@types/node": "^22.17.1",
 		"@types/react": "^19.1.9",
 		"cross-env": "^10.0.0",
