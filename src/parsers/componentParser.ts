@@ -79,7 +79,8 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			}
 
 			if (propsParameter.type instanceof UnionNode) {
-				return unwrapUnionType(propsParameter.type);
+				const ut = unwrapUnionType(propsParameter.type);
+				return ut;
 			}
 
 			if (propsParameter.type instanceof IntersectionNode) {
@@ -131,10 +132,10 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 	});
 }
 
-function unwrapUnionType(type: UnionNode): ObjectNode[] {
+function unwrapUnionType(type: UnionNode): (ObjectNode | IntersectionNode)[] {
 	return type.types
 		.map((type) => {
-			if (type instanceof ObjectNode) {
+			if (type instanceof ObjectNode || type instanceof IntersectionNode) {
 				return type;
 			} else if (type instanceof UnionNode) {
 				return unwrapUnionType(type);
