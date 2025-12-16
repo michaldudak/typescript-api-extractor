@@ -9,8 +9,8 @@ export const BaseUIComponent1 = React.forwardRef(function BaseUIComponent(
 
 export namespace BaseUIComponent1 {
 	export interface Props extends BaseUIComponentProps<'div', State> {
-		value?: string;
-		onValueChange?: (value: string) => void;
+		value?: Value;
+		onValueChange?: (value: Value) => void;
 		actionsRef?: React.RefObject<Actions>;
 	}
 
@@ -21,7 +21,11 @@ export namespace BaseUIComponent1 {
 	export interface Actions {
 		ping: () => void;
 	}
+
+	export type Value = BaseUIComponent1Value;
 }
+
+export type BaseUIComponent1Value = any | null;
 
 export const BaseUIComponent2 = React.forwardRef(function BaseUIComponent(
 	props: BaseUIComponent2.Props,
@@ -41,7 +45,7 @@ type BaseUIComponentProps<
 	State,
 	RenderFunctionProps = HTMLProps,
 > = Omit<
-	WithBaseUIEvent<React.ComponentPropsWithoutRef<ElementType>>,
+	WithBaseUIEvent<React.ComponentPropsWithRef<ElementType>>,
 	'className' | 'color' | 'defaultValue' | 'defaultChecked'
 > & {
 	className?: string | ((state: State) => string);

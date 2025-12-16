@@ -42,11 +42,11 @@ export function parseObjectType(
 				return new ObjectNode(
 					typeName,
 					filteredProperties.map((property) => {
-						return parseProperty(
-							property,
-							property.valueDeclaration as ts.PropertySignature,
-							context,
-						);
+						const declaration = property.valueDeclaration ?? property.declarations?.[0];
+						const propertySignature =
+							declaration && ts.isPropertySignature(declaration) ? declaration : undefined;
+
+						return parseProperty(property, propertySignature, context);
 					}),
 					undefined,
 				);
