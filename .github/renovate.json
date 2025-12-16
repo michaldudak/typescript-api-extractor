@@ -8,6 +8,7 @@
 	"postUpdateOptions": ["pnpmDedupe"],
 	"prHourlyLimit": 0,
 	"schedule": "* 0-4 * * 5",
+	"rangeStrategy": "bump",
 	"lockFileMaintenance": {
 		"schedule": "* 0-4 1 * *"
 	},
