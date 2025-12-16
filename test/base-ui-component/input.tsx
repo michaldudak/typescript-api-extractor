@@ -9,7 +9,7 @@ export const BaseUIComponent1 = React.forwardRef(function BaseUIComponent(
 
 export namespace BaseUIComponent1 {
 	export interface Props extends BaseUIComponentProps<'div', State> {
-		value?: string;
+		value?: Value;
 		onValueChange?: (value: string) => void;
 		actionsRef?: React.RefObject<Actions>;
 	}
@@ -23,6 +23,10 @@ export namespace BaseUIComponent1 {
 	}
 }
 
+export type Value = any | null;
+
+// Commented out temporarily to make debugging easier
+/*
 export const BaseUIComponent2 = React.forwardRef(function BaseUIComponent(
 	props: BaseUIComponent2.Props,
 	ref: React.ForwardedRef<HTMLDivElement>,
@@ -35,7 +39,7 @@ export namespace BaseUIComponent2 {
 
 	export interface State {}
 }
-
+*/
 type BaseUIComponentProps<
 	ElementType extends React.ElementType,
 	State,
