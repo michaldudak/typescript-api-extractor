@@ -33,7 +33,7 @@
 		"lint": "eslint . && prettier --check ."
 	},
 	"dependencies": {
-		"es-toolkit": "^1.39.10"
+		"es-toolkit": "^1.43.0"
 	},
 	"peerDependencies": {
 		"typescript": "^5.8"
