@@ -60,7 +60,52 @@
 			}
 		},
 		{
-			"name": "Props",
+			"name": "Root.Foo",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Foo",
+					"namespaces": [
+						"Root"
+					]
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"a\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"b\""
+					}
+				]
+			}
+		},
+		{
+			"name": "Root.Nested.Foo",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Foo",
+					"namespaces": [
+						"Root",
+						"Nested"
+					]
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"a\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"b\""
+					}
+				]
+			}
+		},
+		{
+			"name": "Root.Props",
 			"type": {
 				"kind": "object",
 				"typeName": {

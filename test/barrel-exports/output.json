@@ -1,0 +1,79 @@
+{
+	"name": "test/barrel-exports/input",
+	"exports": [
+		{
+			"name": "mainFunction",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "mainFunction"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "helperFunction",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "helperFunction"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "HelperProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "HelperProps"
+				},
+				"properties": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "HelperState",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "HelperState"
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"idle\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"loading\""
+					}
+				]
+			}
+		}
+	]
+}

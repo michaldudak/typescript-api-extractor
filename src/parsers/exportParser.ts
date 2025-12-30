@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { ExportNode } from '../models';
+import { ExportNode, TypeName } from '../models';
 import { ParserError } from '../ParserError';
 
 export function parseExport(
@@ -20,7 +20,7 @@ export function parseExport(
 		}
 
 		if (ts.isModuleDeclaration(exportDeclaration)) {
-			// Handle exported namespace
+			// Handle exported namespace (namespace X { ... })
 			const namespaceSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
 			if (!namespaceSymbol) return;
 			const members = checker.getExportsOfModule(namespaceSymbol);
@@ -37,24 +37,57 @@ export function parseExport(
 			return results;
 		}
 
+		if (ts.isNamespaceExport(exportDeclaration)) {
+			// Handle namespace re-export: export * as Name from './module'
+			// The aliased symbol points to the source module
+			const aliasedSymbol = checker.getAliasedSymbol(exportSymbol);
+			if (!aliasedSymbol) return;
+
+			// Get the exports of the module
+			const members = checker.getExportsOfModule(aliasedSymbol);
+			const nsName = exportSymbol.name;
+			const results: ExportNode[] = [];
+
+			for (const member of members) {
+				const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
+				if (Array.isArray(memberExports)) {
+					results.push(...memberExports);
+				} else if (memberExports) {
+					results.push(memberExports);
+				}
+			}
+			return results;
+		}
+
 		if (ts.isExportSpecifier(exportDeclaration)) {
 			// export { x }
 			// export { x as y }
-			if (
+			// export { x } from './module'
+			// export { x as y } from './module'
+			const isReExport =
 				ts.isExportDeclaration(exportDeclaration.parent.parent) &&
-				exportDeclaration.parent.parent.moduleSpecifier !== undefined
-			) {
-				// Skip export ... from "..." statements (re-exports).
-				// They will be processed when parsing the file they point to.
-				return;
+				exportDeclaration.parent.parent.moduleSpecifier !== undefined;
+
+			let targetSymbol: ts.Symbol | undefined;
+
+			if (isReExport) {
+				// For re-exports, we need to resolve the aliased symbol from the external module
+				// exportSymbol already points to the correct target symbol
+				targetSymbol = checker.getAliasedSymbol(exportSymbol);
+				if (!targetSymbol || targetSymbol === exportSymbol) {
+					// If aliased symbol resolution fails, try getExportSpecifierLocalTargetSymbol
+					targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
+				}
+			} else {
+				// For local exports, use getExportSpecifierLocalTargetSymbol
+				// `targetSymbol` is the symbol that the export specifier points to:
+				// const x = 1;
+				//       ^ - targetSymbol
+				// export { x };
+				//          ^ - exportDeclaration.symbol
+				targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
 			}
 
-			// `targetSymbol` is the symbol that the export specifier points to:
-			// const x = 1;
-			//       ^ - targetSymbol
-			// export { x };
-			//          ^ - exportDeclaration.symbol
-			const targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
 			if (!targetSymbol) {
 				return;
 			}
@@ -132,6 +165,19 @@ export function parseExport(
 
 			const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
 			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+		} else if (ts.isTypeAliasDeclaration(exportDeclaration)) {
+			// export type X = ...
+			if (!exportDeclaration.name) {
+				return;
+			}
+
+			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+			if (!exportedSymbol) {
+				return;
+			}
+
+			const type = checker.getTypeAtLocation(exportDeclaration);
+			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
 		}
 	} catch (error) {
 		if (!(error instanceof ParserError)) {
@@ -151,11 +197,31 @@ export function parseExport(
 	) {
 		const parsedType = resolveType(type, undefined, parserContext);
 		if (parsedType) {
-			// Patch parentNamespaces if the type supports it
-			if (parsedType && 'parentNamespaces' in parsedType) {
-				parsedType.parentNamespaces = parentNamespaces;
+			// If parentNamespaces are provided, merge them into the type's typeName
+			// But only if they're not already present (avoid duplication)
+			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
+				const typeWithName = parsedType as { typeName: TypeName | undefined };
+				if (typeWithName.typeName) {
+					const existingNamespaces = typeWithName.typeName.namespaces ?? [];
+					// Check if parentNamespaces are already a prefix of existing namespaces
+					const isAlreadyPrefixed = parentNamespaces.every((ns, i) => existingNamespaces[i] === ns);
+					if (!isAlreadyPrefixed) {
+						typeWithName.typeName = new TypeName(
+							typeWithName.typeName.name,
+							[...parentNamespaces, ...existingNamespaces],
+							typeWithName.typeName.typeArguments,
+						);
+					}
+				} else {
+					// Create a typeName with the namespace info if one doesn't exist
+					typeWithName.typeName = new TypeName(name, parentNamespaces, undefined);
+				}
 			}
-			return [new ExportNode(name, parsedType, getDocumentationFromSymbol(symbol, checker))];
+
+			// Build the fully qualified export name including namespace path
+			const exportName = parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
+
+			return [new ExportNode(exportName, parsedType, getDocumentationFromSymbol(symbol, checker))];
 		}
 	}
 }

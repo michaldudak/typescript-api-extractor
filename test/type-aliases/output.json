@@ -1,0 +1,172 @@
+{
+	"name": "test/type-aliases/input",
+	"exports": [
+		{
+			"name": "SimpleAlias",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "string"
+			}
+		},
+		{
+			"name": "UnionAlias",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "UnionAlias"
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"a\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"b\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"c\""
+					}
+				]
+			}
+		},
+		{
+			"name": "ObjectAlias",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "ObjectAlias"
+				},
+				"properties": [
+					{
+						"name": "name",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "age",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "GenericAlias",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "GenericAlias",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "typeParameter",
+								"name": "T"
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"properties": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "typeParameter",
+							"name": "T"
+						},
+						"optional": false
+					},
+					{
+						"name": "isValid",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "boolean"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "ConditionalAlias",
+			"type": {
+				"kind": "union",
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"string\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"other\""
+					}
+				]
+			}
+		},
+		{
+			"name": "ExtendedAlias",
+			"type": {
+				"kind": "intersection",
+				"typeName": {
+					"name": "ExtendedAlias"
+				},
+				"types": [
+					{
+						"kind": "object",
+						"typeName": {
+							"name": "BaseInterface"
+						},
+						"properties": [
+							{
+								"name": "id",
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"optional": false
+							}
+						]
+					},
+					{
+						"kind": "object",
+						"properties": [
+							{
+								"name": "extra",
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								"optional": false
+							}
+						]
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "extra",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "boolean"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

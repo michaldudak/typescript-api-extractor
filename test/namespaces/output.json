@@ -191,7 +191,7 @@
 			}
 		},
 		{
-			"name": "fn2",
+			"name": "Root.fn2",
 			"type": {
 				"kind": "function",
 				"typeName": {
@@ -212,7 +212,7 @@
 			}
 		},
 		{
-			"name": "fn1",
+			"name": "Root.Sub.fn1",
 			"type": {
 				"kind": "function",
 				"typeName": {
@@ -363,7 +363,7 @@
 			}
 		},
 		{
-			"name": "Component",
+			"name": "Root.Sub.Component",
 			"type": {
 				"kind": "component",
 				"typeName": {
@@ -377,7 +377,7 @@
 			}
 		},
 		{
-			"name": "useHook",
+			"name": "Root.Sub.useHook",
 			"type": {
 				"kind": "function",
 				"typeName": {
@@ -406,7 +406,7 @@
 			}
 		},
 		{
-			"name": "Params",
+			"name": "Root.Sub.Params",
 			"type": {
 				"kind": "object",
 				"typeName": {
@@ -533,7 +533,7 @@
 			}
 		},
 		{
-			"name": "Grade",
+			"name": "Root.Sub.Grade",
 			"type": {
 				"kind": "enum",
 				"typeName": {
@@ -551,6 +551,50 @@
 					{
 						"name": "bad",
 						"value": 1
+					}
+				]
+			}
+		},
+		{
+			"name": "Root.NamespacedType",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "OutsideType",
+					"namespaces": [
+						"Root"
+					]
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"one\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"two\""
+					}
+				]
+			}
+		},
+		{
+			"name": "Other.Orientation",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Orientation",
+					"namespaces": [
+						"Other"
+					]
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"horizontal\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"vertical\""
 					}
 				]
 			}

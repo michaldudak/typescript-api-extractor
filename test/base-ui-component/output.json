@@ -2327,6 +2327,13 @@
 			}
 		},
 		{
+			"name": "BaseUIComponent1Value",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "any"
+			}
+		},
+		{
 			"name": "BaseUIComponent2",
 			"type": {
 				"kind": "component",
@@ -4109,6 +4116,32 @@
 						"optional": true
 					}
 				]
+			}
+		},
+		{
+			"name": "ComponentRenderFn",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "ComponentRenderFn",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "typeParameter",
+								"name": "Props"
+							},
+							"equalToDefault": false
+						},
+						{
+							"type": {
+								"kind": "typeParameter",
+								"name": "State"
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"props": []
 			}
 		}
 	],
