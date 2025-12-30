@@ -14,6 +14,7 @@ import {
 	TupleNode,
 	LiteralNode,
 	IntersectionNode,
+	FunctionNode,
 	AnyType,
 } from '../models';
 import { resolveUnionType } from './unionTypeResolver';
@@ -51,15 +52,25 @@ export function resolveType(
 				ts.TypeFlags.Void)) !==
 		0;
 
-	if (!isIntrinsicType && typeId !== undefined && typeStack.includes(typeId)) {
-		return new ObjectNode(undefined, [], undefined);
-	}
+	// Check for cycles before pushing to stack
+	// If we're already resolving this type, return a shallow object with type info but no properties
+	const shouldDetectCycles = !isIntrinsicType && typeId !== undefined;
+	const isAlreadyOnStack = shouldDetectCycles && typeStack.includes(typeId);
 
-	if (!isIntrinsicType && typeId !== undefined) {
+	// Push type to stack BEFORE calling getFullName to catch cycles that occur
+	// when getFullName resolves generic type arguments that may reference back to this type.
+	// We track whether we pushed so we can correctly pop in the finally block.
+	const shouldPushToStack = shouldDetectCycles && !isAlreadyOnStack;
+	if (shouldPushToStack) {
 		typeStack.push(typeId);
 	}
 
 	const typeName = getFullName(type, typeNode, context);
+
+	// If this type was already on the stack, return a shallow version with type info but no properties
+	if (isAlreadyOnStack) {
+		return createShallowType(type, typeName, checker);
+	}
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
@@ -266,7 +277,10 @@ export function resolveType(
 
 		return new IntrinsicNode('any', typeName);
 	} finally {
-		typeStack.pop();
+		// Only pop if we actually pushed
+		if (shouldPushToStack) {
+			typeStack.pop();
+		}
 	}
 }
 
@@ -320,6 +334,51 @@ function includesCompositeFlag(type: ts.Type, flag: number) {
 function getTypeId(type: ts.Type): number | undefined {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return (type as any).id;
+}
+
+/**
+ * Creates a shallow version of a type for cycle detection.
+ * Returns the appropriate type node based on the type's structure, but without resolving nested types.
+ */
+function createShallowType(
+	type: ts.Type,
+	typeName: TypeName | undefined,
+	checker: ts.TypeChecker,
+): AnyType {
+	// Check for union types
+	if (type.isUnion()) {
+		return new UnionNode(typeName, []);
+	}
+
+	// Check for intersection types
+	if (type.isIntersection()) {
+		return new IntersectionNode(typeName, [], []);
+	}
+
+	// Check for array types
+	if (checker.isArrayType(type)) {
+		// Return an array with 'any' as element type to avoid recursion
+		return new ArrayNode(
+			type.aliasSymbol?.name
+				? new TypeName(type.aliasSymbol.name, typeName?.namespaces, typeName?.typeArguments)
+				: undefined,
+			new IntrinsicNode('any'),
+		);
+	}
+
+	// Check for tuple types
+	if (checker.isTupleType(type)) {
+		return new TupleNode(typeName, []);
+	}
+
+	// Check for function types
+	const callSignatures = type.getCallSignatures();
+	if (callSignatures.length >= 1) {
+		return new FunctionNode(typeName, []);
+	}
+
+	// Default to object type (interfaces, type aliases, classes, etc.)
+	return new ObjectNode(typeName, [], undefined);
 }
 
 // Internal API

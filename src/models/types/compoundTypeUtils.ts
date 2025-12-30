@@ -49,10 +49,14 @@ export function sortMemberTypes(members: AnyType[]) {
 	// move undefined and null to the end
 
 	const nullIndex = members.findIndex((x) => x instanceof IntrinsicNode && x.intrinsic === 'null');
-	members.push(members.splice(nullIndex, 1)[0]);
+	if (nullIndex !== -1) {
+		members.push(members.splice(nullIndex, 1)[0]);
+	}
 
 	const undefinedIndex = members.findIndex(
 		(x) => x instanceof IntrinsicNode && x.intrinsic === 'undefined',
 	);
-	members.push(members.splice(undefinedIndex, 1)[0]);
+	if (undefinedIndex !== -1) {
+		members.push(members.splice(undefinedIndex, 1)[0]);
+	}
 }
