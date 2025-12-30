@@ -39,7 +39,17 @@ export function resolveType(
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
 	// However, we should not apply this check to intrinsic types like any/unknown/string/etc
 	// as they can appear multiple times without causing infinite recursion
-	const isIntrinsicType = (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.String | ts.TypeFlags.Number | ts.TypeFlags.Boolean | ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) !== 0;
+	const isIntrinsicType =
+		(type.flags &
+			(ts.TypeFlags.Any |
+				ts.TypeFlags.Unknown |
+				ts.TypeFlags.String |
+				ts.TypeFlags.Number |
+				ts.TypeFlags.Boolean |
+				ts.TypeFlags.Undefined |
+				ts.TypeFlags.Null |
+				ts.TypeFlags.Void)) !==
+		0;
 
 	if (!isIntrinsicType && typeId !== undefined && typeStack.includes(typeId)) {
 		return new ObjectNode(undefined, [], undefined);
