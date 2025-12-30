@@ -39,11 +39,11 @@
 		"typescript": "^5.8"
 	},
 	"devDependencies": {
-		"@eslint/js": "^9.33.0",
+		"@eslint/js": "^9.39.2",
 		"@types/node": "^22.17.1",
 		"@types/react": "^19.2.7",
 		"cross-env": "^10.1.0",
-		"eslint": "^9.33.0",
+		"eslint": "^9.39.2",
 		"fast-glob": "^3.3.3",
 		"globals": "^16.5.0",
 		"prettier": "^3.6.2",
