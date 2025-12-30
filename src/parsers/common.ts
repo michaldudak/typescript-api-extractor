@@ -88,6 +88,8 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 		return undefined;
 	}
 
+	// If we have a typeSymbol (extracted from the typeNode), we should use it
+	// even if the resolved type is any/unknown, as long as it's not a built-in symbol
 	if (typeSymbol && !type.aliasSymbol && !type.symbol && !isAnyOrUnknown(type)) {
 		return undefined;
 	}

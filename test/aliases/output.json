@@ -197,6 +197,26 @@
 								},
 								"name": "ou",
 								"optional": true
+							},
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"typeName": {
+												"name": "AliasedAny"
+											},
+											"intrinsic": "any"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								},
+								"name": "ox",
+								"optional": true
 							}
 						],
 						"returnValueType": {

@@ -23,6 +23,7 @@ export function fn1(
 	os?: AliasToGeneric,
 	on?: AliasedAny,
 	ou?: AliasedUnknown,
+	ox?: AliasedAny | undefined,
 ) {}
 
 type SomeType = 1 | 2;

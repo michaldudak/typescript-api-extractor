@@ -37,11 +37,15 @@ export function resolveType(
 
 	// If the typeStack contains type.id we're dealing with an object that references itself.
 	// To prevent getting stuck in an infinite loop we just set it to an objectNode
-	if (typeId !== undefined && typeStack.includes(typeId)) {
+	// However, we should not apply this check to intrinsic types like any/unknown/string/etc
+	// as they can appear multiple times without causing infinite recursion
+	const isIntrinsicType = (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown | ts.TypeFlags.String | ts.TypeFlags.Number | ts.TypeFlags.Boolean | ts.TypeFlags.Undefined | ts.TypeFlags.Null | ts.TypeFlags.Void)) !== 0;
+
+	if (!isIntrinsicType && typeId !== undefined && typeStack.includes(typeId)) {
 		return new ObjectNode(undefined, [], undefined);
 	}
 
-	if (typeId !== undefined) {
+	if (!isIntrinsicType && typeId !== undefined) {
 		typeStack.push(typeId);
 	}
 
@@ -174,6 +178,19 @@ export function resolveType(
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Any)) {
+			// Special case: if the authored typeNode is a union (e.g., `AliasedAny | undefined`),
+			// we should resolve it as a union to preserve alias information,
+			// even though TypeScript simplifies `any | T` to just `any` in the type system.
+			if (typeNode && ts.isUnionTypeNode(typeNode)) {
+				const unionTypes: AnyType[] = [];
+				for (const memberTypeNode of typeNode.types) {
+					// Get the type from the type node
+					const memberType = checker.getTypeFromTypeNode(memberTypeNode);
+					// Recursively resolve, passing the memberTypeNode so alias information is preserved
+					unionTypes.push(resolveType(memberType, memberTypeNode, context));
+				}
+				return new UnionNode(typeName, unionTypes);
+			}
 			return new IntrinsicNode('any', typeName);
 		}
 
