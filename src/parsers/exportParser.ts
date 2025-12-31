@@ -92,9 +92,18 @@ export function parseExport(
 				return;
 			}
 
+			// Get the type. For exports of imported types (e.g., `export type { X }`),
+			// the targetSymbol may be an ImportSpecifier. In that case, getTypeAtLocation
+			// on the import specifier can return `any` if the module resolution fails.
+			// Using getTypeAtLocation on the export specifier itself works more reliably.
 			let type: ts.Type;
-			if (targetSymbol.declarations?.length) {
-				type = checker.getTypeAtLocation(targetSymbol.declarations[0]);
+			const targetDecl = targetSymbol.declarations?.[0];
+			if (targetDecl && ts.isImportSpecifier(targetDecl)) {
+				// For re-exports of imported types, use the export specifier directly
+				// This handles cases like: import { X } from './m.js'; export type { X }
+				type = checker.getTypeAtLocation(exportDeclaration);
+			} else if (targetDecl) {
+				type = checker.getTypeAtLocation(targetDecl);
 			} else {
 				type = checker.getTypeOfSymbol(targetSymbol);
 			}
