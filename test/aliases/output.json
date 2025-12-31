@@ -53,7 +53,14 @@
 											}
 										]
 									},
-									"properties": []
+									"properties": [],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										}
+									}
 								},
 								"name": "r",
 								"optional": false
@@ -145,7 +152,14 @@
 													}
 												]
 											},
-											"properties": []
+											"properties": [],
+											"indexSignature": {
+												"keyType": "string",
+												"valueType": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												}
+											}
 										},
 										{
 											"kind": "intrinsic",
@@ -278,7 +292,14 @@
 									}
 								]
 							},
-							"properties": []
+							"properties": [],
+							"indexSignature": {
+								"keyType": "string",
+								"valueType": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								}
+							}
 						},
 						"optional": false
 					},
@@ -370,7 +391,14 @@
 											}
 										]
 									},
-									"properties": []
+									"properties": [],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										}
+									}
 								},
 								{
 									"kind": "intrinsic",

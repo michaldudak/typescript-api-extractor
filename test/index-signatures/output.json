@@ -1,0 +1,241 @@
+{
+	"name": "test/index-signatures/input",
+	"exports": [
+		{
+			"name": "test1",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "test1"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"properties": [],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "number"
+										}
+									}
+								},
+								"name": "stringIndex",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"properties": [],
+									"indexSignature": {
+										"keyType": "number",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										}
+									}
+								},
+								"name": "numberIndex",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "object",
+									"properties": [],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "union",
+											"types": [
+												{
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												{
+													"kind": "intrinsic",
+													"intrinsic": "boolean"
+												}
+											]
+										}
+									}
+								},
+								"name": "mixedIndex",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "test2",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "test2"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "object",
+							"properties": [],
+							"indexSignature": {
+								"keyType": "string",
+								"valueType": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								}
+							}
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "MyComponent",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "MyComponent"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"properties": [
+										{
+											"name": "className",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "unknown"
+										}
+									}
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "null"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "StringIndexType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "StringIndexType"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyType": "string",
+					"valueType": {
+						"kind": "intrinsic",
+						"intrinsic": "number"
+					}
+				}
+			}
+		},
+		{
+			"name": "NumberIndexType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "NumberIndexType"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyType": "number",
+					"valueType": {
+						"kind": "intrinsic",
+						"intrinsic": "string"
+					}
+				}
+			}
+		},
+		{
+			"name": "MixedType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "MixedType"
+				},
+				"properties": [
+					{
+						"name": "fixedProp",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				],
+				"indexSignature": {
+					"keyType": "string",
+					"valueType": {
+						"kind": "union",
+						"types": [
+							{
+								"kind": "intrinsic",
+								"intrinsic": "string"
+							},
+							{
+								"kind": "intrinsic",
+								"intrinsic": "number"
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"name": "IndexedInterface",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "IndexedInterface"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyType": "string",
+					"valueType": {
+						"kind": "intrinsic",
+						"intrinsic": "unknown"
+					}
+				}
+			}
+		}
+	]
+}
