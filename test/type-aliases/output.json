@@ -2,6 +2,96 @@
 	"name": "test/type-aliases/input",
 	"exports": [
 		{
+			"name": "processWithUnionAlias",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "processWithUnionAlias"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "union",
+									"typeName": {
+										"name": "UnionAlias"
+									},
+									"types": [
+										{
+											"kind": "literal",
+											"value": "\"a\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"b\""
+										},
+										{
+											"kind": "literal",
+											"value": "\"c\""
+										}
+									]
+								},
+								"name": "mode",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "processWithObjectAlias",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "processWithObjectAlias"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "ObjectAlias"
+									},
+									"properties": [
+										{
+											"name": "name",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "age",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "obj",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			}
+		},
+		{
 			"name": "SimpleAlias",
 			"type": {
 				"kind": "intrinsic",
