@@ -225,7 +225,12 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportDeclaration);
-			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
 			if (mainExport) {
 				results.push(...mainExport);
 			}
@@ -249,7 +254,12 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
-			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
 			if (mainExport) {
 				results.push(...mainExport);
 			}
@@ -268,7 +278,12 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportDeclaration);
-			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
 			if (mainExport) {
 				results.push(...mainExport);
 			}
