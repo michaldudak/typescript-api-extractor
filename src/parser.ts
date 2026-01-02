@@ -42,6 +42,7 @@ export function parseFromProgram(
 		typeStack: [],
 		compilerOptions: program.getCompilerOptions(),
 		parsedSymbolStack: [],
+		program,
 		...getParserOptions(parserOptions),
 	};
 
@@ -84,6 +85,7 @@ export interface ParserContext extends ParserOptions {
 	typeStack: number[];
 	compilerOptions: ts.CompilerOptions;
 	parsedSymbolStack: string[];
+	program: ts.Program;
 }
 
 /**

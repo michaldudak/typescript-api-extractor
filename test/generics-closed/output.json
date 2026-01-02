@@ -404,6 +404,104 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "GenericHTMLProps",
+			"type": {
+				"kind": "intersection",
+				"typeName": {
+					"name": "GenericHTMLProps"
+				},
+				"types": [
+					{
+						"kind": "external",
+						"typeName": {
+							"name": "HTMLAttributes",
+							"namespaces": [
+								"React"
+							],
+							"typeArguments": [
+								{
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "any"
+									},
+									"equalToDefault": false
+								}
+							]
+						}
+					},
+					{
+						"kind": "object",
+						"properties": [
+							{
+								"name": "ref",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "external",
+											"typeName": {
+												"name": "Ref",
+												"namespaces": [
+													"React"
+												],
+												"typeArguments": [
+													{
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "any"
+														},
+														"equalToDefault": false
+													}
+												]
+											}
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								},
+								"optional": true
+							}
+						]
+					}
+				],
+				"properties": [
+					{
+						"name": "ref",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Ref",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "any"
+												},
+												"equalToDefault": false
+											}
+										]
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
 		}
 	]
 }

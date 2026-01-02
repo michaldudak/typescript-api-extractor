@@ -108,7 +108,14 @@
 									"typeName": {
 										"name": "RecordType"
 									},
-									"properties": []
+									"properties": [],
+									"indexSignature": {
+										"keyType": "string",
+										"valueType": {
+											"kind": "intrinsic",
+											"intrinsic": "any"
+										}
+									}
 								},
 								"name": "recordType",
 								"optional": false
@@ -192,7 +199,14 @@
 												"typeName": {
 													"name": "RecordType"
 												},
-												"properties": []
+												"properties": [],
+												"indexSignature": {
+													"keyType": "string",
+													"valueType": {
+														"kind": "intrinsic",
+														"intrinsic": "any"
+													}
+												}
 											},
 											"optional": false
 										},
