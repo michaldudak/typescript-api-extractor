@@ -133,28 +133,6 @@
 			}
 		},
 		{
-			"name": "functionAndNamespaceDeclaration.Params",
-			"type": {
-				"kind": "object",
-				"typeName": {
-					"name": "Params",
-					"namespaces": [
-						"functionAndNamespaceDeclaration"
-					]
-				},
-				"properties": [
-					{
-						"name": "a",
-						"type": {
-							"kind": "intrinsic",
-							"intrinsic": "number"
-						},
-						"optional": false
-					}
-				]
-			}
-		},
-		{
 			"name": "functionAndNamespaceDeclaration",
 			"type": {
 				"kind": "function",
@@ -221,6 +199,28 @@
 								]
 							}
 						}
+					}
+				]
+			}
+		},
+		{
+			"name": "functionAndNamespaceDeclaration.Params",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Params",
+					"namespaces": [
+						"functionAndNamespaceDeclaration"
+					]
+				},
+				"properties": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
 					}
 				]
 			}

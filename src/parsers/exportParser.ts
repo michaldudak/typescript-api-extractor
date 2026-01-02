@@ -19,12 +19,9 @@ export function parseExport(
 			return;
 		}
 
-		// Check all declarations for namespace declarations (declaration merging)
-		// e.g., export function X() {} paired with export namespace X { export type Props = ... }
-		// Use the export name (not the declaration name) so that re-exports work correctly
-		// e.g., `export { ComponentRoot as Root }` with `namespace ComponentRoot { export type Props = ... }`
-		// should produce `Component.Root.Props`, not `ComponentRoot.Props`
-		const results: ExportNode[] = [];
+		// Collect namespace members from declaration merging (e.g., function X paired with namespace X)
+		// These will be appended AFTER the main export for cleaner diffs
+		const namespaceMembers: ExportNode[] = [];
 		for (const declaration of declarations) {
 			if (ts.isModuleDeclaration(declaration)) {
 				// Handle exported namespace (namespace X { ... })
@@ -39,20 +36,23 @@ export function parseExport(
 						exportSymbol.name,
 					]);
 					if (Array.isArray(memberExports)) {
-						results.push(...memberExports);
+						namespaceMembers.push(...memberExports);
 					} else if (memberExports) {
-						results.push(memberExports);
+						namespaceMembers.push(memberExports);
 					}
 				}
 			}
 		}
+
+		// Results array - main export comes first, then namespace members
+		const results: ExportNode[] = [];
 
 		// Use the first declaration for the main export processing
 		const exportDeclaration = declarations[0];
 
 		if (ts.isModuleDeclaration(exportDeclaration)) {
 			// Already handled above - return the namespace members
-			return results.length > 0 ? results : undefined;
+			return namespaceMembers.length > 0 ? namespaceMembers : undefined;
 		}
 
 		if (ts.isNamespaceExport(exportDeclaration)) {
@@ -126,9 +126,9 @@ export function parseExport(
 								exportSymbol.name, // Use the alias name, not the original name
 							]);
 							if (Array.isArray(memberExports)) {
-								results.push(...memberExports);
+								namespaceMembers.push(...memberExports);
 							} else if (memberExports) {
-								results.push(memberExports);
+								namespaceMembers.push(memberExports);
 							}
 						}
 					}
@@ -154,6 +154,8 @@ export function parseExport(
 			if (mainExport) {
 				results.push(...mainExport);
 			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
 			return results.length > 0 ? results : undefined;
 		} else if (ts.isExportAssignment(exportDeclaration)) {
 			// export default x
@@ -166,12 +168,18 @@ export function parseExport(
 				return;
 			}
 
-			return createExportNode(
+			const mainExport = createExportNode(
 				exportSymbol.name,
 				exportedSymbol,
 				checker.getTypeOfSymbol(exportedSymbol),
 				parentNamespaces,
 			);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
 		} else if (
 			ts.isVariableDeclaration(exportDeclaration) ||
 			ts.isFunctionDeclaration(exportDeclaration)
@@ -180,11 +188,15 @@ export function parseExport(
 			// export function x() {}
 			// export default function x() {}
 			if (!exportDeclaration.name) {
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
 				return results.length > 0 ? results : undefined;
 			}
 
 			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
 			if (!exportedSymbol) {
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
 				return results.length > 0 ? results : undefined;
 			}
 
@@ -198,6 +210,8 @@ export function parseExport(
 			if (mainExport) {
 				results.push(...mainExport);
 			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
 			return results.length > 0 ? results : undefined;
 		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
 			// export interface X {}
@@ -211,7 +225,13 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportDeclaration);
-			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
 		} else if (ts.isEnumDeclaration(exportDeclaration)) {
 			// export enum x {}
 			if (!exportDeclaration.name) {
@@ -229,7 +249,13 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
-			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
 		} else if (ts.isTypeAliasDeclaration(exportDeclaration)) {
 			// export type X = ...
 			if (!exportDeclaration.name) {
@@ -242,7 +268,13 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportDeclaration);
-			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
 		}
 	} catch (error) {
 		if (!(error instanceof ParserError)) {

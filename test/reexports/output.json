@@ -20,6 +20,50 @@
 			}
 		},
 		{
+			"name": "Root",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "RootComponent"
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"name": "value",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
 			"name": "Root.Props",
 			"type": {
 				"kind": "object",
@@ -93,50 +137,6 @@
 			}
 		},
 		{
-			"name": "Root",
-			"type": {
-				"kind": "component",
-				"typeName": {
-					"name": "RootComponent"
-				},
-				"props": [
-					{
-						"name": "value",
-						"type": {
-							"kind": "intrinsic",
-							"intrinsic": "string"
-						},
-						"optional": false
-					},
-					{
-						"name": "onChange",
-						"type": {
-							"kind": "function",
-							"callSignatures": [
-								{
-									"parameters": [
-										{
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											"name": "value",
-											"optional": false
-										}
-									],
-									"returnValueType": {
-										"kind": "intrinsic",
-										"intrinsic": "void"
-									}
-								}
-							]
-						},
-						"optional": false
-					}
-				]
-			}
-		},
-		{
 			"name": "RootProps",
 			"type": {
 				"kind": "object",
@@ -199,6 +199,53 @@
 					{
 						"kind": "literal",
 						"value": "\"error\""
+					}
+				]
+			}
+		},
+		{
+			"name": "Source.RootComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "RootComponent",
+					"namespaces": [
+						"Source"
+					]
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"name": "value",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
 					}
 				]
 			}
@@ -274,53 +321,6 @@
 					{
 						"kind": "literal",
 						"value": "\"error\""
-					}
-				]
-			}
-		},
-		{
-			"name": "Source.RootComponent",
-			"type": {
-				"kind": "component",
-				"typeName": {
-					"name": "RootComponent",
-					"namespaces": [
-						"Source"
-					]
-				},
-				"props": [
-					{
-						"name": "value",
-						"type": {
-							"kind": "intrinsic",
-							"intrinsic": "string"
-						},
-						"optional": false
-					},
-					{
-						"name": "onChange",
-						"type": {
-							"kind": "function",
-							"callSignatures": [
-								{
-									"parameters": [
-										{
-											"type": {
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											"name": "value",
-											"optional": false
-										}
-									],
-									"returnValueType": {
-										"kind": "intrinsic",
-										"intrinsic": "void"
-									}
-								}
-							]
-						},
-						"optional": false
 					}
 				]
 			}
