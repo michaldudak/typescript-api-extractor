@@ -20,6 +20,79 @@
 			}
 		},
 		{
+			"name": "Root.Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"Root"
+					]
+				},
+				"properties": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"name": "value",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Root.State",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "State",
+					"namespaces": [
+						"Root"
+					]
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"idle\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"loading\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"error\""
+					}
+				]
+			}
+		},
+		{
 			"name": "Root",
 			"type": {
 				"kind": "component",
@@ -113,6 +186,81 @@
 				"kind": "union",
 				"typeName": {
 					"name": "RootState"
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"idle\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"loading\""
+					},
+					{
+						"kind": "literal",
+						"value": "\"error\""
+					}
+				]
+			}
+		},
+		{
+			"name": "Source.RootComponent.Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"Source",
+						"RootComponent"
+					]
+				},
+				"properties": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"name": "value",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Source.RootComponent.State",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "State",
+					"namespaces": [
+						"Source",
+						"RootComponent"
+					]
 				},
 				"types": [
 					{

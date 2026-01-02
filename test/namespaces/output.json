@@ -560,7 +560,7 @@
 			"type": {
 				"kind": "union",
 				"typeName": {
-					"name": "OutsideType",
+					"name": "NamespacedType",
 					"namespaces": [
 						"Root"
 					]

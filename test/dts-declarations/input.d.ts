@@ -1,8 +1,38 @@
-// Material UI's OverridableComponent
+// This file tests .d.ts declaration files with various patterns
+// Combines: reexports-from-js (importing from .js in d.ts) and mui-overridable-component patterns
 
+// Part 1: Re-exports from .js files (simulates built output)
+import {
+	FormattedProperty,
+	FormattedParameter,
+	Container,
+	ProcessingStatus,
+	formatType,
+	parseParameters,
+} from './source.js';
+
+// Re-export types directly
+export type { FormattedProperty, FormattedParameter };
+
+// Re-export with renaming
+export type { Container as TypeContainer };
+
+// Re-export a const enum pattern
+export { ProcessingStatus };
+
+// Re-export functions
+export { formatType, parseParameters };
+
+// Function using re-exported types as both parameter and return type
+export function processType(input: FormattedParameter): FormattedProperty;
+
+// Function using re-exported generic type
+export function wrapValue<T>(value: T): Container<T>;
+
+// Part 2: Material UI's OverridableComponent pattern
 declare const Component: OverridableComponent<ComponentTypeMap> & { muiName: string };
 
-export default Component;
+export { Component };
 
 interface ComponentOwnProps {
 	variant?: 'default' | 'small' | 'large';
@@ -14,10 +44,6 @@ interface ComponentTypeMap<AdditionalProps = {}, RootComponent extends React.Ele
 }
 
 interface OverridableComponent<TypeMap extends OverridableTypeMap> {
-	// If you make any changes to this interface, please make sure to update the
-	// `OverridableComponent` type in `mui-types/index.d.ts` as well.
-	// Also, there are types in Base UI that have a similar shape to this interface
-	// (for example SelectType, OptionType, etc.).
 	<RootComponent extends React.ElementType>(
 		props: {
 			/**

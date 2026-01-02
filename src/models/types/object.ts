@@ -3,6 +3,7 @@ import { Documentation } from '../documentation';
 import { TypeName } from '../typeName';
 
 export interface IndexSignatureNode {
+	keyName?: string;
 	keyType: 'string' | 'number';
 	valueType: AnyType;
 }

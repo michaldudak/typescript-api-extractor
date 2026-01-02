@@ -14,27 +14,45 @@ export function parseExport(
 	parsedSymbolStack.push(exportSymbol.name);
 
 	try {
-		const exportDeclaration = exportSymbol.declarations?.[0];
-		if (!exportDeclaration) {
+		const declarations = exportSymbol.declarations;
+		if (!declarations || declarations.length === 0) {
 			return;
 		}
 
-		if (ts.isModuleDeclaration(exportDeclaration)) {
-			// Handle exported namespace (namespace X { ... })
-			const namespaceSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!namespaceSymbol) return;
-			const members = checker.getExportsOfModule(namespaceSymbol);
-			const nsName = exportDeclaration.name.getText();
-			const results: ExportNode[] = [];
-			for (const member of members) {
-				const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
-				if (Array.isArray(memberExports)) {
-					results.push(...memberExports);
-				} else if (memberExports) {
-					results.push(memberExports);
+		// Check all declarations for namespace declarations (declaration merging)
+		// e.g., export function X() {} paired with export namespace X { export type Props = ... }
+		// Use the export name (not the declaration name) so that re-exports work correctly
+		// e.g., `export { ComponentRoot as Root }` with `namespace ComponentRoot { export type Props = ... }`
+		// should produce `Component.Root.Props`, not `ComponentRoot.Props`
+		const results: ExportNode[] = [];
+		for (const declaration of declarations) {
+			if (ts.isModuleDeclaration(declaration)) {
+				// Handle exported namespace (namespace X { ... })
+				const namespaceSymbol = checker.getSymbolAtLocation(declaration.name);
+				if (!namespaceSymbol) continue;
+				const members = checker.getExportsOfModule(namespaceSymbol);
+				// Use exportSymbol.name (the exported name) not declaration.name.getText() (the original name)
+				// This ensures re-exports like `{ ComponentRoot as Root }` use "Root" not "ComponentRoot"
+				for (const member of members) {
+					const memberExports = parseExport(member, parserContext, [
+						...parentNamespaces,
+						exportSymbol.name,
+					]);
+					if (Array.isArray(memberExports)) {
+						results.push(...memberExports);
+					} else if (memberExports) {
+						results.push(memberExports);
+					}
 				}
 			}
-			return results;
+		}
+
+		// Use the first declaration for the main export processing
+		const exportDeclaration = declarations[0];
+
+		if (ts.isModuleDeclaration(exportDeclaration)) {
+			// Already handled above - return the namespace members
+			return results.length > 0 ? results : undefined;
 		}
 
 		if (ts.isNamespaceExport(exportDeclaration)) {
@@ -92,6 +110,31 @@ export function parseExport(
 				return;
 			}
 
+			// Check the TARGET symbol's declarations for namespace members (declaration merging)
+			// e.g., `export { ComponentRoot as Root }` where ComponentRoot has a merged namespace
+			// We use exportSymbol.name (the alias "Root") so we get "Component.Root.Props" not "ComponentRoot.Props"
+			const targetDeclarations = targetSymbol.declarations;
+			if (targetDeclarations) {
+				for (const decl of targetDeclarations) {
+					if (ts.isModuleDeclaration(decl)) {
+						const namespaceSymbol = checker.getSymbolAtLocation(decl.name);
+						if (!namespaceSymbol) continue;
+						const members = checker.getExportsOfModule(namespaceSymbol);
+						for (const member of members) {
+							const memberExports = parseExport(member, parserContext, [
+								...parentNamespaces,
+								exportSymbol.name, // Use the alias name, not the original name
+							]);
+							if (Array.isArray(memberExports)) {
+								results.push(...memberExports);
+							} else if (memberExports) {
+								results.push(memberExports);
+							}
+						}
+					}
+				}
+			}
+
 			// Get the type. For exports of imported types (e.g., `export type { X }`),
 			// the targetSymbol may be an ImportSpecifier. In that case, getTypeAtLocation
 			// on the import specifier can return `any` if the module resolution fails.
@@ -107,7 +150,11 @@ export function parseExport(
 			} else {
 				type = checker.getTypeOfSymbol(targetSymbol);
 			}
-			return createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			return results.length > 0 ? results : undefined;
 		} else if (ts.isExportAssignment(exportDeclaration)) {
 			// export default x
 			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.expression);
@@ -133,16 +180,25 @@ export function parseExport(
 			// export function x() {}
 			// export default function x() {}
 			if (!exportDeclaration.name) {
-				return;
+				return results.length > 0 ? results : undefined;
 			}
 
 			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
 			if (!exportedSymbol) {
-				return;
+				return results.length > 0 ? results : undefined;
 			}
 
 			const type = checker.getTypeOfSymbol(exportedSymbol);
-			return createExportNode(exportSymbol.name, exportedSymbol, type, parentNamespaces);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			return results.length > 0 ? results : undefined;
 		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
 			// export interface X {}
 			if (!exportDeclaration.name) {
@@ -215,8 +271,10 @@ export function parseExport(
 					// Check if parentNamespaces are already a prefix of existing namespaces
 					const isAlreadyPrefixed = parentNamespaces.every((ns, i) => existingNamespaces[i] === ns);
 					if (!isAlreadyPrefixed) {
+						// Use the export name (which may be an alias) instead of the original type name
+						// e.g., `{ ComponentRoot as Root }` should use "Root", not "ComponentRoot"
 						typeWithName.typeName = new TypeName(
-							typeWithName.typeName.name,
+							name,
 							[...parentNamespaces, ...existingNamespaces],
 							typeWithName.typeName.typeArguments,
 						);

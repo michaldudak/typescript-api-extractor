@@ -24,10 +24,24 @@ function parseIndexSignature(
 		return undefined;
 	}
 
+	// Helper to extract key parameter name from index signature declaration
+	const getKeyName = (indexInfo: ts.IndexInfo): string | undefined => {
+		const declaration = indexInfo.declaration;
+		if (declaration && ts.isIndexSignatureDeclaration(declaration)) {
+			// Index signature has parameters like [fileName: string]
+			const keyParam = declaration.parameters[0];
+			if (keyParam && ts.isParameter(keyParam)) {
+				return keyParam.name.getText();
+			}
+		}
+		return undefined;
+	};
+
 	// Try string index first
 	const stringIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.String);
 	if (stringIndexInfo) {
 		return {
+			keyName: getKeyName(stringIndexInfo),
 			keyType: 'string',
 			valueType: resolveValueType(stringIndexInfo.type, undefined, context),
 		};
@@ -37,6 +51,7 @@ function parseIndexSignature(
 	const numberIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.Number);
 	if (numberIndexInfo) {
 		return {
+			keyName: getKeyName(numberIndexInfo),
 			keyType: 'number',
 			valueType: resolveValueType(numberIndexInfo.type, undefined, context),
 		};

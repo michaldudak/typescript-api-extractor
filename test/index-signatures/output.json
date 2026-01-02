@@ -16,6 +16,7 @@
 									"kind": "object",
 									"properties": [],
 									"indexSignature": {
+										"keyName": "key",
 										"keyType": "string",
 										"valueType": {
 											"kind": "intrinsic",
@@ -31,6 +32,7 @@
 									"kind": "object",
 									"properties": [],
 									"indexSignature": {
+										"keyName": "key",
 										"keyType": "number",
 										"valueType": {
 											"kind": "intrinsic",
@@ -46,6 +48,7 @@
 									"kind": "object",
 									"properties": [],
 									"indexSignature": {
+										"keyName": "key",
 										"keyType": "string",
 										"valueType": {
 											"kind": "union",
@@ -88,6 +91,7 @@
 							"kind": "object",
 							"properties": [],
 							"indexSignature": {
+								"keyName": "key",
 								"keyType": "string",
 								"valueType": {
 									"kind": "intrinsic",
@@ -132,6 +136,7 @@
 										}
 									],
 									"indexSignature": {
+										"keyName": "key",
 										"keyType": "string",
 										"valueType": {
 											"kind": "intrinsic",
@@ -160,6 +165,7 @@
 				},
 				"properties": [],
 				"indexSignature": {
+					"keyName": "key",
 					"keyType": "string",
 					"valueType": {
 						"kind": "intrinsic",
@@ -177,12 +183,139 @@
 				},
 				"properties": [],
 				"indexSignature": {
+					"keyName": "key",
 					"keyType": "number",
 					"valueType": {
 						"kind": "intrinsic",
 						"intrinsic": "string"
 					}
 				}
+			}
+		},
+		{
+			"name": "TypeWithCustomKeyName",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "TypeWithCustomKeyName"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "fileName",
+					"keyType": "string",
+					"valueType": {
+						"kind": "intrinsic",
+						"intrinsic": "number"
+					}
+				}
+			}
+		},
+		{
+			"name": "TypeWithNestedCustomKey",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "TypeWithNestedCustomKey"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "customKey",
+					"keyType": "string",
+					"valueType": {
+						"kind": "object",
+						"properties": [
+							{
+								"name": "nested",
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								"optional": false
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"name": "SimpleIndex",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "SimpleIndex"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "myKey",
+					"keyType": "string",
+					"valueType": {
+						"kind": "intrinsic",
+						"intrinsic": "boolean"
+					}
+				}
+			}
+		},
+		{
+			"name": "VariantExtraFiles",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "VariantExtraFiles"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "fileName",
+					"keyType": "string",
+					"valueType": {
+						"kind": "object",
+						"properties": [
+							{
+								"name": "source",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "null"
+										}
+									]
+								},
+								"optional": false
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"name": "OuterType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "OuterType"
+				},
+				"properties": [
+					{
+						"name": "inner",
+						"type": {
+							"kind": "object",
+							"properties": [],
+							"indexSignature": {
+								"keyName": "customKey",
+								"keyType": "string",
+								"valueType": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								}
+							}
+						},
+						"optional": false
+					}
+				]
 			}
 		},
 		{
@@ -203,6 +336,7 @@
 					}
 				],
 				"indexSignature": {
+					"keyName": "key",
 					"keyType": "string",
 					"valueType": {
 						"kind": "union",
@@ -229,6 +363,7 @@
 				},
 				"properties": [],
 				"indexSignature": {
+					"keyName": "key",
 					"keyType": "string",
 					"valueType": {
 						"kind": "intrinsic",
@@ -236,6 +371,100 @@
 					}
 				}
 			}
+		},
+		{
+			"name": "MyType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "HelperType"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "fileName",
+					"keyType": "string",
+					"valueType": {
+						"kind": "object",
+						"properties": [
+							{
+								"name": "source",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "null"
+										}
+									]
+								},
+								"optional": false
+							}
+						]
+					}
+				}
+			}
+		},
+		{
+			"name": "HelperType",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "any"
+			}
+		},
+		{
+			"name": "MyInterface",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "MyInterface"
+				},
+				"properties": [
+					{
+						"name": "data",
+						"type": {
+							"kind": "object",
+							"typeName": {
+								"name": "HelperType"
+							},
+							"properties": [],
+							"indexSignature": {
+								"keyName": "fileName",
+								"keyType": "string",
+								"valueType": {
+									"kind": "object",
+									"properties": [
+										{
+											"name": "source",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "null"
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								}
+							}
+						},
+						"optional": false
+					}
+				]
+			}
 		}
+	],
+	"imports": [
+		"./helper"
 	]
 }
