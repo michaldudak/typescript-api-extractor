@@ -34,8 +34,9 @@ export class ObjectNode implements TypeNode {
 
 		const parts: string[] = [];
 		if (this.indexSignature) {
+			const keyName = this.indexSignature.keyName ?? 'key';
 			parts.push(
-				`[key: ${this.indexSignature.keyType}]: ${this.indexSignature.valueType.toString()}`,
+				`[${keyName}: ${this.indexSignature.keyType}]: ${this.indexSignature.valueType.toString()}`,
 			);
 		}
 		parts.push(...this.properties.map((p) => p.toString()));
