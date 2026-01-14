@@ -49,6 +49,10 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Exception for test fixtures that mock external packages
+!test/*/node_modules/
+!test/*/node_modules/**
+
 # TypeScript v1 declaration files
 typings/
 

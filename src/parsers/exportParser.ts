@@ -283,6 +283,7 @@ export function parseExport(
 				exportedSymbol,
 				type,
 				parentNamespaces,
+				exportDeclaration.type, // Pass the authored type node to preserve union structure
 			);
 			if (mainExport) {
 				results.push(...mainExport);
@@ -306,9 +307,26 @@ export function parseExport(
 		symbol: ts.Symbol,
 		type: ts.Type,
 		parentNamespaces: string[],
+		typeNode?: ts.TypeNode,
 	) {
-		const parsedType = resolveType(type, undefined, parserContext);
+		const parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
+			// Fix type name for external types that resolve to __type
+			// This happens when re-exporting types from external packages
+			// e.g., `export type { Rect } from '@floating-ui/utils'`
+			// The resolved type loses the alias name and becomes __type
+			if (
+				'typeName' in parsedType &&
+				(parsedType as { typeName: TypeName | undefined }).typeName?.name === '__type'
+			) {
+				const typeWithName = parsedType as { typeName: TypeName };
+				typeWithName.typeName = new TypeName(
+					name,
+					typeWithName.typeName?.namespaces,
+					typeWithName.typeName?.typeArguments,
+				);
+			}
+
 			// If parentNamespaces are provided, merge them into the type's typeName
 			// But only if they're not already present (avoid duplication)
 			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {

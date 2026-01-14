@@ -100,22 +100,23 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			if (!typeName) {
+			// Try to get the type name from the type's aliasSymbol or symbol
+			const externalTypeName =
+				typeName?.name || type.aliasSymbol?.getName?.() || type.getSymbol()?.getName?.();
+
+			if (!externalTypeName) {
 				return new IntrinsicNode('any');
 			}
 
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
-			if (typeName.name === 'bivarianceHack') {
-				return new ExternalTypeNode(new TypeName('RefCallback', ['React'], typeName.typeArguments));
+			if (externalTypeName === 'bivarianceHack') {
+				return new ExternalTypeNode(
+					new TypeName('RefCallback', ['React'], typeName?.typeArguments),
+				);
 			}
 
 			return new ExternalTypeNode(
-				new TypeName(
-					typeName.name ||
-						(type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
-					typeName.namespaces,
-					typeName.typeArguments,
-				),
+				new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
 			);
 		}
 

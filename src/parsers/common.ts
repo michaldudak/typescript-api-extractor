@@ -126,7 +126,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 	}
 
 	const typeName = symbol.getName();
+
 	if (typeName === '__type') {
+		// If we have a typeSymbol from the typeNode, use its name instead
+		if (typeSymbol && typeSymbol.getName() !== '__type') {
+			return typeSymbol.getName();
+		}
 		return undefined;
 	}
 

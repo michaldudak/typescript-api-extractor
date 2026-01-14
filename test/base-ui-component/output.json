@@ -2970,8 +2970,17 @@
 		{
 			"name": "BaseUIComponent1Value",
 			"type": {
-				"kind": "intrinsic",
-				"intrinsic": "any"
+				"kind": "union",
+				"types": [
+					{
+						"kind": "intrinsic",
+						"intrinsic": "any"
+					},
+					{
+						"kind": "intrinsic",
+						"intrinsic": "null"
+					}
+				]
 			}
 		},
 		{
