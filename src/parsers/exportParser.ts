@@ -64,17 +64,17 @@ export function parseExport(
 			// Get the exports of the module
 			const members = checker.getExportsOfModule(aliasedSymbol);
 			const nsName = exportSymbol.name;
-			const results: ExportNode[] = [];
+			const namespaceResults: ExportNode[] = [];
 
 			for (const member of members) {
 				const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
 				if (Array.isArray(memberExports)) {
-					results.push(...memberExports);
+					namespaceResults.push(...memberExports);
 				} else if (memberExports) {
-					results.push(memberExports);
+					namespaceResults.push(memberExports);
 				}
 			}
-			return results;
+			return namespaceResults;
 		}
 
 		if (ts.isExportSpecifier(exportDeclaration)) {
