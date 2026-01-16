@@ -43,30 +43,6 @@
 															},
 															{
 																"kind": "literal",
-																"value": "\"search\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"big\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"link\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"small\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"sub\""
-															},
-															{
-																"kind": "literal",
-																"value": "\"sup\""
-															},
-															{
-																"kind": "literal",
 																"value": "\"div\""
 															},
 															{
@@ -112,6 +88,10 @@
 															{
 																"kind": "literal",
 																"value": "\"bdo\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"big\""
 															},
 															{
 																"kind": "literal",
@@ -307,6 +287,10 @@
 															},
 															{
 																"kind": "literal",
+																"value": "\"link\""
+															},
+															{
+																"kind": "literal",
 																"value": "\"main\""
 															},
 															{
@@ -407,6 +391,10 @@
 															},
 															{
 																"kind": "literal",
+																"value": "\"search\""
+															},
+															{
+																"kind": "literal",
 																"value": "\"slot\""
 															},
 															{
@@ -420,6 +408,10 @@
 															{
 																"kind": "literal",
 																"value": "\"select\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"small\""
 															},
 															{
 																"kind": "literal",
@@ -439,7 +431,15 @@
 															},
 															{
 																"kind": "literal",
+																"value": "\"sub\""
+															},
+															{
+																"kind": "literal",
 																"value": "\"summary\""
+															},
+															{
+																"kind": "literal",
+																"value": "\"sup\""
 															},
 															{
 																"kind": "literal",
@@ -772,11 +772,11 @@
 							"types": [
 								{
 									"kind": "literal",
-									"value": "\"small\""
+									"value": "\"default\""
 								},
 								{
 									"kind": "literal",
-									"value": "\"default\""
+									"value": "\"small\""
 								},
 								{
 									"kind": "literal",
@@ -812,15 +812,6 @@
 						"type": {
 							"kind": "union",
 							"types": [
-								{
-									"kind": "external",
-									"typeName": {
-										"name": "CSSProperties",
-										"namespaces": [
-											"React"
-										]
-									}
-								},
 								{
 									"kind": "external",
 									"typeName": {

@@ -50,8 +50,8 @@ type BaseUIComponentProps<
 > & {
 	className?: string | ((state: State) => string);
 	render?:
-		| ComponentRenderFn<RenderFunctionProps, State>
-		| React.ReactElement<Record<string, unknown>>;
+		| React.ReactElement<Record<string, unknown>>
+		| ComponentRenderFn<RenderFunctionProps, State>;
 };
 
 export type ComponentRenderFn<Props, State> = (

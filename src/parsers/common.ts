@@ -3,6 +3,27 @@ import { TypeArgument, TypeName } from '../models/typeName';
 import { resolveType } from './typeResolver';
 import { ParserContext } from '../parser';
 
+/**
+ * Extracts namespace parts from a qualified name node.
+ * For example, `ComponentRoot.ChangeEventDetails` returns `['ComponentRoot']`.
+ */
+function getQualifiedNameNamespaces(typeNodeName: ts.EntityName): string[] {
+	const namespaces: string[] = [];
+	let current: ts.EntityName = typeNodeName;
+
+	// Walk left through the qualified name, collecting namespace parts
+	while (ts.isQualifiedName(current)) {
+		// Move to the left side
+		current = current.left;
+		// If the left side is an identifier, it's a namespace
+		if (ts.isIdentifier(current)) {
+			namespaces.unshift(current.text);
+		}
+	}
+
+	return namespaces;
+}
+
 export function getFullName(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
@@ -16,6 +37,7 @@ export function getFullName(
 	// However, this also covers cases where the type is a type parameter (as in `type Generic<T> = { value: T }`).
 	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
 	let typeSymbol: ts.Symbol | undefined;
+	let qualifiedNameNamespaces: string[] = [];
 	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
 		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
 		let typeSymbolCandidate: ts.Symbol | undefined;
@@ -23,6 +45,10 @@ export function getFullName(
 			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
 		} else if (ts.isQualifiedName(typeNodeName)) {
 			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName.right);
+			// Extract namespace parts from the qualified name itself
+			// This handles cases like `ComponentRoot.ChangeEventDetails` where
+			// `ComponentRoot` is used as a namespace qualifier in the type reference
+			qualifiedNameNamespaces = getQualifiedNameNamespaces(typeNodeName);
 		}
 
 		if (
@@ -35,7 +61,12 @@ export function getFullName(
 	}
 
 	const name = getTypeName(type, typeSymbol);
-	const namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
+	// Use namespaces from the symbol/type first, but fall back to qualified name namespaces
+	// when the type doesn't have intrinsic namespace information
+	let namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
+	if (namespaces.length === 0 && qualifiedNameNamespaces.length > 0) {
+		namespaces = qualifiedNameNamespaces;
+	}
 	const typeArguments = getTypeArguments(type, typeNode, context);
 
 	if (name === undefined) {
@@ -95,7 +126,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 	}
 
 	const typeName = symbol.getName();
+
 	if (typeName === '__type') {
+		// If we have a typeSymbol from the typeNode, use its name instead
+		if (typeSymbol && typeSymbol.getName() !== '__type') {
+			return typeSymbol.getName();
+		}
 		return undefined;
 	}
 

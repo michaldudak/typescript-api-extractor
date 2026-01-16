@@ -74,6 +74,22 @@ export function resolveType(
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
+			// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
+			// This handles cases where TypeScript doesn't fully instantiate generic parameters,
+			// but the typeNode (authored code) references the actual concrete type.
+			if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+				// Get the symbol that the type reference points to
+				const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+				if (symbol && !(symbol.flags & ts.SymbolFlags.TypeParameter)) {
+					// The symbol is not a type parameter - it's a concrete type alias or interface
+					// Get the type from the symbol's declaration
+					const symbolType = checker.getDeclaredTypeOfSymbol(symbol);
+					if (symbolType && !hasExactFlag(symbolType, ts.TypeFlags.TypeParameter)) {
+						return resolveType(symbolType, typeNode, context);
+					}
+				}
+			}
+
 			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
 			const constraintType = declaration?.constraint
 				? checker.getBaseConstraintOfType(type)
@@ -100,22 +116,23 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			if (!typeName) {
+			// Try to get the type name from the type's aliasSymbol or symbol
+			const externalTypeName =
+				typeName?.name || type.aliasSymbol?.getName?.() || type.getSymbol()?.getName?.();
+
+			if (!externalTypeName) {
 				return new IntrinsicNode('any');
 			}
 
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
-			if (typeName.name === 'bivarianceHack') {
-				return new ExternalTypeNode(new TypeName('RefCallback', ['React'], typeName.typeArguments));
+			if (externalTypeName === 'bivarianceHack') {
+				return new ExternalTypeNode(
+					new TypeName('RefCallback', ['React'], typeName?.typeArguments),
+				);
 			}
 
 			return new ExternalTypeNode(
-				new TypeName(
-					typeName.name ||
-						(type.aliasSymbol?.getName?.() ?? type.getSymbol()?.getName?.() ?? 'unknown'),
-					typeName.namespaces,
-					typeName.typeArguments,
-				),
+				new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
 			);
 		}
 
@@ -166,7 +183,7 @@ export function resolveType(
 					return parseFunctionType(type, context)!;
 				}
 
-				const objectType = parseObjectType(type, typeName, context);
+				const objectType = parseObjectType(type, typeName, context, resolveType);
 				if (objectType) {
 					return new IntersectionNode(typeName, memberTypes, objectType.properties);
 				}
@@ -243,7 +260,7 @@ export function resolveType(
 			return parseFunctionType(type, context)!;
 		}
 
-		const objectType = parseObjectType(type, typeName, context);
+		const objectType = parseObjectType(type, typeName, context, resolveType);
 		if (objectType) {
 			return objectType;
 		}
