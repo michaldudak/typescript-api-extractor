@@ -1,4 +1,3 @@
-import { uniqBy } from 'es-toolkit';
 import { IntrinsicNode } from './intrinsic';
 import { LiteralNode } from './literal';
 import { ExternalTypeNode } from './external';
@@ -22,28 +21,6 @@ export function flattenTypes(
 	});
 
 	return flatTypes;
-}
-
-/**
- * Get a normalized key for a function type.
- * Parameters with type `any` are replaced with a placeholder to allow grouping
- * functions that differ only in having `any` vs concrete types.
- */
-function getFunctionNormalizedKey(func: FunctionNode): string {
-	return func.callSignatures
-		.map((sig) => {
-			const params = sig.parameters.map((p) => {
-				const typeStr = p.type.toString();
-				// Replace `any` with a placeholder to group equivalent functions
-				// This allows `(x: any) => void` to match `(x: Foo) => void`
-				if (typeStr === 'any') {
-					return `${p.name}: __ANY__`;
-				}
-				return `${p.name}: ${typeStr}`;
-			});
-			return `(${params.join(', ')}) => ${sig.returnValueType.toString()}`;
-		})
-		.join(' | ');
 }
 
 /**
