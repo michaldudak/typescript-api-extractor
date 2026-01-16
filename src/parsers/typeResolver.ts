@@ -74,6 +74,22 @@ export function resolveType(
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
+			// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
+			// This handles cases where TypeScript doesn't fully instantiate generic parameters,
+			// but the typeNode (authored code) references the actual concrete type.
+			if (typeNode && ts.isTypeReferenceNode(typeNode)) {
+				// Get the symbol that the type reference points to
+				const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+				if (symbol && !(symbol.flags & ts.SymbolFlags.TypeParameter)) {
+					// The symbol is not a type parameter - it's a concrete type alias or interface
+					// Get the type from the symbol's declaration
+					const symbolType = checker.getDeclaredTypeOfSymbol(symbol);
+					if (symbolType && !hasExactFlag(symbolType, ts.TypeFlags.TypeParameter)) {
+						return resolveType(symbolType, typeNode, context);
+					}
+				}
+			}
+
 			const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
 			const constraintType = declaration?.constraint
 				? checker.getBaseConstraintOfType(type)

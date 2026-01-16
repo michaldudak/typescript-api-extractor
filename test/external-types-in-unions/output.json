@@ -10,14 +10,14 @@
 				},
 				"types": [
 					{
+						"kind": "literal",
+						"value": "\"clipping-ancestors\""
+					},
+					{
 						"kind": "external",
 						"typeName": {
 							"name": "Element"
 						}
-					},
-					{
-						"kind": "literal",
-						"value": "\"clipping-ancestors\""
 					},
 					{
 						"kind": "array",
@@ -114,14 +114,14 @@
 									},
 									"types": [
 										{
+											"kind": "literal",
+											"value": "\"clipping-ancestors\""
+										},
+										{
 											"kind": "external",
 											"typeName": {
 												"name": "Element"
 											}
-										},
-										{
-											"kind": "literal",
-											"value": "\"clipping-ancestors\""
 										},
 										{
 											"kind": "array",

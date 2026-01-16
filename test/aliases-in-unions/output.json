@@ -19,10 +19,6 @@
 									},
 									"types": [
 										{
-											"kind": "literal",
-											"value": 0
-										},
-										{
 											"kind": "union",
 											"typeName": {
 												"name": "Alias"
@@ -37,6 +33,10 @@
 													"value": 2
 												}
 											]
+										},
+										{
+											"kind": "literal",
+											"value": 0
 										}
 									]
 								},
@@ -69,10 +69,6 @@
 							},
 							"types": [
 								{
-									"kind": "literal",
-									"value": 0
-								},
-								{
 									"kind": "union",
 									"typeName": {
 										"name": "Alias"
@@ -87,6 +83,10 @@
 											"value": 2
 										}
 									]
+								},
+								{
+									"kind": "literal",
+									"value": 0
 								}
 							]
 						},

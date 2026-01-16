@@ -772,11 +772,11 @@
 							"types": [
 								{
 									"kind": "literal",
-									"value": "\"small\""
+									"value": "\"default\""
 								},
 								{
 									"kind": "literal",
-									"value": "\"default\""
+									"value": "\"small\""
 								},
 								{
 									"kind": "literal",
@@ -812,15 +812,6 @@
 						"type": {
 							"kind": "union",
 							"types": [
-								{
-									"kind": "external",
-									"typeName": {
-										"name": "CSSProperties",
-										"namespaces": [
-											"React"
-										]
-									}
-								},
 								{
 									"kind": "external",
 									"typeName": {
