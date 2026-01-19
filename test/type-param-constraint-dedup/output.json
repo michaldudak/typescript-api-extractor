@@ -1,0 +1,272 @@
+{
+	"name": "test/type-param-constraint-dedup/input",
+	"exports": [
+		{
+			"name": "AccordionPanelProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "AccordionPanelProps"
+				},
+				"properties": [
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "State",
+															"namespaces": [
+																"Accordion",
+																"Panel"
+															]
+														},
+														"properties": [
+															{
+																"name": "open",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															},
+															{
+																"name": "disabled",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															}
+														]
+													},
+													"name": "state",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "className callback - State has no constraint here",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "render",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "ReactElement",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "unknown"
+												},
+												"equalToDefault": true
+											},
+											{
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "JSXElementConstructor",
+																"namespaces": [
+																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "any"
+																		},
+																		"equalToDefault": false
+																	}
+																]
+															}
+														}
+													]
+												},
+												"equalToDefault": true
+											}
+										]
+									}
+								},
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLAttributes",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"type": {
+																		"kind": "external",
+																		"typeName": {
+																			"name": "HTMLElement"
+																		}
+																	},
+																	"equalToDefault": false
+																}
+															]
+														}
+													},
+													"name": "props",
+													"optional": false
+												},
+												{
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "State",
+															"namespaces": [
+																"Accordion",
+																"Panel"
+															]
+														},
+														"properties": [
+															{
+																"name": "open",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															},
+															{
+																"name": "disabled",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															}
+														]
+													},
+													"name": "state",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "external",
+												"typeName": {
+													"name": "ReactElement",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "unknown"
+															},
+															"equalToDefault": true
+														},
+														{
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "external",
+																		"typeName": {
+																			"name": "JSXElementConstructor",
+																			"namespaces": [
+																				"React"
+																			],
+																			"typeArguments": [
+																				{
+																					"type": {
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					},
+																					"equalToDefault": false
+																				}
+																			]
+																		}
+																	}
+																]
+															},
+															"equalToDefault": true
+														}
+													]
+												}
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "render callback - State has no constraint here",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": [
+		"react"
+	]
+}

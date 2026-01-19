@@ -1,0 +1,456 @@
+{
+	"name": "test/component-with-render-callback/input",
+	"exports": [
+		{
+			"name": "AccordionHeader",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "AccordionHeader"
+				},
+				"props": [
+					{
+						"name": "render",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "ReactElement",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "unknown"
+												},
+												"equalToDefault": true
+											},
+											{
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "JSXElementConstructor",
+																"namespaces": [
+																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "any"
+																		},
+																		"equalToDefault": false
+																	}
+																]
+															}
+														}
+													]
+												},
+												"equalToDefault": true
+											}
+										]
+									}
+								},
+								{
+									"kind": "function",
+									"typeName": {
+										"name": "ComponentRenderFn",
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "HTMLProps",
+														"namespaces": [
+															"React"
+														],
+														"typeArguments": [
+															{
+																"type": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLElement"
+																	}
+																},
+																"equalToDefault": false
+															}
+														]
+													}
+												},
+												"equalToDefault": false
+											},
+											{
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "AccordionItemState"
+													},
+													"properties": [
+														{
+															"name": "expanded",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "boolean"
+															},
+															"optional": false
+														}
+													]
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLProps",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"type": {
+																		"kind": "external",
+																		"typeName": {
+																			"name": "HTMLElement"
+																		}
+																	},
+																	"equalToDefault": false
+																}
+															]
+														}
+													},
+													"name": "props",
+													"optional": false
+												},
+												{
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "AccordionItemState"
+														},
+														"properties": [
+															{
+																"name": "expanded",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															}
+														]
+													},
+													"name": "state",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "external",
+												"typeName": {
+													"name": "ReactElement",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "unknown"
+															},
+															"equalToDefault": true
+														},
+														{
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "external",
+																		"typeName": {
+																			"name": "JSXElementConstructor",
+																			"namespaces": [
+																				"React"
+																			],
+																			"typeArguments": [
+																				{
+																					"type": {
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					},
+																					"equalToDefault": false
+																				}
+																			]
+																		}
+																	}
+																]
+															},
+															"equalToDefault": true
+														}
+													]
+												}
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Render function or element",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "AccordionHeaderProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "BaseUIComponentProps"
+				},
+				"properties": [
+					{
+						"name": "render",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "ReactElement",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "unknown"
+												},
+												"equalToDefault": true
+											},
+											{
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "external",
+															"typeName": {
+																"name": "JSXElementConstructor",
+																"namespaces": [
+																	"React"
+																],
+																"typeArguments": [
+																	{
+																		"type": {
+																			"kind": "intrinsic",
+																			"intrinsic": "any"
+																		},
+																		"equalToDefault": false
+																	}
+																]
+															}
+														}
+													]
+												},
+												"equalToDefault": true
+											}
+										]
+									}
+								},
+								{
+									"kind": "function",
+									"typeName": {
+										"name": "ComponentRenderFn",
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "HTMLProps",
+														"namespaces": [
+															"React"
+														],
+														"typeArguments": [
+															{
+																"type": {
+																	"kind": "external",
+																	"typeName": {
+																		"name": "HTMLElement"
+																	}
+																},
+																"equalToDefault": false
+															}
+														]
+													}
+												},
+												"equalToDefault": false
+											},
+											{
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "AccordionItemState"
+													},
+													"properties": [
+														{
+															"name": "expanded",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "boolean"
+															},
+															"optional": false
+														}
+													]
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "HTMLProps",
+															"namespaces": [
+																"React"
+															],
+															"typeArguments": [
+																{
+																	"type": {
+																		"kind": "external",
+																		"typeName": {
+																			"name": "HTMLElement"
+																		}
+																	},
+																	"equalToDefault": false
+																}
+															]
+														}
+													},
+													"name": "props",
+													"optional": false
+												},
+												{
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "AccordionItemState"
+														},
+														"properties": [
+															{
+																"name": "expanded",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "boolean"
+																},
+																"optional": false
+															}
+														]
+													},
+													"name": "state",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "external",
+												"typeName": {
+													"name": "ReactElement",
+													"namespaces": [
+														"React"
+													],
+													"typeArguments": [
+														{
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "unknown"
+															},
+															"equalToDefault": true
+														},
+														{
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "external",
+																		"typeName": {
+																			"name": "JSXElementConstructor",
+																			"namespaces": [
+																				"React"
+																			],
+																			"typeArguments": [
+																				{
+																					"type": {
+																						"kind": "intrinsic",
+																						"intrinsic": "any"
+																					},
+																					"equalToDefault": false
+																				}
+																			]
+																		}
+																	}
+																]
+															},
+															"equalToDefault": true
+														}
+													]
+												}
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Render function or element",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": [
+		"react"
+	]
+}

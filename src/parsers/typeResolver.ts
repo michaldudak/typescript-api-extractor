@@ -116,9 +116,35 @@ export function resolveType(
 		}
 
 		if (!includeExternalTypes && isTypeExternal(type, checker)) {
-			// Try to get the type name from the type's aliasSymbol or symbol
-			const externalTypeName =
-				typeName?.name || type.aliasSymbol?.getName?.() || type.getSymbol()?.getName?.();
+			// Determine the best name to use for this external type.
+			// When a type fully resolves to an external interface (e.g., `Event` from lib.dom.d.ts),
+			// TypeScript provides no aliasSymbol - the type is just the resolved interface.
+			// In this case, use the resolved symbol's name (e.g., `Event`, `KeyboardEvent`).
+			//
+			// When a type is an external alias (e.g., `Point` from a package that wraps `{ x, y }`),
+			// TypeScript preserves the aliasSymbol. Use the alias name to preserve the author's intent.
+			//
+			// The key insight: if there's no aliasSymbol but there is a resolved symbol from
+			// node_modules, TypeScript has fully resolved the type and we should use that name.
+			const resolvedSymbol = type.getSymbol();
+			const resolvedSymbolName = resolvedSymbol?.getName?.();
+
+			let externalTypeName: string | undefined;
+			// If the resolved symbol is external and is a named interface (not anonymous `__type`),
+			// and there's no local alias wrapping it, use the resolved interface name.
+			const resolvedIsExternalInterface =
+				resolvedSymbolName &&
+				resolvedSymbolName !== '__type' &&
+				isSymbolExternal(resolvedSymbol, checker, false) &&
+				(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
+
+			if (resolvedIsExternalInterface && !type.aliasSymbol) {
+				// Fully resolved external interface (e.g., Event, KeyboardEvent)
+				externalTypeName = resolvedSymbolName;
+			} else {
+				// Use the authored alias name, falling back to resolved symbol name
+				externalTypeName = typeName?.name || type.aliasSymbol?.getName?.() || resolvedSymbolName;
+			}
 
 			if (!externalTypeName) {
 				return new IntrinsicNode('any');
@@ -321,23 +347,34 @@ const allowedBuiltInReactTypes = new Set([
 	'React.ForwardRefExoticComponent',
 ]);
 
-function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
-	const symbol = type.aliasSymbol ?? type.getSymbol();
+/**
+ * Checks if a symbol is defined externally (in node_modules), excluding allowed built-in types.
+ */
+function isSymbolExternal(
+	symbol: ts.Symbol | undefined,
+	checker: ts.TypeChecker,
+	checkAllowList: boolean = true,
+): boolean {
+	if (!symbol) return false;
 	return (
-		symbol?.declarations?.some((x) => {
+		symbol.declarations?.some((x) => {
 			const sourceFileName = x.getSourceFile().fileName;
 			const definedExternally = sourceFileName.includes('node_modules');
-			return (
-				definedExternally &&
-				!(
-					(allowedBuiltInTsTypes.has(checker.getFullyQualifiedName(symbol)) &&
-						/node_modules\/typescript\/lib/.test(sourceFileName)) ||
-					(allowedBuiltInReactTypes.has(checker.getFullyQualifiedName(symbol)) &&
-						/node_modules\/@types\/react/.test(sourceFileName))
-				)
+			if (!definedExternally) return false;
+			if (!checkAllowList) return true;
+			return !(
+				(allowedBuiltInTsTypes.has(checker.getFullyQualifiedName(symbol)) &&
+					/node_modules\/typescript\/lib/.test(sourceFileName)) ||
+				(allowedBuiltInReactTypes.has(checker.getFullyQualifiedName(symbol)) &&
+					/node_modules\/@types\/react/.test(sourceFileName))
 			);
 		}) ?? false
 	);
+}
+
+function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
+	const symbol = type.aliasSymbol ?? type.getSymbol();
+	return isSymbolExternal(symbol, checker);
 }
 
 function hasExactFlag(type: ts.Type, flag: number) {
