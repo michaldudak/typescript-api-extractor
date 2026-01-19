@@ -38,7 +38,5 @@
 			}
 		}
 	],
-	"imports": [
-		"floating-ui"
-	]
+	"imports": ["floating-ui"]
 }

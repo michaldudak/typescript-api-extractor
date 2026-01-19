@@ -18,9 +18,7 @@
 									"kind": "external",
 									"typeName": {
 										"name": "ReactElement",
-										"namespaces": [
-											"React"
-										],
+										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
@@ -41,9 +39,7 @@
 															"kind": "external",
 															"typeName": {
 																"name": "JSXElementConstructor",
-																"namespaces": [
-																	"React"
-																],
+																"namespaces": ["React"],
 																"typeArguments": [
 																	{
 																		"type": {
@@ -72,9 +68,7 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLProps",
-														"namespaces": [
-															"React"
-														],
+														"namespaces": ["React"],
 														"typeArguments": [
 															{
 																"type": {
@@ -119,9 +113,7 @@
 														"kind": "external",
 														"typeName": {
 															"name": "HTMLProps",
-															"namespaces": [
-																"React"
-															],
+															"namespaces": ["React"],
 															"typeArguments": [
 																{
 																	"type": {
@@ -163,9 +155,7 @@
 												"kind": "external",
 												"typeName": {
 													"name": "ReactElement",
-													"namespaces": [
-														"React"
-													],
+													"namespaces": ["React"],
 													"typeArguments": [
 														{
 															"type": {
@@ -186,9 +176,7 @@
 																		"kind": "external",
 																		"typeName": {
 																			"name": "JSXElementConstructor",
-																			"namespaces": [
-																				"React"
-																			],
+																			"namespaces": ["React"],
 																			"typeArguments": [
 																				{
 																					"type": {
@@ -242,9 +230,7 @@
 									"kind": "external",
 									"typeName": {
 										"name": "ReactElement",
-										"namespaces": [
-											"React"
-										],
+										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
@@ -265,9 +251,7 @@
 															"kind": "external",
 															"typeName": {
 																"name": "JSXElementConstructor",
-																"namespaces": [
-																	"React"
-																],
+																"namespaces": ["React"],
 																"typeArguments": [
 																	{
 																		"type": {
@@ -296,9 +280,7 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLProps",
-														"namespaces": [
-															"React"
-														],
+														"namespaces": ["React"],
 														"typeArguments": [
 															{
 																"type": {
@@ -343,9 +325,7 @@
 														"kind": "external",
 														"typeName": {
 															"name": "HTMLProps",
-															"namespaces": [
-																"React"
-															],
+															"namespaces": ["React"],
 															"typeArguments": [
 																{
 																	"type": {
@@ -387,9 +367,7 @@
 												"kind": "external",
 												"typeName": {
 													"name": "ReactElement",
-													"namespaces": [
-														"React"
-													],
+													"namespaces": ["React"],
 													"typeArguments": [
 														{
 															"type": {
@@ -410,9 +388,7 @@
 																		"kind": "external",
 																		"typeName": {
 																			"name": "JSXElementConstructor",
-																			"namespaces": [
-																				"React"
-																			],
+																			"namespaces": ["React"],
 																			"typeArguments": [
 																				{
 																					"type": {
@@ -450,7 +426,5 @@
 			}
 		}
 	],
-	"imports": [
-		"react"
-	]
+	"imports": ["react"]
 }
