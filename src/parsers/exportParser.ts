@@ -150,7 +150,32 @@ export function parseExport(
 			} else {
 				type = checker.getTypeOfSymbol(targetSymbol);
 			}
-			const mainExport = createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
+
+			// Track inherited namespace when re-exporting with an alias
+			// e.g., `export { DialogTrigger as Trigger }` -> inheritedFrom: 'Dialog'
+			let inheritedFrom: string | undefined;
+			if (isReExport && targetSymbol.name !== exportSymbol.name) {
+				const originalName = targetSymbol.name;
+				const aliasName = exportSymbol.name;
+
+				// Infer the namespace by checking if the original name ends with the alias
+				// e.g., 'DialogTrigger' ends with 'Trigger' -> namespace is 'Dialog'
+				if (originalName.endsWith(aliasName)) {
+					const namespace = originalName.slice(0, -aliasName.length);
+					if (namespace !== '') {
+						inheritedFrom = namespace;
+					}
+				}
+			}
+
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				targetSymbol,
+				type,
+				parentNamespaces,
+				undefined,
+				inheritedFrom,
+			);
 			if (mainExport) {
 				results.push(...mainExport);
 			}
@@ -308,6 +333,7 @@ export function parseExport(
 		type: ts.Type,
 		parentNamespaces: string[],
 		typeNode?: ts.TypeNode,
+		inheritedFrom?: string,
 	) {
 		const parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
@@ -353,7 +379,29 @@ export function parseExport(
 			// Build the fully qualified export name including namespace path
 			const exportName = parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
 
-			return [new ExportNode(exportName, parsedType, getDocumentationFromSymbol(symbol, checker))];
+			// Only include inheritedFrom if it differs from the type's namespace
+			// e.g., AlertDialog.Trigger has type.typeName.namespaces = ['AlertDialog']
+			// but inheritedFrom = 'Dialog', so we include it
+			let finalInheritedFrom: string | undefined;
+			if (inheritedFrom) {
+				const typeNamespaces =
+					'typeName' in parsedType
+						? ((parsedType as { typeName?: TypeName }).typeName?.namespaces ?? [])
+						: [];
+				const flattenedNamespace = typeNamespaces.join('');
+				if (inheritedFrom !== flattenedNamespace) {
+					finalInheritedFrom = inheritedFrom;
+				}
+			}
+
+			return [
+				new ExportNode(
+					exportName,
+					parsedType,
+					getDocumentationFromSymbol(symbol, checker),
+					finalInheritedFrom,
+				),
+			];
 		}
 	}
 }

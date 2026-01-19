@@ -6,6 +6,14 @@ export class ExportNode {
 		public name: string,
 		public type: AnyType,
 		public documentation: Documentation | undefined,
+		/**
+		 * Present when this export is re-exported from a different namespace.
+		 *
+		 * For example, `AlertDialog.Trigger` re-exports `DialogTrigger`, so
+		 * `inheritedFrom` would be "Dialog". This is only set when it differs
+		 * from the type's own namespace.
+		 */
+		public inheritedFrom?: string,
 	) {}
 
 	/**

@@ -40,6 +40,7 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 				node.name,
 				new ComponentNode(typeName, newCallSignatures),
 				node.documentation,
+				node.inheritedFrom,
 			);
 		}
 
