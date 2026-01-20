@@ -97,10 +97,10 @@ export function parseObjectType(
 				filteredProperties = properties.filter((property) => {
 					const declaration =
 						property.valueDeclaration ??
-						(property.declarations?.[0] as ts.PropertySignature | undefined);
+						(property.declarations?.[0] as ts.PropertySignature | ts.MethodSignature | undefined);
 					return (
 						declaration &&
-						ts.isPropertySignature(declaration) &&
+						(ts.isPropertySignature(declaration) || ts.isMethodSignature(declaration)) &&
 						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 					);
 				});

@@ -261,6 +261,122 @@
 					}
 				]
 			}
+		},
+		{
+			"name": "test3",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "test3"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intersection",
+									"typeName": {
+										"name": "WithMethod"
+									},
+									"types": [
+										{
+											"kind": "object",
+											"typeName": {
+												"name": "A"
+											},
+											"properties": [
+												{
+													"name": "a",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"optional": false
+												},
+												{
+													"name": "b",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "number"
+													},
+													"optional": false
+												}
+											]
+										},
+										{
+											"kind": "object",
+											"properties": [
+												{
+													"name": "doSomething",
+													"type": {
+														"kind": "function",
+														"typeName": {
+															"name": "doSomething"
+														},
+														"callSignatures": [
+															{
+																"parameters": [],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"intrinsic": "void"
+																}
+															}
+														]
+													},
+													"optional": false
+												}
+											]
+										}
+									],
+									"properties": [
+										{
+											"name": "a",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"optional": false
+										},
+										{
+											"name": "b",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											},
+											"optional": false
+										},
+										{
+											"name": "doSomething",
+											"type": {
+												"kind": "function",
+												"typeName": {
+													"name": "doSomething"
+												},
+												"callSignatures": [
+													{
+														"parameters": [],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"intrinsic": "void"
+														}
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
 		}
 	]
 }
