@@ -5,22 +5,22 @@ type ComponentRenderFn<Props, State> = (props: Props, state: State) => React.Rea
 
 // State types for different components
 type AccordionItemState = {
-  expanded: boolean;
+	expanded: boolean;
 };
 
 // Namespace to simulate Base UI's export pattern
 namespace Accordion {
-  export namespace Item {
-    export type State = AccordionItemState;
-  }
+	export namespace Item {
+		export type State = AccordionItemState;
+	}
 }
 
 // Props type with generic render function
 type BaseUIComponentProps<State, RenderFunctionProps = React.HTMLProps<HTMLElement>> = {
-  /**
-   * Render function or element
-   */
-  render?: React.ReactElement | ComponentRenderFn<RenderFunctionProps, State>;
+	/**
+	 * Render function or element
+	 */
+	render?: React.ReactElement | ComponentRenderFn<RenderFunctionProps, State>;
 };
 
 // Component that uses the generic props
@@ -28,5 +28,5 @@ export type AccordionHeaderProps = BaseUIComponentProps<Accordion.Item.State>;
 
 // Also export directly to test the deduplication
 export function AccordionHeader(props: AccordionHeaderProps): React.ReactElement {
-  return <div {...props} />;
+	return <div {...props} />;
 }
