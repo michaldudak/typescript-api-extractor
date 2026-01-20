@@ -351,27 +351,19 @@ export function parseExport(
 				);
 			}
 
-			// If parentNamespaces are provided, merge them into the type's typeName
-			// But only if they're not already present (avoid duplication)
+			// If parentNamespaces are provided, update the type's typeName to use the export context
+			// This is important for re-exports where the original type has different namespaces
+			// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
+			// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
 			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
 				const typeWithName = parsedType as { typeName: TypeName | undefined };
-				if (typeWithName.typeName) {
-					const existingNamespaces = typeWithName.typeName.namespaces ?? [];
-					// Check if parentNamespaces are already a prefix of existing namespaces
-					const isAlreadyPrefixed = parentNamespaces.every((ns, i) => existingNamespaces[i] === ns);
-					if (!isAlreadyPrefixed) {
-						// Use the export name (which may be an alias) instead of the original type name
-						// e.g., `{ ComponentRoot as Root }` should use "Root", not "ComponentRoot"
-						typeWithName.typeName = new TypeName(
-							name,
-							[...parentNamespaces, ...existingNamespaces],
-							typeWithName.typeName.typeArguments,
-						);
-					}
-				} else {
-					// Create a typeName with the namespace info if one doesn't exist
-					typeWithName.typeName = new TypeName(name, parentNamespaces, undefined);
-				}
+				// Always use the export context namespaces, not the original type's namespaces
+				// The export name and parentNamespaces define how this type should be referenced
+				typeWithName.typeName = new TypeName(
+					name,
+					parentNamespaces,
+					typeWithName.typeName?.typeArguments,
+				);
 			}
 
 			// Build the fully qualified export name including namespace path

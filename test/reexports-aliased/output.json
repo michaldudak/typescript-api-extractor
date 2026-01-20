@@ -104,8 +104,7 @@
 					"name": "Props",
 					"namespaces": [
 						"AlertDialog",
-						"Root",
-						"AlertDialogRoot"
+						"Root"
 					]
 				},
 				"properties": [
@@ -258,8 +257,7 @@
 					"name": "Props",
 					"namespaces": [
 						"AlertDialog",
-						"Trigger",
-						"DialogTrigger"
+						"Trigger"
 					]
 				},
 				"properties": [
@@ -357,8 +355,7 @@
 					"name": "Props",
 					"namespaces": [
 						"AlertDialog",
-						"Backdrop",
-						"DialogBackdrop"
+						"Backdrop"
 					]
 				},
 				"properties": [
