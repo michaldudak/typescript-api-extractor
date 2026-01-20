@@ -1089,7 +1089,7 @@
 			"extendsTypes": [
 				{
 					"name": "DialogRoot.Props",
-					"resolvedName": "Props"
+					"resolvedName": "DialogRootProps"
 				}
 			]
 		},

@@ -432,9 +432,9 @@ function extractExtendsTypes(
 					? firstTypeArg.typeName.getText()
 					: firstTypeArg.getText();
 
-				// Try to resolve the actual symbol
+				// Try to resolve the actual symbol, following type alias chains
 				const type = checker.getTypeAtLocation(firstTypeArg);
-				const symbol = type.aliasSymbol ?? type.symbol;
+				const symbol = resolveUnderlyingSymbol(type, checker);
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: innerTypeName };
@@ -446,7 +446,7 @@ function extractExtendsTypes(
 			} else {
 				// Regular extends clause
 				const type = checker.getTypeAtLocation(typeExpr);
-				const symbol = type.aliasSymbol ?? type.symbol;
+				const symbol = resolveUnderlyingSymbol(type, checker);
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: baseTypeName };
@@ -460,4 +460,42 @@ function extractExtendsTypes(
 	}
 
 	return extendsTypes.length > 0 ? extendsTypes : undefined;
+}
+
+/**
+ * Resolves the underlying symbol for a type, following type alias chains.
+ * For generic type aliases like `type Props<T> = DialogProps<T>`, this returns
+ * the symbol for `DialogProps` rather than `Props`.
+ */
+function resolveUnderlyingSymbol(type: ts.Type, checker: ts.TypeChecker): ts.Symbol | undefined {
+	const symbol = type.aliasSymbol ?? type.symbol;
+
+	if (!symbol) {
+		return undefined;
+	}
+
+	// For type aliases, follow the chain to find the underlying type
+	// This handles generic type aliases like `type Props<T> = DialogProps<T>`
+	const aliasDecl = symbol.declarations?.[0];
+	if (aliasDecl && ts.isTypeAliasDeclaration(aliasDecl) && ts.isTypeReferenceNode(aliasDecl.type)) {
+		// Get the symbol from the type reference name, not from the resolved type
+		// This preserves the alias chain for generic types
+		const targetTypeName = aliasDecl.type.typeName;
+		const targetSymbol = checker.getSymbolAtLocation(targetTypeName);
+
+		if (targetSymbol && targetSymbol.name !== '__type' && targetSymbol !== symbol) {
+			// Check if the target is also a type alias - if so, recurse
+			const targetDecl = targetSymbol.declarations?.[0];
+			if (targetDecl && ts.isTypeAliasDeclaration(targetDecl)) {
+				const targetType = checker.getDeclaredTypeOfSymbol(targetSymbol);
+				const deeperSymbol = resolveUnderlyingSymbol(targetType, checker);
+				if (deeperSymbol && deeperSymbol !== targetSymbol) {
+					return deeperSymbol;
+				}
+			}
+			return targetSymbol;
+		}
+	}
+
+	return symbol;
 }

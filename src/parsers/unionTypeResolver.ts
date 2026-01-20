@@ -24,7 +24,7 @@ function flattenUnionTypeNode(typeNode: ts.UnionTypeNode): ts.TypeNode[] {
 		if (ts.isUnionTypeNode(unwrapped)) {
 			result.push(...flattenUnionTypeNode(unwrapped));
 		} else {
-			result.push(member);
+			result.push(unwrapped);
 		}
 	}
 
