@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { ExportNode, TypeName } from '../models';
+import { ExportNode, TypeName, type ExtendsTypeInfo } from '../models';
 import { ParserError } from '../ParserError';
 
 export function parseExport(
@@ -151,21 +151,11 @@ export function parseExport(
 				type = checker.getTypeOfSymbol(targetSymbol);
 			}
 
-			// Track inherited namespace when re-exporting with an alias
-			// e.g., `export { DialogTrigger as Trigger }` -> inheritedFrom: 'Dialog'
+			// Track the full original name when re-exporting with an alias
+			// e.g., `export { DialogTrigger as Trigger }` -> inheritedFrom: 'DialogTrigger'
 			let inheritedFrom: string | undefined;
 			if (isReExport && targetSymbol.name !== exportSymbol.name) {
-				const originalName = targetSymbol.name;
-				const aliasName = exportSymbol.name;
-
-				// Infer the namespace by checking if the original name ends with the alias
-				// e.g., 'DialogTrigger' ends with 'Trigger' -> namespace is 'Dialog'
-				if (originalName.endsWith(aliasName)) {
-					const namespace = originalName.slice(0, -aliasName.length);
-					if (namespace !== '') {
-						inheritedFrom = namespace;
-					}
-				}
+				inheritedFrom = targetSymbol.name;
 			}
 
 			const mainExport = createExportNode(
@@ -240,6 +230,7 @@ export function parseExport(
 			return results.length > 0 ? results : undefined;
 		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
 			// export interface X {}
+			// export interface X extends Y {}
 			if (!exportDeclaration.name) {
 				return;
 			}
@@ -249,12 +240,18 @@ export function parseExport(
 				return;
 			}
 
+			// Extract extends clause types
+			const extendsTypes = extractExtendsTypes(exportDeclaration.heritageClauses, checker);
+
 			const type = checker.getTypeAtLocation(exportDeclaration);
 			const mainExport = createExportNode(
 				exportSymbol.name,
 				exportedSymbol,
 				type,
 				parentNamespaces,
+				undefined,
+				undefined,
+				extendsTypes,
 			);
 			if (mainExport) {
 				results.push(...mainExport);
@@ -334,6 +331,7 @@ export function parseExport(
 		parentNamespaces: string[],
 		typeNode?: ts.TypeNode,
 		inheritedFrom?: string,
+		extendsTypes?: ExtendsTypeInfo[],
 	) {
 		const parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
@@ -379,29 +377,87 @@ export function parseExport(
 			// Build the fully qualified export name including namespace path
 			const exportName = parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
 
-			// Only include inheritedFrom if it differs from the type's namespace
-			// e.g., AlertDialog.Trigger has type.typeName.namespaces = ['AlertDialog']
-			// but inheritedFrom = 'Dialog', so we include it
-			let finalInheritedFrom: string | undefined;
-			if (inheritedFrom) {
-				const typeNamespaces =
-					'typeName' in parsedType
-						? ((parsedType as { typeName?: TypeName }).typeName?.namespaces ?? [])
-						: [];
-				const flattenedNamespace = typeNamespaces.join('');
-				if (inheritedFrom !== flattenedNamespace) {
-					finalInheritedFrom = inheritedFrom;
-				}
-			}
-
 			return [
 				new ExportNode(
 					exportName,
 					parsedType,
 					getDocumentationFromSymbol(symbol, checker),
-					finalInheritedFrom,
+					inheritedFrom,
+					extendsTypes,
 				),
 			];
 		}
 	}
+}
+
+/**
+ * Extracts the type names from extends/implements clauses.
+ * e.g., `interface X extends A, B.C` returns info for each extended type
+ *
+ * For utility types like Omit, Pick, Partial, etc., extracts the first type argument
+ * as the base type being extended.
+ */
+function extractExtendsTypes(
+	heritageClauses: ts.NodeArray<ts.HeritageClause> | undefined,
+	checker: ts.TypeChecker,
+): ExtendsTypeInfo[] | undefined {
+	if (!heritageClauses) {
+		return undefined;
+	}
+
+	// Utility types where the first type argument is the base type
+	const utilityTypes = new Set(['Omit', 'Pick', 'Partial', 'Required', 'Readonly']);
+
+	const extendsTypes: ExtendsTypeInfo[] = [];
+	for (const clause of heritageClauses) {
+		// Only process 'extends' clauses (SyntaxKind.ExtendsKeyword)
+		// Skip 'implements' clauses for now
+		if (clause.token !== ts.SyntaxKind.ExtendsKeyword) {
+			continue;
+		}
+
+		for (const typeExpr of clause.types) {
+			const baseTypeName = typeExpr.expression.getText();
+
+			// Check if this is a utility type wrapping another type
+			// e.g., Omit<DialogRoot.Props, 'modal'> -> extract DialogRoot.Props
+			if (
+				utilityTypes.has(baseTypeName) &&
+				typeExpr.typeArguments &&
+				typeExpr.typeArguments.length > 0
+			) {
+				const firstTypeArg = typeExpr.typeArguments[0];
+				// Get the base type name from the first type argument (without its own type arguments)
+				const innerTypeName = ts.isTypeReferenceNode(firstTypeArg)
+					? firstTypeArg.typeName.getText()
+					: firstTypeArg.getText();
+
+				// Try to resolve the actual symbol
+				const type = checker.getTypeAtLocation(firstTypeArg);
+				const symbol = type.aliasSymbol ?? type.symbol;
+				const resolvedName = symbol?.name;
+
+				const info: ExtendsTypeInfo = { name: innerTypeName };
+				if (resolvedName && resolvedName !== innerTypeName && resolvedName !== '__type') {
+					info.resolvedName = resolvedName;
+				}
+
+				extendsTypes.push(info);
+			} else {
+				// Regular extends clause
+				const type = checker.getTypeAtLocation(typeExpr);
+				const symbol = type.aliasSymbol ?? type.symbol;
+				const resolvedName = symbol?.name;
+
+				const info: ExtendsTypeInfo = { name: baseTypeName };
+				if (resolvedName && resolvedName !== baseTypeName && resolvedName !== '__type') {
+					info.resolvedName = resolvedName;
+				}
+
+				extendsTypes.push(info);
+			}
+		}
+	}
+
+	return extendsTypes.length > 0 ? extendsTypes : undefined;
 }

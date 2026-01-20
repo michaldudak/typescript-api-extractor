@@ -93,7 +93,8 @@
 			"documentation": {
 				"description": "The root component for an alert dialog.",
 				"tags": []
-			}
+			},
+			"inheritedFrom": "AlertDialogRoot"
 		},
 		{
 			"name": "AlertDialog.Root.Props",
@@ -185,7 +186,12 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"extendsTypes": [
+				{
+					"name": "AlertDialogRootProps"
+				}
+			]
 		},
 		{
 			"name": "AlertDialog.Trigger",
@@ -242,7 +248,7 @@
 				"description": "A button that opens the dialog.",
 				"tags": []
 			},
-			"inheritedFrom": "Dialog"
+			"inheritedFrom": "DialogTrigger"
 		},
 		{
 			"name": "AlertDialog.Trigger.Props",
@@ -296,7 +302,12 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"extendsTypes": [
+				{
+					"name": "DialogTriggerProps"
+				}
+			]
 		},
 		{
 			"name": "AlertDialog.Backdrop",
@@ -336,7 +347,7 @@
 				"description": "An overlay that covers the page behind the dialog.",
 				"tags": []
 			},
-			"inheritedFrom": "Dialog"
+			"inheritedFrom": "DialogBackdrop"
 		},
 		{
 			"name": "AlertDialog.Backdrop.Props",
@@ -373,7 +384,12 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"extendsTypes": [
+				{
+					"name": "DialogBackdropProps"
+				}
+			]
 		}
 	]
 }
