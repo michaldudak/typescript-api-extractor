@@ -96,14 +96,29 @@ export function resolveUnionType(
 		for (const node of flattenedTypeNodes) {
 			const nodeType = checker.getTypeFromTypeNode(node);
 
-			// Find a matching memberType for this TypeNode
-			let matchedMemberType: ts.Type | undefined;
-
 			// Special case: boolean TypeNode matches both false and true literal types
 			// TypeScript expands `boolean` to `false | true` in union types
-			const isBooleanNode =
-				(nodeType.flags & ts.TypeFlags.Boolean) !== 0 ||
-				(nodeType.flags & ts.TypeFlags.BooleanLiteral) !== 0;
+			// We need to mark ALL boolean literals as used since they correspond to a single boolean TypeNode
+			const isBooleanNode = (nodeType.flags & ts.TypeFlags.Boolean) !== 0;
+
+			if (isBooleanNode) {
+				// Mark all boolean literal memberTypes as used
+				let foundBooleanLiteral = false;
+				for (const memberType of memberTypes) {
+					if ((memberType.flags & ts.TypeFlags.BooleanLiteral) !== 0) {
+						usedMemberTypes.add(memberType);
+						foundBooleanLiteral = true;
+					}
+				}
+				if (foundBooleanLiteral) {
+					// Resolve as the boolean TypeNode (not the individual literals)
+					result.push(resolveType(nodeType, node, context));
+					continue;
+				}
+			}
+
+			// Find a matching memberType for this TypeNode
+			let matchedMemberType: ts.Type | undefined;
 
 			for (const memberType of memberTypes) {
 				if (usedMemberTypes.has(memberType)) {
@@ -112,12 +127,6 @@ export function resolveUnionType(
 
 				// Check for direct match or closed generic
 				if (memberType === nodeType || isClosedGeneric(memberType, nodeType)) {
-					matchedMemberType = memberType;
-					break;
-				}
-
-				// Handle boolean expansion: TypeNode `boolean` matches memberType `false` or `true`
-				if (isBooleanNode && (memberType.flags & ts.TypeFlags.BooleanLiteral) !== 0) {
 					matchedMemberType = memberType;
 					break;
 				}
