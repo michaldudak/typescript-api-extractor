@@ -20,10 +20,10 @@ export class ExportNode {
 		 * The full original name when this export is a re-export with a different name.
 		 *
 		 * For example, `export { DialogTrigger as Trigger }` would have
-		 * `inheritedFrom: "DialogTrigger"`. This allows consumers to build
+		 * `reexportedFrom: "DialogTrigger"`. This allows consumers to build
 		 * a map of re-exports for type compatibility tracking.
 		 */
-		public inheritedFrom?: string,
+		public reexportedFrom?: string,
 		/**
 		 * The type(s) this export explicitly extends.
 		 *

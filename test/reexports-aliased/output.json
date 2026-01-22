@@ -94,7 +94,7 @@
 				"description": "The root component for an alert dialog.",
 				"tags": []
 			},
-			"inheritedFrom": "AlertDialogRoot"
+			"reexportedFrom": "AlertDialogRoot"
 		},
 		{
 			"name": "AlertDialog.Root.Props",
@@ -247,7 +247,7 @@
 				"description": "A button that opens the dialog.",
 				"tags": []
 			},
-			"inheritedFrom": "DialogTrigger"
+			"reexportedFrom": "DialogTrigger"
 		},
 		{
 			"name": "AlertDialog.Trigger.Props",
@@ -345,7 +345,7 @@
 				"description": "An overlay that covers the page behind the dialog.",
 				"tags": []
 			},
-			"inheritedFrom": "DialogBackdrop"
+			"reexportedFrom": "DialogBackdrop"
 		},
 		{
 			"name": "AlertDialog.Backdrop.Props",

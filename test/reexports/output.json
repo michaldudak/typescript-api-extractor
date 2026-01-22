@@ -62,7 +62,7 @@
 					}
 				]
 			},
-			"inheritedFrom": "RootComponent"
+			"reexportedFrom": "RootComponent"
 		},
 		{
 			"name": "Root.Props",

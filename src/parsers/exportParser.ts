@@ -152,10 +152,10 @@ export function parseExport(
 			}
 
 			// Track the full original name when re-exporting with an alias
-			// e.g., `export { DialogTrigger as Trigger }` -> inheritedFrom: 'DialogTrigger'
-			let inheritedFrom: string | undefined;
+			// e.g., `export { DialogTrigger as Trigger }` -> reexportedFrom: 'DialogTrigger'
+			let reexportedFrom: string | undefined;
 			if (isReExport && targetSymbol.name !== exportSymbol.name) {
-				inheritedFrom = targetSymbol.name;
+				reexportedFrom = targetSymbol.name;
 			}
 
 			const mainExport = createExportNode(
@@ -164,7 +164,7 @@ export function parseExport(
 				type,
 				parentNamespaces,
 				undefined,
-				inheritedFrom,
+				reexportedFrom,
 			);
 			if (mainExport) {
 				results.push(...mainExport);
@@ -330,7 +330,7 @@ export function parseExport(
 		type: ts.Type,
 		parentNamespaces: string[],
 		typeNode?: ts.TypeNode,
-		inheritedFrom?: string,
+		reexportedFrom?: string,
 		extendsTypes?: ExtendsTypeInfo[],
 	) {
 		const parsedType = resolveType(type, typeNode, parserContext);
@@ -374,7 +374,7 @@ export function parseExport(
 					exportName,
 					parsedType,
 					getDocumentationFromSymbol(symbol, checker),
-					inheritedFrom,
+					reexportedFrom,
 					extendsTypes,
 				),
 			];
