@@ -2900,7 +2900,12 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"extendsTypes": [
+				{
+					"name": "BaseUIComponentProps"
+				}
+			]
 		},
 		{
 			"name": "BaseUIComponent1.State",
@@ -5207,7 +5212,12 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"extendsTypes": [
+				{
+					"name": "BaseUIComponentProps"
+				}
+			]
 		},
 		{
 			"name": "BaseUIComponent2.State",

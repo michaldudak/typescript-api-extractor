@@ -5,266 +5,30 @@ import { ParserContext } from '../parser';
 import { TypeName } from '../models/typeName';
 
 /**
- * Checks if a type contains `any` in its structure.
- * This includes direct `any` types, array element types, and type arguments.
+ * Flattens nested union TypeNodes to match how TypeScript flattens Types.
+ * For example: `(string | ((state: State) => string | undefined)) | undefined`
+ * The TypeNode has 2 members but TypeScript flattens the Types to 3 members.
+ * This function recursively flattens nested unions while unwrapping parenthesized types.
  */
-function containsAny(checker: ts.TypeChecker, type: ts.Type): boolean {
-	if ((type.flags & ts.TypeFlags.Any) !== 0) {
-		return true;
-	}
-	// Check array element type
-	if (checker.isArrayType(type)) {
-		const typeArgs = checker.getTypeArguments(type as ts.TypeReference);
-		if (typeArgs.length > 0 && containsAny(checker, typeArgs[0])) {
-			return true;
+function flattenUnionTypeNode(typeNode: ts.UnionTypeNode): ts.TypeNode[] {
+	const result: ts.TypeNode[] = [];
+
+	for (const member of typeNode.types) {
+		// Unwrap parenthesized types like `(string | number)`
+		let unwrapped = member;
+		while (ts.isParenthesizedTypeNode(unwrapped)) {
+			unwrapped = unwrapped.type;
 		}
-	}
-	// Check type arguments of generic types
-	if ((type as ts.TypeReference).typeArguments) {
-		for (const typeArg of (type as ts.TypeReference).typeArguments!) {
-			if (containsAny(checker, typeArg)) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
 
-/**
- * Checks if two types are structurally equivalent, handling function types specially.
- * For function types, compares parameter types and return types recursively.
- * This is specifically designed to handle cases where generic type parameters
- * resolve to the same underlying type but TypeScript represents them differently
- * (e.g., `State` vs `Tooltip.Trigger.State` in function signatures).
- */
-function areTypesEquivalent(checker: ts.TypeChecker, type1: ts.Type, type2: ts.Type): boolean {
-	// Quick check: if they're the same type object, they're equivalent
-	if (type1 === type2) {
-		return true;
-	}
-
-	// For function types, compare structurally even if one contains `any`
-	// This allows deduplicating `(value: any) => void` with `(value: ItemValue) => void`
-	const sigs1 = type1.getCallSignatures();
-	const sigs2 = type2.getCallSignatures();
-
-	if (sigs1.length > 0 && sigs2.length > 0 && sigs1.length === sigs2.length) {
-		// Compare each signature
-		for (let i = 0; i < sigs1.length; i++) {
-			const sig1 = sigs1[i];
-			const sig2 = sigs2[i];
-
-			// Compare parameter counts
-			const params1 = sig1.getParameters();
-			const params2 = sig2.getParameters();
-			if (params1.length !== params2.length) {
-				return false;
-			}
-
-			// Compare parameter types - use deep structural comparison
-			for (let j = 0; j < params1.length; j++) {
-				const paramType1 = checker.getTypeOfSymbol(params1[j]);
-				const paramType2 = checker.getTypeOfSymbol(params2[j]);
-
-				// If one parameter is `any`, consider them potentially equivalent
-				// This allows deduplicating `(value: any) => void` with `(value: ItemValue) => void`
-				const isAny1 = (paramType1.flags & ts.TypeFlags.Any) !== 0;
-				const isAny2 = (paramType2.flags & ts.TypeFlags.Any) !== 0;
-				if (isAny1 || isAny2) {
-					continue;
-				}
-
-				// First try assignability
-				if (
-					checker.isTypeAssignableTo(paramType1, paramType2) &&
-					checker.isTypeAssignableTo(paramType2, paramType1)
-				) {
-					continue;
-				}
-
-				// If assignability fails, compare structurally for object types
-				// This handles cases where generic type parameters resolve to equivalent shapes
-				// but TypeScript doesn't consider them assignable (e.g., State vs TooltipTrigger.State)
-				if (!areObjectTypesStructurallyEquivalent(checker, paramType1, paramType2)) {
-					return false;
-				}
-			}
-
-			// Compare return types
-			const returnType1 = sig1.getReturnType();
-			const returnType2 = sig2.getReturnType();
-			if (
-				!checker.isTypeAssignableTo(returnType1, returnType2) ||
-				!checker.isTypeAssignableTo(returnType2, returnType1)
-			) {
-				// Try structural comparison for return types too
-				if (!areObjectTypesStructurallyEquivalent(checker, returnType1, returnType2)) {
-					return false;
-				}
-			}
-		}
-		// All signatures match
-		return true;
-	}
-
-	// For non-function types involving `any`, don't consider them equivalent to avoid
-	// incorrectly deduplicating unions like `any[] | Group<any>[]`
-	if (containsAny(checker, type1) || containsAny(checker, type2)) {
-		return false;
-	}
-
-	// Check mutual assignability (handles most cases)
-	if (checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1)) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * Checks if type1 is more specific than type2.
- * A type is more specific if:
- * 1. It has non-`any` parameters while the other has `any`, OR
- * 2. It has concrete properties while the other is a type parameter, OR
- * 3. Both have the same properties but type1 has a longer/namespaced name (e.g., `Form.State` > `State`)
- * This is used to prefer namespaced types like `Tooltip.Trigger.State` over generic `State`.
- */
-function isMoreSpecificType(checker: ts.TypeChecker, type1: ts.Type, type2: ts.Type): boolean {
-	// For function types, compare their parameter types
-	const sigs1 = type1.getCallSignatures();
-	const sigs2 = type2.getCallSignatures();
-
-	if (sigs1.length > 0 && sigs2.length > 0) {
-		// Compare the first parameter of the first signature (usually the state parameter)
-		const params1 = sigs1[0].getParameters();
-		const params2 = sigs2[0].getParameters();
-
-		if (params1.length > 0 && params2.length > 0) {
-			const paramType1 = checker.getTypeOfSymbol(params1[0]);
-			const paramType2 = checker.getTypeOfSymbol(params2[0]);
-
-			// type1 is more specific if type2 has `any` and type1 doesn't
-			const isAny1 = (paramType1.flags & ts.TypeFlags.Any) !== 0;
-			const isAny2 = (paramType2.flags & ts.TypeFlags.Any) !== 0;
-			if (!isAny1 && isAny2) {
-				return true;
-			}
-
-			const props1 = paramType1.getProperties();
-			const props2 = paramType2.getProperties();
-
-			// type1 is more specific if it has properties while type2 doesn't
-			// (type2 is likely an uninstantiated type parameter)
-			if (props1.length > 0 && props2.length === 0) {
-				return true;
-			}
-
-			// If both have the same number of properties (including 0),
-			// prefer the one with a longer/namespaced name (e.g., `Form.State` over `State`)
-			if (props1.length === props2.length) {
-				const name1 = checker.typeToString(paramType1);
-				const name2 = checker.typeToString(paramType2);
-				// Prefer namespaced names (contain dots) or longer names
-				const hasNamespace1 = name1.includes('.');
-				const hasNamespace2 = name2.includes('.');
-				if (hasNamespace1 && !hasNamespace2) {
-					return true;
-				}
-			}
+		// If the unwrapped type is a union, recursively flatten it
+		if (ts.isUnionTypeNode(unwrapped)) {
+			result.push(...flattenUnionTypeNode(unwrapped));
+		} else {
+			result.push(unwrapped);
 		}
 	}
 
-	return false;
-}
-
-/**
- * Checks if typeNode1 is more specific than typeNode2 based on the authored text.
- * A TypeNode is more specific if it contains a namespace (e.g., `Form.State` vs `State`).
- * This is used to prefer namespaced types in the output when Types are structurally equivalent.
- */
-function isTypeNodeMoreSpecific(
-	typeNode1: ts.TypeNode | undefined,
-	typeNode2: ts.TypeNode | undefined,
-): boolean {
-	if (!typeNode1 || !typeNode2) {
-		return false;
-	}
-
-	const text1 = typeNode1.getText();
-	const text2 = typeNode2.getText();
-
-	// Prefer namespaced names (contain dots like `Form.State`)
-	const hasNamespace1 = text1.includes('.');
-	const hasNamespace2 = text2.includes('.');
-
-	if (hasNamespace1 && !hasNamespace2) {
-		return true;
-	}
-
-	return false;
-}
-
-/**
- * Compares two object types structurally by their properties.
- * This handles cases where TypeScript doesn't consider types assignable
- * but they have the same shape (e.g., generic parameters instantiated differently).
- */
-function areObjectTypesStructurallyEquivalent(
-	checker: ts.TypeChecker,
-	type1: ts.Type,
-	type2: ts.Type,
-): boolean {
-	// Get properties of both types
-	const props1 = type1.getProperties();
-	const props2 = type2.getProperties();
-
-	// If both types have no properties, they are structurally equivalent
-	// This handles empty interfaces like `interface State {}` vs aliased versions
-	if (props1.length === 0 && props2.length === 0) {
-		return true;
-	}
-
-	// If one type has no properties, it might be an uninstantiated type parameter
-	// In that case, we can't do structural comparison, so fall back to checking
-	// if the type with properties is assignable to a constraint
-	if (props1.length === 0 || props2.length === 0) {
-		// Check if either type is a type parameter
-		const isTypeParam1 = (type1.flags & ts.TypeFlags.TypeParameter) !== 0;
-		const isTypeParam2 = (type2.flags & ts.TypeFlags.TypeParameter) !== 0;
-
-		// If one is a type parameter and the other has properties,
-		// consider them potentially equivalent (the type parameter could be instantiated to match)
-		if ((isTypeParam1 && props2.length > 0) || (isTypeParam2 && props1.length > 0)) {
-			return true;
-		}
-		return false;
-	}
-
-	// Must have the same number of properties
-	if (props1.length !== props2.length) {
-		return false;
-	}
-
-	// Check that all properties match by name and type
-	for (const prop1 of props1) {
-		const prop2 = props2.find((p) => p.name === prop1.name);
-		if (!prop2) {
-			return false;
-		}
-
-		const propType1 = checker.getTypeOfSymbol(prop1);
-		const propType2 = checker.getTypeOfSymbol(prop2);
-
-		// Compare property types using assignability
-		if (
-			!checker.isTypeAssignableTo(propType1, propType2) ||
-			!checker.isTypeAssignableTo(propType2, propType1)
-		) {
-			return false;
-		}
-	}
-
-	return true;
+	return result;
 }
 
 export function resolveUnionType(
@@ -314,115 +78,74 @@ export function resolveUnionType(
 	}
 
 	if (typeNode && ts.isUnionTypeNode(typeNode)) {
-		// Here we're trying to match the union member types with TypeNodes
-		// (what TS resolves to what was authored in code).
-		// This is necessary as TS takes shortcuts when resolving types
-		// and drop information about simple aliases like `type Foo = Bar;`
-		// (it behaves like `Bar` doesn't exist at all).
+		// Match union member types with TypeNodes (what TS resolves to what was authored in code).
+		// This is necessary as TS takes shortcuts when resolving types and drops information
+		// about simple aliases like `type Foo = Bar;` (it behaves like `Bar` doesn't exist).
 		//
-		// IMPORTANT: We iterate over `typeNode.types` (not `memberTypes`) to preserve source order.
-		// The order of `type.types` (Types) doesn't match the order of `typeNode.types` (TypeNodes).
-		// By iterating over TypeNodes first, we ensure the output matches the authored source order.
-		//
-		// For each TypeNode, we find the matching Type from memberTypes.
-		// A Type is considered a match if:
-		// - The TypeNode resolves to the same Type. This is the simplest case and covers non-generic types.
-		// - The Type is a closed generic of type represented by TypeNode.
-		//   For example, Type = `Array<string>` and TypeNode = `Array<T>`.
+		// A TypeNode is considered a match for a memberType if:
+		// - The TypeNode resolves to the same Type as `memberType`. This is the simplest case.
+		// - The `memberType` is a closed generic of type represented by TypeNode.
+		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
 
-		// Track which memberTypes have been matched
-		const matchedMemberTypes = new Set<ts.Type>();
-		// Track resolved types that have been added to result (to avoid structural duplicates)
-		const addedTypes: ts.Type[] = [];
-		// Track the TypeNodes for each added type (to compare namespaced vs non-namespaced names)
-		const addedTypeNodes: (ts.TypeNode | undefined)[] = [];
+		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
+		const flattenedTypeNodes = flattenUnionTypeNode(typeNode);
 
-		for (const nodeType of typeNode.types) {
-			// Get the type that this TypeNode resolves to
-			const typeFromNode = checker.getTypeFromTypeNode(nodeType);
+		// Match each TypeNode to a memberType and resolve in source order
+		const usedMemberTypes = new Set<ts.Type>();
 
-			// Check if we've already added a structurally equivalent type
-			// This handles cases where different TypeNodes resolve to equivalent function types
-			// (e.g., `(state: State) => ...` and `(state: Tooltip.Trigger.State) => ...`)
-			const equivalentIndex = addedTypes.findIndex((addedType) =>
-				areTypesEquivalent(checker, typeFromNode, addedType),
-			);
+		for (const node of flattenedTypeNodes) {
+			const nodeType = checker.getTypeFromTypeNode(node);
 
-			if (equivalentIndex !== -1) {
-				// Found an equivalent type - check if the new one is more specific
-				// Prefer namespaced types like `Tooltip.Trigger.State` over generic `State`
-				// First check Type-level specificity, then TypeNode text (for namespaced names)
-				const existingNode = addedTypeNodes[equivalentIndex];
-				const isNewMoreSpecific =
-					isMoreSpecificType(checker, typeFromNode, addedTypes[equivalentIndex]) ||
-					isTypeNodeMoreSpecific(nodeType, existingNode);
+			// Special case: boolean TypeNode matches both false and true literal types
+			// TypeScript expands `boolean` to `false | true` in union types
+			// We need to mark ALL boolean literals as used since they correspond to a single boolean TypeNode
+			const isBooleanNode = (nodeType.flags & ts.TypeFlags.Boolean) !== 0;
 
-				if (isNewMoreSpecific) {
-					// Replace the less specific type with the more specific one
-					addedTypes[equivalentIndex] = typeFromNode;
-					addedTypeNodes[equivalentIndex] = nodeType;
-					result[equivalentIndex] = resolveType(typeFromNode, nodeType, context);
+			if (isBooleanNode) {
+				// Mark all boolean literal memberTypes as used
+				let foundBooleanLiteral = false;
+				for (const memberType of memberTypes) {
+					if ((memberType.flags & ts.TypeFlags.BooleanLiteral) !== 0) {
+						usedMemberTypes.add(memberType);
+						foundBooleanLiteral = true;
+					}
 				}
-				// Mark as matched to prevent adding from memberTypes later
-				matchedMemberTypes.add(typeFromNode);
-				continue;
+				if (foundBooleanLiteral) {
+					// Resolve as the boolean TypeNode (not the individual literals)
+					result.push(resolveType(nodeType, node, context));
+					continue;
+				}
 			}
 
-			// Find the matching memberType
-			const matchingMemberType = memberTypes.find((memberType) => {
-				// Direct match or closed generic
-				if (memberType === typeFromNode || isClosedGeneric(memberType, typeFromNode)) {
-					return true;
-				}
-				// Also check structural equivalence - this handles cases where
-				// function types have TypeParameter in typeFromNode but concrete type in memberType
-				// (e.g., `(state: State) => ...` where State is a TypeParameter in the TypeNode
-				// but resolves to `FormState` in the actual memberType)
-				return areTypesEquivalent(checker, memberType, typeFromNode);
-			});
+			// Find a matching memberType for this TypeNode
+			let matchedMemberType: ts.Type | undefined;
 
-			if (matchingMemberType) {
-				matchedMemberTypes.add(matchingMemberType);
-				addedTypes.push(matchingMemberType);
-				addedTypeNodes.push(nodeType);
-				// Use the matchingMemberType (properly resolved) but preserve the typeNode for naming
-				result.push(resolveType(matchingMemberType, nodeType, context));
-			} else {
-				// No exact match found. This can happen with generic type parameters that get
-				// instantiated differently. Use the resolved type from the TypeNode.
-				// Mark the typeFromNode as matched to avoid adding it again from memberTypes.
-				matchedMemberTypes.add(typeFromNode);
-				addedTypes.push(typeFromNode);
-				addedTypeNodes.push(nodeType);
-				result.push(resolveType(typeFromNode, nodeType, context));
+			for (const memberType of memberTypes) {
+				if (usedMemberTypes.has(memberType)) {
+					continue;
+				}
+
+				// Check for direct match or closed generic
+				if (memberType === nodeType || isClosedGeneric(memberType, nodeType)) {
+					matchedMemberType = memberType;
+					break;
+				}
 			}
+
+			if (matchedMemberType) {
+				usedMemberTypes.add(matchedMemberType);
+				result.push(resolveType(matchedMemberType, node, context));
+			}
+			// If no matching memberType found, skip this TypeNode.
+			// The unmatched memberType will be added at the end.
 		}
 
-		// Add any remaining memberTypes that weren't matched (e.g., `undefined` added by TS for optional properties)
-		// But skip any that are equivalent to types we already added, unless they are more specific
+		// Add any memberTypes that weren't matched to a TypeNode
+		// This handles cases like optional properties where TypeScript adds `undefined`
+		// to the union but there's no corresponding TypeNode for it
 		for (const memberType of memberTypes) {
-			if (!matchedMemberTypes.has(memberType)) {
-				// Check if this memberType is equivalent to any we already processed
-				// This handles cases where generic parameters resolve to the same underlying type
-				let equivalentIndex = -1;
-				for (let i = 0; i < addedTypes.length; i++) {
-					if (areTypesEquivalent(checker, memberType, addedTypes[i])) {
-						equivalentIndex = i;
-						break;
-					}
-				}
-
-				if (equivalentIndex !== -1) {
-					// Found an equivalent type - check if the memberType is more specific
-					// Prefer namespaced types like `Tooltip.Trigger.State` over generic `State`
-					if (isMoreSpecificType(checker, memberType, addedTypes[equivalentIndex])) {
-						// Replace the less specific type with the more specific one
-						addedTypes[equivalentIndex] = memberType;
-						result[equivalentIndex] = resolveType(memberType, undefined, context);
-					}
-				} else {
-					result.push(resolveType(memberType, undefined, context));
-				}
+			if (!usedMemberTypes.has(memberType)) {
+				result.push(resolveType(memberType, undefined, context));
 			}
 		}
 	} else {

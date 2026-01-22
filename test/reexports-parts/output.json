@@ -238,7 +238,8 @@
 			"documentation": {
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
-			}
+			},
+			"reexportedFrom": "ComponentRoot"
 		},
 		{
 			"name": "Component.Root.State",
@@ -676,7 +677,8 @@
 			"documentation": {
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
-			}
+			},
+			"reexportedFrom": "ComponentPart"
 		},
 		{
 			"name": "Component.Part.State",

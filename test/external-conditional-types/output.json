@@ -1,0 +1,61 @@
+{
+	"name": "test/external-conditional-types/input",
+	"exports": [
+		{
+			"name": "Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props"
+				},
+				"properties": [
+					{
+						"name": "event",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "Event"
+							}
+						},
+						"documentation": {
+							"description": "The event associated with the change.",
+							"tags": []
+						},
+						"optional": false
+					},
+					{
+						"name": "keyboardEvent",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "KeyboardEvent"
+							}
+						},
+						"documentation": {
+							"description": "The keyboard event.",
+							"tags": []
+						},
+						"optional": false
+					},
+					{
+						"name": "unknownEvent",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "Event"
+							}
+						},
+						"documentation": {
+							"description": "Unknown reason falls back to generic Event.",
+							"tags": []
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	],
+	"imports": [
+		"./external-types"
+	]
+}

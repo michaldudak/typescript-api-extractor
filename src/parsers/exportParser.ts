@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { ExportNode, TypeName } from '../models';
+import { ExportNode, TypeName, type ExtendsTypeInfo } from '../models';
 import { ParserError } from '../ParserError';
 
 export function parseExport(
@@ -150,7 +150,22 @@ export function parseExport(
 			} else {
 				type = checker.getTypeOfSymbol(targetSymbol);
 			}
-			const mainExport = createExportNode(exportSymbol.name, targetSymbol, type, parentNamespaces);
+
+			// Track the full original name when re-exporting with an alias
+			// e.g., `export { DialogTrigger as Trigger }` -> reexportedFrom: 'DialogTrigger'
+			let reexportedFrom: string | undefined;
+			if (isReExport && targetSymbol.name !== exportSymbol.name) {
+				reexportedFrom = targetSymbol.name;
+			}
+
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				targetSymbol,
+				type,
+				parentNamespaces,
+				undefined,
+				reexportedFrom,
+			);
 			if (mainExport) {
 				results.push(...mainExport);
 			}
@@ -215,6 +230,7 @@ export function parseExport(
 			return results.length > 0 ? results : undefined;
 		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
 			// export interface X {}
+			// export interface X extends Y {}
 			if (!exportDeclaration.name) {
 				return;
 			}
@@ -224,12 +240,18 @@ export function parseExport(
 				return;
 			}
 
+			// Extract extends clause types
+			const extendsTypes = extractExtendsTypes(exportDeclaration.heritageClauses, checker);
+
 			const type = checker.getTypeAtLocation(exportDeclaration);
 			const mainExport = createExportNode(
 				exportSymbol.name,
 				exportedSymbol,
 				type,
 				parentNamespaces,
+				undefined,
+				undefined,
+				extendsTypes,
 			);
 			if (mainExport) {
 				results.push(...mainExport);
@@ -308,6 +330,8 @@ export function parseExport(
 		type: ts.Type,
 		parentNamespaces: string[],
 		typeNode?: ts.TypeNode,
+		reexportedFrom?: string,
+		extendsTypes?: ExtendsTypeInfo[],
 	) {
 		const parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
@@ -327,33 +351,143 @@ export function parseExport(
 				);
 			}
 
-			// If parentNamespaces are provided, merge them into the type's typeName
-			// But only if they're not already present (avoid duplication)
+			// If parentNamespaces are provided, update the type's typeName to use the export context
+			// This is important for re-exports where the original type has different namespaces
+			// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
+			// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
 			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
 				const typeWithName = parsedType as { typeName: TypeName | undefined };
-				if (typeWithName.typeName) {
-					const existingNamespaces = typeWithName.typeName.namespaces ?? [];
-					// Check if parentNamespaces are already a prefix of existing namespaces
-					const isAlreadyPrefixed = parentNamespaces.every((ns, i) => existingNamespaces[i] === ns);
-					if (!isAlreadyPrefixed) {
-						// Use the export name (which may be an alias) instead of the original type name
-						// e.g., `{ ComponentRoot as Root }` should use "Root", not "ComponentRoot"
-						typeWithName.typeName = new TypeName(
-							name,
-							[...parentNamespaces, ...existingNamespaces],
-							typeWithName.typeName.typeArguments,
-						);
-					}
-				} else {
-					// Create a typeName with the namespace info if one doesn't exist
-					typeWithName.typeName = new TypeName(name, parentNamespaces, undefined);
-				}
+				// Always use the export context namespaces, not the original type's namespaces
+				// The export name and parentNamespaces define how this type should be referenced
+				typeWithName.typeName = new TypeName(
+					name,
+					parentNamespaces,
+					typeWithName.typeName?.typeArguments,
+				);
 			}
 
 			// Build the fully qualified export name including namespace path
 			const exportName = parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
 
-			return [new ExportNode(exportName, parsedType, getDocumentationFromSymbol(symbol, checker))];
+			return [
+				new ExportNode(
+					exportName,
+					parsedType,
+					getDocumentationFromSymbol(symbol, checker),
+					reexportedFrom,
+					extendsTypes,
+				),
+			];
 		}
 	}
+}
+
+/**
+ * Extracts the type names from extends/implements clauses.
+ * e.g., `interface X extends A, B.C` returns info for each extended type
+ *
+ * For utility types like Omit, Pick, Partial, etc., extracts the first type argument
+ * as the base type being extended.
+ */
+function extractExtendsTypes(
+	heritageClauses: ts.NodeArray<ts.HeritageClause> | undefined,
+	checker: ts.TypeChecker,
+): ExtendsTypeInfo[] | undefined {
+	if (!heritageClauses) {
+		return undefined;
+	}
+
+	// Utility types where the first type argument is the base type
+	const utilityTypes = new Set(['Omit', 'Pick', 'Partial', 'Required', 'Readonly']);
+
+	const extendsTypes: ExtendsTypeInfo[] = [];
+	for (const clause of heritageClauses) {
+		// Only process 'extends' clauses (SyntaxKind.ExtendsKeyword)
+		// Skip 'implements' clauses for now
+		if (clause.token !== ts.SyntaxKind.ExtendsKeyword) {
+			continue;
+		}
+
+		for (const typeExpr of clause.types) {
+			const baseTypeName = typeExpr.expression.getText();
+
+			// Check if this is a utility type wrapping another type
+			// e.g., Omit<DialogRoot.Props, 'modal'> -> extract DialogRoot.Props
+			if (
+				utilityTypes.has(baseTypeName) &&
+				typeExpr.typeArguments &&
+				typeExpr.typeArguments.length > 0
+			) {
+				const firstTypeArg = typeExpr.typeArguments[0];
+				// Get the base type name from the first type argument (without its own type arguments)
+				const innerTypeName = ts.isTypeReferenceNode(firstTypeArg)
+					? firstTypeArg.typeName.getText()
+					: firstTypeArg.getText();
+
+				// Try to resolve the actual symbol, following type alias chains
+				const type = checker.getTypeAtLocation(firstTypeArg);
+				const symbol = resolveUnderlyingSymbol(type, checker);
+				const resolvedName = symbol?.name;
+
+				const info: ExtendsTypeInfo = { name: innerTypeName };
+				if (resolvedName && resolvedName !== innerTypeName && resolvedName !== '__type') {
+					info.resolvedName = resolvedName;
+				}
+
+				extendsTypes.push(info);
+			} else {
+				// Regular extends clause
+				const type = checker.getTypeAtLocation(typeExpr);
+				const symbol = resolveUnderlyingSymbol(type, checker);
+				const resolvedName = symbol?.name;
+
+				const info: ExtendsTypeInfo = { name: baseTypeName };
+				if (resolvedName && resolvedName !== baseTypeName && resolvedName !== '__type') {
+					info.resolvedName = resolvedName;
+				}
+
+				extendsTypes.push(info);
+			}
+		}
+	}
+
+	return extendsTypes.length > 0 ? extendsTypes : undefined;
+}
+
+/**
+ * Resolves the underlying symbol for a type, following type alias chains.
+ * For generic type aliases like `type Props<T> = DialogProps<T>`, this returns
+ * the symbol for `DialogProps` rather than `Props`.
+ */
+function resolveUnderlyingSymbol(type: ts.Type, checker: ts.TypeChecker): ts.Symbol | undefined {
+	const symbol = type.aliasSymbol ?? type.symbol;
+
+	if (!symbol) {
+		return undefined;
+	}
+
+	// For type aliases, follow the chain to find the underlying type
+	// This handles generic type aliases like `type Props<T> = DialogProps<T>`
+	const aliasDecl = symbol.declarations?.[0];
+	if (aliasDecl && ts.isTypeAliasDeclaration(aliasDecl) && ts.isTypeReferenceNode(aliasDecl.type)) {
+		// Get the symbol from the type reference name, not from the resolved type
+		// This preserves the alias chain for generic types
+		const targetTypeName = aliasDecl.type.typeName;
+		const targetSymbol = checker.getSymbolAtLocation(targetTypeName);
+
+		if (targetSymbol && targetSymbol.name !== '__type' && targetSymbol !== symbol) {
+			// Check if the target is also a type alias - if so, recurse
+			const targetDecl = targetSymbol.declarations?.[0];
+			if (targetDecl && ts.isTypeAliasDeclaration(targetDecl)) {
+				const targetType = checker.getDeclaredTypeOfSymbol(targetSymbol);
+				const deeperSymbol = resolveUnderlyingSymbol(targetType, checker);
+				if (deeperSymbol && deeperSymbol !== targetSymbol) {
+					return deeperSymbol;
+				}
+			}
+			return targetSymbol;
+		}
+	}
+
+	return symbol;
 }

@@ -1,0 +1,392 @@
+{
+	"name": "test/reexports-aliased/input",
+	"exports": [
+		{
+			"name": "AlertDialog.Root",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Root",
+					"namespaces": [
+						"AlertDialog"
+					]
+				},
+				"props": [
+					{
+						"name": "open",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Whether the dialog is open.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "onOpenChange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "boolean"
+													},
+													"name": "open",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Callback when the open state changes.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "children",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "ReactNode",
+								"namespaces": [
+									"React"
+								]
+							}
+						},
+						"documentation": {
+							"description": "Child elements.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "The root component for an alert dialog.",
+				"tags": []
+			},
+			"reexportedFrom": "AlertDialogRoot"
+		},
+		{
+			"name": "AlertDialog.Root.Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"AlertDialog",
+						"Root"
+					]
+				},
+				"properties": [
+					{
+						"name": "open",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Whether the dialog is open.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "onOpenChange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "boolean"
+													},
+													"name": "open",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Callback when the open state changes.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "children",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "ReactNode",
+								"namespaces": [
+									"React"
+								]
+							}
+						},
+						"documentation": {
+							"description": "Child elements.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"extendsTypes": [
+				{
+					"name": "AlertDialogRootProps"
+				}
+			]
+		},
+		{
+			"name": "AlertDialog.Trigger",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Trigger",
+					"namespaces": [
+						"AlertDialog"
+					]
+				},
+				"props": [
+					{
+						"name": "children",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "ReactNode",
+								"namespaces": [
+									"React"
+								]
+							}
+						},
+						"documentation": {
+							"description": "The content of the trigger button.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "disabled",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Whether the trigger is disabled.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "A button that opens the dialog.",
+				"tags": []
+			},
+			"reexportedFrom": "DialogTrigger"
+		},
+		{
+			"name": "AlertDialog.Trigger.Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"AlertDialog",
+						"Trigger"
+					]
+				},
+				"properties": [
+					{
+						"name": "children",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "ReactNode",
+								"namespaces": [
+									"React"
+								]
+							}
+						},
+						"documentation": {
+							"description": "The content of the trigger button.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "disabled",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Whether the trigger is disabled.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"extendsTypes": [
+				{
+					"name": "DialogTriggerProps"
+				}
+			]
+		},
+		{
+			"name": "AlertDialog.Backdrop",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Backdrop",
+					"namespaces": [
+						"AlertDialog"
+					]
+				},
+				"props": [
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Custom CSS class for the backdrop.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "An overlay that covers the page behind the dialog.",
+				"tags": []
+			},
+			"reexportedFrom": "DialogBackdrop"
+		},
+		{
+			"name": "AlertDialog.Backdrop.Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props",
+					"namespaces": [
+						"AlertDialog",
+						"Backdrop"
+					]
+				},
+				"properties": [
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Custom CSS class for the backdrop.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			},
+			"extendsTypes": [
+				{
+					"name": "DialogBackdropProps"
+				}
+			]
+		}
+	]
+}
