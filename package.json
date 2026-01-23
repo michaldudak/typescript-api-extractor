@@ -47,7 +47,7 @@
 		"fast-glob": "^3.3.3",
 		"globals": "^16.5.0",
 		"prettier": "^3.6.2",
-		"rimraf": "^6.0.1",
+		"rimraf": "^6.1.2",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.50.0",
