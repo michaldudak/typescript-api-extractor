@@ -145,6 +145,13 @@ export function parseExport(
 				// For re-exports of imported types, use the export specifier directly
 				// This handles cases like: import { X } from './m.js'; export type { X }
 				type = checker.getTypeAtLocation(exportDeclaration);
+			} else if (
+				targetDecl &&
+				(ts.isClassDeclaration(targetDecl) || ts.isClassExpression(targetDecl))
+			) {
+				// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
+				// instead of getTypeAtLocation which returns the instance type
+				type = checker.getTypeOfSymbol(targetSymbol);
 			} else if (targetDecl) {
 				type = checker.getTypeAtLocation(targetDecl);
 			} else {
