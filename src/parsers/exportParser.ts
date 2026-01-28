@@ -288,6 +288,32 @@ export function parseExport(
 			// Append namespace members after main export for cleaner diffs
 			results.push(...namespaceMembers);
 			return results.length > 0 ? results : undefined;
+		} else if (ts.isClassDeclaration(exportDeclaration)) {
+			// export class X {}
+			if (!exportDeclaration.name) {
+				return;
+			}
+
+			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+			if (!exportedSymbol) {
+				return;
+			}
+
+			// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
+			// instead of getTypeAtLocation which returns the instance type
+			const type = checker.getTypeOfSymbol(exportedSymbol);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
 		} else if (ts.isTypeAliasDeclaration(exportDeclaration)) {
 			// export type X = ...
 			if (!exportDeclaration.name) {

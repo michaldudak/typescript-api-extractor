@@ -6,6 +6,7 @@ export * from './program';
 export * from './typeName';
 
 export * from './types/array';
+export * from './types/class';
 export * from './types/component';
 export * from './types/enum';
 export * from './types/function';

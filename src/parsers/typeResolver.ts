@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { ParserContext } from '../parser';
+import { parseClassType } from './classParser';
 import { parseFunctionType } from './functionParser';
 import { parseObjectType } from './objectParser';
 import { parseEnum } from './enumParser';
@@ -284,6 +285,15 @@ export function resolveType(
 		const callSignatures = type.getCallSignatures();
 		if (callSignatures.length >= 1) {
 			return parseFunctionType(type, context)!;
+		}
+
+		// Check for class types (have construct signatures)
+		const constructSignatures = type.getConstructSignatures();
+		if (constructSignatures.length >= 1) {
+			const classType = parseClassType(type, context);
+			if (classType) {
+				return classType;
+			}
 		}
 
 		const objectType = parseObjectType(type, typeName, context, resolveType);
