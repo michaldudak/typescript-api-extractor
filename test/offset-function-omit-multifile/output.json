@@ -1,0 +1,817 @@
+{
+	"name": "test/offset-function-omit-multifile/input",
+	"exports": [
+		{
+			"name": "Provider",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "Provider"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "ProviderProps"
+									},
+									"properties": [
+										{
+											"name": "manager",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "object",
+														"typeName": {
+															"name": "Manager"
+														},
+														"properties": [
+															{
+																"name": "add",
+																"type": {
+																	"kind": "function",
+																	"callSignatures": [
+																		{
+																			"parameters": [
+																				{
+																					"type": {
+																						"kind": "object",
+																						"typeName": {
+																							"name": "AddOptions",
+																							"typeArguments": [
+																								{
+																									"type": {
+																										"kind": "typeParameter",
+																										"name": "Data",
+																										"constraint": {
+																											"kind": "object",
+																											"properties": []
+																										}
+																									},
+																									"equalToDefault": false
+																								}
+																							]
+																						},
+																						"properties": [
+																							{
+																								"name": "props",
+																								"type": {
+																									"kind": "union",
+																									"types": [
+																										{
+																											"kind": "object",
+																											"typeName": {
+																												"name": "DerivedProps"
+																											},
+																											"properties": [
+																												{
+																													"name": "sideOffset",
+																													"type": {
+																														"kind": "union",
+																														"types": [
+																															{
+																																"kind": "intrinsic",
+																																"intrinsic": "number"
+																															},
+																															{
+																																"kind": "function",
+																																"typeName": {
+																																	"name": "OffsetFunction"
+																																},
+																																"callSignatures": [
+																																	{
+																																		"parameters": [
+																																			{
+																																				"type": {
+																																					"kind": "object",
+																																					"properties": [
+																																						{
+																																							"name": "side",
+																																							"type": {
+																																								"kind": "union",
+																																								"types": [
+																																									{
+																																										"kind": "literal",
+																																										"value": "\"top\""
+																																									},
+																																									{
+																																										"kind": "literal",
+																																										"value": "\"bottom\""
+																																									}
+																																								]
+																																							},
+																																							"optional": false
+																																						},
+																																						{
+																																							"name": "anchor",
+																																							"type": {
+																																								"kind": "object",
+																																								"properties": [
+																																									{
+																																										"name": "width",
+																																										"type": {
+																																											"kind": "intrinsic",
+																																											"intrinsic": "number"
+																																										},
+																																										"optional": false
+																																									}
+																																								]
+																																							},
+																																							"optional": false
+																																						}
+																																					]
+																																				},
+																																				"name": "data",
+																																				"optional": false
+																																			}
+																																		],
+																																		"returnValueType": {
+																																			"kind": "intrinsic",
+																																			"intrinsic": "number"
+																																		}
+																																	}
+																																]
+																															},
+																															{
+																																"kind": "intrinsic",
+																																"intrinsic": "undefined"
+																															}
+																														]
+																													},
+																													"optional": true
+																												}
+																											]
+																										},
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "undefined"
+																										}
+																									]
+																								},
+																								"optional": true
+																							},
+																							{
+																								"name": "data",
+																								"type": {
+																									"kind": "union",
+																									"types": [
+																										{
+																											"kind": "typeParameter",
+																											"name": "Data",
+																											"constraint": {
+																												"kind": "object",
+																												"properties": []
+																											}
+																										},
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "undefined"
+																										}
+																									]
+																								},
+																								"optional": true
+																							}
+																						]
+																					},
+																					"name": "options",
+																					"optional": false
+																				}
+																			],
+																			"returnValueType": {
+																				"kind": "intrinsic",
+																				"intrinsic": "string"
+																			}
+																		}
+																	]
+																},
+																"optional": false
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "null"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "DerivedProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "DerivedProps"
+				},
+				"properties": [
+					{
+						"name": "sideOffset",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								{
+									"kind": "function",
+									"typeName": {
+										"name": "OffsetFunction"
+									},
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "object",
+														"properties": [
+															{
+																"name": "side",
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "literal",
+																			"value": "\"top\""
+																		},
+																		{
+																			"kind": "literal",
+																			"value": "\"bottom\""
+																		}
+																	]
+																},
+																"optional": false
+															},
+															{
+																"name": "anchor",
+																"type": {
+																	"kind": "object",
+																	"properties": [
+																		{
+																			"name": "width",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "number"
+																			},
+																			"optional": false
+																		}
+																	]
+																},
+																"optional": false
+															}
+														]
+													},
+													"name": "data",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			},
+			"extendsTypes": [
+				{
+					"name": "BaseProps"
+				}
+			]
+		},
+		{
+			"name": "AddOptions",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "AddOptions",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "typeParameter",
+								"name": "Data",
+								"constraint": {
+									"kind": "object",
+									"properties": []
+								}
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"properties": [
+					{
+						"name": "props",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "object",
+									"typeName": {
+										"name": "DerivedProps"
+									},
+									"properties": [
+										{
+											"name": "sideOffset",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "number"
+													},
+													{
+														"kind": "function",
+														"typeName": {
+															"name": "OffsetFunction"
+														},
+														"callSignatures": [
+															{
+																"parameters": [
+																	{
+																		"type": {
+																			"kind": "object",
+																			"properties": [
+																				{
+																					"name": "side",
+																					"type": {
+																						"kind": "union",
+																						"types": [
+																							{
+																								"kind": "literal",
+																								"value": "\"top\""
+																							},
+																							{
+																								"kind": "literal",
+																								"value": "\"bottom\""
+																							}
+																						]
+																					},
+																					"optional": false
+																				},
+																				{
+																					"name": "anchor",
+																					"type": {
+																						"kind": "object",
+																						"properties": [
+																							{
+																								"name": "width",
+																								"type": {
+																									"kind": "intrinsic",
+																									"intrinsic": "number"
+																								},
+																								"optional": false
+																							}
+																						]
+																					},
+																					"optional": false
+																				}
+																			]
+																		},
+																		"name": "data",
+																		"optional": false
+																	}
+																],
+																"returnValueType": {
+																	"kind": "intrinsic",
+																	"intrinsic": "number"
+																}
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "data",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "typeParameter",
+									"name": "Data",
+									"constraint": {
+										"kind": "object",
+										"properties": []
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "Manager",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Manager"
+				},
+				"properties": [
+					{
+						"name": "add",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "object",
+												"typeName": {
+													"name": "AddOptions",
+													"typeArguments": [
+														{
+															"type": {
+																"kind": "typeParameter",
+																"name": "Data",
+																"constraint": {
+																	"kind": "object",
+																	"properties": []
+																}
+															},
+															"equalToDefault": false
+														}
+													]
+												},
+												"properties": [
+													{
+														"name": "props",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "object",
+																	"typeName": {
+																		"name": "DerivedProps"
+																	},
+																	"properties": [
+																		{
+																			"name": "sideOffset",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "number"
+																					},
+																					{
+																						"kind": "function",
+																						"typeName": {
+																							"name": "OffsetFunction"
+																						},
+																						"callSignatures": [
+																							{
+																								"parameters": [
+																									{
+																										"type": {
+																											"kind": "object",
+																											"properties": [
+																												{
+																													"name": "side",
+																													"type": {
+																														"kind": "union",
+																														"types": [
+																															{
+																																"kind": "literal",
+																																"value": "\"top\""
+																															},
+																															{
+																																"kind": "literal",
+																																"value": "\"bottom\""
+																															}
+																														]
+																													},
+																													"optional": false
+																												},
+																												{
+																													"name": "anchor",
+																													"type": {
+																														"kind": "object",
+																														"properties": [
+																															{
+																																"name": "width",
+																																"type": {
+																																	"kind": "intrinsic",
+																																	"intrinsic": "number"
+																																},
+																																"optional": false
+																															}
+																														]
+																													},
+																													"optional": false
+																												}
+																											]
+																										},
+																										"name": "data",
+																										"optional": false
+																									}
+																								],
+																								"returnValueType": {
+																									"kind": "intrinsic",
+																									"intrinsic": "number"
+																								}
+																							}
+																						]
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													},
+													{
+														"name": "data",
+														"type": {
+															"kind": "union",
+															"types": [
+																{
+																	"kind": "typeParameter",
+																	"name": "Data",
+																	"constraint": {
+																		"kind": "object",
+																		"properties": []
+																	}
+																},
+																{
+																	"kind": "intrinsic",
+																	"intrinsic": "undefined"
+																}
+															]
+														},
+														"optional": true
+													}
+												]
+											},
+											"name": "options",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "ProviderProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "ProviderProps"
+				},
+				"properties": [
+					{
+						"name": "manager",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "object",
+									"typeName": {
+										"name": "Manager"
+									},
+									"properties": [
+										{
+											"name": "add",
+											"type": {
+												"kind": "function",
+												"callSignatures": [
+													{
+														"parameters": [
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "AddOptions",
+																		"typeArguments": [
+																			{
+																				"type": {
+																					"kind": "typeParameter",
+																					"name": "Data",
+																					"constraint": {
+																						"kind": "object",
+																						"properties": []
+																					}
+																				},
+																				"equalToDefault": false
+																			}
+																		]
+																	},
+																	"properties": [
+																		{
+																			"name": "props",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "object",
+																						"typeName": {
+																							"name": "DerivedProps"
+																						},
+																						"properties": [
+																							{
+																								"name": "sideOffset",
+																								"type": {
+																									"kind": "union",
+																									"types": [
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "number"
+																										},
+																										{
+																											"kind": "function",
+																											"typeName": {
+																												"name": "OffsetFunction"
+																											},
+																											"callSignatures": [
+																												{
+																													"parameters": [
+																														{
+																															"type": {
+																																"kind": "object",
+																																"properties": [
+																																	{
+																																		"name": "side",
+																																		"type": {
+																																			"kind": "union",
+																																			"types": [
+																																				{
+																																					"kind": "literal",
+																																					"value": "\"top\""
+																																				},
+																																				{
+																																					"kind": "literal",
+																																					"value": "\"bottom\""
+																																				}
+																																			]
+																																		},
+																																		"optional": false
+																																	},
+																																	{
+																																		"name": "anchor",
+																																		"type": {
+																																			"kind": "object",
+																																			"properties": [
+																																				{
+																																					"name": "width",
+																																					"type": {
+																																						"kind": "intrinsic",
+																																						"intrinsic": "number"
+																																					},
+																																					"optional": false
+																																				}
+																																			]
+																																		},
+																																		"optional": false
+																																	}
+																																]
+																															},
+																															"name": "data",
+																															"optional": false
+																														}
+																													],
+																													"returnValueType": {
+																														"kind": "intrinsic",
+																														"intrinsic": "number"
+																													}
+																												}
+																											]
+																										},
+																										{
+																											"kind": "intrinsic",
+																											"intrinsic": "undefined"
+																										}
+																									]
+																								},
+																								"optional": true
+																							}
+																						]
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		},
+																		{
+																			"name": "data",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "typeParameter",
+																						"name": "Data",
+																						"constraint": {
+																							"kind": "object",
+																							"properties": []
+																						}
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		}
+																	]
+																},
+																"name": "options",
+																"optional": false
+															}
+														],
+														"returnValueType": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														}
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": [
+		"./types"
+	]
+}

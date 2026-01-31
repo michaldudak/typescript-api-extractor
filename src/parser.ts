@@ -69,7 +69,7 @@ function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions 
 			}
 		}
 
-		return data.propertyCount <= 50 && data.depth <= 10;
+		return data.propertyCount <= 50 && data.depth <= 15;
 	};
 
 	return {
@@ -100,7 +100,7 @@ export interface ParserOptions {
 	 * Called before the shape of an object is resolved
 	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
 	 * use the default behaviour
-	 * @default propertyCount <= 50 && depth <= 10
+	 * @default propertyCount <= 50 && depth <= 15
 	 */
 	shouldResolveObject: (data: {
 		name: string;
