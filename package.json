@@ -45,7 +45,7 @@
 		"cross-env": "^10.1.0",
 		"eslint": "^9.39.2",
 		"fast-glob": "^3.3.3",
-		"globals": "^16.5.0",
+		"globals": "^17.3.0",
 		"prettier": "^3.6.2",
 		"rimraf": "^6.0.1",
 		"tsx": "^4.21.0",
