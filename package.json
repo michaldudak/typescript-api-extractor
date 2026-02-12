@@ -30,7 +30,8 @@
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
 		"prepack": "pnpm build",
-		"lint": "eslint . && prettier --check ."
+		"lint": "eslint . && prettier --check .",
+		"prettier": "prettier --write ."
 	},
 	"dependencies": {
 		"es-toolkit": "^1.43.0"
