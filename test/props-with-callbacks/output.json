@@ -33,6 +33,15 @@
 																}
 															},
 															"equalToDefault": false
+														},
+														{
+															"type": {
+																"kind": "external",
+																"typeName": {
+																	"name": "Element"
+																}
+															},
+															"equalToDefault": true
 														}
 													]
 												}
