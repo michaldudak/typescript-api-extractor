@@ -30,7 +30,8 @@
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
 		"prepack": "pnpm build",
-		"lint": "eslint . && prettier --check ."
+		"lint": "eslint . && prettier --check .",
+		"prettier": "prettier --write ."
 	},
 	"dependencies": {
 		"es-toolkit": "^1.43.0"
@@ -46,7 +47,7 @@
 		"eslint": "^9.39.2",
 		"fast-glob": "^3.3.3",
 		"globals": "^17.3.0",
-		"prettier": "^3.6.2",
+		"prettier": "^3.8.1",
 		"rimraf": "^6.1.2",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",

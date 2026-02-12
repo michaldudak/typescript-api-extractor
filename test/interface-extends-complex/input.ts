@@ -33,8 +33,10 @@ export namespace DialogRoot {
 // ==========================================
 
 // Pattern 1: Extends with Omit (removing some props and redefining them)
-export interface AlertDialogRootProps<Payload = unknown>
-	extends Omit<DialogRoot.Props<Payload>, 'modal' | 'disablePointerDismissal' | 'onOpenChange'> {
+export interface AlertDialogRootProps<Payload = unknown> extends Omit<
+	DialogRoot.Props<Payload>,
+	'modal' | 'disablePointerDismissal' | 'onOpenChange'
+> {
 	/**
 	 * Event handler called when the dialog is opened or closed.
 	 */
