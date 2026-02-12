@@ -244,6 +244,41 @@ export class VisibilityTagsClass {
 }
 
 /**
+ * A class with ECMAScript private names (#field, #method).
+ * These should NOT appear in the output since they are always private.
+ */
+export class EcmaPrivateClass {
+	/**
+	 * A public property.
+	 */
+	publicField: string = 'hello';
+
+	/**
+	 * An ECMAScript private field - should not appear in docs.
+	 */
+	#secret: number = 42;
+
+	/**
+	 * Another ECMAScript private field - should not appear in docs.
+	 */
+	#internalState: boolean = false;
+
+	/**
+	 * A public method.
+	 */
+	getPublicInfo(): string {
+		return this.publicField;
+	}
+
+	/**
+	 * An ECMAScript private method - should not appear in docs.
+	 */
+	#computeSecret(): number {
+		return this.#secret * 2;
+	}
+}
+
+/**
  * This should NOT be parsed as a class - it's an interface with a construct signature.
  */
 export interface Constructable {

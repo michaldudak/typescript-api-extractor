@@ -762,6 +762,59 @@
 			}
 		},
 		{
+			"name": "EcmaPrivateClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "EcmaPrivateClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "publicField",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"documentation": {
+							"description": "A public property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								}
+							}
+						],
+						"name": "getPublicInfo",
+						"documentation": {
+							"description": "A public method.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with ECMAScript private names (#field, #method).\nThese should NOT appear in the output since they are always private.",
+				"tags": []
+			}
+		},
+		{
 			"name": "Constructable",
 			"type": {
 				"kind": "object",

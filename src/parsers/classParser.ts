@@ -110,7 +110,8 @@ function extractMembers(
 		}
 
 		// Skip members starting with underscore (private by convention)
-		if (member.name.startsWith('_')) {
+		// or ECMAScript private names (e.g., #secret, #method)
+		if (member.name.startsWith('_') || member.name.startsWith('#')) {
 			continue;
 		}
 
