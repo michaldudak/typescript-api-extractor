@@ -17,6 +17,17 @@
 			"groupName": "Ignore peer dependencies",
 			"matchDepTypes": ["peerDependencies"],
 			"enabled": false
+		},
+		{
+			"groupName": "Do not update package.json engines",
+			"matchDepTypes": ["engines"],
+			"enabled": false
+		},
+		{
+			"groupName": "Do not update major Node versions",
+			"matchPackageNames": ["node", "@types/node"],
+			"matchUpdateTypes": ["major"],
+			"enabled": false
 		}
 	]
 }
