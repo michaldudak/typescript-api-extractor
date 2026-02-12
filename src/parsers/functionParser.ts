@@ -14,9 +14,13 @@ import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
-	const parsedCallSignatures = type
-		.getCallSignatures()
-		.map((signature) => parseFunctionSignature(signature, context));
+	const parsedCallSignatures = type.getCallSignatures().map(
+		(signature) =>
+			new CallSignature(
+				signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
+				resolveType(signature.getReturnType(), undefined, context),
+			),
+	);
 
 	if (parsedCallSignatures.length === 0) {
 		return;
@@ -39,46 +43,6 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 		name !== undefined ? new TypeName(name, fqn?.namespaces, fqn?.typeArguments) : undefined;
 
 	return new FunctionNode(typeName, parsedCallSignatures);
-}
-
-function parseFunctionSignature(signature: ts.Signature, context: ParserContext): CallSignature {
-	// Node that possibly has JSDocs attached to it
-	let documentationNodeCandidate: ts.Node | undefined = undefined;
-
-	const functionDeclaration = signature.getDeclaration();
-	if (ts.isFunctionDeclaration(functionDeclaration)) {
-		// function foo(a: string) {}
-		documentationNodeCandidate = functionDeclaration;
-	} else if (
-		ts.isFunctionExpression(functionDeclaration) ||
-		ts.isArrowFunction(functionDeclaration)
-	) {
-		// const foo = function(a: string) {}
-		// const foo = (a: string) => {}
-		documentationNodeCandidate = functionDeclaration.parent;
-
-		while (true) {
-			// find the nearest variable declaration to look for JSDocs
-			if (ts.isVariableStatement(documentationNodeCandidate)) {
-				break;
-			}
-
-			if (ts.isSourceFile(documentationNodeCandidate)) {
-				documentationNodeCandidate = undefined;
-				break;
-			}
-
-			documentationNodeCandidate = documentationNodeCandidate?.parent;
-		}
-	}
-
-	const parameters = signature.parameters.map((parameterSymbol) =>
-		parseParameter(parameterSymbol, context),
-	);
-
-	const returnValueType = resolveType(signature.getReturnType(), undefined, context);
-
-	return new CallSignature(parameters, returnValueType);
 }
 
 function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
