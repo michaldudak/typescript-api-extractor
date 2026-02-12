@@ -142,9 +142,21 @@ export function parseExport(
 			let type: ts.Type;
 			const targetDecl = targetSymbol.declarations?.[0];
 			if (targetDecl && ts.isImportSpecifier(targetDecl)) {
-				// For re-exports of imported types, use the export specifier directly
-				// This handles cases like: import { X } from './m.js'; export type { X }
-				type = checker.getTypeAtLocation(exportDeclaration);
+				// For re-exports of imported types, resolve through the import to check
+				// if the underlying symbol is a class. If so, use getTypeOfSymbol to get
+				// the constructor type (with construct signatures) instead of the instance type.
+				const resolvedSymbol = checker.getAliasedSymbol(targetSymbol);
+				const resolvedDecl = resolvedSymbol?.declarations?.[0];
+				if (
+					resolvedDecl &&
+					(ts.isClassDeclaration(resolvedDecl) || ts.isClassExpression(resolvedDecl))
+				) {
+					type = checker.getTypeOfSymbol(resolvedSymbol);
+				} else {
+					// For non-class re-exports, use the export specifier directly
+					// This handles cases like: import { X } from './m.js'; export type { X }
+					type = checker.getTypeAtLocation(exportDeclaration);
+				}
 			} else if (
 				targetDecl &&
 				(ts.isClassDeclaration(targetDecl) || ts.isClassExpression(targetDecl))
