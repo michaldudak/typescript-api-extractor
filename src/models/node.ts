@@ -1,5 +1,6 @@
 import { TypeName } from './typeName';
 import { ArrayNode } from './types/array';
+import { ClassNode } from './types/class';
 import { ComponentNode } from './types/component';
 import { EnumNode } from './types/enum';
 import { ExternalTypeNode } from './types/external';
@@ -19,6 +20,7 @@ export interface TypeNode {
 
 export type AnyType =
 	| ArrayNode
+	| ClassNode
 	| ComponentNode
 	| EnumNode
 	| ExternalTypeNode

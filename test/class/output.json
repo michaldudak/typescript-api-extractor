@@ -1,0 +1,846 @@
+{
+	"name": "test/class/input",
+	"exports": [
+		{
+			"name": "Container",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "Container"
+				},
+				"constructSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								"name": "capacity",
+								"documentation": {
+									"description": "Maximum number of items.",
+									"tags": []
+								},
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								},
+								"name": "label",
+								"documentation": {
+									"description": "Optional label for identification.",
+									"tags": []
+								},
+								"optional": true
+							}
+						],
+						"documentation": {
+							"description": "Creates a new Container.",
+							"tags": []
+						}
+					}
+				],
+				"properties": [
+					{
+						"name": "items",
+						"type": {
+							"kind": "array",
+							"elementType": {
+								"kind": "typeParameter",
+								"name": "T"
+							}
+						},
+						"documentation": {
+							"description": "The items in the container.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": true,
+						"isStatic": false
+					},
+					{
+						"name": "capacity",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"documentation": {
+							"description": "The maximum capacity of the container.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					},
+					{
+						"name": "label",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "An optional label for the container.",
+							"tags": []
+						},
+						"optional": true,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "typeParameter",
+											"name": "T"
+										},
+										"name": "item",
+										"documentation": {
+											"description": "The item to add.",
+											"tags": []
+										},
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								}
+							}
+						],
+						"name": "add",
+						"documentation": {
+							"description": "Adds an item to the container.",
+							"tags": [
+								{
+									"name": "returns",
+									"value": "Whether the item was added successfully."
+								}
+							]
+						},
+						"isStatic": false
+					},
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "number"
+										},
+										"name": "index",
+										"documentation": {
+											"description": "The index of the item to remove.",
+											"tags": []
+										},
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "typeParameter",
+											"name": "T"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								}
+							}
+						],
+						"name": "remove",
+						"documentation": {
+							"description": "Removes an item at the specified index.",
+							"tags": [
+								{
+									"name": "returns",
+									"value": "The removed item, or undefined if index is out of bounds."
+								}
+							]
+						},
+						"isStatic": false
+					},
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "function",
+											"callSignatures": [
+												{
+													"parameters": [
+														{
+															"type": {
+																"kind": "typeParameter",
+																"name": "T"
+															},
+															"name": "item",
+															"optional": false
+														}
+													],
+													"returnValueType": {
+														"kind": "intrinsic",
+														"intrinsic": "boolean"
+													}
+												}
+											]
+										},
+										"name": "predicate",
+										"documentation": {
+											"description": "Function to test each item.",
+											"tags": []
+										},
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "array",
+									"elementType": {
+										"kind": "typeParameter",
+										"name": "T"
+									}
+								}
+							}
+						],
+						"name": "find",
+						"documentation": {
+							"description": "Finds items matching a predicate.",
+							"tags": [
+								{
+									"name": "returns",
+									"value": "Array of matching items."
+								}
+							]
+						},
+						"isStatic": false
+					},
+					{
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "void"
+								}
+							}
+						],
+						"name": "clear",
+						"documentation": {
+							"description": "Clears all items from the container.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				],
+				"typeParameters": [
+					{
+						"name": "T"
+					}
+				]
+			},
+			"documentation": {
+				"description": "A generic container for managing items of type T.",
+				"tags": [
+					{
+						"name": "typeParam",
+						"value": "T - The type of items in the container."
+					}
+				]
+			}
+		},
+		{
+			"name": "ParameterPropertyClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "ParameterPropertyClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "id",
+								"documentation": {
+									"description": "The unique identifier (readonly).",
+									"tags": []
+								},
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "name",
+								"documentation": {
+									"description": "The name (mutable).",
+									"tags": []
+								},
+								"optional": false
+							}
+						],
+						"documentation": {
+							"description": "Creates a new instance.",
+							"tags": []
+						}
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": true,
+						"isStatic": false
+					},
+					{
+						"name": "name",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"documentation": {
+				"description": "A class with constructor parameter properties.",
+				"tags": []
+			}
+		},
+		{
+			"name": "GetterOnlyClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "GetterOnlyClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "computedValue",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"documentation": {
+							"description": "The computed value (readonly - getter only, no setter).",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": true,
+						"isStatic": false
+					},
+					{
+						"name": "mutableValue",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"documentation": {
+							"description": "A read-write property (has both getter and setter).",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"documentation": {
+				"description": "A class with getter-only accessors (readonly by virtue of no setter).",
+				"tags": []
+			}
+		},
+		{
+			"name": "OverloadedMethods",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "OverloadedMethods"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"name": "input",
+										"documentation": {
+											"description": "String or number to process.",
+											"tags": []
+										},
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								}
+							},
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "number"
+										},
+										"name": "input",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								}
+							}
+						],
+						"name": "process",
+						"documentation": {
+							"description": "Process data with different input types.",
+							"tags": []
+						},
+						"isStatic": false
+					},
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"name": "key",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								}
+							},
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "number"
+										},
+										"name": "index",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
+								}
+							}
+						],
+						"name": "get",
+						"documentation": {
+							"description": "Get a value by key or index.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with method overloads.",
+				"tags": []
+			}
+		},
+		{
+			"name": "FunctionPropertyClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "FunctionPropertyClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "onClick",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"documentation": {
+							"description": "A callback function property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					},
+					{
+						"name": "onData",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"name": "data",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "boolean"
+									}
+								}
+							]
+						},
+						"documentation": {
+							"description": "A callback with parameters.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "void"
+								}
+							}
+						],
+						"name": "handleClick",
+						"documentation": {
+							"description": "An actual method for comparison.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with function-typed properties (should be properties, not methods).",
+				"tags": []
+			}
+		},
+		{
+			"name": "StaticMembersClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "StaticMembersClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "name",
+								"optional": false
+							}
+						]
+					}
+				],
+				"properties": [
+					{
+						"name": "name",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"documentation": {
+							"description": "Instance property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					},
+					{
+						"name": "version",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"documentation": {
+							"description": "Static property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": true
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"name": "name",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "object",
+									"typeName": {
+										"name": "StaticMembersClass"
+									},
+									"properties": []
+								}
+							}
+						],
+						"name": "create",
+						"documentation": {
+							"description": "Static method.",
+							"tags": []
+						},
+						"isStatic": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with static members (should not appear in instance docs).",
+				"tags": []
+			}
+		},
+		{
+			"name": "VisibilityTagsClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "VisibilityTagsClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "publicProp",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"documentation": {
+							"description": "Public property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "void"
+								}
+							}
+						],
+						"name": "publicMethod",
+						"documentation": {
+							"description": "Public method.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with",
+				"visibility": "internal",
+				"tags": [
+					{
+						"name": "ignore",
+						"value": "members."
+					}
+				]
+			}
+		},
+		{
+			"name": "EcmaPrivateClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "EcmaPrivateClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "publicField",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"documentation": {
+							"description": "A public property.",
+							"tags": []
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": [
+					{
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								}
+							}
+						],
+						"name": "getPublicInfo",
+						"documentation": {
+							"description": "A public method.",
+							"tags": []
+						},
+						"isStatic": false
+					}
+				]
+			},
+			"documentation": {
+				"description": "A class with ECMAScript private names (#field, #method).\nThese should NOT appear in the output since they are always private.",
+				"tags": []
+			}
+		},
+		{
+			"name": "Constructable",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Constructable"
+				},
+				"properties": []
+			},
+			"documentation": {
+				"description": "This should NOT be parsed as a class - it's an interface with a construct signature.",
+				"tags": []
+			}
+		},
+		{
+			"name": "ConstructableType",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "ConstructableType"
+				},
+				"properties": []
+			},
+			"documentation": {
+				"description": "This should NOT be parsed as a class - it's a type alias with a construct signature.",
+				"tags": []
+			}
+		}
+	]
+}

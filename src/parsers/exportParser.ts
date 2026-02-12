@@ -142,9 +142,28 @@ export function parseExport(
 			let type: ts.Type;
 			const targetDecl = targetSymbol.declarations?.[0];
 			if (targetDecl && ts.isImportSpecifier(targetDecl)) {
-				// For re-exports of imported types, use the export specifier directly
-				// This handles cases like: import { X } from './m.js'; export type { X }
-				type = checker.getTypeAtLocation(exportDeclaration);
+				// For re-exports of imported types, resolve through the import to check
+				// if the underlying symbol is a class. If so, use getTypeOfSymbol to get
+				// the constructor type (with construct signatures) instead of the instance type.
+				const resolvedSymbol = checker.getAliasedSymbol(targetSymbol);
+				const resolvedDecl = resolvedSymbol?.declarations?.[0];
+				if (
+					resolvedDecl &&
+					(ts.isClassDeclaration(resolvedDecl) || ts.isClassExpression(resolvedDecl))
+				) {
+					type = checker.getTypeOfSymbol(resolvedSymbol);
+				} else {
+					// For non-class re-exports, use the export specifier directly
+					// This handles cases like: import { X } from './m.js'; export type { X }
+					type = checker.getTypeAtLocation(exportDeclaration);
+				}
+			} else if (
+				targetDecl &&
+				(ts.isClassDeclaration(targetDecl) || ts.isClassExpression(targetDecl))
+			) {
+				// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
+				// instead of getTypeAtLocation which returns the instance type
+				type = checker.getTypeOfSymbol(targetSymbol);
 			} else if (targetDecl) {
 				type = checker.getTypeAtLocation(targetDecl);
 			} else {
@@ -276,6 +295,32 @@ export function parseExport(
 			}
 
 			const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
+			const mainExport = createExportNode(
+				exportSymbol.name,
+				exportedSymbol,
+				type,
+				parentNamespaces,
+			);
+			if (mainExport) {
+				results.push(...mainExport);
+			}
+			// Append namespace members after main export for cleaner diffs
+			results.push(...namespaceMembers);
+			return results.length > 0 ? results : undefined;
+		} else if (ts.isClassDeclaration(exportDeclaration)) {
+			// export class X {}
+			if (!exportDeclaration.name) {
+				return;
+			}
+
+			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+			if (!exportedSymbol) {
+				return;
+			}
+
+			// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
+			// instead of getTypeAtLocation which returns the instance type
+			const type = checker.getTypeOfSymbol(exportedSymbol);
 			const mainExport = createExportNode(
 				exportSymbol.name,
 				exportedSymbol,
