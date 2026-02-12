@@ -28,6 +28,13 @@
 			"matchPackageNames": ["node", "@types/node"],
 			"matchUpdateTypes": ["major"],
 			"enabled": false
+		},
+		{
+			"groupName": "Do not update major Node uses-with versions",
+			"matchDepTypes": ["uses-with"],
+			"matchPackageNames": ["actions/setup-node"],
+			"matchUpdateTypes": ["major"],
+			"enabled": false
 		}
 	]
 }
