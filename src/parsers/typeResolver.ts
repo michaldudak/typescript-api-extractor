@@ -131,11 +131,11 @@ export function resolveType(
 			const resolvedSymbolName = resolvedSymbol?.getName?.();
 
 			let externalTypeName: string | undefined;
-			// If the resolved symbol is external and is a named interface (not anonymous `__type`),
+			// If the resolved symbol is external and is a named interface (not anonymous internal names),
 			// and there's no local alias wrapping it, use the resolved interface name.
 			const resolvedIsExternalInterface =
 				resolvedSymbolName &&
-				resolvedSymbolName !== '__type' &&
+				!resolvedSymbolName.startsWith('__') &&
 				isSymbolExternal(resolvedSymbol, checker, false) &&
 				(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
 

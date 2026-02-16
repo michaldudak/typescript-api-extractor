@@ -90,7 +90,8 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 }
 
 function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
-	if (typeSymbol.name === '__function' || typeSymbol.name === '__type') {
+	// Skip TypeScript internal symbol names (e.g., __type, __object, __function)
+	if (typeSymbol.name.startsWith('__')) {
 		return [];
 	}
 
@@ -127,9 +128,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 
 	const typeName = symbol.getName();
 
-	if (typeName === '__type') {
+	// Filter out TypeScript internal symbol names (e.g., __type for anonymous type literals,
+	// __object for anonymous object literals, __function for anonymous functions).
+	// These are not meaningful type names and should not appear in the output.
+	if (typeName.startsWith('__')) {
 		// If we have a typeSymbol from the typeNode, use its name instead
-		if (typeSymbol && typeSymbol.getName() !== '__type') {
+		if (typeSymbol && !typeSymbol.getName().startsWith('__')) {
 			return typeSymbol.getName();
 		}
 		return undefined;

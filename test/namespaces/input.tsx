@@ -19,7 +19,9 @@ export namespace Root {
 		}
 
 		export function useHook() {
-			return {};
+			const active = true;
+			const count = 0;
+			return { active, count };
 		}
 	}
 

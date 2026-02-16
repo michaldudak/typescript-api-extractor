@@ -97,10 +97,20 @@ export function parseObjectType(
 				filteredProperties = properties.filter((property) => {
 					const declaration =
 						property.valueDeclaration ??
-						(property.declarations?.[0] as ts.PropertySignature | ts.MethodSignature | undefined);
+						(property.declarations?.[0] as
+							| ts.PropertySignature
+							| ts.MethodSignature
+							| ts.PropertyAssignment
+							| ts.PropertyDeclaration
+							| ts.ShorthandPropertyAssignment
+							| undefined);
 					return (
 						declaration &&
-						(ts.isPropertySignature(declaration) || ts.isMethodSignature(declaration)) &&
+						(ts.isPropertySignature(declaration) ||
+							ts.isMethodSignature(declaration) ||
+							ts.isPropertyAssignment(declaration) ||
+							ts.isPropertyDeclaration(declaration) ||
+							ts.isShorthandPropertyAssignment(declaration)) &&
 						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 					);
 				});

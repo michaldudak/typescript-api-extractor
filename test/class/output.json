@@ -684,7 +684,20 @@
 									"typeName": {
 										"name": "StaticMembersClass"
 									},
-									"properties": []
+									"properties": [
+										{
+											"name": "name",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"documentation": {
+												"description": "Instance property.",
+												"tags": []
+											},
+											"optional": false
+										}
+									]
 								}
 							}
 						],
