@@ -9,8 +9,12 @@ import { TypeName } from '../models/typeName';
  * For example: `(string | ((state: State) => string | undefined)) | undefined`
  * The TypeNode has 2 members but TypeScript flattens the Types to 3 members.
  * This function recursively flattens nested unions while unwrapping parenthesized types.
+ *
+ * Also handles indexed access types (e.g., `Foo['bar']`) and type references
+ * that resolve to unions — it follows the declaration chain to find the source-ordered
+ * union TypeNode and flattens its members in place.
  */
-function flattenUnionTypeNode(typeNode: ts.UnionTypeNode): ts.TypeNode[] {
+function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecker): ts.TypeNode[] {
 	const result: ts.TypeNode[] = [];
 
 	for (const member of typeNode.types) {
@@ -22,13 +26,64 @@ function flattenUnionTypeNode(typeNode: ts.UnionTypeNode): ts.TypeNode[] {
 
 		// If the unwrapped type is a union, recursively flatten it
 		if (ts.isUnionTypeNode(unwrapped)) {
-			result.push(...flattenUnionTypeNode(unwrapped));
+			result.push(...flattenUnionTypeNode(unwrapped, checker));
 		} else {
-			result.push(unwrapped);
+			// Check if this non-union TypeNode resolves to a union type.
+			// This handles indexed access types (e.g., `Foo['bar']`) and type references
+			// that expand into unions. We follow the declaration to find the source-ordered
+			// union TypeNode and flatten its members to preserve authored order.
+			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker);
+			if (underlyingUnion) {
+				result.push(...flattenUnionTypeNode(underlyingUnion, checker));
+			} else {
+				result.push(unwrapped);
+			}
 		}
 	}
 
 	return result;
+}
+
+/**
+ * Attempts to resolve a non-union TypeNode to its underlying union TypeNode
+ * by following the declaration chain. This preserves the source order of union members.
+ *
+ * Only handles indexed access types: `Foo['bar']` → finds `bar`'s declaration TypeNode.
+ * Named type references (like `MyAlias`) are intentionally NOT expanded, since they
+ * represent authored aliases that should be preserved.
+ */
+function resolveToUnionTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): ts.UnionTypeNode | undefined {
+	if (!ts.isIndexedAccessTypeNode(typeNode)) {
+		return undefined;
+	}
+
+	// Only resolve if the type actually resolves to a union
+	const resolvedType = checker.getTypeFromTypeNode(typeNode);
+	if (!resolvedType.isUnion()) {
+		return undefined;
+	}
+
+	// For `Foo['bar']`, resolve the object type and find the property's declaration
+	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
+	const indexType = checker.getTypeFromTypeNode(typeNode.indexType);
+
+	// The index must be a string literal (e.g., 'container')
+	if (indexType.isStringLiteral()) {
+		const prop = objectType.getProperty(indexType.value);
+		const propDecl = prop?.declarations?.[0];
+		if (propDecl && ts.isPropertySignature(propDecl) && propDecl.type) {
+			if (ts.isUnionTypeNode(propDecl.type)) {
+				return propDecl.type;
+			}
+			// The property type itself might be an indexed access that resolves to a union
+			return resolveToUnionTypeNode(propDecl.type, checker);
+		}
+	}
+
+	return undefined;
 }
 
 export function resolveUnionType(
@@ -88,7 +143,7 @@ export function resolveUnionType(
 		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
 
 		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
-		const flattenedTypeNodes = flattenUnionTypeNode(typeNode);
+		const flattenedTypeNodes = flattenUnionTypeNode(typeNode, checker);
 
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();
