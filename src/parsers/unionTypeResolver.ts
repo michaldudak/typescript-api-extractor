@@ -74,7 +74,11 @@ function resolveToUnionTypeNode(
 	if (indexType.isStringLiteral()) {
 		const prop = objectType.getProperty(indexType.value);
 		const propDecl = prop?.declarations?.[0];
-		if (propDecl && ts.isPropertySignature(propDecl) && propDecl.type) {
+		if (
+			propDecl &&
+			(ts.isPropertySignature(propDecl) || ts.isPropertyDeclaration(propDecl)) &&
+			propDecl.type
+		) {
 			if (ts.isUnionTypeNode(propDecl.type)) {
 				return propDecl.type;
 			}
