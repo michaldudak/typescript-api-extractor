@@ -40,7 +40,12 @@ export function resolveType(
 	// Check the cache first for types we've already resolved.
 	// Only use cache when there's no typeNode (which can affect alias resolution)
 	// and when we're not in a recursive context (type isn't already on the stack).
-	if (typeId !== undefined && !typeNode && resolvedTypeCache.has(typeId) && !context.typeStack.includes(typeId)) {
+	if (
+		typeId !== undefined &&
+		!typeNode &&
+		resolvedTypeCache.has(typeId) &&
+		!context.typeStack.includes(typeId)
+	) {
 		return resolvedTypeCache.get(typeId)!;
 	}
 
