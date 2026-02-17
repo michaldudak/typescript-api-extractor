@@ -10,9 +10,9 @@ import { TypeName } from '../models/typeName';
  * The TypeNode has 2 members but TypeScript flattens the Types to 3 members.
  * This function recursively flattens nested unions while unwrapping parenthesized types.
  *
- * Also handles indexed access types (e.g., `Foo['bar']`) and type references
- * that resolve to unions — it follows the declaration chain to find the source-ordered
- * union TypeNode and flattens its members in place.
+ * Also handles indexed access types (e.g., `Foo['bar']`) whose resolved type is a union:
+ * it follows the declaration chain to find the source-ordered union TypeNode and flattens
+ * its members in place. Named type references are intentionally not expanded.
  */
 function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecker): ts.TypeNode[] {
 	const result: ts.TypeNode[] = [];
