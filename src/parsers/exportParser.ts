@@ -2,8 +2,18 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { ExportNode, TypeName, type ExtendsTypeInfo } from '../models';
+import { ExportNode, TypeName, type AnyType, type ExtendsTypeInfo } from '../models';
 import { ParserError } from '../ParserError';
+
+/**
+ * Returns a shallow copy of a type node with a different typeName.
+ * Avoids mutating the original, which may be shared via the resolved-type cache.
+ */
+function withTypeName<T extends AnyType>(node: T, typeName: TypeName): T {
+	return Object.assign(Object.create(Object.getPrototypeOf(node) as object), node, {
+		typeName,
+	}) as T;
+}
 
 export function parseExport(
 	exportSymbol: ts.Symbol,
@@ -378,7 +388,7 @@ export function parseExport(
 		reexportedFrom?: string,
 		extendsTypes?: ExtendsTypeInfo[],
 	) {
-		const parsedType = resolveType(type, typeNode, parserContext);
+		let parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
 			// Fix type name for external types that resolve to internal symbol names
 			// (e.g., __type, __object). This happens when re-exporting types from
@@ -389,26 +399,24 @@ export function parseExport(
 				'typeName' in parsedType &&
 				(parsedType as { typeName: TypeName | undefined }).typeName?.name?.startsWith('__')
 			) {
-				const typeWithName = parsedType as { typeName: TypeName };
-				typeWithName.typeName = new TypeName(
-					name,
-					typeWithName.typeName?.namespaces,
-					typeWithName.typeName?.typeArguments,
+				const oldTypeName = (parsedType as { typeName: TypeName }).typeName;
+				parsedType = withTypeName(
+					parsedType,
+					new TypeName(name, oldTypeName?.namespaces, oldTypeName?.typeArguments),
 				);
 			}
 
-			// If parentNamespaces are provided, update the type's typeName to use the export context
+			// If parentNamespaces are provided, create a copy with the export context namespaces.
 			// This is important for re-exports where the original type has different namespaces
 			// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
 			// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
 			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
-				const typeWithName = parsedType as { typeName: TypeName | undefined };
+				const oldTypeName = (parsedType as { typeName: TypeName | undefined }).typeName;
 				// Always use the export context namespaces, not the original type's namespaces
 				// The export name and parentNamespaces define how this type should be referenced
-				typeWithName.typeName = new TypeName(
-					name,
-					parentNamespaces,
-					typeWithName.typeName?.typeArguments,
+				parsedType = withTypeName(
+					parsedType,
+					new TypeName(name, parentNamespaces, oldTypeName?.typeArguments),
 				);
 			}
 

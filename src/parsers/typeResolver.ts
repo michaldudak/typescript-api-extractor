@@ -33,6 +33,32 @@ export function resolveType(
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
 ): AnyType {
+	const { resolvedTypeCache } = context;
+
+	const typeId = getTypeId(type);
+
+	// Check the cache first for types we've already resolved.
+	// Only use cache when there's no typeNode (which can affect alias resolution)
+	// and when we're not in a recursive context (type isn't already on the stack).
+	if (typeId !== undefined && !typeNode && resolvedTypeCache.has(typeId) && !context.typeStack.includes(typeId)) {
+		return resolvedTypeCache.get(typeId)!;
+	}
+
+	const result = resolveTypeUncached(type, typeNode, context);
+
+	// Cache the result for future lookups when there's no typeNode influence
+	if (typeId !== undefined && !typeNode) {
+		resolvedTypeCache.set(typeId, result);
+	}
+
+	return result;
+}
+
+function resolveTypeUncached(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+): AnyType {
 	const { checker, typeStack, includeExternalTypes } = context;
 
 	const typeId = getTypeId(type);
