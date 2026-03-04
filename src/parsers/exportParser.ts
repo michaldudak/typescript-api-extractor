@@ -4,6 +4,7 @@ import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
 import { ExportNode, TypeName, type AnyType, type ExtendsTypeInfo } from '../models';
 import { ParserError } from '../ParserError';
+import { isInternalSymbolName } from './common';
 
 /**
  * Returns a shallow copy of a type node with a different typeName.
@@ -397,7 +398,8 @@ export function parseExport(
 			// The resolved type loses the alias name and becomes __type
 			if (
 				'typeName' in parsedType &&
-				(parsedType as { typeName: TypeName | undefined }).typeName?.name?.startsWith('__')
+				(parsedType as { typeName: TypeName | undefined }).typeName?.name != null &&
+				isInternalSymbolName((parsedType as { typeName: TypeName }).typeName.name)
 			) {
 				const oldTypeName = (parsedType as { typeName: TypeName }).typeName;
 				parsedType = withTypeName(
@@ -484,7 +486,7 @@ function extractExtendsTypes(
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: innerTypeName };
-				if (resolvedName && resolvedName !== innerTypeName && !resolvedName.startsWith('__')) {
+				if (resolvedName && resolvedName !== innerTypeName && !isInternalSymbolName(resolvedName)) {
 					info.resolvedName = resolvedName;
 				}
 
@@ -496,7 +498,7 @@ function extractExtendsTypes(
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: baseTypeName };
-				if (resolvedName && resolvedName !== baseTypeName && !resolvedName.startsWith('__')) {
+				if (resolvedName && resolvedName !== baseTypeName && !isInternalSymbolName(resolvedName)) {
 					info.resolvedName = resolvedName;
 				}
 
@@ -529,7 +531,7 @@ function resolveUnderlyingSymbol(type: ts.Type, checker: ts.TypeChecker): ts.Sym
 		const targetTypeName = aliasDecl.type.typeName;
 		const targetSymbol = checker.getSymbolAtLocation(targetTypeName);
 
-		if (targetSymbol && !targetSymbol.name.startsWith('__') && targetSymbol !== symbol) {
+		if (targetSymbol && !isInternalSymbolName(targetSymbol.name) && targetSymbol !== symbol) {
 			// Check if the target is also a type alias - if so, recurse
 			const targetDecl = targetSymbol.declarations?.[0];
 			if (targetDecl && ts.isTypeAliasDeclaration(targetDecl)) {

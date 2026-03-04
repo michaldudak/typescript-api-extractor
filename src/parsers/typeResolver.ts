@@ -19,7 +19,7 @@ import {
 	AnyType,
 } from '../models';
 import { resolveUnionType } from './unionTypeResolver';
-import { getFullName } from './common';
+import { getFullName, isInternalSymbolName } from './common';
 import { TypeName } from '../models/typeName';
 
 /**
@@ -166,7 +166,7 @@ function resolveTypeUncached(
 			// and there's no local alias wrapping it, use the resolved interface name.
 			const resolvedIsExternalInterface =
 				resolvedSymbolName &&
-				!resolvedSymbolName.startsWith('__') &&
+				!isInternalSymbolName(resolvedSymbolName) &&
 				isSymbolExternal(resolvedSymbol, checker, false) &&
 				(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
 
