@@ -52,11 +52,7 @@ export function resolveType(
 	const result = resolveTypeUncached(type, typeNode, context);
 
 	// Cache the result for future lookups when there's no typeNode influence
-	if (
-		typeId !== undefined &&
-		!typeNode &&
-		!context.typeStack.includes(typeId)
-	) {
+	if (typeId !== undefined && !typeNode && !context.typeStack.includes(typeId)) {
 		resolvedTypeCache.set(typeId, result);
 	}
 
