@@ -29,8 +29,8 @@ function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecke
 			result.push(...flattenUnionTypeNode(unwrapped, checker));
 		} else {
 			// Check if this non-union TypeNode resolves to a union type.
-			// This handles indexed access types (e.g., `Foo['bar']`) and type references
-			// that expand into unions. We follow the declaration to find the source-ordered
+			// This currently handles indexed access types (e.g., `Foo['bar']`) whose
+			// resolved type is a union. We follow the declaration to find the source-ordered
 			// union TypeNode and flatten its members to preserve authored order.
 			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker);
 			if (underlyingUnion) {
