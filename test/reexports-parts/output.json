@@ -995,7 +995,17 @@
 									"optional": false
 								}
 							]
-						}
+						},
+						"typeParameters": [
+							{
+								"kind": "typeParameter",
+								"name": "Payload",
+								"defaultValue": {
+									"kind": "intrinsic",
+									"intrinsic": "unknown"
+								}
+							}
+						]
 					}
 				]
 			},
