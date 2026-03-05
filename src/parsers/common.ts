@@ -104,7 +104,7 @@ export function getFullName(
 	if (namespaces.length === 0 && qualifiedNameNamespaces.length > 0) {
 		namespaces = qualifiedNameNamespaces;
 	}
-	const typeArguments = getTypeArguments(type, typeNode, context);
+	const typeArguments = getTypeArguments(type, typeNode, typeSymbol, context);
 
 	if (name === undefined) {
 		return undefined;
@@ -182,6 +182,7 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 function getTypeArguments(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
+	typeSymbol: ts.Symbol | undefined,
 	context: ParserContext,
 ): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
@@ -190,6 +191,22 @@ function getTypeArguments(
 		typeNode && ts.isTypeReferenceNode(typeNode)
 			? ((typeNode as ts.TypeReferenceNode).typeArguments ?? [])
 			: [];
+
+	// When the type name comes from the typeNode symbol (e.g., `TabsLikeDetails` from the authored
+	// source) rather than from TypeScript's resolved type, the aliasSymbol/aliasTypeArguments may
+	// belong to a _different_ type (the inner generic the alias wraps). In this case, we should only
+	// use type arguments that actually appear on the authored typeNode reference.
+	if (typeSymbol && type.aliasSymbol && typeSymbol !== type.aliasSymbol) {
+		// The typeNode reference determines the type arguments — if the authored code writes
+		// `TabsLikeDetails` (no angle brackets), there are no type arguments.
+		typeArguments = nodeTypeArguments.map((argNode, index) => {
+			const argType = context.checker.getTypeFromTypeNode(argNode);
+			const parameterType = resolveType(argType, argNode, context);
+			const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
+			return { type: parameterType, equalToDefault } satisfies TypeArgument;
+		});
+		return typeArguments;
+	}
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];

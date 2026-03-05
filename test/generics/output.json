@@ -175,7 +175,33 @@
 									]
 								}
 							}
-						}
+						},
+						"typeParameters": [
+							{
+								"kind": "typeParameter",
+								"name": "T",
+								"constraint": {
+									"kind": "external",
+									"typeName": {
+										"name": "HTMLAttributes",
+										"namespaces": [
+											"React"
+										],
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "external",
+													"typeName": {
+														"name": "HTMLElement"
+													}
+												},
+												"equalToDefault": false
+											}
+										]
+									}
+								}
+							}
+						]
 					}
 				]
 			}
