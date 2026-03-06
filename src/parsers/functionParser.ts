@@ -8,19 +8,21 @@ import {
 	DocumentationTag,
 	Parameter,
 	Visibility,
+	TypeParameterNode,
 } from '../models';
 import { ParserError } from '../ParserError';
 import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
-	const parsedCallSignatures = type.getCallSignatures().map(
-		(signature) =>
-			new CallSignature(
-				signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
-				resolveType(signature.getReturnType(), undefined, context),
-			),
-	);
+	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
+		const typeParams = parseSignatureTypeParameters(signature, context);
+		return new CallSignature(
+			signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
+			resolveType(signature.getReturnType(), undefined, context),
+			typeParams.length > 0 ? typeParams : undefined,
+		);
+	});
 
 	if (parsedCallSignatures.length === 0) {
 		return;
@@ -122,4 +124,29 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 	} finally {
 		parsedSymbolStack.pop();
 	}
+}
+
+export function parseSignatureTypeParameters(
+	signature: ts.Signature,
+	context: ParserContext,
+): TypeParameterNode[] {
+	const typeParams = signature.typeParameters;
+	if (!typeParams || typeParams.length === 0) {
+		return [];
+	}
+
+	return typeParams.map((tp) => {
+		const declaration = tp.symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+		const constraintType = declaration?.constraint
+			? context.checker.getTypeAtLocation(declaration.constraint)
+			: undefined;
+
+		return new TypeParameterNode(
+			tp.symbol.name,
+			constraintType ? resolveType(constraintType, undefined, context) : undefined,
+			declaration?.default
+				? resolveType(context.checker.getTypeAtLocation(declaration.default), undefined, context)
+				: undefined,
+		);
+	});
 }
