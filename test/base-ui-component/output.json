@@ -88,6 +88,12 @@
 																"name": "actionsRef",
 																"type": {
 																	"kind": "union",
+																	"typeName": {
+																		"name": "RefObject",
+																		"namespaces": [
+																			"React"
+																		]
+																	},
 																	"types": [
 																		{
 																			"kind": "external",
@@ -717,6 +723,12 @@
 												"name": "actionsRef",
 												"type": {
 													"kind": "union",
+													"typeName": {
+														"name": "RefObject",
+														"namespaces": [
+															"React"
+														]
+													},
 													"types": [
 														{
 															"kind": "external",
@@ -1303,6 +1315,12 @@
 										"name": "actionsRef",
 										"type": {
 											"kind": "union",
+											"typeName": {
+												"name": "RefObject",
+												"namespaces": [
+													"React"
+												]
+											},
 											"types": [
 												{
 													"kind": "external",
@@ -1872,6 +1890,12 @@
 						"name": "actionsRef",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "RefObject",
+								"namespaces": [
+									"React"
+								]
+							},
 							"types": [
 								{
 									"kind": "external",
@@ -2395,6 +2419,12 @@
 						"name": "actionsRef",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "RefObject",
+								"namespaces": [
+									"React"
+								]
+							},
 							"types": [
 								{
 									"kind": "external",

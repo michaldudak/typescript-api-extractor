@@ -162,6 +162,9 @@
 										{
 											"type": {
 												"kind": "intersection",
+												"typeName": {
+													"name": "TabsLikeWithHack"
+												},
 												"types": [
 													{
 														"kind": "object",
