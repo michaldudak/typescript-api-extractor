@@ -151,10 +151,32 @@ function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
 	return namespaces;
 }
 
+function typeSymbolIsNonGenericAlias(typeSymbol: ts.Symbol): boolean {
+	const decl = typeSymbol.declarations?.[0];
+	if (!decl) {
+		return false;
+	}
+	if (ts.isTypeAliasDeclaration(decl) || ts.isInterfaceDeclaration(decl)) {
+		return !decl.typeParameters || decl.typeParameters.length === 0;
+	}
+	return false;
+}
+
 function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
 		return undefined;
+	}
+
+	// When TypeScript has lost both aliasSymbol and symbol on the resolved type
+	// (e.g. due to `& {}` flattening), the typeSymbol from the authored typeNode
+	// may still be valid — but only if it's a non-generic alias.
+	// Generic aliases (like `ReasonToEvent<Reason>`) have stale typeNode references
+	// after TypeScript instantiates the type parameters, so we must discard them.
+	if (typeSymbol && !type.aliasSymbol && !type.getSymbol()) {
+		if (!typeSymbolIsNonGenericAlias(typeSymbol)) {
+			return undefined;
+		}
 	}
 
 	const typeName = symbol.getName();

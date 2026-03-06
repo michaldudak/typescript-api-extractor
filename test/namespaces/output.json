@@ -73,13 +73,6 @@
 											"name": "os",
 											"type": {
 												"kind": "union",
-												"typeName": {
-													"name": "Grade",
-													"namespaces": [
-														"Root",
-														"Sub"
-													]
-												},
 												"types": [
 													{
 														"kind": "enum",
@@ -300,13 +293,6 @@
 											"name": "os",
 											"type": {
 												"kind": "union",
-												"typeName": {
-													"name": "Grade",
-													"namespaces": [
-														"Root",
-														"Sub"
-													]
-												},
 												"types": [
 													{
 														"kind": "enum",
@@ -504,13 +490,6 @@
 						"name": "os",
 						"type": {
 							"kind": "union",
-							"typeName": {
-								"name": "Grade",
-								"namespaces": [
-									"Root",
-									"Sub"
-								]
-							},
 							"types": [
 								{
 									"kind": "enum",
