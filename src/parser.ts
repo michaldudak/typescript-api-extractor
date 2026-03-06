@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { ModuleNode } from './models';
+import { ModuleNode, type AnyType } from './models';
 import { parseModule } from './parsers/moduleParser';
 
 /**
@@ -43,6 +43,7 @@ export function parseFromProgram(
 		compilerOptions: program.getCompilerOptions(),
 		parsedSymbolStack: [],
 		program,
+		resolvedTypeCache: new Map<string, AnyType>(),
 		...getParserOptions(parserOptions),
 	};
 
@@ -86,6 +87,13 @@ export interface ParserContext extends ParserOptions {
 	compilerOptions: ts.CompilerOptions;
 	parsedSymbolStack: string[];
 	program: ts.Program;
+	/**
+	 * Cache for resolved types to avoid resolving the same type multiple times.
+	 * The key encodes both the type ID and the current stack depth, because
+	 * depth-dependent options (`shouldResolveObject`, `shouldInclude`) can
+	 * produce different results for the same type at different depths.
+	 */
+	resolvedTypeCache: Map<string, AnyType>;
 }
 
 /**

@@ -1,0 +1,75 @@
+{
+	"name": "test/double-underscore-names/input",
+	"exports": [
+		{
+			"name": "useNamed",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "useNamed"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "__Named"
+									},
+									"properties": [
+										{
+											"name": "value",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "x",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "object",
+							"typeName": {
+								"name": "__Named"
+							},
+							"properties": [
+								{
+									"name": "value",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									},
+									"optional": false
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "__Named",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "__Named"
+				},
+				"properties": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

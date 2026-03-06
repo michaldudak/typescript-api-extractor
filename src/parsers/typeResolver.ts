@@ -19,7 +19,7 @@ import {
 	AnyType,
 } from '../models';
 import { resolveUnionType } from './unionTypeResolver';
-import { getFullName } from './common';
+import { getFullName, isInternalSymbolName } from './common';
 import { TypeName } from '../models/typeName';
 
 /**
@@ -29,6 +29,41 @@ import { TypeName } from '../models/typeName';
  * @param context Parser context containing TypeScript checker and other utilities.
  */
 export function resolveType(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+): AnyType {
+	const { resolvedTypeCache, typeStack } = context;
+
+	const typeId = getTypeId(type);
+
+	// Build a cache key that incorporates both the type identity and the current
+	// stack depth, because shouldResolveObject / shouldInclude are depth-sensitive.
+	const cacheKey = typeId !== undefined ? `${typeId}@${typeStack.length}` : undefined;
+
+	// Check the cache first for types we've already resolved.
+	// Only use cache when there's no typeNode (which can affect alias resolution)
+	// and when we're not in a recursive context (type isn't already on the stack).
+	if (
+		cacheKey !== undefined &&
+		!typeNode &&
+		resolvedTypeCache.has(cacheKey) &&
+		!typeStack.includes(typeId!)
+	) {
+		return resolvedTypeCache.get(cacheKey)!;
+	}
+
+	const result = resolveTypeUncached(type, typeNode, context);
+
+	// Cache the result for future lookups when there's no typeNode influence
+	if (cacheKey !== undefined && !typeNode && !typeStack.includes(typeId!)) {
+		resolvedTypeCache.set(cacheKey, result);
+	}
+
+	return result;
+}
+
+function resolveTypeUncached(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
@@ -131,11 +166,11 @@ export function resolveType(
 			const resolvedSymbolName = resolvedSymbol?.getName?.();
 
 			let externalTypeName: string | undefined;
-			// If the resolved symbol is external and is a named interface (not anonymous `__type`),
+			// If the resolved symbol is external and is a named interface (not anonymous internal names),
 			// and there's no local alias wrapping it, use the resolved interface name.
 			const resolvedIsExternalInterface =
 				resolvedSymbolName &&
-				resolvedSymbolName !== '__type' &&
+				!isInternalSymbolName(resolvedSymbolName) &&
 				isSymbolExternal(resolvedSymbol, checker, false) &&
 				(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
 

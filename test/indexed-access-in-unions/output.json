@@ -1,0 +1,84 @@
+{
+	"name": "test/indexed-access-in-unions/input",
+	"exports": [
+		{
+			"name": "useConfig",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "useConfig"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "HTMLElement"
+									}
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "ShadowRoot"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "null"
+								}
+							]
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props"
+				},
+				"properties": [
+					{
+						"name": "container",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "HTMLElement"
+									}
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "ShadowRoot"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "null"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "The container for the portal.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	]
+}

@@ -2,8 +2,19 @@ import ts from 'typescript';
 import { ParserContext } from '../parser';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { resolveType } from './typeResolver';
-import { ExportNode, TypeName, type ExtendsTypeInfo } from '../models';
+import { ExportNode, TypeName, type AnyType, type ExtendsTypeInfo } from '../models';
 import { ParserError } from '../ParserError';
+import { isInternalSymbolName } from './common';
+
+/**
+ * Returns a shallow copy of a type node with a different typeName.
+ * Avoids mutating the original, which may be shared via the resolved-type cache.
+ */
+function withTypeName<T extends AnyType>(node: T, typeName: TypeName): T {
+	return Object.assign(Object.create(Object.getPrototypeOf(node) as object), node, {
+		typeName,
+	}) as T;
+}
 
 export function parseExport(
 	exportSymbol: ts.Symbol,
@@ -378,36 +389,36 @@ export function parseExport(
 		reexportedFrom?: string,
 		extendsTypes?: ExtendsTypeInfo[],
 	) {
-		const parsedType = resolveType(type, typeNode, parserContext);
+		let parsedType = resolveType(type, typeNode, parserContext);
 		if (parsedType) {
-			// Fix type name for external types that resolve to __type
-			// This happens when re-exporting types from external packages
+			// Fix type name for external types that resolve to internal symbol names
+			// (e.g., __type, __object). This happens when re-exporting types from
+			// external packages or when const variables have anonymous object types.
 			// e.g., `export type { Rect } from '@floating-ui/utils'`
 			// The resolved type loses the alias name and becomes __type
 			if (
 				'typeName' in parsedType &&
-				(parsedType as { typeName: TypeName | undefined }).typeName?.name === '__type'
+				(parsedType as { typeName: TypeName | undefined }).typeName?.name != null &&
+				isInternalSymbolName((parsedType as { typeName: TypeName }).typeName.name)
 			) {
-				const typeWithName = parsedType as { typeName: TypeName };
-				typeWithName.typeName = new TypeName(
-					name,
-					typeWithName.typeName?.namespaces,
-					typeWithName.typeName?.typeArguments,
+				const oldTypeName = (parsedType as { typeName: TypeName }).typeName;
+				parsedType = withTypeName(
+					parsedType,
+					new TypeName(name, oldTypeName?.namespaces, oldTypeName?.typeArguments),
 				);
 			}
 
-			// If parentNamespaces are provided, update the type's typeName to use the export context
+			// If parentNamespaces are provided, create a copy with the export context namespaces.
 			// This is important for re-exports where the original type has different namespaces
 			// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
 			// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
 			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
-				const typeWithName = parsedType as { typeName: TypeName | undefined };
+				const oldTypeName = (parsedType as { typeName: TypeName | undefined }).typeName;
 				// Always use the export context namespaces, not the original type's namespaces
 				// The export name and parentNamespaces define how this type should be referenced
-				typeWithName.typeName = new TypeName(
-					name,
-					parentNamespaces,
-					typeWithName.typeName?.typeArguments,
+				parsedType = withTypeName(
+					parsedType,
+					new TypeName(name, parentNamespaces, oldTypeName?.typeArguments),
 				);
 			}
 
@@ -475,7 +486,7 @@ function extractExtendsTypes(
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: innerTypeName };
-				if (resolvedName && resolvedName !== innerTypeName && resolvedName !== '__type') {
+				if (resolvedName && resolvedName !== innerTypeName && !isInternalSymbolName(resolvedName)) {
 					info.resolvedName = resolvedName;
 				}
 
@@ -487,7 +498,7 @@ function extractExtendsTypes(
 				const resolvedName = symbol?.name;
 
 				const info: ExtendsTypeInfo = { name: baseTypeName };
-				if (resolvedName && resolvedName !== baseTypeName && resolvedName !== '__type') {
+				if (resolvedName && resolvedName !== baseTypeName && !isInternalSymbolName(resolvedName)) {
 					info.resolvedName = resolvedName;
 				}
 
@@ -520,7 +531,7 @@ function resolveUnderlyingSymbol(type: ts.Type, checker: ts.TypeChecker): ts.Sym
 		const targetTypeName = aliasDecl.type.typeName;
 		const targetSymbol = checker.getSymbolAtLocation(targetTypeName);
 
-		if (targetSymbol && targetSymbol.name !== '__type' && targetSymbol !== symbol) {
+		if (targetSymbol && !isInternalSymbolName(targetSymbol.name) && targetSymbol !== symbol) {
 			// Check if the target is also a type alias - if so, recurse
 			const targetDecl = targetSymbol.declarations?.[0];
 			if (targetDecl && ts.isTypeAliasDeclaration(targetDecl)) {

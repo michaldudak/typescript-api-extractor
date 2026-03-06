@@ -950,7 +950,51 @@
 									}
 								]
 							},
-							"properties": []
+							"properties": [
+								{
+									"name": "store",
+									"type": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "open",
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "boolean"
+												},
+												"optional": false
+											},
+											{
+												"name": "payload",
+												"type": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "typeParameter",
+															"name": "Payload",
+															"defaultValue": {
+																"kind": "intrinsic",
+																"intrinsic": "unknown"
+															}
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "undefined"
+														}
+													]
+												},
+												"optional": true
+											}
+										]
+									},
+									"documentation": {
+										"description": "Internal store holding state.",
+										"visibility": "internal",
+										"tags": []
+									},
+									"optional": false
+								}
+							]
 						}
 					}
 				]

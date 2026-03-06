@@ -4,6 +4,43 @@ import { resolveType } from './typeResolver';
 import { ParserContext } from '../parser';
 
 /**
+ * Known TypeScript compiler-generated internal symbol names.
+ * These are names the compiler assigns to anonymous or synthetic symbols
+ * and should not appear in parsed output as real type names.
+ *
+ * See: TypeScript's `InternalSymbolName` enum in `src/compiler/types.ts`.
+ */
+const TS_INTERNAL_SYMBOL_NAMES = new Set([
+	'__call',
+	'__constructor',
+	'__new',
+	'__index',
+	'__export',
+	'__global',
+	'__missing',
+	'__type',
+	'__object',
+	'__jsxAttributes',
+	'__class',
+	'__function',
+	'__computed',
+	'__resolving__',
+	'__instantiationExpression',
+	'__importAttributes',
+]);
+
+/**
+ * Returns true if the given name is a TypeScript compiler-internal symbol name
+ * (e.g., `__type`, `__object`, `__function`). These are assigned to anonymous
+ * or synthetic symbols and are not meaningful user-authored type names.
+ *
+ * This does NOT match arbitrary user-authored names that happen to start with `__`.
+ */
+export function isInternalSymbolName(name: string): boolean {
+	return TS_INTERNAL_SYMBOL_NAMES.has(name);
+}
+
+/**
  * Extracts namespace parts from a qualified name node.
  * For example, `ComponentRoot.ChangeEventDetails` returns `['ComponentRoot']`.
  */
@@ -90,7 +127,8 @@ export function getTypeNamespaces(type: ts.Type): string[] {
 }
 
 function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
-	if (typeSymbol.name === '__function' || typeSymbol.name === '__type') {
+	// Skip TypeScript internal symbol names (e.g., __type, __object, __function)
+	if (isInternalSymbolName(typeSymbol.name)) {
 		return [];
 	}
 
@@ -127,9 +165,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 
 	const typeName = symbol.getName();
 
-	if (typeName === '__type') {
+	// Filter out TypeScript internal symbol names (e.g., __type for anonymous type literals,
+	// __object for anonymous object literals, __function for anonymous functions).
+	// These are not meaningful type names and should not appear in the output.
+	if (isInternalSymbolName(typeName)) {
 		// If we have a typeSymbol from the typeNode, use its name instead
-		if (typeSymbol && typeSymbol.getName() !== '__type') {
+		if (typeSymbol && !isInternalSymbolName(typeSymbol.getName())) {
 			return typeSymbol.getName();
 		}
 		return undefined;

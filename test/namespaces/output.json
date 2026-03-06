@@ -392,14 +392,24 @@
 						"parameters": [],
 						"returnValueType": {
 							"kind": "object",
-							"typeName": {
-								"name": "__object",
-								"namespaces": [
-									"Root",
-									"Sub"
-								]
-							},
-							"properties": []
+							"properties": [
+								{
+									"name": "active",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "boolean"
+									},
+									"optional": false
+								},
+								{
+									"name": "count",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								}
+							]
 						}
 					}
 				]

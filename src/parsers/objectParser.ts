@@ -95,12 +95,46 @@ export function parseObjectType(
 				filteredProperties = properties;
 			} else {
 				filteredProperties = properties.filter((property) => {
+					// Skip ECMAScript private identifiers (#field)
+					if (property.getName().startsWith('#')) {
+						return false;
+					}
+
 					const declaration =
 						property.valueDeclaration ??
-						(property.declarations?.[0] as ts.PropertySignature | ts.MethodSignature | undefined);
+						(property.declarations?.[0] as
+							| ts.PropertySignature
+							| ts.MethodSignature
+							| ts.PropertyAssignment
+							| ts.PropertyDeclaration
+							| ts.ShorthandPropertyAssignment
+							| undefined);
+
+					if (!declaration) {
+						return false;
+					}
+
+					// Skip private/protected class members
+					if (ts.isPropertyDeclaration(declaration) && ts.canHaveModifiers(declaration)) {
+						const modifiers = ts.getModifiers(declaration);
+						if (
+							modifiers?.some(
+								(m) =>
+									m.kind === ts.SyntaxKind.PrivateKeyword ||
+									m.kind === ts.SyntaxKind.ProtectedKeyword ||
+									m.kind === ts.SyntaxKind.StaticKeyword,
+							)
+						) {
+							return false;
+						}
+					}
+
 					return (
-						declaration &&
-						(ts.isPropertySignature(declaration) || ts.isMethodSignature(declaration)) &&
+						(ts.isPropertySignature(declaration) ||
+							ts.isMethodSignature(declaration) ||
+							ts.isPropertyAssignment(declaration) ||
+							ts.isPropertyDeclaration(declaration) ||
+							ts.isShorthandPropertyAssignment(declaration)) &&
 						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 					);
 				});
