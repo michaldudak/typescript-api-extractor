@@ -811,6 +811,12 @@
 						"name": "style",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "CSSProperties",
+								"namespaces": [
+									"React"
+								]
+							},
 							"types": [
 								{
 									"kind": "external",

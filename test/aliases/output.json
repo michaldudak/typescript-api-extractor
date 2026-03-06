@@ -101,6 +101,9 @@
 							{
 								"type": {
 									"kind": "union",
+									"typeName": {
+										"name": "Alias"
+									},
 									"types": [
 										{
 											"kind": "union",
@@ -173,6 +176,9 @@
 							{
 								"type": {
 									"kind": "union",
+									"typeName": {
+										"name": "AliasToGeneric"
+									},
 									"types": [
 										{
 											"kind": "object",
@@ -340,6 +346,9 @@
 						"name": "oa",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Alias"
+							},
 							"types": [
 								{
 									"kind": "union",
@@ -412,6 +421,9 @@
 						"name": "os",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "AliasToGeneric"
+							},
 							"types": [
 								{
 									"kind": "object",

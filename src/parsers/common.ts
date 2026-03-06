@@ -104,7 +104,7 @@ export function getFullName(
 	if (namespaces.length === 0 && qualifiedNameNamespaces.length > 0) {
 		namespaces = qualifiedNameNamespaces;
 	}
-	const typeArguments = getTypeArguments(type, typeNode, context);
+	const typeArguments = getTypeArguments(type, typeNode, typeSymbol, context);
 
 	if (name === undefined) {
 		return undefined;
@@ -151,16 +151,32 @@ function getTypeSymbolNamespaces(typeSymbol: ts.Symbol): string[] {
 	return namespaces;
 }
 
+function typeSymbolIsNonGenericAlias(typeSymbol: ts.Symbol): boolean {
+	const decl = typeSymbol.declarations?.[0];
+	if (!decl) {
+		return false;
+	}
+	if (ts.isTypeAliasDeclaration(decl) || ts.isInterfaceDeclaration(decl)) {
+		return !decl.typeParameters || decl.typeParameters.length === 0;
+	}
+	return false;
+}
+
 function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
 		return undefined;
 	}
 
-	// If we have a typeSymbol (extracted from the typeNode), we should use it
-	// even if the resolved type is any/unknown, as long as it's not a built-in symbol
-	if (typeSymbol && !type.aliasSymbol && !type.symbol && !isAnyOrUnknown(type)) {
-		return undefined;
+	// When TypeScript has lost both aliasSymbol and symbol on the resolved type
+	// (e.g. due to `& {}` flattening), the typeSymbol from the authored typeNode
+	// may still be valid — but only if it's a non-generic alias.
+	// Generic aliases (like `ReasonToEvent<Reason>`) have stale typeNode references
+	// after TypeScript instantiates the type parameters, so we must discard them.
+	if (typeSymbol && !type.aliasSymbol && !type.getSymbol()) {
+		if (!typeSymbolIsNonGenericAlias(typeSymbol)) {
+			return undefined;
+		}
 	}
 
 	const typeName = symbol.getName();
@@ -182,6 +198,7 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 function getTypeArguments(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
+	typeSymbol: ts.Symbol | undefined,
 	context: ParserContext,
 ): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
@@ -190,6 +207,22 @@ function getTypeArguments(
 		typeNode && ts.isTypeReferenceNode(typeNode)
 			? ((typeNode as ts.TypeReferenceNode).typeArguments ?? [])
 			: [];
+
+	// When the type name comes from the typeNode symbol (e.g., `TabsLikeDetails` from the authored
+	// source) rather than from TypeScript's resolved type, the aliasSymbol/aliasTypeArguments may
+	// belong to a _different_ type (the inner generic the alias wraps). In this case, we should only
+	// use type arguments that actually appear on the authored typeNode reference.
+	if (typeSymbol && type.aliasSymbol && typeSymbol !== type.aliasSymbol) {
+		// The typeNode reference determines the type arguments — if the authored code writes
+		// `TabsLikeDetails` (no angle brackets), there are no type arguments.
+		typeArguments = nodeTypeArguments.map((argNode, index) => {
+			const argType = context.checker.getTypeFromTypeNode(argNode);
+			const parameterType = resolveType(argType, argNode, context);
+			const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
+			return { type: parameterType, equalToDefault } satisfies TypeArgument;
+		});
+		return typeArguments;
+	}
 
 	if (type.aliasSymbol && !type.aliasTypeArguments) {
 		typeArguments = [];
@@ -314,8 +347,4 @@ function areEquivalent(
 	}
 
 	return undefined;
-}
-
-function isAnyOrUnknown(type: ts.Type): boolean {
-	return (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) > 0;
 }
