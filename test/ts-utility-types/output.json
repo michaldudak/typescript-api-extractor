@@ -241,6 +241,109 @@
 							{
 								"type": {
 									"kind": "tuple",
+									"typeName": {
+										"name": "Parameters",
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "Pick",
+														"typeArguments": [
+															{
+																"type": {
+																	"kind": "object",
+																	"typeName": {
+																		"name": "Base"
+																	},
+																	"properties": [
+																		{
+																			"name": "a",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "boolean"
+																			},
+																			"optional": false
+																		},
+																		{
+																			"name": "b",
+																			"type": {
+																				"kind": "union",
+																				"types": [
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "string"
+																					},
+																					{
+																						"kind": "intrinsic",
+																						"intrinsic": "undefined"
+																					}
+																				]
+																			},
+																			"optional": true
+																		},
+																		{
+																			"name": "c",
+																			"type": {
+																				"kind": "intrinsic",
+																				"intrinsic": "number"
+																			},
+																			"optional": false
+																		}
+																	]
+																},
+																"equalToDefault": false
+															},
+															{
+																"type": {
+																	"kind": "union",
+																	"types": [
+																		{
+																			"kind": "literal",
+																			"value": "\"a\""
+																		},
+																		{
+																			"kind": "literal",
+																			"value": "\"b\""
+																		}
+																	]
+																},
+																"equalToDefault": false
+															}
+														]
+													},
+													"properties": [
+														{
+															"name": "a",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "boolean"
+															},
+															"optional": false
+														},
+														{
+															"name": "b",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														}
+													]
+												},
+												"equalToDefault": false
+											}
+										]
+									},
 									"types": [
 										{
 											"kind": "object",

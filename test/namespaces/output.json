@@ -73,6 +73,13 @@
 											"name": "os",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "Grade",
+													"namespaces": [
+														"Root",
+														"Sub"
+													]
+												},
 												"types": [
 													{
 														"kind": "enum",
@@ -106,6 +113,12 @@
 											"name": "oa",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "NamespacedType",
+													"namespaces": [
+														"Root"
+													]
+												},
 												"types": [
 													{
 														"kind": "union",
@@ -287,6 +300,13 @@
 											"name": "os",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "Grade",
+													"namespaces": [
+														"Root",
+														"Sub"
+													]
+												},
 												"types": [
 													{
 														"kind": "enum",
@@ -320,6 +340,12 @@
 											"name": "oa",
 											"type": {
 												"kind": "union",
+												"typeName": {
+													"name": "NamespacedType",
+													"namespaces": [
+														"Root"
+													]
+												},
 												"types": [
 													{
 														"kind": "union",
@@ -478,6 +504,13 @@
 						"name": "os",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Grade",
+								"namespaces": [
+									"Root",
+									"Sub"
+								]
+							},
 							"types": [
 								{
 									"kind": "enum",
@@ -511,6 +544,12 @@
 						"name": "oa",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "NamespacedType",
+								"namespaces": [
+									"Root"
+								]
+							},
 							"types": [
 								{
 									"kind": "union",

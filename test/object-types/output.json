@@ -97,6 +97,9 @@
 							{
 								"type": {
 									"kind": "object",
+									"typeName": {
+										"name": "ObjectKeyword"
+									},
 									"properties": []
 								},
 								"name": "objectKeyword",
@@ -180,6 +183,9 @@
 											"name": "objectKeyword",
 											"type": {
 												"kind": "object",
+												"typeName": {
+													"name": "ObjectKeyword"
+												},
 												"properties": []
 											},
 											"optional": false

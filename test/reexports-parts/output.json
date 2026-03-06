@@ -188,6 +188,9 @@
 						"name": "partState",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "ComponentPartState"
+							},
 							"types": [
 								{
 									"kind": "object",
@@ -468,6 +471,9 @@
 						"name": "partState",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "ComponentPartState"
+							},
 							"types": [
 								{
 									"kind": "object",
@@ -1456,6 +1462,9 @@
 						"name": "partState",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "ComponentPartState"
+							},
 							"types": [
 								{
 									"kind": "object",

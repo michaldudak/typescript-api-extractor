@@ -157,12 +157,6 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 		return undefined;
 	}
 
-	// If we have a typeSymbol (extracted from the typeNode), we should use it
-	// even if the resolved type is any/unknown, as long as it's not a built-in symbol
-	if (typeSymbol && !type.aliasSymbol && !type.symbol && !isAnyOrUnknown(type)) {
-		return undefined;
-	}
-
 	const typeName = symbol.getName();
 
 	// Filter out TypeScript internal symbol names (e.g., __type for anonymous type literals,
@@ -331,8 +325,4 @@ function areEquivalent(
 	}
 
 	return undefined;
-}
-
-function isAnyOrUnknown(type: ts.Type): boolean {
-	return (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) > 0;
 }
