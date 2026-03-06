@@ -200,9 +200,6 @@
 						"name": "collisionPadding",
 						"type": {
 							"kind": "union",
-							"typeName": {
-								"name": "Padding"
-							},
 							"types": [
 								{
 									"kind": "external",

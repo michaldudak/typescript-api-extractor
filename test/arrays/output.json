@@ -44,9 +44,6 @@
 											"name": "optionalArr1",
 											"type": {
 												"kind": "union",
-												"typeName": {
-													"name": "Array"
-												},
 												"types": [
 													{
 														"kind": "array",

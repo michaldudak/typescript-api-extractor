@@ -133,9 +133,6 @@
 							{
 								"type": {
 									"kind": "union",
-									"typeName": {
-										"name": "MyRecord"
-									},
 									"types": [
 										{
 											"kind": "object",

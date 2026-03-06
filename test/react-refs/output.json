@@ -74,12 +74,6 @@
 						"name": "optionalRefObject",
 						"type": {
 							"kind": "union",
-							"typeName": {
-								"name": "RefObject",
-								"namespaces": [
-									"React"
-								]
-							},
 							"types": [
 								{
 									"kind": "external",
@@ -135,12 +129,6 @@
 						"name": "optionalRef",
 						"type": {
 							"kind": "union",
-							"typeName": {
-								"name": "Ref",
-								"namespaces": [
-									"React"
-								]
-							},
 							"types": [
 								{
 									"kind": "external",
