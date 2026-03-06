@@ -31,8 +31,8 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       globals:
-        specifier: ^17.3.0
-        version: 17.3.0
+        specifier: ^17.4.0
+        version: 17.4.0
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
@@ -731,8 +731,8 @@ packages:
     resolution: {integrity: sha512-035InabNu/c1lW0tzPhAgapKctblppqsKKG9ZaNzbr+gXwWMjXoiyGSyB9sArzrjG7jY+zntRq5ZSUYemrnWVQ==}
     engines: {node: 20 || >=22}
 
-  globals@17.3.0:
-    resolution: {integrity: sha512-yMqGUQVVCkD4tqjOJf3TnrvaaHDMYp4VlUSObbkIiuCPe/ofdMBFIAcBbCSRFWOnos6qRiTVStDwqPLUclaxIw==}
+  globals@17.4.0:
+    resolution: {integrity: sha512-hjrNztw/VajQwOLsMNT1cbJiH2muO3OROCHnbehc8eY5JyD2gqz4AcMHPqgaOR59DjgUjYAYLeH699g/eWi2jw==}
     engines: {node: '>=18'}
 
   ignore@5.3.2:
@@ -1665,7 +1665,7 @@ snapshots:
       minipass: 7.1.2
       path-scurry: 2.0.1
 
-  globals@17.3.0: {}
+  globals@17.4.0: {}
 
   ignore@5.3.2: {}
 
