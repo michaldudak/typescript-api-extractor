@@ -136,13 +136,17 @@ export function parseSignatureTypeParameters(
 	}
 
 	return typeParams.map((tp) => {
-		const declaration = tp.symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+		const symbol = tp.symbol;
+		const declaration = symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+		const name =
+			symbol?.name ??
+			(declaration && ts.isIdentifier(declaration.name) ? declaration.name.text : '');
 		const constraintType = declaration?.constraint
 			? context.checker.getTypeAtLocation(declaration.constraint)
 			: undefined;
 
 		return new TypeParameterNode(
-			tp.symbol.name,
+			name,
 			constraintType ? resolveType(constraintType, undefined, context) : undefined,
 			declaration?.default
 				? resolveType(context.checker.getTypeAtLocation(declaration.default), undefined, context)
