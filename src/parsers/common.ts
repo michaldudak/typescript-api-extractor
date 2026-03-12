@@ -215,10 +215,17 @@ function getTypeArguments(
 	if (typeSymbol && type.aliasSymbol && typeSymbol !== type.aliasSymbol) {
 		// The typeNode reference determines the type arguments — if the authored code writes
 		// `TabsLikeDetails` (no angle brackets), there are no type arguments.
+		// Evaluate equalToDefault against the authored alias (typeSymbol), not the resolved
+		// inner type, since the outer and inner generics may have different defaults.
 		typeArguments = nodeTypeArguments.map((argNode, index) => {
 			const argType = context.checker.getTypeFromTypeNode(argNode);
 			const parameterType = resolveType(argType, argNode, context);
-			const equalToDefault = isGenericArgumentsSameAsDefault(type, index, context.checker);
+			const equalToDefault = isArgumentSameAsSymbolDefault(
+				argType,
+				index,
+				typeSymbol,
+				context.checker,
+			);
 			return { type: parameterType, equalToDefault } satisfies TypeArgument;
 		});
 		return typeArguments;
@@ -259,6 +266,45 @@ function getTypeArguments(
 	return typeArguments;
 }
 
+/**
+ * Checks whether a type argument matches the default of a specific symbol's declaration.
+ * Used when the authored alias differs from the resolved type's alias.
+ */
+function isArgumentSameAsSymbolDefault(
+	argumentType: ts.Type,
+	argumentIndex: number,
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): boolean {
+	if (!symbol.declarations || symbol.declarations.length === 0) {
+		return false;
+	}
+
+	const declaration = symbol.declarations[0];
+
+	if (
+		!ts.isInterfaceDeclaration(declaration) &&
+		!ts.isTypeAliasDeclaration(declaration) &&
+		!ts.isClassDeclaration(declaration) &&
+		!ts.isFunctionDeclaration(declaration)
+	) {
+		return false;
+	}
+
+	const typeParameters = declaration.typeParameters;
+	if (!typeParameters || argumentIndex >= typeParameters.length) {
+		return false;
+	}
+
+	const typeParameterDeclaration = typeParameters[argumentIndex];
+	if (!typeParameterDeclaration.default) {
+		return false;
+	}
+
+	const defaultType = checker.getTypeFromTypeNode(typeParameterDeclaration.default);
+	return argumentType === defaultType;
+}
+
 function isGenericArgumentsSameAsDefault(
 	type: ts.Type, // The instantiated type, e.g., Props<string>
 	argumentIndex: number,
@@ -267,7 +313,13 @@ function isGenericArgumentsSameAsDefault(
 	let typeArguments: readonly ts.Type[] | undefined;
 	let targetSymbol: ts.Symbol | undefined;
 
-	if (
+	// Prefer the alias path when available: aliasSymbol corresponds to the authored
+	// type reference (e.g. `Outer`), while the ObjectReference target may point to
+	// a different inner generic (`Inner`) with different defaults.
+	if (type.aliasSymbol && type.aliasTypeArguments) {
+		typeArguments = type.aliasTypeArguments;
+		targetSymbol = type.aliasSymbol;
+	} else if (
 		type.flags & ts.TypeFlags.Object &&
 		(type as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference
 	) {
