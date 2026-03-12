@@ -13,7 +13,7 @@ import {
 	Visibility,
 } from '../models';
 import { getFullName } from './common';
-import { parseSignatureTypeParameters } from './functionParser';
+import { parseSignatureTypeParameters } from './signatureParser';
 import { TypeName } from '../models/typeName';
 import { getDocumentationFromSymbol } from './documentationParser';
 

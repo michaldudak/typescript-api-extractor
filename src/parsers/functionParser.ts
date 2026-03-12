@@ -8,11 +8,11 @@ import {
 	DocumentationTag,
 	Parameter,
 	Visibility,
-	TypeParameterNode,
 } from '../models';
 import { ParserError } from '../ParserError';
 import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
+import { parseSignatureTypeParameters } from './signatureParser';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
@@ -124,33 +124,4 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 	} finally {
 		parsedSymbolStack.pop();
 	}
-}
-
-export function parseSignatureTypeParameters(
-	signature: ts.Signature,
-	context: ParserContext,
-): TypeParameterNode[] {
-	const typeParams = signature.typeParameters;
-	if (!typeParams || typeParams.length === 0) {
-		return [];
-	}
-
-	return typeParams.map((tp) => {
-		const symbol = tp.symbol;
-		const declaration = symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
-		const name =
-			symbol?.name ??
-			(declaration && ts.isIdentifier(declaration.name) ? declaration.name.text : '');
-		const constraintType = declaration?.constraint
-			? context.checker.getTypeAtLocation(declaration.constraint)
-			: undefined;
-
-		return new TypeParameterNode(
-			name,
-			constraintType ? resolveType(constraintType, undefined, context) : undefined,
-			declaration?.default
-				? resolveType(context.checker.getTypeAtLocation(declaration.default), undefined, context)
-				: undefined,
-		);
-	});
 }
