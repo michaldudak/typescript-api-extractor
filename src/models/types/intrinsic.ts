@@ -6,6 +6,7 @@ type IntrinsicType =
 	| 'number'
 	| 'boolean'
 	| 'bigint'
+	| 'symbol'
 	| 'null'
 	| 'undefined'
 	| 'void'
