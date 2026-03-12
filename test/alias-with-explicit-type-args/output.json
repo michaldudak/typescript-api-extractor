@@ -180,6 +180,94 @@
 							]
 						},
 						"optional": false
+					},
+					{
+						"name": "partialOverride",
+						"type": {
+							"kind": "object",
+							"typeName": {
+								"name": "Outer",
+								"typeArguments": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										"equalToDefault": false
+									},
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "bigint"
+										},
+										"equalToDefault": true
+									}
+								]
+							},
+							"properties": [
+								{
+									"name": "value",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									},
+									"optional": false
+								},
+								{
+									"name": "count",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "bigint"
+									},
+									"optional": false
+								}
+							]
+						},
+						"optional": false
+					},
+					{
+						"name": "partialDefault",
+						"type": {
+							"kind": "object",
+							"typeName": {
+								"name": "Outer",
+								"typeArguments": [
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "boolean"
+										},
+										"equalToDefault": true
+									},
+									{
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "bigint"
+										},
+										"equalToDefault": true
+									}
+								]
+							},
+							"properties": [
+								{
+									"name": "value",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "boolean"
+									},
+									"optional": false
+								},
+								{
+									"name": "count",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "bigint"
+									},
+									"optional": false
+								}
+							]
+						},
+						"optional": false
 					}
 				]
 			}
