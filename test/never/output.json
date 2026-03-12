@@ -1,0 +1,39 @@
+{
+	"name": "test/never/input",
+	"exports": [
+		{
+			"name": "fail",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "fail"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "message",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "never"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Impossible",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "never"
+			}
+		}
+	]
+}

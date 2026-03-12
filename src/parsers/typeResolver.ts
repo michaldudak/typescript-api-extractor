@@ -84,6 +84,7 @@ function resolveTypeUncached(
 				ts.TypeFlags.Number |
 				ts.TypeFlags.Boolean |
 				ts.TypeFlags.ESSymbol |
+				ts.TypeFlags.Never |
 				ts.TypeFlags.Undefined |
 				ts.TypeFlags.Null |
 				ts.TypeFlags.Void)) !==
@@ -349,6 +350,10 @@ function resolveTypeUncached(
 			return new ObjectNode(typeName, [], undefined);
 		}
 
+		if (hasExactFlag(type, ts.TypeFlags.Never)) {
+			return new IntrinsicNode('never');
+		}
+
 		if (hasExactFlag(type, ts.TypeFlags.Conditional)) {
 			const conditionalType = type as ts.ConditionalType;
 			if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
@@ -362,6 +367,18 @@ function resolveTypeUncached(
 			} else if (conditionalType.resolvedFalseType) {
 				return resolveType(conditionalType.resolvedFalseType, undefined, context);
 			}
+		}
+
+		// Index (keyof T) and IndexedAccess (T[K]) types can't be represented directly.
+		// Expand them via getBaseConstraintOfType to a representable form.
+		// When the base constraint is unavailable (e.g., T[K] with unresolved type parameters),
+		// fall back to 'any' silently — this is an expected limitation, not a parser bug.
+		if (hasExactFlag(type, ts.TypeFlags.Index) || hasExactFlag(type, ts.TypeFlags.IndexedAccess)) {
+			const baseConstraint = checker.getBaseConstraintOfType(type);
+			if (baseConstraint) {
+				return resolveType(baseConstraint, undefined, context);
+			}
+			return new IntrinsicNode('any', typeName);
 		}
 
 		console.warn(

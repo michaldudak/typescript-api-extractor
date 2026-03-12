@@ -10,6 +10,7 @@ type IntrinsicType =
 	| 'null'
 	| 'undefined'
 	| 'void'
+	| 'never'
 	| 'any'
 	| 'unknown'
 	| 'function';
