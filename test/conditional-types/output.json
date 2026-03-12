@@ -36,17 +36,7 @@
 									"intrinsic": "null"
 								}
 							]
-						},
-						"typeParameters": [
-							{
-								"kind": "typeParameter",
-								"name": "T",
-								"constraint": {
-									"kind": "intrinsic",
-									"intrinsic": "boolean"
-								}
-							}
-						]
+						}
 					}
 				]
 			}
@@ -114,17 +104,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"intrinsic": "null"
-						},
-						"typeParameters": [
-							{
-								"kind": "typeParameter",
-								"name": "Multiple",
-								"constraint": {
-									"kind": "intrinsic",
-									"intrinsic": "boolean"
-								}
-							}
-						]
+						}
 					}
 				]
 			}

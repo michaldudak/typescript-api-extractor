@@ -188,13 +188,7 @@
 						"returnValueType": {
 							"kind": "intrinsic",
 							"intrinsic": "void"
-						},
-						"typeParameters": [
-							{
-								"kind": "typeParameter",
-								"name": "T"
-							}
-						]
+						}
 					}
 				]
 			}

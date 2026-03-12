@@ -172,13 +172,7 @@
 									"optional": true
 								}
 							]
-						},
-						"typeParameters": [
-							{
-								"kind": "typeParameter",
-								"name": "T"
-							}
-						]
+						}
 					}
 				]
 			}

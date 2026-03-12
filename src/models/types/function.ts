@@ -1,7 +1,6 @@
 import { Documentation } from '../documentation';
 import { AnyType, TypeNode } from '../node';
 import { TypeName } from '../typeName';
-import { TypeParameterNode } from './typeParameter';
 
 export class FunctionNode implements TypeNode {
 	readonly kind = 'function';
@@ -27,15 +26,10 @@ export class CallSignature {
 	constructor(
 		public parameters: Parameter[],
 		public returnValueType: AnyType,
-		public typeParameters?: TypeParameterNode[],
 	) {}
 
 	toString(): string {
-		const typeParams =
-			this.typeParameters && this.typeParameters.length > 0
-				? `<${this.typeParameters.map((tp) => tp.toString()).join(', ')}>`
-				: '';
-		return `${typeParams}(${this.parameters.map((p) => p.toString()).join(', ')}) => ${this.returnValueType.toString()}`;
+		return `(${this.parameters.map((p) => p.toString()).join(', ')}) => ${this.returnValueType.toString()}`;
 	}
 }
 
