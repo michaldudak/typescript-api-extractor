@@ -153,12 +153,7 @@ function extractMembers(
 			const signatures: CallSignature[] = tsCallSignatures.map((sig) => {
 				const params = sig.parameters.map((paramSymbol) => parseParameter(paramSymbol, context));
 				const returnType = resolveType(sig.getReturnType(), undefined, context);
-				const typeParams = parseSignatureTypeParameters(sig, context);
-				return new CallSignature(
-					params,
-					returnType,
-					typeParams.length > 0 ? typeParams : undefined,
-				);
+				return new CallSignature(params, returnType, parseSignatureTypeParameters(sig, context));
 			});
 
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));

@@ -16,11 +16,10 @@ import { parseSignatureTypeParameters } from './signatureParser';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
 	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
-		const typeParams = parseSignatureTypeParameters(signature, context);
 		return new CallSignature(
 			signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
 			resolveType(signature.getReturnType(), undefined, context),
-			typeParams.length > 0 ? typeParams : undefined,
+			parseSignatureTypeParameters(signature, context),
 		);
 	});
 
