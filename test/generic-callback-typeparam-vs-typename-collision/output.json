@@ -1,0 +1,307 @@
+{
+	"name": "test/generic-callback-typeparam-vs-typename-collision/input",
+	"exports": [
+		{
+			"name": "Colliding",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Colliding"
+				},
+				"types": [
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "typeParameter",
+											"name": "T",
+											"constraint": {
+												"kind": "object",
+												"properties": [
+													{
+														"name": "self",
+														"type": {
+															"kind": "object",
+															"typeName": {
+																"name": "T"
+															},
+															"properties": []
+														},
+														"optional": false
+													}
+												]
+											}
+										},
+										"name": "x",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "self",
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "T"
+													},
+													"properties": []
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "T",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "self",
+													"type": {
+														"kind": "typeParameter",
+														"name": "T",
+														"constraint": {
+															"kind": "object",
+															"properties": []
+														}
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					},
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "typeParameter",
+											"name": "U",
+											"constraint": {
+												"kind": "object",
+												"properties": [
+													{
+														"name": "self",
+														"type": {
+															"kind": "object",
+															"typeName": {
+																"name": "T"
+															},
+															"properties": [
+																{
+																	"name": "value",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "number"
+																	},
+																	"optional": false
+																}
+															]
+														},
+														"optional": false
+													}
+												]
+											}
+										},
+										"name": "x",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "U",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "self",
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "T"
+													},
+													"properties": [
+														{
+															"name": "value",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															},
+															"optional": false
+														}
+													]
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "U",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "self",
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "T"
+														},
+														"properties": [
+															{
+																"name": "value",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "number"
+																},
+																"optional": false
+															}
+														]
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		},
+		{
+			"name": "AlphaEquiv",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "AlphaEquiv"
+				},
+				"types": [
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "typeParameter",
+											"name": "A",
+											"constraint": {
+												"kind": "object",
+												"properties": [
+													{
+														"name": "ref",
+														"type": {
+															"kind": "object",
+															"typeName": {
+																"name": "T"
+															},
+															"properties": [
+																{
+																	"name": "value",
+																	"type": {
+																		"kind": "intrinsic",
+																		"intrinsic": "number"
+																	},
+																	"optional": false
+																}
+															]
+														},
+														"optional": false
+													}
+												]
+											}
+										},
+										"name": "x",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "A",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "ref",
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "T"
+													},
+													"properties": [
+														{
+															"name": "value",
+															"type": {
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															},
+															"optional": false
+														}
+													]
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "A",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "ref",
+													"type": {
+														"kind": "object",
+														"typeName": {
+															"name": "T"
+														},
+														"properties": [
+															{
+																"name": "value",
+																"type": {
+																	"kind": "intrinsic",
+																	"intrinsic": "number"
+																},
+																"optional": false
+															}
+														]
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		}
+	]
+}

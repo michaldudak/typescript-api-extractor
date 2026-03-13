@@ -23,10 +23,10 @@ export function parseSignatureTypeParameters(
 		if (signatureTypeParamNode && ts.isTypeParameterDeclaration(signatureTypeParamNode)) {
 			declaration = signatureTypeParamNode;
 		} else if (symbol?.declarations && symbol.declarations.length > 0) {
-			const candidate = symbol.declarations[0];
-			if (ts.isTypeParameterDeclaration(candidate)) {
-				declaration = candidate;
-			}
+			// Prefer the declaration whose parent matches the signature's own declaration,
+			// since a symbol may have multiple declarations (e.g. merged interfaces).
+			const candidates = symbol.declarations.filter(ts.isTypeParameterDeclaration);
+			declaration = candidates.find((d) => d.parent === signatureDeclaration) ?? candidates[0];
 		}
 		let name = symbol?.name;
 		if (!name && declaration && ts.isIdentifier(declaration.name)) {
