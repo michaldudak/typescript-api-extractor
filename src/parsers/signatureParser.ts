@@ -60,7 +60,11 @@ export function parseSignatureTypeParameters(
 			name,
 			constraint,
 			declaration?.default
-				? resolveType(context.checker.getTypeAtLocation(declaration.default), undefined, context)
+				? resolveType(
+						context.checker.getTypeAtLocation(declaration.default),
+						declaration.default,
+						context,
+					)
 				: undefined,
 		);
 	});

@@ -73,7 +73,7 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 		const sig1 = func1.callSignatures[i];
 		const sig2 = func2.callSignatures[i];
 
-		// Check type parameters match (count + names + constraints)
+		// Check type parameters match (count + names + constraints + default values)
 		const tp1 = sig1.typeParameters ?? [];
 		const tp2 = sig2.typeParameters ?? [];
 		if (tp1.length !== tp2.length) {
