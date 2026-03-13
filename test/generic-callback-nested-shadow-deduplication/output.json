@@ -1,0 +1,90 @@
+{
+	"name": "test/generic-callback-nested-shadow-deduplication/input",
+	"exports": [
+		{
+			"name": "Outer",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Outer"
+				},
+				"types": [
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [
+									{
+										"type": {
+											"kind": "function",
+											"callSignatures": [
+												{
+													"parameters": [
+														{
+															"type": {
+																"kind": "typeParameter",
+																"name": "T",
+																"constraint": {
+																	"kind": "intrinsic",
+																	"intrinsic": "number"
+																}
+															},
+															"name": "x",
+															"optional": false
+														}
+													],
+													"returnValueType": {
+														"kind": "typeParameter",
+														"name": "T",
+														"constraint": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														}
+													},
+													"typeParameters": [
+														{
+															"kind": "typeParameter",
+															"name": "T",
+															"constraint": {
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															}
+														}
+													]
+												}
+											]
+										},
+										"name": "fn",
+										"optional": false
+									}
+								],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "T",
+										"constraint": {
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										}
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			"documentation": {
+				"description": "Nested generic function types where inner signatures reuse the same\ntype parameter name as an outer mapping. Inner T should shadow outer T\nand not incorrectly resolve via the outer rename map.",
+				"tags": []
+			}
+		}
+	]
+}

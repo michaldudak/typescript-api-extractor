@@ -6,9 +6,11 @@ type IntrinsicType =
 	| 'number'
 	| 'boolean'
 	| 'bigint'
+	| 'symbol'
 	| 'null'
 	| 'undefined'
 	| 'void'
+	| 'never'
 	| 'any'
 	| 'unknown'
 	| 'function';

@@ -13,6 +13,7 @@ import {
 	Visibility,
 } from '../models';
 import { getFullName } from './common';
+import { parseSignatureTypeParameters } from './signatureParser';
 import { TypeName } from '../models/typeName';
 import { getDocumentationFromSymbol } from './documentationParser';
 
@@ -152,7 +153,7 @@ function extractMembers(
 			const signatures: CallSignature[] = tsCallSignatures.map((sig) => {
 				const params = sig.parameters.map((paramSymbol) => parseParameter(paramSymbol, context));
 				const returnType = resolveType(sig.getReturnType(), undefined, context);
-				return new CallSignature(params, returnType);
+				return new CallSignature(params, returnType, parseSignatureTypeParameters(sig, context));
 			});
 
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));

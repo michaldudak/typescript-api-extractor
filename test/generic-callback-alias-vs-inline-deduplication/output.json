@@ -1,0 +1,110 @@
+{
+	"name": "test/generic-callback-alias-vs-inline-deduplication/input",
+	"exports": [
+		{
+			"name": "Fn",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Fn"
+				},
+				"types": [
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "object",
+										"typeName": {
+											"name": "Foo"
+										},
+										"properties": [
+											{
+												"name": "a",
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "T",
+										"constraint": {
+											"kind": "object",
+											"typeName": {
+												"name": "Foo"
+											},
+											"properties": [
+												{
+													"name": "a",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					},
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "U",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "a",
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "U",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "a",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		}
+	]
+}
