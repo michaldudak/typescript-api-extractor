@@ -24,12 +24,35 @@ export function flattenTypes(
 }
 
 /**
+ * Apply a type parameter rename map to a string, replacing occurrences
+ * of renamed type parameter names using word-boundary matching.
+ */
+function applyTypeParamRenames(str: string, renames: ReadonlyMap<string, string>): string {
+	let result = str;
+	for (const [from, to] of renames) {
+		result = result.replace(new RegExp(`\\b${from}\\b`, 'g'), to);
+	}
+	return result;
+}
+
+/**
  * Check if two types are equivalent when ignoring `any`.
  * `any` is considered equivalent to any other type.
+ * An optional type parameter rename map can be provided to treat
+ * alpha-equivalent type parameters (e.g., T vs U) as identical.
  */
-function typesAreEquivalentIgnoringAny(type1: AnyType, type2: AnyType): boolean {
+function typesAreEquivalentIgnoringAny(
+	type1: AnyType,
+	type2: AnyType,
+	typeParamRenames?: ReadonlyMap<string, string>,
+): boolean {
 	const type1Str = type1.toString();
-	const type2Str = type2.toString();
+	let type2Str = type2.toString();
+
+	// Apply type parameter renaming for alpha-equivalence
+	if (typeParamRenames && typeParamRenames.size > 0) {
+		type2Str = applyTypeParamRenames(type2Str, typeParamRenames);
+	}
 
 	// If string representations match, they're equivalent
 	if (type1Str === type2Str) {
@@ -43,7 +66,7 @@ function typesAreEquivalentIgnoringAny(type1: AnyType, type2: AnyType): boolean 
 
 	// If both are functions, compare them recursively
 	if (type1 instanceof FunctionNode && type2 instanceof FunctionNode) {
-		return functionsAreEquivalentIgnoringAny(type1, type2);
+		return functionsAreEquivalentIgnoringAny(type1, type2, typeParamRenames);
 	}
 
 	// If both are unions, compare their members
@@ -52,7 +75,9 @@ function typesAreEquivalentIgnoringAny(type1: AnyType, type2: AnyType): boolean 
 			return false;
 		}
 		// Check if each type in union1 has an equivalent in union2
-		return type1.types.every((t1, idx) => typesAreEquivalentIgnoringAny(t1, type2.types[idx]));
+		return type1.types.every((t1, idx) =>
+			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
+		);
 	}
 
 	// Different types
@@ -64,7 +89,11 @@ function typesAreEquivalentIgnoringAny(type1: AnyType, type2: AnyType): boolean 
  * Two functions are considered equivalent if they have the same structure
  * but differ only in that one has `any` where the other has a concrete type.
  */
-function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionNode): boolean {
+function functionsAreEquivalentIgnoringAny(
+	func1: FunctionNode,
+	func2: FunctionNode,
+	outerTypeParamRenames?: ReadonlyMap<string, string>,
+): boolean {
 	if (func1.callSignatures.length !== func2.callSignatures.length) {
 		return false;
 	}
@@ -73,20 +102,28 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 		const sig1 = func1.callSignatures[i];
 		const sig2 = func2.callSignatures[i];
 
-		// Check type parameters match (count + names + constraints + default values)
+		// Check type parameters match (count + constraints + default values)
+		// Type parameter names are alpha-renamable, so we compare positionally
+		// and build a rename map for use in subsequent comparisons.
 		const tp1 = sig1.typeParameters ?? [];
 		const tp2 = sig2.typeParameters ?? [];
 		if (tp1.length !== tp2.length) {
 			return false;
 		}
+
+		// Build rename map: sig2 type param names → sig1 type param names
+		const typeParamRenames = new Map<string, string>(outerTypeParamRenames);
 		for (let k = 0; k < tp1.length; k++) {
 			if (tp1[k].name !== tp2[k].name) {
-				return false;
+				typeParamRenames.set(tp2[k].name, tp1[k].name);
 			}
+		}
+
+		for (let k = 0; k < tp1.length; k++) {
 			const c1 = tp1[k].constraint;
 			const c2 = tp2[k].constraint;
 			if (c1 && c2) {
-				if (!typesAreEquivalentIgnoringAny(c1, c2)) {
+				if (!typesAreEquivalentIgnoringAny(c1, c2, typeParamRenames)) {
 					return false;
 				}
 			} else if (c1 || c2) {
@@ -96,7 +133,7 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 			const d1 = tp1[k].defaultValue;
 			const d2 = tp2[k].defaultValue;
 			if (d1 && d2) {
-				if (!typesAreEquivalentIgnoringAny(d1, d2)) {
+				if (!typesAreEquivalentIgnoringAny(d1, d2, typeParamRenames)) {
 					return false;
 				}
 			} else if (d1 || d2) {
@@ -110,7 +147,9 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 		}
 
 		// Check return types match (using recursive equivalence)
-		if (!typesAreEquivalentIgnoringAny(sig1.returnValueType, sig2.returnValueType)) {
+		if (
+			!typesAreEquivalentIgnoringAny(sig1.returnValueType, sig2.returnValueType, typeParamRenames)
+		) {
 			return false;
 		}
 
@@ -125,7 +164,7 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 			}
 
 			// Use recursive equivalence check for parameter types
-			if (!typesAreEquivalentIgnoringAny(param1.type, param2.type)) {
+			if (!typesAreEquivalentIgnoringAny(param1.type, param2.type, typeParamRenames)) {
 				return false;
 			}
 		}
