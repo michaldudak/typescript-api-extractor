@@ -230,7 +230,32 @@
 			"type": {
 				"kind": "object",
 				"typeName": {
-					"name": "BaseUIComponentProps"
+					"name": "BaseUIComponentProps",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "object",
+								"typeName": {
+									"name": "State",
+									"namespaces": [
+										"Accordion",
+										"Item"
+									]
+								},
+								"properties": [
+									{
+										"name": "expanded",
+										"type": {
+											"kind": "intrinsic",
+											"intrinsic": "boolean"
+										},
+										"optional": false
+									}
+								]
+							},
+							"equalToDefault": false
+						}
+					]
 				},
 				"properties": [
 					{
