@@ -74,11 +74,12 @@ function typesAreEquivalentIgnoringAny(
 	type2: AnyType,
 	typeParamRenames?: ReadonlyMap<string, string>,
 ): boolean {
-	// If one is `any`, consider them equivalent
-	if (
-		(type1 instanceof IntrinsicNode && type1.intrinsic === 'any') ||
-		(type2 instanceof IntrinsicNode && type2.intrinsic === 'any')
-	) {
+	// If one is an unaliased `any` (no typeName), consider it a wildcard.
+	const type1IsAny = type1 instanceof IntrinsicNode && type1.intrinsic === 'any';
+	const type2IsAny = type2 instanceof IntrinsicNode && type2.intrinsic === 'any';
+	const type1IsUnaliasedAny = type1IsAny && !type1.typeName;
+	const type2IsUnaliasedAny = type2IsAny && !type2.typeName;
+	if (type1IsUnaliasedAny || type2IsUnaliasedAny) {
 		return true;
 	}
 
