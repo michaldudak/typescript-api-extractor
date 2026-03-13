@@ -6,6 +6,9 @@ import { IntersectionNode } from './intersection';
 import { UnionNode } from './union';
 import { TypeParameterNode } from './typeParameter';
 import { FunctionNode } from './function';
+import { ArrayNode } from './array';
+import { TupleNode } from './tuple';
+import { ObjectNode } from './object';
 
 export function flattenTypes(
 	nodes: readonly AnyType[],
@@ -24,25 +27,38 @@ export function flattenTypes(
 }
 
 /**
- * Apply a type parameter rename map to a string, replacing occurrences
- * of renamed type parameter names using identifier-boundary matching.
- * Uses lookaround for identifier characters (word chars + $) so names
- * like $T are handled correctly.
+ * Check if two TypeName instances are equivalent, recursing into type arguments
+ * with the rename map for alpha-equivalence.
  */
-function applyTypeParamRenames(str: string, renames: ReadonlyMap<string, string>): string {
-	const fromKeys = Array.from(renames.keys());
-	if (fromKeys.length === 0) {
-		return str;
+function typeNamesAreEquivalentIgnoringAny(
+	tn1: {
+		name: string;
+		namespaces?: readonly string[];
+		typeArguments?: readonly { type: AnyType }[];
+	},
+	tn2: {
+		name: string;
+		namespaces?: readonly string[];
+		typeArguments?: readonly { type: AnyType }[];
+	},
+	typeParamRenames?: ReadonlyMap<string, string>,
+): boolean {
+	if (tn1.name !== tn2.name) {
+		return false;
 	}
-
-	const escapeForRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-	// Build a single regex that matches any of the type parameter names as whole identifiers.
-	// Uses a single-pass replacement so overlapping renames (e.g., swapping T and U) don't cascade.
-	const pattern = '(?<![\\w$])(' + fromKeys.map(escapeForRegex).join('|') + ')(?![\\w$])';
-	const regex = new RegExp(pattern, 'g');
-
-	return str.replace(regex, (match) => renames.get(match) ?? match);
+	const ns1 = tn1.namespaces ?? [];
+	const ns2 = tn2.namespaces ?? [];
+	if (ns1.length !== ns2.length || ns1.some((n, i) => n !== ns2[i])) {
+		return false;
+	}
+	const args1 = tn1.typeArguments ?? [];
+	const args2 = tn2.typeArguments ?? [];
+	if (args1.length !== args2.length) {
+		return false;
+	}
+	return args1.every((a, i) =>
+		typesAreEquivalentIgnoringAny(a.type, args2[i].type, typeParamRenames),
+	);
 }
 
 /**
@@ -50,48 +66,125 @@ function applyTypeParamRenames(str: string, renames: ReadonlyMap<string, string>
  * `any` is considered equivalent to any other type.
  * An optional type parameter rename map can be provided to treat
  * alpha-equivalent type parameters (e.g., T vs U) as identical.
+ * Comparison is structural — renames are only applied to TypeParameterNode
+ * identity, not to property keys or other non-type-parameter identifiers.
  */
 function typesAreEquivalentIgnoringAny(
 	type1: AnyType,
 	type2: AnyType,
 	typeParamRenames?: ReadonlyMap<string, string>,
 ): boolean {
-	const type1Str = type1.toString();
-	let type2Str = type2.toString();
-
-	// Apply type parameter renaming for alpha-equivalence
-	if (typeParamRenames && typeParamRenames.size > 0) {
-		type2Str = applyTypeParamRenames(type2Str, typeParamRenames);
-	}
-
-	// If string representations match, they're equivalent
-	if (type1Str === type2Str) {
-		return true;
-	}
-
 	// If one is `any`, consider them equivalent
-	if (type1Str === 'any' || type2Str === 'any') {
+	if (
+		(type1 instanceof IntrinsicNode && type1.intrinsic === 'any') ||
+		(type2 instanceof IntrinsicNode && type2.intrinsic === 'any')
+	) {
 		return true;
 	}
 
-	// If both are functions, compare them recursively
+	// TypeParameterNode: apply rename map to compare identity
+	if (type1 instanceof TypeParameterNode && type2 instanceof TypeParameterNode) {
+		const name2Renamed = typeParamRenames?.get(type2.name) ?? type2.name;
+		return type1.name === name2Renamed;
+	}
+
+	// If no rename map is active, fast-path via string comparison
+	if (!typeParamRenames || typeParamRenames.size === 0) {
+		if (type1.toString() === type2.toString()) {
+			return true;
+		}
+	}
+
+	// When both types carry a typeName alias, compare by alias identity rather than
+	// structural shape. Different aliases (e.g., Foo vs Bar) are distinct even if
+	// their underlying structure is identical. For types with `typeName`, recurse
+	// through typeNamesAreEquivalentIgnoringAny to handle type arguments properly.
+	// When only one side has a typeName, they are not equivalent (aliased vs inline).
+	const tn1 = 'typeName' in type1 ? type1.typeName : undefined;
+	const tn2 = 'typeName' in type2 ? type2.typeName : undefined;
+	if (tn1 || tn2) {
+		if (tn1 && tn2) {
+			return typeNamesAreEquivalentIgnoringAny(tn1, tn2, typeParamRenames);
+		}
+		return false;
+	}
+
+	// Functions: compare structurally
 	if (type1 instanceof FunctionNode && type2 instanceof FunctionNode) {
 		return functionsAreEquivalentIgnoringAny(type1, type2, typeParamRenames);
 	}
 
-	// If both are unions, compare their members
+	// Unions: compare members structurally
 	if (type1 instanceof UnionNode && type2 instanceof UnionNode) {
 		if (type1.types.length !== type2.types.length) {
 			return false;
 		}
-		// Check if each type in union1 has an equivalent in union2
 		return type1.types.every((t1, idx) =>
 			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
 		);
 	}
 
-	// Different types
-	return false;
+	// Intersections: compare members structurally
+	if (type1 instanceof IntersectionNode && type2 instanceof IntersectionNode) {
+		if (type1.types.length !== type2.types.length) {
+			return false;
+		}
+		return type1.types.every((t1, idx) =>
+			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
+		);
+	}
+
+	// Arrays: compare element types
+	if (type1 instanceof ArrayNode && type2 instanceof ArrayNode) {
+		return typesAreEquivalentIgnoringAny(type1.elementType, type2.elementType, typeParamRenames);
+	}
+
+	// Tuples: compare element types
+	if (type1 instanceof TupleNode && type2 instanceof TupleNode) {
+		if (type1.types.length !== type2.types.length) {
+			return false;
+		}
+		return type1.types.every((t1, idx) =>
+			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
+		);
+	}
+
+	// ExternalTypeNode: compare name and type arguments structurally
+	if (type1 instanceof ExternalTypeNode && type2 instanceof ExternalTypeNode) {
+		return typeNamesAreEquivalentIgnoringAny(type1.typeName, type2.typeName, typeParamRenames);
+	}
+
+	// ObjectNode: compare properties and index signatures structurally
+	if (type1 instanceof ObjectNode && type2 instanceof ObjectNode) {
+		if (type1.properties.length !== type2.properties.length) {
+			return false;
+		}
+		const idx1 = type1.indexSignature;
+		const idx2 = type2.indexSignature;
+		if (idx1 && idx2) {
+			if (
+				idx1.keyType !== idx2.keyType ||
+				!typesAreEquivalentIgnoringAny(idx1.valueType, idx2.valueType, typeParamRenames)
+			) {
+				return false;
+			}
+		} else if (idx1 || idx2) {
+			return false;
+		}
+		return type1.properties.every((p1, idx) => {
+			const p2 = type2.properties[idx];
+			return (
+				p1.name === p2.name &&
+				p1.optional === p2.optional &&
+				typesAreEquivalentIgnoringAny(p1.type, p2.type, typeParamRenames)
+			);
+		});
+	}
+
+	// For any other types or types with typeName aliases, use toString() comparison.
+	// This is safe because these types don't contain type parameter references
+	// that could be confused with non-type-parameter identifiers.
+	return type1.toString() === type2.toString();
 }
 
 /**
@@ -121,12 +214,12 @@ function functionsAreEquivalentIgnoringAny(
 			return false;
 		}
 
-		// Build rename map: sig2 type param names → sig1 type param names
+		// Build rename map: sig2 type param names → sig1 type param names.
+		// Always set the mapping for each position to shadow any stale outer
+		// mapping, even when inner names match on both sides.
 		const typeParamRenames = new Map<string, string>(outerTypeParamRenames);
 		for (let k = 0; k < tp1.length; k++) {
-			if (tp1[k].name !== tp2[k].name) {
-				typeParamRenames.set(tp2[k].name, tp1[k].name);
-			}
+			typeParamRenames.set(tp2[k].name, tp1[k].name);
 		}
 
 		for (let k = 0; k < tp1.length; k++) {
