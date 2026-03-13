@@ -62,6 +62,35 @@ function typeNamesAreEquivalentIgnoringAny(
 }
 
 /**
+ * Order-independent multiset comparison for union/intersection members.
+ * Each member in types1 must match exactly one unmatched member in types2.
+ */
+function membersAreEquivalentUnordered(
+	types1: readonly AnyType[],
+	types2: readonly AnyType[],
+	typeParamRenames?: ReadonlyMap<string, string>,
+): boolean {
+	if (types1.length !== types2.length) {
+		return false;
+	}
+	const matched = new Array<boolean>(types2.length).fill(false);
+	for (const t1 of types1) {
+		let foundMatch = false;
+		for (let i = 0; i < types2.length; i++) {
+			if (!matched[i] && typesAreEquivalentIgnoringAny(t1, types2[i], typeParamRenames)) {
+				matched[i] = true;
+				foundMatch = true;
+				break;
+			}
+		}
+		if (!foundMatch) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
  * Check if two types are equivalent when ignoring `any`.
  * `any` is considered equivalent to any other type.
  * An optional type parameter rename map can be provided to treat
@@ -87,6 +116,12 @@ function typesAreEquivalentIgnoringAny(
 	if (type1 instanceof TypeParameterNode && type2 instanceof TypeParameterNode) {
 		const name2Renamed = typeParamRenames?.get(type2.name) ?? type2.name;
 		return type1.name === name2Renamed;
+	}
+
+	// If exactly one side is a TypeParameterNode, they are never equivalent.
+	// A type parameter named e.g. "string" must not match the intrinsic "string".
+	if (type1 instanceof TypeParameterNode || type2 instanceof TypeParameterNode) {
+		return false;
 	}
 
 	// If no rename map is active, fast-path via string comparison
@@ -115,24 +150,14 @@ function typesAreEquivalentIgnoringAny(
 		return functionsAreEquivalentIgnoringAny(type1, type2, typeParamRenames);
 	}
 
-	// Unions: compare members structurally
+	// Unions: compare members as multisets (order-independent)
 	if (type1 instanceof UnionNode && type2 instanceof UnionNode) {
-		if (type1.types.length !== type2.types.length) {
-			return false;
-		}
-		return type1.types.every((t1, idx) =>
-			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
-		);
+		return membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
 	}
 
-	// Intersections: compare members structurally
+	// Intersections: compare members as multisets (order-independent)
 	if (type1 instanceof IntersectionNode && type2 instanceof IntersectionNode) {
-		if (type1.types.length !== type2.types.length) {
-			return false;
-		}
-		return type1.types.every((t1, idx) =>
-			typesAreEquivalentIgnoringAny(t1, type2.types[idx], typeParamRenames),
-		);
+		return membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
 	}
 
 	// Arrays: compare element types
