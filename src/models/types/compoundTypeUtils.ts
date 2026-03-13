@@ -197,13 +197,9 @@ function typesAreEquivalentIgnoringAny(
 		} else if (idx1 || idx2) {
 			return false;
 		}
-		return type1.properties.every((p1, idx) => {
-			const p2 = type2.properties[idx];
-			return (
-				p1.name === p2.name &&
-				p1.optional === p2.optional &&
-				typesAreEquivalentIgnoringAny(p1.type, p2.type, typeParamRenames)
-			);
+		return type1.properties.every((p1) => {
+			const p2 = type2.properties.find((p) => p.name === p1.name && p.optional === p1.optional);
+			return p2 != null && typesAreEquivalentIgnoringAny(p1.type, p2.type, typeParamRenames);
 		});
 	}
 
@@ -330,6 +326,27 @@ function typeContainsAny(type: AnyType): boolean {
 
 	if (type instanceof UnionNode) {
 		return type.types.some((t) => typeContainsAny(t));
+	}
+
+	if (type instanceof IntersectionNode) {
+		return type.types.some((t) => typeContainsAny(t));
+	}
+
+	if (type instanceof ArrayNode) {
+		return typeContainsAny(type.elementType);
+	}
+
+	if (type instanceof TupleNode) {
+		return type.types.some((t) => typeContainsAny(t));
+	}
+
+	if (type instanceof ObjectNode) {
+		return type.properties.some((p) => typeContainsAny(p.type));
+	}
+
+	if (type instanceof ExternalTypeNode) {
+		const args = type.typeName.typeArguments;
+		return args != null && args.some((arg) => typeContainsAny(arg.type));
 	}
 
 	return false;
