@@ -63,30 +63,58 @@ function typeNamesAreEquivalentIgnoringAny(
 
 /**
  * Order-independent multiset comparison for union/intersection members.
- * Each member in types1 must match exactly one unmatched member in types2.
+ * Uses augmenting-path bipartite matching (Kuhn's algorithm) so that
+ * wildcard `any` members don't greedily consume concrete matches needed
+ * by other members. This guarantees a perfect matching is found whenever
+ * one exists, regardless of member ordering.
  */
 function membersAreEquivalentUnordered(
 	types1: readonly AnyType[],
 	types2: readonly AnyType[],
 	typeParamRenames?: ReadonlyMap<string, string>,
 ): boolean {
-	if (types1.length !== types2.length) {
+	const n = types1.length;
+	if (n !== types2.length) {
 		return false;
 	}
-	const matched = new Array<boolean>(types2.length).fill(false);
-	for (const t1 of types1) {
-		let foundMatch = false;
-		for (let i = 0; i < types2.length; i++) {
-			if (!matched[i] && typesAreEquivalentIgnoringAny(t1, types2[i], typeParamRenames)) {
-				matched[i] = true;
-				foundMatch = true;
-				break;
+	if (n === 0) {
+		return true;
+	}
+
+	// Build adjacency list: for each types1[j], which types2[i] indices are compatible?
+	const adj: number[][] = [];
+	for (let j = 0; j < n; j++) {
+		adj[j] = [];
+		for (let i = 0; i < n; i++) {
+			if (typesAreEquivalentIgnoringAny(types1[j], types2[i], typeParamRenames)) {
+				adj[j].push(i);
 			}
 		}
-		if (!foundMatch) {
+	}
+
+	// match2[i] = j means types2[i] is currently matched to types1[j], -1 = unmatched.
+	const match2 = new Array<number>(n).fill(-1);
+
+	function tryAugment(j: number, visited: boolean[]): boolean {
+		for (const i of adj[j]) {
+			if (visited[i]) {
+				continue;
+			}
+			visited[i] = true;
+			if (match2[i] === -1 || tryAugment(match2[i], visited)) {
+				match2[i] = j;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	for (let j = 0; j < n; j++) {
+		if (!tryAugment(j, new Array<boolean>(n).fill(false))) {
 			return false;
 		}
 	}
+
 	return true;
 }
 
@@ -124,9 +152,16 @@ function typesAreEquivalentIgnoringAny(
 		return false;
 	}
 
-	// If no rename map is active, fast-path via string comparison
+	// If no rename map is active, fast-path via string comparison.
+	// Exclude FunctionNode because TypeParameterNode.toString() omits constraints
+	// and defaults, so e.g. `<T>(...) => void` and `<T extends string>(...) => void`
+	// would incorrectly stringify identically.
 	if (!typeParamRenames || typeParamRenames.size === 0) {
-		if (type1.toString() === type2.toString()) {
+		if (
+			!(type1 instanceof FunctionNode) &&
+			!(type2 instanceof FunctionNode) &&
+			type1.toString() === type2.toString()
+		) {
 			return true;
 		}
 	}
