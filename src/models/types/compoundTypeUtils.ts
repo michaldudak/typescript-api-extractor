@@ -83,14 +83,24 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 			if (tp1[k].name !== tp2[k].name) {
 				return false;
 			}
-			const c1 = tp1[k].constraint?.toString() ?? '';
-			const c2 = tp2[k].constraint?.toString() ?? '';
-			if (c1 !== c2 && c1 !== 'any' && c2 !== 'any') {
+			const c1 = tp1[k].constraint;
+			const c2 = tp2[k].constraint;
+			if (c1 && c2) {
+				if (!typesAreEquivalentIgnoringAny(c1, c2)) {
+					return false;
+				}
+			} else if (c1 || c2) {
+				// One has a constraint and the other does not: not equivalent.
 				return false;
 			}
-			const d1 = tp1[k].defaultValue?.toString() ?? '';
-			const d2 = tp2[k].defaultValue?.toString() ?? '';
-			if (d1 !== d2 && d1 !== 'any' && d2 !== 'any') {
+			const d1 = tp1[k].defaultValue;
+			const d2 = tp2[k].defaultValue;
+			if (d1 && d2) {
+				if (!typesAreEquivalentIgnoringAny(d1, d2)) {
+					return false;
+				}
+			} else if (d1 || d2) {
+				// One has a default and the other does not: not equivalent.
 				return false;
 			}
 		}

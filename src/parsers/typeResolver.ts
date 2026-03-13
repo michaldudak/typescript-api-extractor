@@ -87,7 +87,8 @@ function resolveTypeUncached(
 				ts.TypeFlags.Never |
 				ts.TypeFlags.Undefined |
 				ts.TypeFlags.Null |
-				ts.TypeFlags.Void)) !==
+				ts.TypeFlags.Void |
+				ts.TypeFlags.BigInt)) !==
 		0;
 
 	// Check for cycles before pushing to stack
