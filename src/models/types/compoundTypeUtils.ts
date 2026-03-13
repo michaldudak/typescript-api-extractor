@@ -341,7 +341,10 @@ function typeContainsAny(type: AnyType): boolean {
 	}
 
 	if (type instanceof ObjectNode) {
-		return type.properties.some((p) => typeContainsAny(p.type));
+		return (
+			type.properties.some((p) => typeContainsAny(p.type)) ||
+			(type.indexSignature?.valueType != null && typeContainsAny(type.indexSignature.valueType))
+		);
 	}
 
 	if (type instanceof ExternalTypeNode) {
