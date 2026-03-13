@@ -107,6 +107,9 @@
 						"name": "collisionBoundary",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Boundary"
+							},
 							"types": [
 								{
 									"kind": "union",
@@ -157,6 +160,9 @@
 						"name": "anchor",
 						"type": {
 							"kind": "union",
+							"typeName": {
+								"name": "Anchor"
+							},
 							"types": [
 								{
 									"kind": "union",
