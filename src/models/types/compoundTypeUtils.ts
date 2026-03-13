@@ -25,14 +25,24 @@ export function flattenTypes(
 
 /**
  * Apply a type parameter rename map to a string, replacing occurrences
- * of renamed type parameter names using word-boundary matching.
+ * of renamed type parameter names using identifier-boundary matching.
+ * Uses lookaround for identifier characters (word chars + $) so names
+ * like $T are handled correctly.
  */
 function applyTypeParamRenames(str: string, renames: ReadonlyMap<string, string>): string {
-	let result = str;
-	for (const [from, to] of renames) {
-		result = result.replace(new RegExp(`\\b${from}\\b`, 'g'), to);
+	const fromKeys = Array.from(renames.keys());
+	if (fromKeys.length === 0) {
+		return str;
 	}
-	return result;
+
+	const escapeForRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+	// Build a single regex that matches any of the type parameter names as whole identifiers.
+	// Uses a single-pass replacement so overlapping renames (e.g., swapping T and U) don't cascade.
+	const pattern = '(?<![\\w$])(' + fromKeys.map(escapeForRegex).join('|') + ')(?![\\w$])';
+	const regex = new RegExp(pattern, 'g');
+
+	return str.replace(regex, (match) => renames.get(match) ?? match);
 }
 
 /**
