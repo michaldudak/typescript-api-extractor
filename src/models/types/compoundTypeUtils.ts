@@ -88,6 +88,11 @@ function functionsAreEquivalentIgnoringAny(func1: FunctionNode, func2: FunctionN
 			if (c1 !== c2 && c1 !== 'any' && c2 !== 'any') {
 				return false;
 			}
+			const d1 = tp1[k].defaultValue?.toString() ?? '';
+			const d2 = tp2[k].defaultValue?.toString() ?? '';
+			if (d1 !== d2 && d1 !== 'any' && d2 !== 'any') {
+				return false;
+			}
 		}
 
 		if (sig1.parameters.length !== sig2.parameters.length) {
@@ -130,7 +135,13 @@ function typeContainsAny(type: AnyType): boolean {
 	if (type instanceof FunctionNode) {
 		return type.callSignatures.some(
 			(sig) =>
-				sig.parameters.some((p) => typeContainsAny(p.type)) || typeContainsAny(sig.returnValueType),
+				sig.parameters.some((p) => typeContainsAny(p.type)) ||
+				typeContainsAny(sig.returnValueType) ||
+				(sig.typeParameters ?? []).some(
+					(tp) =>
+						(tp.constraint != null && typeContainsAny(tp.constraint)) ||
+						(tp.defaultValue != null && typeContainsAny(tp.defaultValue)),
+				),
 		);
 	}
 
@@ -145,7 +156,15 @@ function typeContainsAny(type: AnyType): boolean {
  * Check if a function type contains `any` in its parameters (directly or nested).
  */
 function functionHasAnyParams(func: FunctionNode): boolean {
-	return func.callSignatures.some((sig) => sig.parameters.some((p) => typeContainsAny(p.type)));
+	return func.callSignatures.some(
+		(sig) =>
+			sig.parameters.some((p) => typeContainsAny(p.type)) ||
+			(sig.typeParameters ?? []).some(
+				(tp) =>
+					(tp.constraint != null && typeContainsAny(tp.constraint)) ||
+					(tp.defaultValue != null && typeContainsAny(tp.defaultValue)),
+			),
+	);
 }
 
 export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
