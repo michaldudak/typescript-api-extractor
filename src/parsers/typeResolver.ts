@@ -84,6 +84,7 @@ function resolveTypeUncached(
 				ts.TypeFlags.Number |
 				ts.TypeFlags.Boolean |
 				ts.TypeFlags.ESSymbol |
+				ts.TypeFlags.UniqueESSymbol |
 				ts.TypeFlags.Never |
 				ts.TypeFlags.Undefined |
 				ts.TypeFlags.Null |
@@ -276,7 +277,10 @@ function resolveTypeUncached(
 			return new IntrinsicNode('bigint');
 		}
 
-		if (hasExactFlag(type, ts.TypeFlags.ESSymbol)) {
+		if (
+			hasExactFlag(type, ts.TypeFlags.ESSymbol) ||
+			hasExactFlag(type, ts.TypeFlags.UniqueESSymbol)
+		) {
 			return new IntrinsicNode('symbol');
 		}
 

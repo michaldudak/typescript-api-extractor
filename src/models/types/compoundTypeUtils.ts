@@ -292,6 +292,11 @@ function functionsAreEquivalentIgnoringAny(
 				return false;
 			}
 
+			// Optionality must match
+			if (param1.optional !== param2.optional) {
+				return false;
+			}
+
 			// Use recursive equivalence check for parameter types
 			if (!typesAreEquivalentIgnoringAny(param1.type, param2.type, typeParamRenames)) {
 				return false;
