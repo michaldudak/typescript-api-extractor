@@ -71,21 +71,11 @@ function typeNamesAreEquivalentIgnoringAny(
  * never true when the full check would fail.
  */
 function memberStructuralKey(type: AnyType): string {
-	const t: any = type as any;
+	const kind = type.kind;
+	const name = 'name' in type && type.name ? String(type.name) : '';
+	const value = 'value' in type && type.value != null ? String(type.value) : '';
 
-	// Prefer a stable "kind" discriminator if present, falling back to
-	// constructor name and typeof as a last resort.
-	const kind =
-		(t && (t.kind ?? t.nodeType ?? t.type)) ??
-		(t && t.constructor && t.constructor.name) ??
-		typeof t;
-
-	// Incorporate simple identifying fields when available to make the key
-	// a bit more discriminative without deep recursion.
-	const name = t && (t.name ?? t.id ?? '');
-	const value = t && (t.value ?? '');
-
-	return `${String(kind)}|${String(name)}|${typeof value}:${String(value)}`;
+	return `${kind}|${name}|${value}`;
 }
 
 /**
@@ -114,22 +104,33 @@ function membersAreEquivalentUnordered(
 
 	// Cheap multiset pre-check based on per-member structural keys.
 	// If the key multisets differ, the member sets cannot be equivalent.
-	const keyCounts1 = new Map<string, number>();
-	for (const t of types1) {
-		const key = memberStructuralKey(t);
-		keyCounts1.set(key, (keyCounts1.get(key) ?? 0) + 1);
-	}
-	const keyCounts2 = new Map<string, number>();
-	for (const t of types2) {
-		const key = memberStructuralKey(t);
-		keyCounts2.set(key, (keyCounts2.get(key) ?? 0) + 1);
-	}
-	if (keyCounts1.size !== keyCounts2.size) {
-		return false;
-	}
-	for (const [key, count1] of keyCounts1) {
-		if (keyCounts2.get(key) !== count1) {
+	// Skip this pre-check when:
+	// - either set contains an unaliased `any` (wildcard matches any type)
+	// - a non-empty typeParamRenames map is active (keys aren't rename-aware,
+	//   so e.g. T | string vs U | string with U→T would be falsely rejected)
+	const hasAnyWildcard = [...types1, ...types2].some(
+		(t) => t instanceof IntrinsicNode && t.intrinsic === 'any' && !t.typeName,
+	);
+	const hasTypeParamRenames = typeParamRenames != null && typeParamRenames.size > 0;
+
+	if (!hasAnyWildcard && !hasTypeParamRenames) {
+		const keyCounts1 = new Map<string, number>();
+		for (const t of types1) {
+			const key = memberStructuralKey(t);
+			keyCounts1.set(key, (keyCounts1.get(key) ?? 0) + 1);
+		}
+		const keyCounts2 = new Map<string, number>();
+		for (const t of types2) {
+			const key = memberStructuralKey(t);
+			keyCounts2.set(key, (keyCounts2.get(key) ?? 0) + 1);
+		}
+		if (keyCounts1.size !== keyCounts2.size) {
 			return false;
+		}
+		for (const [key, count1] of keyCounts1) {
+			if (keyCounts2.get(key) !== count1) {
+				return false;
+			}
 		}
 	}
 
