@@ -321,7 +321,7 @@ function functionsAreEquivalentIgnoringAny(
 	if (
 		func1HasAlias &&
 		func2HasAlias &&
-		!typeNamesAreEquivalentIgnoringAny(func1.typeName!, func2.typeName!)
+		!typeNamesAreEquivalentIgnoringAny(func1.typeName!, func2.typeName!, outerTypeParamRenames)
 	) {
 		return false;
 	}
