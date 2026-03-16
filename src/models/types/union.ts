@@ -12,6 +12,7 @@ export class UnionNode implements TypeNode {
 	constructor(name: TypeName | undefined, types: AnyType[]) {
 		const flatTypes = flattenTypes(types, UnionNode);
 		sanitizeBooleanLiterals(flatTypes);
+		sanitizeNeverMembers(flatTypes);
 		sortMemberTypes(flatTypes);
 		this.types = deduplicateMemberTypes(flatTypes);
 		this.typeName = name;
@@ -44,6 +45,32 @@ function sanitizeBooleanLiterals(members: AnyType[]): void {
 		} else {
 			members.splice(falseLiteralIndex, 1);
 			members.splice(trueLiteralIndex, 1, booleanNode);
+		}
+	}
+}
+
+/**
+ * `never` in a union is redundant when other members are present.
+ * Preserve standalone `never` and aliased `never` (with typeName).
+ */
+function sanitizeNeverMembers(members: AnyType[]): void {
+	if (members.length <= 1) {
+		return;
+	}
+
+	const hasNonRedundantMember = members.some(
+		(member) =>
+			!(member instanceof IntrinsicNode && member.intrinsic === 'never' && !member.typeName),
+	);
+
+	if (!hasNonRedundantMember) {
+		return;
+	}
+
+	for (let i = members.length - 1; i >= 0; i--) {
+		const member = members[i];
+		if (member instanceof IntrinsicNode && member.intrinsic === 'never' && !member.typeName) {
+			members.splice(i, 1);
 		}
 	}
 }
