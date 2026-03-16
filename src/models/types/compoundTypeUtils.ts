@@ -131,12 +131,12 @@ function typesAreEquivalentIgnoringAny(
 	type2: AnyType,
 	typeParamRenames?: ReadonlyMap<string, string>,
 ): boolean {
-	// If both are unaliased `any` (no typeName), consider them equivalent as a wildcard.
+	// If either side is an unaliased `any` (no typeName), it matches any type (wildcard).
 	const type1IsAny = type1 instanceof IntrinsicNode && type1.intrinsic === 'any';
 	const type2IsAny = type2 instanceof IntrinsicNode && type2.intrinsic === 'any';
 	const type1IsUnaliasedAny = type1IsAny && !type1.typeName;
 	const type2IsUnaliasedAny = type2IsAny && !type2.typeName;
-	if (type1IsUnaliasedAny && type2IsUnaliasedAny) {
+	if (type1IsUnaliasedAny || type2IsUnaliasedAny) {
 		return true;
 	}
 
@@ -256,7 +256,20 @@ function functionsAreEquivalentIgnoringAny(
 ): boolean {
 	// Preserve alias identity: if the function type names differ, do not
 	// consider the functions equivalent, even if their structures match.
-	if (func1.typeName !== func2.typeName) {
+	const func1HasAlias = func1.typeName !== undefined && func1.typeName !== null;
+	const func2HasAlias = func2.typeName !== undefined && func2.typeName !== null;
+	// Aliased vs inline function types are considered distinct.
+	if (func1HasAlias !== func2HasAlias) {
+		return false;
+	}
+	// When both are aliased, compare alias identity structurally rather than
+	// by reference so that identical aliases represented by different
+	// TypeName instances are treated as equivalent.
+	if (
+		func1HasAlias &&
+		func2HasAlias &&
+		!typeNamesAreEquivalentIgnoringAny(func1.typeName!, func2.typeName!)
+	) {
 		return false;
 	}
 
