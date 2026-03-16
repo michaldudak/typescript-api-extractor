@@ -391,12 +391,13 @@ function typeContainsAny(type: AnyType): boolean {
 }
 
 /**
- * Check if a function type contains `any` in its parameters (directly or nested).
+ * Check if a function type contains `any` in its parameters or return type (directly or nested).
  */
 function functionHasAnyParams(func: FunctionNode): boolean {
 	return func.callSignatures.some(
 		(sig) =>
 			sig.parameters.some((p) => typeContainsAny(p.type)) ||
+			typeContainsAny(sig.returnValueType) ||
 			(sig.typeParameters ?? []).some(
 				(tp) =>
 					(tp.constraint != null && typeContainsAny(tp.constraint)) ||
