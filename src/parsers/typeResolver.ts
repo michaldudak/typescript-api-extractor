@@ -281,7 +281,7 @@ function resolveTypeUncached(
 			hasExactFlag(type, ts.TypeFlags.ESSymbol) ||
 			hasExactFlag(type, ts.TypeFlags.UniqueESSymbol)
 		) {
-			return new IntrinsicNode('symbol');
+			return new IntrinsicNode('symbol', typeName);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Undefined)) {

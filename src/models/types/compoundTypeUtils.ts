@@ -391,9 +391,10 @@ function typeContainsAny(type: AnyType): boolean {
 }
 
 /**
- * Check if a function type contains `any` in its parameters or return type (directly or nested).
+ * Check if a function type contains `any` in its parameters, return type, or
+ * type-parameter constraints/defaults (directly or nested).
  */
-function functionHasAnyParams(func: FunctionNode): boolean {
+function functionContainsAny(func: FunctionNode): boolean {
 	return func.callSignatures.some(
 		(sig) =>
 			sig.parameters.some((p) => typeContainsAny(p.type)) ||
@@ -404,6 +405,14 @@ function functionHasAnyParams(func: FunctionNode): boolean {
 					(tp.defaultValue != null && typeContainsAny(tp.defaultValue)),
 			),
 	);
+}
+
+/**
+ * @deprecated Use {@link functionContainsAny} instead.
+ * This wrapper is kept for backwards compatibility and delegates to {@link functionContainsAny}.
+ */
+function functionHasAnyParams(func: FunctionNode): boolean {
+	return functionContainsAny(func);
 }
 
 export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
