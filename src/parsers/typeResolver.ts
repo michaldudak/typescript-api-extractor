@@ -356,7 +356,7 @@ function resolveTypeUncached(
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Never)) {
-			return new IntrinsicNode('never');
+			return new IntrinsicNode('never', typeName);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Conditional)) {
