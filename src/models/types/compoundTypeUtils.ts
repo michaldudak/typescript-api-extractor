@@ -268,7 +268,11 @@ function typesAreEquivalentIgnoringAny(
 		return typeNamesAreEquivalentIgnoringAny(type1.typeName, type2.typeName, typeParamRenames);
 	}
 
-	// ObjectNode: compare properties and index signatures structurally
+	// ObjectNode: compare properties and index signatures structurally.
+	// The length check combined with the every-property-has-a-match check below
+	// is sufficient because TypeScript object types have unique property names,
+	// so a bijection is guaranteed when lengths match and every type1 prop maps
+	// to a type2 prop.
 	if (type1 instanceof ObjectNode && type2 instanceof ObjectNode) {
 		if (type1.properties.length !== type2.properties.length) {
 			return false;
@@ -285,8 +289,12 @@ function typesAreEquivalentIgnoringAny(
 		} else if (idx1 || idx2) {
 			return false;
 		}
+		const propMap = new Map<string, (typeof type2.properties)[number]>();
+		for (const p of type2.properties) {
+			propMap.set(`${p.name}:${p.optional}`, p);
+		}
 		return type1.properties.every((p1) => {
-			const p2 = type2.properties.find((p) => p.name === p1.name && p.optional === p1.optional);
+			const p2 = propMap.get(`${p1.name}:${p1.optional}`);
 			return p2 != null && typesAreEquivalentIgnoringAny(p1.type, p2.type, typeParamRenames);
 		});
 	}
@@ -479,14 +487,6 @@ function functionContainsAny(func: FunctionNode): boolean {
 	);
 }
 
-/**
- * @deprecated Use {@link functionContainsAny} instead.
- * This wrapper is kept for backwards compatibility and delegates to {@link functionContainsAny}.
- */
-function functionHasAnyParams(func: FunctionNode): boolean {
-	return functionContainsAny(func);
-}
-
 export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
 	// Collect function types for special deduplication
 	const functionTypes: { index: number; func: FunctionNode }[] = [];
@@ -516,7 +516,7 @@ export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
 		} else {
 			// Found equivalent, prefer the one without `any` params
 			const existing = deduplicatedFunctions[existingIndex];
-			if (functionHasAnyParams(existing.func) && !functionHasAnyParams(func)) {
+			if (functionContainsAny(existing.func) && !functionContainsAny(func)) {
 				// Replace with the non-any version, but keep the earlier index
 				deduplicatedFunctions[existingIndex] = { index: existing.index, func };
 			}
