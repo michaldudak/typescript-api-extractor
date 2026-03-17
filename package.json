@@ -1,6 +1,6 @@
 {
 	"name": "typescript-api-extractor",
-	"version": "1.0.0-beta.1",
+	"version": "1.0.0-beta.2",
 	"description": "Extracts API description from TypeScript code",
 	"author": {
 		"name": "Michał Dudak",
