@@ -481,16 +481,7 @@ function typeContainsAny(type: AnyType): boolean {
  * type-parameter constraints/defaults (directly or nested).
  */
 function functionContainsAny(func: FunctionNode): boolean {
-	return func.callSignatures.some(
-		(sig) =>
-			sig.parameters.some((p) => typeContainsAny(p.type)) ||
-			typeContainsAny(sig.returnValueType) ||
-			(sig.typeParameters ?? []).some(
-				(tp) =>
-					(tp.constraint != null && typeContainsAny(tp.constraint)) ||
-					(tp.defaultValue != null && typeContainsAny(tp.defaultValue)),
-			),
-	);
+	return typeContainsAny(func);
 }
 
 export function deduplicateMemberTypes(types: AnyType[]): AnyType[] {
