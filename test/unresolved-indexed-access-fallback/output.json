@@ -1,0 +1,95 @@
+{
+	"name": "test/unresolved-indexed-access-fallback/input",
+	"exports": [
+		{
+			"name": "IndexedAccessFallback",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "IndexedAccessFallback"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"typeName": {
+										"name": "Lookup",
+										"typeArguments": [
+											{
+												"type": {
+													"kind": "typeParameter",
+													"name": "T"
+												},
+												"equalToDefault": false
+											},
+											{
+												"type": {
+													"kind": "typeParameter",
+													"name": "K",
+													"constraint": {
+														"kind": "union",
+														"types": [
+															{
+																"kind": "intrinsic",
+																"intrinsic": "string"
+															},
+															{
+																"kind": "intrinsic",
+																"intrinsic": "number"
+															},
+															{
+																"kind": "intrinsic",
+																"intrinsic": "symbol"
+															}
+														]
+													}
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"intrinsic": "any"
+								},
+								"name": "value",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						},
+						"typeParameters": [
+							{
+								"kind": "typeParameter",
+								"name": "T"
+							},
+							{
+								"kind": "typeParameter",
+								"name": "K",
+								"constraint": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "number"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "symbol"
+										}
+									]
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	]
+}

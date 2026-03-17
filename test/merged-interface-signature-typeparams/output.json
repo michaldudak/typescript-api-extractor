@@ -1,0 +1,108 @@
+{
+	"name": "test/merged-interface-signature-typeparams/input",
+	"exports": [
+		{
+			"name": "MergedCallWithTypeParams",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "MergedCall"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									},
+									"defaultValue": {
+										"kind": "literal",
+										"value": "\"x\""
+									}
+								},
+								"name": "value",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "typeParameter",
+							"name": "T",
+							"constraint": {
+								"kind": "intrinsic",
+								"intrinsic": "string"
+							},
+							"defaultValue": {
+								"kind": "literal",
+								"value": "\"x\""
+							}
+						},
+						"typeParameters": [
+							{
+								"kind": "typeParameter",
+								"name": "T",
+								"constraint": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"defaultValue": {
+									"kind": "literal",
+									"value": "\"x\""
+								}
+							}
+						]
+					},
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"defaultValue": {
+										"kind": "literal",
+										"value": 1
+									}
+								},
+								"name": "value",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "typeParameter",
+							"name": "T",
+							"constraint": {
+								"kind": "intrinsic",
+								"intrinsic": "number"
+							},
+							"defaultValue": {
+								"kind": "literal",
+								"value": 1
+							}
+						},
+						"typeParameters": [
+							{
+								"kind": "typeParameter",
+								"name": "T",
+								"constraint": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								"defaultValue": {
+									"kind": "literal",
+									"value": 1
+								}
+							}
+						]
+					}
+				]
+			}
+		}
+	]
+}

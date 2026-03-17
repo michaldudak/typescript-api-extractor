@@ -1,0 +1,108 @@
+{
+	"name": "test/generic-callback-constraint-property-keys/input",
+	"exports": [
+		{
+			"name": "Fn",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Fn"
+				},
+				"types": [
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "T",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "T",
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "T",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "T",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					},
+					{
+						"kind": "function",
+						"callSignatures": [
+							{
+								"parameters": [],
+								"returnValueType": {
+									"kind": "typeParameter",
+									"name": "U",
+									"constraint": {
+										"kind": "object",
+										"properties": [
+											{
+												"name": "U",
+												"type": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												},
+												"optional": false
+											}
+										]
+									}
+								},
+								"typeParameters": [
+									{
+										"kind": "typeParameter",
+										"name": "U",
+										"constraint": {
+											"kind": "object",
+											"properties": [
+												{
+													"name": "U",
+													"type": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"optional": false
+												}
+											]
+										}
+									}
+								]
+							}
+						]
+					}
+				]
+			},
+			"documentation": {
+				"description": "Union of generic callbacks whose type parameter names differ and whose\nconstraints contain property keys matching those type parameter names.\nThese are NOT alpha-equivalent because { T: string } !== { U: string }.\nBoth signatures must be preserved in the output.",
+				"tags": []
+			}
+		}
+	]
+}

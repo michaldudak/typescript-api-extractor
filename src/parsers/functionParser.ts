@@ -12,15 +12,16 @@ import {
 import { ParserError } from '../ParserError';
 import { getFullName } from './common';
 import { TypeName } from '../models/typeName';
+import { parseSignatureTypeParameters } from './signatureParser';
 
 export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
-	const parsedCallSignatures = type.getCallSignatures().map(
-		(signature) =>
-			new CallSignature(
-				signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
-				resolveType(signature.getReturnType(), undefined, context),
-			),
-	);
+	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
+		return new CallSignature(
+			signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
+			resolveType(signature.getReturnType(), undefined, context),
+			parseSignatureTypeParameters(signature, context),
+		);
+	});
 
 	if (parsedCallSignatures.length === 0) {
 		return;
