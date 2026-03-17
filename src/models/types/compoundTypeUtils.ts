@@ -75,6 +75,12 @@ function memberStructuralKey(type: AnyType): string {
 	const name = 'name' in type && type.name ? String(type.name) : '';
 	const value = 'value' in type && type.value != null ? String(type.value) : '';
 
+	// Include the intrinsic identifier so that e.g. `string` and `number`
+	// produce distinct keys instead of both collapsing to `intrinsic||`.
+	if (type instanceof IntrinsicNode) {
+		return `${kind}|${name}|${value}|${type.intrinsic}`;
+	}
+
 	return `${kind}|${name}|${value}`;
 }
 
