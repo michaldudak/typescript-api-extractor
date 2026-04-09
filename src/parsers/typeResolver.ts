@@ -413,6 +413,7 @@ const allowedBuiltInTsTypes = new Set([
 ]);
 
 const allowedBuiltInReactTypes = new Set([
+	'React.MemoExoticComponent',
 	'React.NamedExoticComponent',
 	'React.FC',
 	'React.FunctionComponent',

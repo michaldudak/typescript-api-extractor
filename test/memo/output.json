@@ -6,51 +6,76 @@
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "NamedExoticComponent",
+					"name": "MemoExoticComponent",
 					"namespaces": [
 						"React"
 					],
 					"typeArguments": [
 						{
 							"type": {
-								"kind": "object",
+								"kind": "function",
 								"typeName": {
-									"name": "Props"
+									"name": "TestComponent"
 								},
-								"properties": [
+								"callSignatures": [
 									{
-										"name": "className",
-										"type": {
-											"kind": "union",
-											"types": [
-												{
-													"kind": "intrinsic",
-													"intrinsic": "string"
+										"parameters": [
+											{
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "Props"
+													},
+													"properties": [
+														{
+															"name": "className",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														},
+														{
+															"name": "id",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														}
+													]
 												},
-												{
-													"kind": "intrinsic",
-													"intrinsic": "undefined"
-												}
-											]
-										},
-										"optional": true
-									},
-									{
-										"name": "id",
-										"type": {
-											"kind": "union",
-											"types": [
-												{
-													"kind": "intrinsic",
-													"intrinsic": "string"
-												},
-												{
-													"kind": "intrinsic",
-													"intrinsic": "undefined"
-												}
-											]
-										},
-										"optional": true
+												"name": "props",
+												"optional": false
+											}
+										],
+										"returnValueType": {
+											"kind": "external",
+											"typeName": {
+												"name": "Element",
+												"namespaces": [
+													"JSX"
+												]
+											}
+										}
 									}
 								]
 							},
