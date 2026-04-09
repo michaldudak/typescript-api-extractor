@@ -1,6 +1,6 @@
 import ts from 'typescript';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 
 /**
  * Loads and parses a `tsconfig` file and returns a `ts.CompilerOptions` object
