@@ -94,6 +94,15 @@ export interface ParserContext extends ParserOptions {
 	 * produce different results for the same type at different depths.
 	 */
 	resolvedTypeCache: Map<string, AnyType>;
+	/**
+	 * Depth in `typeStack` at which an inner resolution should still count as
+	 * "top-level" for the purpose of bypassing `shouldResolveObject` in
+	 * `parseObjectType`. Set by `parseParameter` so that the first parameter of
+	 * a function/component (its props type) is always fully enumerated even
+	 * when it lives several TypeScript type layers deep. `undefined` means the
+	 * regular `typeStack.length <= 1` top-level rule applies.
+	 */
+	topLevelBypassDepth?: number;
 }
 
 /**

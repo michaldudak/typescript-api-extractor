@@ -83,7 +83,24 @@ export function parseObjectType(
 
 	// Return an object node if there's either properties or an index signature
 	if (properties.length || indexSignature) {
+		// At the top level we're resolving a type the caller asked for directly
+		// (e.g. a top-level exported type or a component's props type). Always
+		// enumerate its properties regardless of `shouldResolveObject`, otherwise
+		// large types like mui-x DataGridProps (131 props) collapse to an empty
+		// ObjectNode and the consumer loses the whole prop list.
+		// `shouldResolveObject` still gates deeper recursion inside those props.
+		//
+		// `typeStack.length <= 1` captures the caller-requested type:
+		//   - 0 if parseObjectType is called outside of resolveTypeUncached.
+		//   - 1 because resolveTypeUncached pushes the entry type before dispatch.
+		// `context.topLevelBypassDepth` extends this: `parseParameter` sets it so
+		// function/component parameter types are treated as top-level even when
+		// they sit several TS layers deep (e.g. DataGridProps<R> & RefAttributes
+		// inside a component's call signature).
+		const bypassDepth = context.topLevelBypassDepth ?? 1;
+		const isTopLevel = typeStack.length <= bypassDepth;
 		if (
+			isTopLevel ||
 			shouldResolveObject({
 				name: typeName?.name ?? '',
 				propertyCount: properties.length,

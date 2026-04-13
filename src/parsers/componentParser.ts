@@ -85,6 +85,14 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 			}
 
 			if (propsParameter.type instanceof IntersectionNode) {
+				// Prefer the intersection's own aggregated properties (resolved at
+				// the top level via parseObjectType) when available. This is the only
+				// reliable source for large intersections like mui-x DataGridProps,
+				// whose sub-types individually exceed `shouldResolveObject`'s limit
+				// and get returned as empty ObjectNodes.
+				if (propsParameter.type.properties.length > 0) {
+					return new ObjectNode(undefined, [...propsParameter.type.properties], undefined);
+				}
 				return propsParameter.type.types.filter((type) => type instanceof ObjectNode);
 			}
 		})

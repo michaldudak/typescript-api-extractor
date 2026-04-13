@@ -53,11 +53,23 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 	try {
 		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
 
-		const parameterType = resolveType(
-			checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-			parameterDeclaration.type,
-			context,
-		);
+		// Temporarily raise the "top-level" depth threshold used by
+		// `parseObjectType` so that the parameter's own type — and the immediate
+		// aggregates inside it (e.g. an intersection) — are fully enumerated
+		// regardless of `shouldResolveObject`. Restores after so nested property
+		// types revert to the normal top-level rule.
+		const previousBypass = context.topLevelBypassDepth;
+		context.topLevelBypassDepth = context.typeStack.length + 1;
+		let parameterType;
+		try {
+			parameterType = resolveType(
+				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+				parameterDeclaration.type,
+				context,
+			);
+		} finally {
+			context.topLevelBypassDepth = previousBypass;
+		}
 
 		const summary = parameterSymbol
 			.getDocumentationComment(checker)
