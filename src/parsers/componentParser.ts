@@ -23,11 +23,13 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 	return nodes.map((node) => {
 		// This heuristic is not perfect, but it's good enough for now.
 		// A better way would be to explicitly mark components with a JSDoc tag.
-		if (
-			node.type instanceof FunctionNode &&
-			(/^[A-Z]/.test(node.name) || node.name === 'default') &&
-			hasReactNodeLikeReturnType(node.type)
-		) {
+		const isCapitalized = /^[A-Z]/.test(node.name) || node.name === 'default';
+		if (!isCapitalized) {
+			return node;
+		}
+
+		// Direct FunctionNode (e.g. plain function components, forwardRef).
+		if (node.type instanceof FunctionNode && hasReactNodeLikeReturnType(node.type)) {
 			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
 			const typeName = node.type.typeName
 				? new TypeName(
@@ -42,6 +44,43 @@ export function augmentComponentNodes(nodes: ExportNode[], context: ParserContex
 				node.documentation,
 				node.reexportedFrom,
 			);
+		}
+
+		// UnionNode whose members are all React-returning FunctionNodes. Happens
+		// when TypeScript unfolds a polymorphic component (e.g. base-ui-style
+		// RenderProp patterns used in mui-x Toolbar, ExportCsv, QuickFilter*,
+		// AiAssistantPanelTrigger, ChartsToolbarImageExportTrigger, etc.) into a
+		// union of overloaded call-signature holders. Flatten the overloads into
+		// one ComponentNode so consumers see a single props table.
+		if (node.type instanceof UnionNode) {
+			const memberFunctions: FunctionNode[] = [];
+			let allFunctions = true;
+			for (const member of node.type.types) {
+				if (member instanceof FunctionNode && hasReactNodeLikeReturnType(member)) {
+					memberFunctions.push(member);
+				} else {
+					allFunctions = false;
+					break;
+				}
+			}
+			if (allFunctions && memberFunctions.length > 0) {
+				const allCallSignatures = memberFunctions.flatMap((fn) => fn.callSignatures);
+				const newCallSignatures = squashComponentProps(allCallSignatures, context);
+				const anyTypeName = memberFunctions.find((fn) => fn.typeName)?.typeName;
+				const typeName = anyTypeName
+					? new TypeName(
+							anyTypeName.name,
+							anyTypeName.namespaces,
+							anyTypeName.typeArguments,
+						)
+					: undefined;
+				return new ExportNode(
+					node.name,
+					new ComponentNode(typeName, newCallSignatures),
+					node.documentation,
+					node.reexportedFrom,
+				);
+			}
 		}
 
 		return node;

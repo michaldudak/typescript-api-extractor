@@ -358,8 +358,9 @@ function isGenericArgumentsSameAsDefault(
 	const argumentType = typeArguments[argumentIndex];
 	const typeParameterDeclaration = typeParameters[argumentIndex];
 
-	if (!typeParameterDeclaration.default) {
-		return false; // Argument provided for a parameter without a default
+	if (!typeParameterDeclaration || !typeParameterDeclaration.default) {
+		return false; // Argument provided for a parameter without a default (or
+		// the authored argument list overflows the declaration's type parameters)
 	}
 
 	const defaultType = checker.getTypeFromTypeNode(typeParameterDeclaration.default);
