@@ -1,5 +1,5 @@
 {
-	"name": "test/readonly-array-mapped-type/input",
+	"name": "test/readonly-array-mapped-type-value-no-default/input",
 	"exports": [
 		{
 			"name": "Data",
@@ -16,8 +16,17 @@
 									"keyName": "key",
 									"keyType": "string",
 									"valueType": {
-										"kind": "intrinsic",
-										"intrinsic": "unknown"
+										"kind": "union",
+										"types": [
+											{
+												"kind": "typeParameter",
+												"name": "V"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "undefined"
+											}
+										]
 									}
 								}
 							},
@@ -32,8 +41,17 @@
 						"keyName": "key",
 						"keyType": "string",
 						"valueType": {
-							"kind": "intrinsic",
-							"intrinsic": "unknown"
+							"kind": "union",
+							"types": [
+								{
+									"kind": "typeParameter",
+									"name": "V"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
 						}
 					}
 				}

@@ -1,5 +1,5 @@
 {
-	"name": "test/readonly-array-mapped-type/input",
+	"name": "test/readonly-array-mapped-type-non-optional/input",
 	"exports": [
 		{
 			"name": "Data",

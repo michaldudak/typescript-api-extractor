@@ -57,7 +57,57 @@ function parseIndexSignature(
 		};
 	}
 
+	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
+	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
+	// Synthesize an index signature by following K's base constraint to string/number.
+	if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped) {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const typeParam: ts.TypeParameter | undefined = (type as any).typeParameter;
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		const templateType: ts.Type | undefined = (type as any).templateType;
+
+		if (typeParam && templateType) {
+			const constraintType = checker.getBaseConstraintOfType(typeParam);
+			if (constraintType) {
+				let keyType: 'string' | 'number' | undefined;
+				if (constraintType.flags & ts.TypeFlags.String) {
+					keyType = 'string';
+				} else if (constraintType.flags & ts.TypeFlags.Number) {
+					keyType = 'number';
+				}
+
+				if (keyType) {
+					return {
+						keyName: typeParam.symbol?.name,
+						keyType,
+						valueType: resolveValueType(
+							resolveTypeParamDefault(templateType, checker),
+							undefined,
+							context,
+						),
+					};
+				}
+			}
+		}
+	}
+
 	return undefined;
+}
+
+function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
+	if (type.flags & ts.TypeFlags.TypeParameter) {
+		const declaration = type.symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
+		if (declaration?.default) {
+			return checker.getTypeAtLocation(declaration.default);
+		}
+		return type;
+	}
+	if (type.isUnion()) {
+		const substituted = type.types.map((t) => resolveTypeParamDefault(t, checker));
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		return (checker as any).getUnionType(substituted) as ts.Type;
+	}
+	return type;
 }
 
 export function parseObjectType(

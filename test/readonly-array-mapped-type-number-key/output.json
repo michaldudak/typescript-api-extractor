@@ -1,5 +1,5 @@
 {
-	"name": "test/readonly-array-mapped-type/input",
+	"name": "test/readonly-array-mapped-type-number-key/input",
 	"exports": [
 		{
 			"name": "Data",
@@ -14,7 +14,7 @@
 								"properties": [],
 								"indexSignature": {
 									"keyName": "key",
-									"keyType": "string",
+									"keyType": "number",
 									"valueType": {
 										"kind": "intrinsic",
 										"intrinsic": "unknown"
@@ -30,7 +30,7 @@
 					"properties": [],
 					"indexSignature": {
 						"keyName": "key",
-						"keyType": "string",
+						"keyType": "number",
 						"valueType": {
 							"kind": "intrinsic",
 							"intrinsic": "unknown"
