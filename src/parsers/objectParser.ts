@@ -20,7 +20,7 @@ function parseIndexSignature(
 
 	// Only check index signatures on actual object types
 	// Conditional types and other non-object types may report index signatures incorrectly
-	if (!(type.flags & ts.TypeFlags.Object)) {
+	if (!isObjectType(type)) {
 		return undefined;
 	}
 
@@ -60,7 +60,7 @@ function parseIndexSignature(
 	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
 	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
 	// Synthesize an index signature by following K's base constraint to string/number.
-	if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped) {
+	if (type.objectFlags & ts.ObjectFlags.Mapped) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const typeParam: ts.TypeParameter | undefined = (type as any).typeParameter;
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -92,6 +92,10 @@ function parseIndexSignature(
 	}
 
 	return undefined;
+}
+
+function isObjectType(type: ts.Type): type is ts.ObjectType {
+	return Boolean(type.flags & ts.TypeFlags.Object);
 }
 
 function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
