@@ -1,0 +1,27 @@
+{
+	"name": "test/readonly-array-mapped-type/input",
+	"exports": [
+		{
+			"name": "Data",
+			"type": {
+				"kind": "array",
+				"typeName": {
+					"name": "Data",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "object",
+								"properties": []
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"elementType": {
+					"kind": "object",
+					"properties": []
+				}
+			}
+		}
+	]
+}
