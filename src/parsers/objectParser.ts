@@ -1,7 +1,14 @@
 import ts from 'typescript';
 import { parseProperty } from './propertyParser';
 import { ParserContext } from '../parser';
-import { ObjectNode, TypeName, IndexSignatureNode, AnyType } from '../models';
+import {
+	ObjectNode,
+	TypeName,
+	IndexSignatureNode,
+	AnyType,
+	UnionNode,
+	IntrinsicNode,
+} from '../models';
 
 /**
  * Parse the index signature of an object type if it has one.
@@ -80,22 +87,28 @@ function parseIndexSignature(
 				}
 
 				if (keyType) {
-					let resolvedValueType = resolveTypeParamDefault(templateType, checker);
+					let valueType = resolveTemplateValueType(templateType, checker, (t) =>
+						resolveValueType(t, undefined, context),
+					);
 					// A `?` (or `+?`) modifier makes the property optional, adding
 					// `undefined` to the value type. `-?` strips it. No modifier: no change.
 					const questionToken = mappedNode.questionToken;
 					if (questionToken && questionToken.kind !== ts.SyntaxKind.MinusToken) {
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						resolvedValueType = (checker as any).getUnionType([
-							resolvedValueType,
-							checker.getUndefinedType(),
-						]);
+						// `unknown`/`any` absorb `undefined`, mirroring TS union normalization.
+						if (
+							!(
+								valueType instanceof IntrinsicNode &&
+								(valueType.intrinsic === 'unknown' || valueType.intrinsic === 'any')
+							)
+						) {
+							valueType = new UnionNode(undefined, [valueType, new IntrinsicNode('undefined')]);
+						}
 					}
 
 					return {
 						keyName: mappedNode.typeParameter.name.text,
 						keyType,
-						valueType: resolveValueType(resolvedValueType, undefined, context),
+						valueType,
 					};
 				}
 			}
@@ -115,14 +128,27 @@ function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Typ
 		if (declaration?.default) {
 			return checker.getTypeAtLocation(declaration.default);
 		}
-		return type;
-	}
-	if (type.isUnion()) {
-		const substituted = type.types.map((t) => resolveTypeParamDefault(t, checker));
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		return (checker as any).getUnionType(substituted) as ts.Type;
 	}
 	return type;
+}
+
+/**
+ * Resolve a mapped-type template into a model-level type, substituting type
+ * parameter defaults. Unions are expanded per-member and rebuilt as a model
+ * `UnionNode`, avoiding reliance on the internal `checker.getUnionType` API.
+ */
+function resolveTemplateValueType(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	resolve: (type: ts.Type) => AnyType,
+): AnyType {
+	if (type.isUnion()) {
+		return new UnionNode(
+			undefined,
+			type.types.map((t) => resolve(resolveTypeParamDefault(t, checker))),
+		);
+	}
+	return resolve(resolveTypeParamDefault(type, checker));
 }
 
 export function parseObjectType(
