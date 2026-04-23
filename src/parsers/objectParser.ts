@@ -77,8 +77,8 @@ function parseIndexSignature(
 			const templateType = checker.getTypeAtLocation(mappedNode.type);
 			const constraintNode = mappedNode.typeParameter.constraint;
 			const constraintType = constraintNode
-				? checker.getBaseConstraintOfType(checker.getTypeAtLocation(constraintNode)) ??
-					checker.getTypeAtLocation(constraintNode)
+				? (checker.getBaseConstraintOfType(checker.getTypeAtLocation(constraintNode)) ??
+					checker.getTypeAtLocation(constraintNode))
 				: undefined;
 
 			if (constraintType) {
