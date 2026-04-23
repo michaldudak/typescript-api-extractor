@@ -60,11 +60,8 @@ function parseIndexSignature(
 	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
 	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
 	// Synthesize an index signature by following K's base constraint to string/number.
-	if (type.objectFlags & ts.ObjectFlags.Mapped) {
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const typeParam: ts.TypeParameter | undefined = (type as any).typeParameter;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const templateType: ts.Type | undefined = (type as any).templateType;
+	if (type.objectFlags & ts.ObjectFlags.Mapped && isMappedType(type)) {
+		const { typeParameter: typeParam, templateType } = type;
 
 		if (typeParam && templateType) {
 			const constraintType = checker.getBaseConstraintOfType(typeParam);
@@ -96,6 +93,21 @@ function parseIndexSignature(
 
 function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
+}
+
+interface MappedTypeInternal extends ts.ObjectType {
+	typeParameter?: ts.TypeParameter;
+	templateType?: ts.Type;
+}
+
+/**
+ * Narrows a mapped object type to expose TypeScript's internal `typeParameter`
+ * and `templateType` fields. These are not part of the public API, so we check
+ * for them explicitly; if a future TS version removes them, the caller safely
+ * sees `undefined` instead of mis-parsing.
+ */
+function isMappedType(type: ts.ObjectType): type is MappedTypeInternal {
+	return 'typeParameter' in type && 'templateType' in type;
 }
 
 function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
