@@ -60,11 +60,17 @@ function parseIndexSignature(
 	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
 	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
 	// Synthesize an index signature by following K's base constraint to string/number.
-	if (type.objectFlags & ts.ObjectFlags.Mapped && isMappedType(type)) {
-		const { typeParameter: typeParam, templateType } = type;
+	if (type.objectFlags & ts.ObjectFlags.Mapped) {
+		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
 
-		if (typeParam && templateType) {
-			const constraintType = checker.getBaseConstraintOfType(typeParam);
+		if (mappedNode && mappedNode.type) {
+			const templateType = checker.getTypeAtLocation(mappedNode.type);
+			const constraintNode = mappedNode.typeParameter.constraint;
+			const constraintType = constraintNode
+				? checker.getBaseConstraintOfType(checker.getTypeAtLocation(constraintNode)) ??
+					checker.getTypeAtLocation(constraintNode)
+				: undefined;
+
 			if (constraintType) {
 				let keyType: 'string' | 'number' | undefined;
 				if (constraintType.flags & ts.TypeFlags.String) {
@@ -74,14 +80,22 @@ function parseIndexSignature(
 				}
 
 				if (keyType) {
+					let resolvedValueType = resolveTypeParamDefault(templateType, checker);
+					// A `?` (or `+?`) modifier makes the property optional, adding
+					// `undefined` to the value type. `-?` strips it. No modifier: no change.
+					const questionToken = mappedNode.questionToken;
+					if (questionToken && questionToken.kind !== ts.SyntaxKind.MinusToken) {
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						resolvedValueType = (checker as any).getUnionType([
+							resolvedValueType,
+							checker.getUndefinedType(),
+						]);
+					}
+
 					return {
-						keyName: typeParam.symbol?.name,
+						keyName: mappedNode.typeParameter.name.text,
 						keyType,
-						valueType: resolveValueType(
-							resolveTypeParamDefault(templateType, checker),
-							undefined,
-							context,
-						),
+						valueType: resolveValueType(resolvedValueType, undefined, context),
 					};
 				}
 			}
@@ -93,21 +107,6 @@ function parseIndexSignature(
 
 function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
-}
-
-interface MappedTypeInternal extends ts.ObjectType {
-	typeParameter?: ts.TypeParameter;
-	templateType?: ts.Type;
-}
-
-/**
- * Narrows a mapped object type to expose TypeScript's internal `typeParameter`
- * and `templateType` fields. These are not part of the public API, so we check
- * for them explicitly; if a future TS version removes them, the caller safely
- * sees `undefined` instead of mis-parsing.
- */
-function isMappedType(type: ts.ObjectType): type is MappedTypeInternal {
-	return 'typeParameter' in type && 'templateType' in type;
 }
 
 function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
