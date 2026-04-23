@@ -67,6 +67,9 @@ function parseIndexSignature(
 	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
 	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
 	// Synthesize an index signature by following K's base constraint to string/number.
+	// Intentionally not handled: `as` clauses, and constraints that resolve to a union
+	// (e.g., `K extends 'a' | 'b'`, bigint, symbol, or template-literal types) — those
+	// fall through and produce no index signature.
 	if (type.objectFlags & ts.ObjectFlags.Mapped) {
 		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
 
@@ -79,6 +82,8 @@ function parseIndexSignature(
 				: undefined;
 
 			if (constraintType) {
+				// Only `string` and `number` are emitted as index signature key types;
+				// other constraints (bigint, symbol, unions, template literals) fall through.
 				let keyType: 'string' | 'number' | undefined;
 				if (constraintType.flags & ts.TypeFlags.String) {
 					keyType = 'string';
@@ -124,8 +129,8 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
 
 function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
 	if (type.flags & ts.TypeFlags.TypeParameter) {
-		const declaration = type.symbol?.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
-		if (declaration?.default) {
+		const declaration = type.symbol?.declarations?.[0];
+		if (declaration && ts.isTypeParameterDeclaration(declaration) && declaration.default) {
 			return checker.getTypeAtLocation(declaration.default);
 		}
 	}
