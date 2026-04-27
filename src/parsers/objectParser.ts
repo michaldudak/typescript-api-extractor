@@ -71,9 +71,14 @@ function parseIndexSignature(
 	// (e.g., `K extends 'a' | 'b'`, bigint, symbol, or template-literal types) — those
 	// fall through and produce no index signature.
 	if (type.objectFlags & ts.ObjectFlags.Mapped) {
+		// AST-driven: instantiated mapped types and ones loaded from `.d.ts` may not
+		// retain a `MappedTypeNode` declaration, in which case we fall through and
+		// emit no index signature — same outcome as "genuinely no index signature".
 		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
 
-		if (mappedNode && mappedNode.type) {
+		// `as` clauses rename keys (e.g. `[K in keyof T as `prefix_${K}`]`); the resulting
+		// key shape can't be represented as a plain index signature, so fall through.
+		if (mappedNode && mappedNode.type && !mappedNode.nameType) {
 			const templateType = checker.getTypeAtLocation(mappedNode.type);
 			const constraintNode = mappedNode.typeParameter.constraint;
 			const constraintType = constraintNode
@@ -82,8 +87,6 @@ function parseIndexSignature(
 				: undefined;
 
 			if (constraintType) {
-				// Only `string` and `number` are emitted as index signature key types;
-				// other constraints (bigint, symbol, unions, template literals) fall through.
 				let keyType: 'string' | 'number' | undefined;
 				if (constraintType.flags & ts.TypeFlags.String) {
 					keyType = 'string';
@@ -95,10 +98,15 @@ function parseIndexSignature(
 					let valueType = resolveTemplateValueType(templateType, checker, (t) =>
 						resolveValueType(t, undefined, context),
 					);
-					// A `?` (or `+?`) modifier makes the property optional, adding
-					// `undefined` to the value type. `-?` strips it. No modifier: no change.
+					// `?`/`+?` adds `undefined` to the value type. `-?` and no modifier
+					// leave it alone. Whitelist the additive forms so future TS modifier
+					// kinds don't get treated as `?`.
 					const questionToken = mappedNode.questionToken;
-					if (questionToken && questionToken.kind !== ts.SyntaxKind.MinusToken) {
+					if (
+						questionToken &&
+						(questionToken.kind === ts.SyntaxKind.QuestionToken ||
+							questionToken.kind === ts.SyntaxKind.PlusToken)
+					) {
 						// `unknown`/`any` absorb `undefined`, mirroring TS union normalization.
 						if (
 							!(
@@ -127,6 +135,9 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
 }
 
+// Mapped-type templates resolved through the AST keep type parameters unresolved
+// (e.g. `V` in `{ [K in string]: V }`). Substituting the declared default surfaces
+// the user-meant type in the output instead of an opaque type-parameter reference.
 function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
 	if (type.flags & ts.TypeFlags.TypeParameter) {
 		const declaration = type.symbol?.declarations?.[0];
