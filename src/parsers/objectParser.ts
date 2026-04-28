@@ -95,7 +95,7 @@ function parseIndexSignature(
 				}
 
 				if (keyType) {
-					let valueType = resolveTemplateValueType(templateType, checker, (t) =>
+					let valueType = resolveTemplateValueType(templateType, type, checker, (t) =>
 						resolveValueType(t, undefined, context),
 					);
 					// `?`/`+?` adds `undefined` to the value type. `-?` and no modifier
@@ -136,35 +136,67 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
 }
 
 // Mapped-type templates resolved through the AST keep type parameters unresolved
-// (e.g. `V` in `{ [K in string]: V }`). Substituting the declared default surfaces
-// the user-meant type in the output instead of an opaque type-parameter reference.
-function resolveTypeParamDefault(type: ts.Type, checker: ts.TypeChecker): ts.Type {
-	if (type.flags & ts.TypeFlags.TypeParameter) {
-		const declaration = type.symbol?.declarations?.[0];
-		if (declaration && ts.isTypeParameterDeclaration(declaration) && declaration.default) {
-			return checker.getTypeAtLocation(declaration.default);
+// (e.g. `V` in `{ [K in string]: V }`). To surface the user-meant type, first try
+// substituting through the instantiated mapped type's `aliasTypeArguments` (so a
+// reuse like `Wrapped<K, V> = ReadonlyArray<MapAlias<K, V>>` propagates `Wrapped`'s
+// `V` rather than collapsing to `MapAlias`'s declared default), and fall back to
+// the type parameter's own declared default when no alias substitution applies.
+function resolveTemplateTypeParam(
+	type: ts.Type,
+	mappedType: ts.Type,
+	checker: ts.TypeChecker,
+): ts.Type {
+	if (!(type.flags & ts.TypeFlags.TypeParameter)) {
+		return type;
+	}
+
+	const aliasArgs = mappedType.aliasTypeArguments;
+	const aliasSymbol = mappedType.aliasSymbol;
+	if (aliasArgs && aliasSymbol) {
+		const aliasDecl = aliasSymbol.declarations?.find((d) => ts.isTypeAliasDeclaration(d));
+		if (aliasDecl?.typeParameters) {
+			// Match by declaration symbol — `getSymbolAtLocation`/`getTypeAtLocation`
+			// can throw on parameter declarations in unusual binding states.
+			const idx = aliasDecl.typeParameters.findIndex(
+				(tp) => (tp as ts.TypeParameterDeclaration & { symbol?: ts.Symbol }).symbol === type.symbol,
+			);
+			if (idx >= 0 && idx < aliasArgs.length) {
+				const substituted = aliasArgs[idx];
+				if (substituted !== type) {
+					// Substitution can yield another type parameter (outer alias's own
+					// parameter); recurse so its default still applies.
+					return resolveTemplateTypeParam(substituted, mappedType, checker);
+				}
+			}
 		}
+	}
+
+	const declaration = type.symbol?.declarations?.[0];
+	if (declaration && ts.isTypeParameterDeclaration(declaration) && declaration.default) {
+		return checker.getTypeAtLocation(declaration.default);
 	}
 	return type;
 }
 
 /**
  * Resolve a mapped-type template into a model-level type, substituting type
- * parameter defaults. Unions are expanded per-member and rebuilt as a model
- * `UnionNode`, avoiding reliance on the internal `checker.getUnionType` API.
+ * parameters via the instantiated mapped type's alias arguments (with declared
+ * defaults as a fallback). Unions are expanded per-member and rebuilt as a
+ * model `UnionNode`, avoiding reliance on the internal `checker.getUnionType` API.
  */
 function resolveTemplateValueType(
 	type: ts.Type,
+	mappedType: ts.Type,
 	checker: ts.TypeChecker,
 	resolve: (type: ts.Type) => AnyType,
 ): AnyType {
 	if (type.isUnion()) {
 		return new UnionNode(
 			undefined,
-			type.types.map((t) => resolve(resolveTypeParamDefault(t, checker))),
+			type.types.map((t) => resolve(resolveTemplateTypeParam(t, mappedType, checker))),
 		);
 	}
-	return resolve(resolveTypeParamDefault(type, checker));
+	return resolve(resolveTemplateTypeParam(type, mappedType, checker));
 }
 
 export function parseObjectType(

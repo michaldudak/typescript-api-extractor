@@ -28,7 +28,7 @@ for (const testCase of testCases) {
 		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
 			expect(moduleDefinition).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
 		} else {
-			fs.writeFileSync(expectedOutput, `${JSON.stringify(moduleDefinition, null, '\t')}\n`);
+			fs.writeFileSync(expectedOutput, JSON.stringify(moduleDefinition, null, '\t'));
 		}
 	});
 }
