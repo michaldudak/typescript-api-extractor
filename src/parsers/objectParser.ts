@@ -107,15 +107,7 @@ function parseIndexSignature(
 						(questionToken.kind === ts.SyntaxKind.QuestionToken ||
 							questionToken.kind === ts.SyntaxKind.PlusToken)
 					) {
-						// `unknown`/`any` absorb `undefined`, mirroring TS union normalization.
-						if (
-							!(
-								valueType instanceof IntrinsicNode &&
-								(valueType.intrinsic === 'unknown' || valueType.intrinsic === 'any')
-							)
-						) {
-							valueType = new UnionNode(undefined, [valueType, new IntrinsicNode('undefined')]);
-						}
+						valueType = new UnionNode(undefined, [valueType, new IntrinsicNode('undefined')]);
 					}
 
 					return {

@@ -19,8 +19,17 @@
 											"keyName": "key",
 											"keyType": "string",
 											"valueType": {
-												"kind": "intrinsic",
-												"intrinsic": "unknown"
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "unknown"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
 											}
 										}
 									},
@@ -63,8 +72,17 @@
 								"keyName": "key",
 								"keyType": "string",
 								"valueType": {
-									"kind": "intrinsic",
-									"intrinsic": "unknown"
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "unknown"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
 								}
 							}
 						},

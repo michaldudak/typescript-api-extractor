@@ -1,0 +1,49 @@
+{
+	"name": "test/mapped-type-optional-aliased-unknown/input",
+	"exports": [
+		{
+			"name": "T",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "T",
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "typeParameter",
+								"name": "K",
+								"constraint": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"defaultValue": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								}
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "P",
+					"keyType": "string",
+					"valueType": {
+						"kind": "union",
+						"types": [
+							{
+								"kind": "intrinsic",
+								"intrinsic": "unknown"
+							},
+							{
+								"kind": "intrinsic",
+								"intrinsic": "undefined"
+							}
+						]
+					}
+				}
+			}
+		}
+	]
+}
