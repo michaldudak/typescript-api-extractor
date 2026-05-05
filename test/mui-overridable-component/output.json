@@ -811,25 +811,54 @@
 						"name": "style",
 						"type": {
 							"kind": "union",
-							"typeName": {
-								"name": "CSSProperties",
-								"namespaces": [
-									"React"
-								]
-							},
 							"types": [
 								{
-									"kind": "external",
+									"kind": "union",
 									"typeName": {
 										"name": "CSSProperties",
 										"namespaces": [
 											"React"
 										]
-									}
+									},
+									"types": [
+										{
+											"kind": "external",
+											"typeName": {
+												"name": "CSSProperties",
+												"namespaces": [
+													"React"
+												]
+											}
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
 								},
 								{
-									"kind": "intrinsic",
-									"intrinsic": "undefined"
+									"kind": "union",
+									"typeName": {
+										"name": "CSSProperties",
+										"namespaces": [
+											"React"
+										]
+									},
+									"types": [
+										{
+											"kind": "external",
+											"typeName": {
+												"name": "CSSProperties",
+												"namespaces": [
+													"React"
+												]
+											}
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "undefined"
+										}
+									]
 								}
 							]
 						},
