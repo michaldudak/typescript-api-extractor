@@ -90,11 +90,41 @@ The parser accepts optional configuration through the `ParserOptions` interface:
 
 ```typescript
 interface ParserOptions {
-	includePrivateMembers?: boolean;
-	followReferences?: boolean;
-	maxDepth?: number;
+	shouldInclude?: (data: { name: string; depth: number }) => boolean | undefined;
+	shouldResolveObject?: (data: {
+		name: string;
+		propertyCount: number;
+		depth: number;
+	}) => boolean | undefined;
+	includeExternalTypes?: boolean;
+	onWarning?: (warning: ParserWarning) => void;
+}
+
+type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+
+interface ParserWarningBase {
+	message: string;
+	filePath: string;
+	line: number;
+	column: number;
+	parsedSymbolStack: string[];
+}
+
+interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
+	code: 'unsupported-type-fallback';
+	typeFlags: string[];
+	typeText: string;
+	sourceText?: string;
+}
+
+interface MissingEnumDeclarationWarning extends ParserWarningBase {
+	code: 'missing-enum-declaration';
+	enumName: string;
 }
 ```
+
+When `onWarning` is omitted, recoverable parser warnings are printed with
+`console.warn`. Provide `onWarning` to collect or format them yourself.
 
 ## Output Format
 
@@ -176,7 +206,7 @@ The extractor would produce:
 ## Requirements
 
 - **Node.js**: >= 22
-- **TypeScript**: ^5.8 (peer dependency)
+- **TypeScript**: ^5.8 || ^6.0 (peer dependency)
 
 Make sure you have TypeScript installed in your project:
 
