@@ -32,3 +32,119 @@ for (const testCase of testCases) {
 		}
 	});
 }
+
+const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
+type PropsOf<T> = WithBase<T>;
+
+export function getProps<T>(): PropsOf<T> {
+  return undefined as any;
+}`;
+const classParameterAliasSource = `type AliasedAny = any;
+
+export class ClassWithAliasedAny {
+  constructor(ctorParam?: AliasedAny | undefined) {}
+
+  method(methodParam?: AliasedAny | undefined): void {}
+}`;
+
+function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
+	const compilerOptions: ts.CompilerOptions = {
+		rootDir: path.dirname(filePath),
+		target: ts.ScriptTarget.ES2022,
+		module: ts.ModuleKind.Node16,
+		moduleResolution: ts.ModuleResolutionKind.Node16,
+		strict: true,
+		noEmit: true,
+		skipLibCheck: true,
+	};
+	const host = ts.createCompilerHost(compilerOptions);
+	const getSourceFile = host.getSourceFile.bind(host);
+
+	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
+		if (sourceFileName === filePath) {
+			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
+		}
+
+		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
+	};
+	host.fileExists = (sourceFileName) =>
+		sourceFileName === filePath || ts.sys.fileExists(sourceFileName);
+	host.readFile = (sourceFileName) =>
+		sourceFileName === filePath ? sourceText : ts.sys.readFile(sourceFileName);
+
+	return ts.createProgram([filePath], compilerOptions, host);
+}
+
+it('does not use diagnostic source nodes to change function return type names', () => {
+	const filePath = '/virtual/return-alias.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, returnAliasSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'function',
+		callSignatures: [
+			{
+				returnValueType: {
+					typeName: {
+						name: 'WithBase',
+					},
+				},
+			},
+		],
+	});
+});
+
+it('preserves authored union aliases for class parameters', () => {
+	const filePath = '/virtual/class-parameter-alias.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, classParameterAliasSource),
+	);
+	const aliasedAnyUnion = {
+		kind: 'union',
+		types: [
+			{
+				kind: 'intrinsic',
+				intrinsic: 'any',
+				typeName: {
+					name: 'AliasedAny',
+				},
+			},
+			{
+				kind: 'intrinsic',
+				intrinsic: 'undefined',
+			},
+		],
+	};
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'class',
+		constructSignatures: [
+			{
+				parameters: [
+					{
+						name: 'ctorParam',
+						type: aliasedAnyUnion,
+					},
+				],
+			},
+		],
+		methods: [
+			{
+				name: 'method',
+				callSignatures: [
+					{
+						parameters: [
+							{
+								name: 'methodParam',
+								type: aliasedAnyUnion,
+							},
+						],
+					},
+				],
+			},
+		],
+	});
+});
