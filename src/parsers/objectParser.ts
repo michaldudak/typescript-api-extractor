@@ -270,7 +270,9 @@ export function parseObjectType(
 		) {
 			let filteredProperties: ts.Symbol[];
 			if ((type as ts.ObjectType).objectFlags & ts.ObjectFlags.Mapped) {
-				filteredProperties = properties;
+				filteredProperties = properties.filter((property) =>
+					shouldInclude({ name: property.getName(), depth: typeStack.length + 1 }),
+				);
 			} else {
 				filteredProperties = properties.filter((property) => {
 					// Skip ECMAScript private identifiers (#field)

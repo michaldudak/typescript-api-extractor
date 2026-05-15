@@ -34,3 +34,18 @@ for (const testCase of testCases) {
 		}
 	});
 }
+
+it('applies shouldInclude to finite mapped properties', async () => {
+	const testCase = path.resolve(__dirname, 'mapped-alias-finite-key/input.ts');
+	const moduleDefinition = parseFromProgram(testCase, program, {
+		shouldInclude: ({ name }) => name !== 'b',
+	});
+	const serializedModuleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
+	const specializedExport = serializedModuleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'Specialized',
+	);
+
+	expect(
+		specializedExport.type.properties.map((property: { name: string }) => property.name),
+	).toEqual(['a']);
+});
