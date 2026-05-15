@@ -260,8 +260,9 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 
 	try {
 		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-		if (parameterDeclaration?.type) {
-			sourceNodeStack.push(parameterDeclaration.type);
+		const parameterSourceNode = parameterDeclaration?.type ?? parameterDeclaration;
+		if (parameterSourceNode) {
+			sourceNodeStack.push(parameterSourceNode);
 		}
 
 		try {
@@ -336,7 +337,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 				defaultValue,
 			);
 		} finally {
-			if (parameterDeclaration?.type) {
+			if (parameterSourceNode) {
 				sourceNodeStack.pop();
 			}
 		}

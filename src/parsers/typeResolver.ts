@@ -22,6 +22,8 @@ import { resolveUnionType } from './unionTypeResolver';
 import { getFullName, isInternalSymbolName } from './common';
 import { TypeName } from '../models/typeName';
 
+const unsupportedFallbackTypes = new WeakSet<ts.Type>();
+
 /**
  *
  * @param type TypeScript type to resolve
@@ -48,6 +50,7 @@ export function resolveType(
 		cacheKey !== undefined &&
 		!typeNode &&
 		resolvedTypeCache.has(cacheKey) &&
+		!unsupportedFallbackTypes.has(type) &&
 		!typeStack.includes(typeId!)
 	) {
 		return resolvedTypeCache.get(cacheKey)!;
@@ -56,7 +59,12 @@ export function resolveType(
 	const result = resolveTypeUncached(type, typeNode, context);
 
 	// Cache the result for future lookups when there's no typeNode influence
-	if (cacheKey !== undefined && !typeNode && !typeStack.includes(typeId!)) {
+	if (
+		cacheKey !== undefined &&
+		!typeNode &&
+		!unsupportedFallbackTypes.has(type) &&
+		!typeStack.includes(typeId!)
+	) {
 		resolvedTypeCache.set(cacheKey, result);
 	}
 
@@ -386,6 +394,7 @@ function resolveTypeUncached(
 			return new IntrinsicNode('any', typeName);
 		}
 
+		unsupportedFallbackTypes.add(type);
 		reportUnsupportedTypeFallback(type, typeNode, context);
 
 		return new IntrinsicNode('any', typeName);

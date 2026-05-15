@@ -14,6 +14,17 @@ afterEach(() => {
 });
 
 const unsupportedTypeSource = 'export type X<T> = T extends string ? T : never;';
+const repeatedUnsupportedTypeSource = `type Weird<T> = T extends string ? T : never;
+
+export interface Props<T> {
+  a: Weird<T>;
+  b: Weird<T>;
+}`;
+const implicitClassParameterSource = `export class ClassWarnings {
+  methodImplicit<T extends string>(
+    value = undefined as \`prefix-\${T}\`,
+  ): void {}
+}`;
 const preciseWarningSource = `export function functionReturn<T>():
   T extends string ? T : never {
   return undefined as any;
@@ -99,6 +110,58 @@ it('logs unsupported type fallbacks by default', () => {
 
 	expect(warn).toHaveBeenCalledTimes(1);
 	expect(warn).toHaveBeenCalledWith(getExpectedUnsupportedTypeWarningMessage(filePath));
+});
+
+it('reports unsupported type fallbacks for repeated cached types', () => {
+	const filePath = '/virtual/repeated-unsupported-type-warning.ts';
+	const warnings: ParserWarning[] = [];
+
+	parseFromProgram(filePath, createInMemoryProgram(filePath, repeatedUnsupportedTypeSource), {
+		onWarning: (warning) => {
+			warnings.push(warning);
+		},
+	});
+
+	const unsupportedWarnings = warnings.filter(
+		(warning) => warning.code === 'unsupported-type-fallback',
+	);
+
+	expect(unsupportedWarnings).toHaveLength(2);
+	expect(unsupportedWarnings).toEqual([
+		expect.objectContaining({
+			line: 4,
+			column: 6,
+			sourceText: 'Weird<T>',
+			parsedSymbolStack: [filePath, 'Props', 'property: a'],
+		}),
+		expect.objectContaining({
+			line: 5,
+			column: 6,
+			sourceText: 'Weird<T>',
+			parsedSymbolStack: [filePath, 'Props', 'property: b'],
+		}),
+	]);
+});
+
+it('reports implicit class parameter fallback locations at the parameter site', () => {
+	const filePath = '/virtual/implicit-class-parameter-warning.ts';
+	const warnings: ParserWarning[] = [];
+
+	parseFromProgram(filePath, createInMemoryProgram(filePath, implicitClassParameterSource), {
+		onWarning: (warning) => {
+			warnings.push(warning);
+		},
+	});
+
+	expect(warnings).toHaveLength(1);
+	expect(warnings[0]).toMatchObject({
+		code: 'unsupported-type-fallback',
+		line: 3,
+		column: 5,
+		parsedSymbolStack: [filePath, 'ClassWarnings', 'parameter: value'],
+		typeFlags: ['TemplateLiteral'],
+		typeText: '`prefix-${T}`',
+	});
 });
 
 it('reports precise type locations in function and class signatures', () => {
