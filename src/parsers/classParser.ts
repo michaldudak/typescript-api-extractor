@@ -170,7 +170,7 @@ function extractMembers(
 			}
 			let resolvedType;
 			try {
-				resolvedType = resolveType(memberType, propertyTypeNode, context);
+				resolvedType = resolveType(memberType, undefined, context);
 			} finally {
 				if (propertyTypeNode) {
 					context.sourceNodeStack.pop();
@@ -241,7 +241,7 @@ function parseReturnType(signature: ts.Signature, context: ParserContext) {
 	}
 
 	try {
-		return resolveType(signature.getReturnType(), returnTypeNode, context);
+		return resolveType(signature.getReturnType(), undefined, context);
 	} finally {
 		if (returnTypeNode) {
 			context.sourceNodeStack.pop();
@@ -267,7 +267,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 		try {
 			const parameterType = resolveType(
 				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-				parameterDeclaration?.type,
+				undefined,
 				context,
 			);
 

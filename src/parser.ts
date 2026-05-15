@@ -88,11 +88,7 @@ function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
 
 interface ResolvedParserOptions {
 	shouldInclude: (data: { name: string; depth: number }) => boolean;
-	shouldResolveObject: (data: {
-		name: string;
-		propertyCount: number;
-		depth: number;
-	}) => boolean;
+	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
 	includeExternalTypes: boolean;
 	onWarning: (warning: ParserWarning) => void;
 }

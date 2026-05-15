@@ -53,7 +53,7 @@ function parseReturnType(signature: ts.Signature, context: ParserContext) {
 	}
 
 	try {
-		return resolveType(signature.getReturnType(), returnTypeNode, context);
+		return resolveType(signature.getReturnType(), undefined, context);
 	} finally {
 		if (returnTypeNode) {
 			context.sourceNodeStack.pop();

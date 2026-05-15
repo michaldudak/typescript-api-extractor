@@ -60,6 +60,12 @@ export class ClassWarnings {
     return undefined as any;
   }
 }`;
+const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
+type PropsOf<T> = WithBase<T>;
+
+export function getProps<T>(): PropsOf<T> {
+  return undefined as any;
+}`;
 
 function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
 	const compilerOptions: ts.CompilerOptions = {
@@ -172,6 +178,27 @@ it('reports precise type locations in function and class signatures', () => {
 		expect(warning.line).not.toBe(1);
 		expect(warning.column).not.toBe(1);
 	}
+});
+
+it('does not use diagnostic source nodes to change function return type names', () => {
+	const filePath = '/virtual/return-alias.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, returnAliasSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'function',
+		callSignatures: [
+			{
+				returnValueType: {
+					typeName: {
+						name: 'WithBase',
+					},
+				},
+			},
+		],
+	});
 });
 
 it('reports missing enum declarations through onWarning', () => {
