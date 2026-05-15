@@ -33,6 +33,7 @@ for (const testCase of testCases) {
 	});
 }
 
+const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
 const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
 type PropsOf<T> = WithBase<T>;
 
@@ -74,6 +75,25 @@ function createInMemoryProgram(filePath: string, sourceText: string): ts.Program
 
 	return ts.createProgram([filePath], compilerOptions, host);
 }
+
+it('resolves substitution types from representable base types', () => {
+	const filePath = '/virtual/substitution-fallback.ts';
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, substitutionTypeSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeParameter',
+				name: 'T',
+			},
+		],
+	});
+});
 
 it('does not use diagnostic source nodes to change function return type names', () => {
 	const filePath = '/virtual/return-alias.ts';

@@ -13,30 +13,30 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-const unsupportedTypeSource = 'export type X<T> = T extends string ? T : never;';
-const repeatedUnsupportedTypeSource = `type Weird<T> = T extends string ? T : never;
+const unsupportedTypeSource = 'export type X = `prefix-${string}`;';
+const repeatedUnsupportedTypeSource = `type Weird = \`prefix-\${string}\`;
 
-export interface Props<T> {
-  a: Weird<T>;
-  b: Weird<T>;
+export interface Props {
+  a: Weird;
+  b: Weird;
 }`;
 const implicitClassParameterSource = `export class ClassWarnings {
   methodImplicit<T extends string>(
     value = undefined as \`prefix-\${T}\`,
   ): void {}
 }`;
-const preciseWarningSource = `export function functionReturn<T>():
-  T extends string ? T : never {
+const preciseWarningSource = `export function functionReturn():
+  \`function-\${string}\` {
   return undefined as any;
 }
 
 export class ClassWarnings {
-  methodParam<T>(
-    value: T extends string ? T : never,
+  methodParam(
+    value: \`param-\${string}\`,
   ): void {}
 
-  methodReturn<T>():
-    T extends string ? T : never {
+  methodReturn():
+    \`return-\${string}\` {
     return undefined as any;
   }
 }`;
@@ -70,7 +70,7 @@ function createInMemoryProgram(filePath: string, sourceText: string): ts.Program
 }
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
-	return `Type extraction warning: Unable to handle type "T" with flag "Substitution" while resolving "T extends string ? T : never" at "${filePath}:1:20". Using any instead.`;
+	return `Type extraction warning: Unable to handle type "\`prefix-\${string}\`" with flag "TemplateLiteral" at "${filePath}:1:17". Using any instead.`;
 }
 
 it('reports unsupported type fallbacks through onWarning', () => {
@@ -91,15 +91,15 @@ it('reports unsupported type fallbacks through onWarning', () => {
 		code: 'unsupported-type-fallback',
 		filePath,
 		line: 1,
-		column: 20,
+		column: 17,
 		parsedSymbolStack: [filePath, 'X'],
-		typeFlags: ['Substitution'],
-		typeText: 'T',
-		sourceText: 'T extends string ? T : never',
+		typeFlags: ['TemplateLiteral'],
+		typeText: '`prefix-${string}`',
+		sourceText: '`prefix-${string}`',
 	});
 	expect(warnings[0]!.message).toBe(getExpectedUnsupportedTypeWarningMessage(filePath));
 	expect(warnings[0]!.message).toContain('Type extraction warning:');
-	expect(warnings[0]!.message).not.toContain('IncludesInstantiable');
+	expect(warnings[0]!.message).not.toContain('IncludesWildcard');
 });
 
 it('logs unsupported type fallbacks by default', () => {
@@ -131,13 +131,13 @@ it('reports unsupported type fallbacks for repeated cached types', () => {
 		expect.objectContaining({
 			line: 4,
 			column: 6,
-			sourceText: 'Weird<T>',
+			sourceText: 'Weird',
 			parsedSymbolStack: [filePath, 'Props', 'property: a'],
 		}),
 		expect.objectContaining({
 			line: 5,
 			column: 6,
-			sourceText: 'Weird<T>',
+			sourceText: 'Weird',
 			parsedSymbolStack: [filePath, 'Props', 'property: b'],
 		}),
 	]);
@@ -183,19 +183,19 @@ it('reports precise type locations in function and class signatures', () => {
 			expect.objectContaining({
 				line: 2,
 				column: 3,
-				sourceText: 'T extends string ? T : never',
+				sourceText: '`function-${string}`',
 				parsedSymbolStack: [filePath, 'functionReturn'],
 			}),
 			expect.objectContaining({
 				line: 8,
 				column: 12,
-				sourceText: 'T extends string ? T : never',
+				sourceText: '`param-${string}`',
 				parsedSymbolStack: [filePath, 'ClassWarnings', 'parameter: value'],
 			}),
 			expect.objectContaining({
 				line: 12,
 				column: 5,
-				sourceText: 'T extends string ? T : never',
+				sourceText: '`return-${string}`',
 				parsedSymbolStack: [filePath, 'ClassWarnings'],
 			}),
 		]),

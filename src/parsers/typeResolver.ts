@@ -394,6 +394,18 @@ function resolveTypeUncached(
 			return new IntrinsicNode('any', typeName);
 		}
 
+		// SubstitutionTypes are checker-internal placeholders created while TypeScript
+		// evaluates conditional/infer/mapped types. They represent "baseType, but
+		// under this constraint" rather than a syntax form we can emit directly.
+		// Prefer a clean representation of the base/constraint over falling back to
+		// `any`, but only when resolving it does not itself hit another unsupported type.
+		if (hasExactFlag(type, ts.TypeFlags.Substitution)) {
+			const substitutionFallback = resolveSubstitutionFallback(type, context);
+			if (substitutionFallback) {
+				return substitutionFallback;
+			}
+		}
+
 		unsupportedFallbackTypes.add(type);
 		reportUnsupportedTypeFallback(type, typeNode, context);
 
@@ -404,6 +416,44 @@ function resolveTypeUncached(
 			typeStack.pop();
 		}
 	}
+}
+
+function resolveSubstitutionFallback(type: ts.Type, context: ParserContext): AnyType | undefined {
+	const substitutionType = type as ts.SubstitutionType;
+
+	return (
+		resolveSubstitutionCandidate(substitutionType.baseType, context) ??
+		resolveSubstitutionCandidate(substitutionType.constraint, context)
+	);
+}
+
+function resolveSubstitutionCandidate(
+	candidateType: ts.Type,
+	context: ParserContext,
+): AnyType | undefined {
+	if (hasExactFlag(candidateType, ts.TypeFlags.Substitution)) {
+		return undefined;
+	}
+
+	// This is a probe, not the real fallback path. If the candidate still needs
+	// an unsupported-type warning, reject it and let the original substitution
+	// report a single warning with the best source location.
+	const warnings: unknown[] = [];
+	const onWarning = context.onWarning;
+	context.onWarning = (warning) => {
+		warnings.push(warning);
+	};
+
+	try {
+		const resolvedCandidate = resolveType(candidateType, undefined, context);
+		return warnings.length === 0 && !isAnyNode(resolvedCandidate) ? resolvedCandidate : undefined;
+	} finally {
+		context.onWarning = onWarning;
+	}
+}
+
+function isAnyNode(typeNode: AnyType): boolean {
+	return typeNode instanceof IntrinsicNode && typeNode.intrinsic === 'any' && !typeNode.typeName;
 }
 
 const allowedBuiltInTsTypes = new Set([
