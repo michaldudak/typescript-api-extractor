@@ -50,7 +50,7 @@ export function parseFromProgram(
 	return parseModule(sourceFile, parserContext);
 }
 
-function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions {
+function getParserOptions(parserOptions: Partial<ParserOptions>): ResolvedParserOptions {
 	const shouldInclude: ParserOptions['shouldInclude'] = (data) => {
 		if (parserOptions.shouldInclude) {
 			const result = parserOptions.shouldInclude(data);
@@ -77,10 +77,19 @@ function getParserOptions(parserOptions: Partial<ParserOptions>): ParserOptions 
 		shouldInclude,
 		shouldResolveObject,
 		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
+		onWarning:
+			parserOptions.onWarning ??
+			((warning) => {
+				console.warn(warning.message);
+			}),
 	};
 }
 
-export interface ParserContext extends ParserOptions {
+interface ResolvedParserOptions extends ParserOptions {
+	onWarning: (warning: ParserWarning) => void;
+}
+
+export interface ParserContext extends ResolvedParserOptions {
 	checker: ts.TypeChecker;
 	sourceFile: ts.SourceFile;
 	typeStack: number[];
@@ -120,4 +129,17 @@ export interface ParserOptions {
 	 * @default false
 	 */
 	includeExternalTypes?: boolean;
+	/**
+	 * Called when the parser recovers from a non-fatal issue.
+	 * If not provided, warnings are printed with console.warn.
+	 */
+	onWarning?: (warning: ParserWarning) => void;
+}
+
+export interface ParserWarning {
+	code: 'unsupported-type-fallback';
+	message: string;
+	filePath: string;
+	parsedSymbolStack: string[];
+	typeFlags: string[];
 }

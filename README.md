@@ -90,11 +90,27 @@ The parser accepts optional configuration through the `ParserOptions` interface:
 
 ```typescript
 interface ParserOptions {
-	includePrivateMembers?: boolean;
-	followReferences?: boolean;
-	maxDepth?: number;
+	shouldInclude?: (data: { name: string; depth: number }) => boolean | undefined;
+	shouldResolveObject?: (data: {
+		name: string;
+		propertyCount: number;
+		depth: number;
+	}) => boolean | undefined;
+	includeExternalTypes?: boolean;
+	onWarning?: (warning: ParserWarning) => void;
+}
+
+interface ParserWarning {
+	code: 'unsupported-type-fallback';
+	message: string;
+	filePath: string;
+	parsedSymbolStack: string[];
+	typeFlags: string[];
 }
 ```
+
+When `onWarning` is omitted, recoverable parser warnings are printed with
+`console.warn`. Provide `onWarning` to collect or format them yourself.
 
 ## Output Format
 

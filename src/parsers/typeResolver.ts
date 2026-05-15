@@ -386,9 +386,7 @@ function resolveTypeUncached(
 			return new IntrinsicNode('any', typeName);
 		}
 
-		console.warn(
-			`Unable to handle a type with flag "${ts.TypeFlags[type.flags]}". Using any instead.`,
-		);
+		reportUnsupportedTypeFallback(type, typeNode, context);
 
 		return new IntrinsicNode('any', typeName);
 	} finally {
@@ -456,6 +454,81 @@ function hasExactFlag(type: ts.Type, flag: number) {
 
 function includesCompositeFlag(type: ts.Type, flag: number) {
 	return (type.flags & flag) !== 0;
+}
+
+function reportUnsupportedTypeFallback(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+) {
+	const filePath = getWarningFilePath(type, typeNode, context);
+	const typeFlags = getTypeFlagNames(type.flags);
+	const formattedTypeFlags = typeFlags.join(' | ');
+
+	context.onWarning({
+		code: 'unsupported-type-fallback',
+		message: `Type extraction warning: Unable to handle a type with flag "${formattedTypeFlags}" in "${filePath}". Using any instead.`,
+		filePath,
+		parsedSymbolStack: [...context.parsedSymbolStack],
+		typeFlags,
+	});
+}
+
+function getWarningFilePath(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+): string {
+	return (
+		typeNode?.getSourceFile().fileName ??
+		getSymbolDeclarationFileName(type.aliasSymbol) ??
+		getSymbolDeclarationFileName(type.getSymbol()) ??
+		context.sourceFile.fileName
+	);
+}
+
+function getSymbolDeclarationFileName(symbol: ts.Symbol | undefined): string | undefined {
+	return symbol?.declarations?.[0]?.getSourceFile().fileName;
+}
+
+const typeFlagDisplayOrder: Array<[ts.TypeFlags, string]> = [
+	[ts.TypeFlags.Any, 'Any'],
+	[ts.TypeFlags.Unknown, 'Unknown'],
+	[ts.TypeFlags.Undefined, 'Undefined'],
+	[ts.TypeFlags.Null, 'Null'],
+	[ts.TypeFlags.Void, 'Void'],
+	[ts.TypeFlags.String, 'String'],
+	[ts.TypeFlags.Number, 'Number'],
+	[ts.TypeFlags.BigInt, 'BigInt'],
+	[ts.TypeFlags.Boolean, 'Boolean'],
+	[ts.TypeFlags.ESSymbol, 'ESSymbol'],
+	[ts.TypeFlags.StringLiteral, 'StringLiteral'],
+	[ts.TypeFlags.NumberLiteral, 'NumberLiteral'],
+	[ts.TypeFlags.BigIntLiteral, 'BigIntLiteral'],
+	[ts.TypeFlags.BooleanLiteral, 'BooleanLiteral'],
+	[ts.TypeFlags.UniqueESSymbol, 'UniqueESSymbol'],
+	[ts.TypeFlags.EnumLiteral, 'EnumLiteral'],
+	[ts.TypeFlags.Enum, 'Enum'],
+	[ts.TypeFlags.NonPrimitive, 'NonPrimitive'],
+	[ts.TypeFlags.Never, 'Never'],
+	[ts.TypeFlags.TypeParameter, 'TypeParameter'],
+	[ts.TypeFlags.Object, 'Object'],
+	[ts.TypeFlags.Index, 'Index'],
+	[ts.TypeFlags.TemplateLiteral, 'TemplateLiteral'],
+	[ts.TypeFlags.StringMapping, 'StringMapping'],
+	[ts.TypeFlags.Substitution, 'Substitution'],
+	[ts.TypeFlags.IndexedAccess, 'IndexedAccess'],
+	[ts.TypeFlags.Conditional, 'Conditional'],
+	[ts.TypeFlags.Union, 'Union'],
+	[ts.TypeFlags.Intersection, 'Intersection'],
+];
+
+function getTypeFlagNames(flags: ts.TypeFlags): string[] {
+	const names = typeFlagDisplayOrder
+		.filter(([flag]) => (flags & flag) === flag)
+		.map(([, name]) => name);
+
+	return names.length > 0 ? names : [String(flags)];
 }
 
 function getTypeId(type: ts.Type): number | undefined {
