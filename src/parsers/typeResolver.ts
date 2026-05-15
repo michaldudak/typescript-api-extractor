@@ -642,7 +642,11 @@ function getTypeFlagNames(flags: ts.TypeFlags): string[] {
 		.filter(([flag]) => (flags & flag) === flag)
 		.map(([, name]) => name);
 
-	return names.length > 0 ? names : [String(flags)];
+	if (names.length > 0) {
+		return names;
+	}
+
+	return [ts.TypeFlags[flags] ?? String(flags)];
 }
 
 function getTypeId(type: ts.Type): number | undefined {

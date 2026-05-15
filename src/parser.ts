@@ -12,7 +12,7 @@ import { parseModule } from './parsers/moduleParser';
 export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
-	parserOptions: ParserOptions = {},
+	parserOptions?: ParserOptions,
 ): ModuleNode {
 	const program = ts.createProgram([filePath], options);
 	return parseFromProgram(filePath, program, parserOptions);
@@ -27,7 +27,7 @@ export function parseFile(
 export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
-	parserOptions: ParserOptions = {},
+	parserOptions?: ParserOptions,
 ): ModuleNode {
 	const checker = program.getTypeChecker();
 	const sourceFile = program.getSourceFile(filePath);
@@ -45,7 +45,7 @@ export function parseFromProgram(
 		sourceNodeStack: [sourceFile],
 		program,
 		resolvedTypeCache: new Map<string, AnyType>(),
-		...getParserOptions(parserOptions),
+		...getParserOptions(parserOptions ?? {}),
 	};
 
 	return parseModule(sourceFile, parserContext);
