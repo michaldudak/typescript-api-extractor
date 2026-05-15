@@ -12,7 +12,7 @@ import { parseModule } from './parsers/moduleParser';
 export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
-	parserOptions: Partial<ParserOptions> = {},
+	parserOptions: ParserOptions = {},
 ): ModuleNode {
 	const program = ts.createProgram([filePath], options);
 	return parseFromProgram(filePath, program, parserOptions);
@@ -27,7 +27,7 @@ export function parseFile(
 export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
-	parserOptions: Partial<ParserOptions> = {},
+	parserOptions: ParserOptions = {},
 ): ModuleNode {
 	const checker = program.getTypeChecker();
 	const sourceFile = program.getSourceFile(filePath);
@@ -42,6 +42,7 @@ export function parseFromProgram(
 		typeStack: [],
 		compilerOptions: program.getCompilerOptions(),
 		parsedSymbolStack: [],
+		sourceNodeStack: [sourceFile],
 		program,
 		resolvedTypeCache: new Map<string, AnyType>(),
 		...getParserOptions(parserOptions),
@@ -50,8 +51,8 @@ export function parseFromProgram(
 	return parseModule(sourceFile, parserContext);
 }
 
-function getParserOptions(parserOptions: Partial<ParserOptions>): ResolvedParserOptions {
-	const shouldInclude: ParserOptions['shouldInclude'] = (data) => {
+function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
+	const shouldInclude: ResolvedParserOptions['shouldInclude'] = (data) => {
 		if (parserOptions.shouldInclude) {
 			const result = parserOptions.shouldInclude(data);
 			if (result !== undefined) {
@@ -62,7 +63,7 @@ function getParserOptions(parserOptions: Partial<ParserOptions>): ResolvedParser
 		return true;
 	};
 
-	const shouldResolveObject: ParserOptions['shouldResolveObject'] = (data) => {
+	const shouldResolveObject: ResolvedParserOptions['shouldResolveObject'] = (data) => {
 		if (parserOptions.shouldResolveObject) {
 			const result = parserOptions.shouldResolveObject(data);
 			if (result !== undefined) {
@@ -85,7 +86,14 @@ function getParserOptions(parserOptions: Partial<ParserOptions>): ResolvedParser
 	};
 }
 
-interface ResolvedParserOptions extends ParserOptions {
+interface ResolvedParserOptions {
+	shouldInclude: (data: { name: string; depth: number }) => boolean | undefined;
+	shouldResolveObject: (data: {
+		name: string;
+		propertyCount: number;
+		depth: number;
+	}) => boolean | undefined;
+	includeExternalTypes: boolean;
 	onWarning: (warning: ParserWarning) => void;
 }
 
@@ -95,6 +103,7 @@ export interface ParserContext extends ResolvedParserOptions {
 	typeStack: number[];
 	compilerOptions: ts.CompilerOptions;
 	parsedSymbolStack: string[];
+	sourceNodeStack: ts.Node[];
 	program: ts.Program;
 	/**
 	 * Cache for resolved types to avoid resolving the same type multiple times.
@@ -112,14 +121,14 @@ export interface ParserOptions {
 	/**
 	 * Called before a property is added to an object type.
 	 */
-	shouldInclude: (data: { name: string; depth: number }) => boolean | undefined;
+	shouldInclude?: (data: { name: string; depth: number }) => boolean | undefined;
 	/**
 	 * Called before the shape of an object is resolved
 	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
 	 * use the default behaviour
 	 * @default propertyCount <= 50 && depth <= 10
 	 */
-	shouldResolveObject: (data: {
+	shouldResolveObject?: (data: {
 		name: string;
 		propertyCount: number;
 		depth: number;
@@ -136,10 +145,24 @@ export interface ParserOptions {
 	onWarning?: (warning: ParserWarning) => void;
 }
 
-export interface ParserWarning {
-	code: 'unsupported-type-fallback';
+export type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+
+export interface ParserWarningBase {
 	message: string;
 	filePath: string;
+	line: number;
+	column: number;
 	parsedSymbolStack: string[];
+}
+
+export interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
+	code: 'unsupported-type-fallback';
 	typeFlags: string[];
+	typeText: string;
+	sourceText?: string;
+}
+
+export interface MissingEnumDeclarationWarning extends ParserWarningBase {
+	code: 'missing-enum-declaration';
+	enumName: string;
 }

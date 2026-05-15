@@ -461,34 +461,139 @@ function reportUnsupportedTypeFallback(
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
 ) {
-	const filePath = getWarningFilePath(type, typeNode, context);
+	const location = getWarningLocation(type, typeNode, context);
 	const typeFlags = getTypeFlagNames(type.flags);
 	const formattedTypeFlags = typeFlags.join(' | ');
+	const typeText = getWarningTypeText(type, context);
+	const sourceText = getWarningSourceText(location.node);
+	const resolvingText =
+		sourceText && sourceText !== typeText ? ` while resolving "${sourceText}"` : '';
 
 	context.onWarning({
 		code: 'unsupported-type-fallback',
-		message: `Type extraction warning: Unable to handle a type with flag "${formattedTypeFlags}" in "${filePath}". Using any instead.`,
-		filePath,
+		message: `Type extraction warning: Unable to handle type "${typeText}" with flag "${formattedTypeFlags}"${resolvingText} at "${formatWarningLocation(location)}". Using any instead.`,
+		filePath: location.filePath,
+		line: location.line,
+		column: location.column,
 		parsedSymbolStack: [...context.parsedSymbolStack],
 		typeFlags,
+		typeText,
+		sourceText,
 	});
 }
 
-function getWarningFilePath(
+interface WarningLocation {
+	filePath: string;
+	line: number;
+	column: number;
+	node: ts.Node;
+}
+
+function getWarningLocation(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
-): string {
+): WarningLocation {
+	const node = getWarningNode(type, typeNode, context) ?? context.sourceFile;
+	const sourceFile = node.getSourceFile();
+	const start = node.getStart(sourceFile);
+	const { line, character } = sourceFile.getLineAndCharacterOfPosition(start);
+
+	return {
+		filePath: sourceFile.fileName,
+		line: line + 1,
+		column: character + 1,
+		node,
+	};
+}
+
+function getWarningNode(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ParserContext,
+): ts.Node | undefined {
 	return (
-		typeNode?.getSourceFile().fileName ??
-		getSymbolDeclarationFileName(type.aliasSymbol) ??
-		getSymbolDeclarationFileName(type.getSymbol()) ??
-		context.sourceFile.fileName
+		getSymbolDeclaration(type.aliasSymbol) ??
+		getSymbolDeclaration(type.getSymbol()) ??
+		getCurrentSourceNode(context) ??
+		getSubstitutionTypeDeclaration(type) ??
+		typeNode
 	);
 }
 
-function getSymbolDeclarationFileName(symbol: ts.Symbol | undefined): string | undefined {
-	return symbol?.declarations?.[0]?.getSourceFile().fileName;
+function getSubstitutionTypeDeclaration(type: ts.Type): ts.Declaration | undefined {
+	if (!hasExactFlag(type, ts.TypeFlags.Substitution)) {
+		return undefined;
+	}
+
+	const substitutionType = type as ts.SubstitutionType;
+	return (
+		getSymbolDeclaration(substitutionType.baseType.aliasSymbol) ??
+		getSymbolDeclaration(substitutionType.baseType.getSymbol()) ??
+		getSymbolDeclaration(substitutionType.constraint.aliasSymbol) ??
+		getSymbolDeclaration(substitutionType.constraint.getSymbol())
+	);
+}
+
+function getCurrentSourceNode(context: ParserContext): ts.Node | undefined {
+	return context.sourceNodeStack.at(-1);
+}
+
+function formatWarningLocation(location: WarningLocation): string {
+	return `${location.filePath}:${location.line}:${location.column}`;
+}
+
+function getWarningTypeText(type: ts.Type, context: ParserContext): string {
+	return truncateWarningText(
+		context.checker.typeToString(
+			type,
+			undefined,
+			ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.InTypeAlias,
+		),
+	);
+}
+
+function getWarningSourceText(node: ts.Node | undefined): string | undefined {
+	const sourceText = getTypeTextFromNode(node);
+	if (!sourceText) {
+		return undefined;
+	}
+
+	return truncateWarningText(sourceText.replace(/\s+/g, ' ').trim());
+}
+
+function getTypeTextFromNode(node: ts.Node | undefined): string | undefined {
+	if (!node) {
+		return undefined;
+	}
+	if (ts.isTypeNode(node)) {
+		return node.getText();
+	}
+	if (ts.isTypeAliasDeclaration(node)) {
+		return node.type.getText();
+	}
+	if (ts.isParameter(node) || ts.isPropertySignature(node) || ts.isPropertyDeclaration(node)) {
+		return node.type?.getText();
+	}
+	if (
+		ts.isFunctionDeclaration(node) ||
+		ts.isFunctionExpression(node) ||
+		ts.isMethodSignature(node) ||
+		ts.isMethodDeclaration(node)
+	) {
+		return node.type?.getText();
+	}
+
+	return undefined;
+}
+
+function truncateWarningText(text: string): string {
+	const maxLength = 160;
+	return text.length > maxLength ? `${text.slice(0, maxLength - 1)}…` : text;
+}
+
+function getSymbolDeclaration(symbol: ts.Symbol | undefined): ts.Declaration | undefined {
+	return symbol?.declarations?.[0];
 }
 
 const typeFlagDisplayOrder: Array<[ts.TypeFlags, string]> = [

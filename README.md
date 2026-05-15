@@ -100,12 +100,26 @@ interface ParserOptions {
 	onWarning?: (warning: ParserWarning) => void;
 }
 
-interface ParserWarning {
-	code: 'unsupported-type-fallback';
+type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+
+interface ParserWarningBase {
 	message: string;
 	filePath: string;
+	line: number;
+	column: number;
 	parsedSymbolStack: string[];
+}
+
+interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
+	code: 'unsupported-type-fallback';
 	typeFlags: string[];
+	typeText: string;
+	sourceText?: string;
+}
+
+interface MissingEnumDeclarationWarning extends ParserWarningBase {
+	code: 'missing-enum-declaration';
+	enumName: string;
 }
 ```
 

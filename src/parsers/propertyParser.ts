@@ -10,45 +10,59 @@ export function parseProperty(
 	propertySignature: ts.PropertySignature | undefined,
 	context: ParserContext,
 ): PropertyNode {
-	const { checker, parsedSymbolStack } = context;
+	const { checker, parsedSymbolStack, sourceNodeStack } = context;
 	parsedSymbolStack.push(`property: ${propertySymbol.name}`);
 
 	try {
 		let type: ts.Type;
+		const sourceNode =
+			propertySignature?.type ?? propertySignature ?? propertySymbol.declarations?.[0];
+		if (sourceNode) {
+			sourceNodeStack.push(sourceNode);
+		}
 
-		if (propertySignature) {
-			if (propertySignature.type) {
-				type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+		try {
+			if (propertySignature) {
+				if (propertySignature.type) {
+					type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+				} else {
+					type = checker.getAnyType();
+				}
 			} else {
-				type = checker.getAnyType();
+				type = checker.getTypeOfSymbol(propertySymbol);
 			}
-		} else {
-			type = checker.getTypeOfSymbol(propertySymbol);
+
+			let isOptional = false;
+
+			const parsedType = resolveType(
+				type,
+				isTypeParameterLike(type) ? undefined : propertySignature?.type,
+				context,
+			);
+
+			// Typechecker only gives the type "any" if it's present in a union.
+			// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
+			// So instead we check for the questionmark to detect optional types
+			if (
+				(type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) &&
+				propertySignature
+			) {
+				isOptional = Boolean(propertySignature.questionToken);
+			} else {
+				isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
+			}
+
+			return new PropertyNode(
+				propertySymbol.getName(),
+				parsedType,
+				getDocumentationFromSymbol(propertySymbol, checker),
+				isOptional,
+			);
+		} finally {
+			if (sourceNode) {
+				sourceNodeStack.pop();
+			}
 		}
-
-		let isOptional = false;
-
-		const parsedType = resolveType(
-			type,
-			isTypeParameterLike(type) ? undefined : propertySignature?.type,
-			context,
-		);
-
-		// Typechecker only gives the type "any" if it's present in a union.
-		// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
-		// So instead we check for the questionmark to detect optional types
-		if ((type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature) {
-			isOptional = Boolean(propertySignature.questionToken);
-		} else {
-			isOptional = Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
-		}
-
-		return new PropertyNode(
-			propertySymbol.getName(),
-			parsedType,
-			getDocumentationFromSymbol(propertySymbol, checker),
-			isOptional,
-		);
 	} catch (error) {
 		if (!(error instanceof ParserError)) {
 			throw new ParserError(error, parsedSymbolStack);

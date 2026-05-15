@@ -3,7 +3,14 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { afterEach, it, expect, vi } from 'vitest';
 import glob from 'fast-glob';
-import { loadConfig, parseFromProgram, type ParserWarning } from '../src';
+import {
+	loadConfig,
+	parseFromProgram,
+	type ParserContext,
+	type ParserOptions,
+	type ParserWarning,
+} from '../src';
+import { parseExport } from '../src/parsers/exportParser';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 
@@ -68,27 +75,32 @@ function createInMemoryProgram(filePath: string, sourceText: string): ts.Program
 }
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
-	return `Type extraction warning: Unable to handle a type with flag "Substitution" in "${filePath}". Using any instead.`;
+	return `Type extraction warning: Unable to handle type "T" with flag "Substitution" while resolving "T extends string ? T : never" at "${filePath}:1:20". Using any instead.`;
 }
 
 it('reports unsupported type fallbacks through onWarning', () => {
 	const filePath = '/virtual/unsupported-type-warning.ts';
 	const warnings: ParserWarning[] = [];
 	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-	parseFromProgram(filePath, createInMemoryProgram(filePath, unsupportedTypeSource), {
+	const parserOptions: ParserOptions = {
 		onWarning: (warning) => {
 			warnings.push(warning);
 		},
-	});
+	};
+
+	parseFromProgram(filePath, createInMemoryProgram(filePath, unsupportedTypeSource), parserOptions);
 
 	expect(warn).not.toHaveBeenCalled();
 	expect(warnings).toHaveLength(1);
 	expect(warnings[0]).toMatchObject({
 		code: 'unsupported-type-fallback',
 		filePath,
+		line: 1,
+		column: 20,
 		parsedSymbolStack: [filePath, 'X'],
 		typeFlags: ['Substitution'],
+		typeText: 'T',
+		sourceText: 'T extends string ? T : never',
 	});
 	expect(warnings[0]!.message).toBe(getExpectedUnsupportedTypeWarningMessage(filePath));
 	expect(warnings[0]!.message).toContain('Type extraction warning:');
@@ -103,4 +115,45 @@ it('logs unsupported type fallbacks by default', () => {
 
 	expect(warn).toHaveBeenCalledTimes(1);
 	expect(warn).toHaveBeenCalledWith(getExpectedUnsupportedTypeWarningMessage(filePath));
+});
+
+it('reports missing enum declarations through onWarning', () => {
+	const sourceFile = ts.createSourceFile(
+		'/virtual/missing-enum-declaration.ts',
+		'export enum Missing {}',
+		ts.ScriptTarget.ES2022,
+		true,
+	);
+	const enumDeclaration = sourceFile.statements[0]!;
+	const warnings: ParserWarning[] = [];
+	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+	const context = {
+		checker: {
+			getSymbolAtLocation: () => ({ name: 'Missing' }),
+		},
+		sourceFile,
+		parsedSymbolStack: [],
+		onWarning: (warning: ParserWarning) => {
+			warnings.push(warning);
+		},
+	} as unknown as ParserContext;
+
+	parseExport(
+		{
+			name: 'Missing',
+			declarations: [enumDeclaration],
+		} as unknown as ts.Symbol,
+		context,
+	);
+
+	expect(warn).not.toHaveBeenCalled();
+	expect(warnings).toHaveLength(1);
+	expect(warnings[0]).toMatchObject({
+		code: 'missing-enum-declaration',
+		filePath: sourceFile.fileName,
+		line: 1,
+		column: 1,
+		parsedSymbolStack: ['Missing'],
+		enumName: 'Missing',
+	});
 });

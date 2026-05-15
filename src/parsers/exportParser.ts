@@ -301,7 +301,18 @@ export function parseExport(
 			}
 
 			if (!exportedSymbol.declarations?.[0]) {
-				console.warn('Could not find the declaration of the enum:', exportedSymbol.name);
+				const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+					exportDeclaration.getStart(sourceFile),
+				);
+				parserContext.onWarning({
+					code: 'missing-enum-declaration',
+					message: `Type extraction warning: Could not find the declaration of enum "${exportedSymbol.name}" at "${sourceFile.fileName}:${line + 1}:${character + 1}". Skipping this export.`,
+					filePath: sourceFile.fileName,
+					line: line + 1,
+					column: character + 1,
+					parsedSymbolStack: [...parsedSymbolStack],
+					enumName: exportedSymbol.name,
+				});
 				return;
 			}
 
@@ -389,51 +400,63 @@ export function parseExport(
 		reexportedFrom?: string,
 		extendsTypes?: ExtendsTypeInfo[],
 	) {
-		let parsedType = resolveType(type, typeNode, parserContext);
-		if (parsedType) {
-			// Fix type name for external types that resolve to internal symbol names
-			// (e.g., __type, __object). This happens when re-exporting types from
-			// external packages or when const variables have anonymous object types.
-			// e.g., `export type { Rect } from '@floating-ui/utils'`
-			// The resolved type loses the alias name and becomes __type
-			if (
-				'typeName' in parsedType &&
-				(parsedType as { typeName: TypeName | undefined }).typeName?.name != null &&
-				isInternalSymbolName((parsedType as { typeName: TypeName }).typeName.name)
-			) {
-				const oldTypeName = (parsedType as { typeName: TypeName }).typeName;
-				parsedType = withTypeName(
-					parsedType,
-					new TypeName(name, oldTypeName?.namespaces, oldTypeName?.typeArguments),
-				);
+		const sourceNode = typeNode ?? symbol.declarations?.[0];
+		if (sourceNode) {
+			parserContext.sourceNodeStack.push(sourceNode);
+		}
+
+		try {
+			let parsedType = resolveType(type, typeNode, parserContext);
+			if (parsedType) {
+				// Fix type name for external types that resolve to internal symbol names
+				// (e.g., __type, __object). This happens when re-exporting types from
+				// external packages or when const variables have anonymous object types.
+				// e.g., `export type { Rect } from '@floating-ui/utils'`
+				// The resolved type loses the alias name and becomes __type
+				if (
+					'typeName' in parsedType &&
+					(parsedType as { typeName: TypeName | undefined }).typeName?.name != null &&
+					isInternalSymbolName((parsedType as { typeName: TypeName }).typeName.name)
+				) {
+					const oldTypeName = (parsedType as { typeName: TypeName }).typeName;
+					parsedType = withTypeName(
+						parsedType,
+						new TypeName(name, oldTypeName?.namespaces, oldTypeName?.typeArguments),
+					);
+				}
+
+				// If parentNamespaces are provided, create a copy with the export context namespaces.
+				// This is important for re-exports where the original type has different namespaces
+				// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
+				// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
+				if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
+					const oldTypeName = (parsedType as { typeName: TypeName | undefined }).typeName;
+					// Always use the export context namespaces, not the original type's namespaces
+					// The export name and parentNamespaces define how this type should be referenced
+					parsedType = withTypeName(
+						parsedType,
+						new TypeName(name, parentNamespaces, oldTypeName?.typeArguments),
+					);
+				}
+
+				// Build the fully qualified export name including namespace path
+				const exportName =
+					parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
+
+				return [
+					new ExportNode(
+						exportName,
+						parsedType,
+						getDocumentationFromSymbol(symbol, checker),
+						reexportedFrom,
+						extendsTypes,
+					),
+				];
 			}
-
-			// If parentNamespaces are provided, create a copy with the export context namespaces.
-			// This is important for re-exports where the original type has different namespaces
-			// e.g., `export { DialogPortal as Portal }` in NavigationMenu should produce
-			// typeName = {namespaces: ['NavigationMenu'], name: 'Portal'} not {namespaces: ['DialogPortal'], name: 'State'}
-			if (parentNamespaces.length > 0 && 'typeName' in parsedType) {
-				const oldTypeName = (parsedType as { typeName: TypeName | undefined }).typeName;
-				// Always use the export context namespaces, not the original type's namespaces
-				// The export name and parentNamespaces define how this type should be referenced
-				parsedType = withTypeName(
-					parsedType,
-					new TypeName(name, parentNamespaces, oldTypeName?.typeArguments),
-				);
+		} finally {
+			if (sourceNode) {
+				parserContext.sourceNodeStack.pop();
 			}
-
-			// Build the fully qualified export name including namespace path
-			const exportName = parentNamespaces.length > 0 ? [...parentNamespaces, name].join('.') : name;
-
-			return [
-				new ExportNode(
-					exportName,
-					parsedType,
-					getDocumentationFromSymbol(symbol, checker),
-					reexportedFrom,
-					extendsTypes,
-				),
-			];
 		}
 	}
 }
