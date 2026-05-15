@@ -26,12 +26,29 @@ for (const testCase of testCases) {
 		const moduleDefinition = parseFromProgram(testCase, program);
 
 		if (!regenerateOutput && fs.existsSync(expectedOutput)) {
-			expect(moduleDefinition).toMatchObject(JSON.parse(fs.readFileSync(expectedOutput, 'utf8')));
+			expect(JSON.parse(JSON.stringify(moduleDefinition))).toEqual(
+				JSON.parse(fs.readFileSync(expectedOutput, 'utf8')),
+			);
 		} else {
-			fs.writeFileSync(expectedOutput, JSON.stringify(moduleDefinition, null, '\t'));
+			fs.writeFileSync(expectedOutput, `${JSON.stringify(moduleDefinition, null, '\t')}\n`);
 		}
 	});
 }
+
+it('applies shouldInclude to finite mapped properties', async () => {
+	const testCase = path.resolve(__dirname, 'mapped-alias-finite-key/input.ts');
+	const moduleDefinition = parseFromProgram(testCase, program, {
+		shouldInclude: ({ name }) => name !== 'b',
+	});
+	const serializedModuleDefinition = JSON.parse(JSON.stringify(moduleDefinition));
+	const specializedExport = serializedModuleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'Specialized',
+	);
+
+	expect(
+		specializedExport.type.properties.map((property: { name: string }) => property.name),
+	).toEqual(['a']);
+});
 
 const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
 const substitutionTypeWithUnsupportedConstraintSource =

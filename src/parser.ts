@@ -101,6 +101,7 @@ export interface ParserContext extends ResolvedParserOptions {
 	parsedSymbolStack: string[];
 	sourceNodeStack: ts.Node[];
 	program: ts.Program;
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
 	/**
 	 * Cache for resolved types to avoid resolving the same type multiple times.
 	 * The key encodes both the type ID and the current stack depth, because
