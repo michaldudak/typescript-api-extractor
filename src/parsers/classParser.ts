@@ -267,7 +267,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 		try {
 			const parameterType = resolveType(
 				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-				undefined,
+				parameterDeclaration?.type,
 				context,
 			);
 

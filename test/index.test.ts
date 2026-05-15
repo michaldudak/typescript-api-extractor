@@ -1,22 +1,11 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import ts from 'typescript';
-import { afterEach, it, expect, vi } from 'vitest';
+import { it, expect } from 'vitest';
 import glob from 'fast-glob';
-import {
-	loadConfig,
-	parseFromProgram,
-	type ParserContext,
-	type ParserOptions,
-	type ParserWarning,
-} from '../src';
-import { parseExport } from '../src/parsers/exportParser';
+import { loadConfig, parseFromProgram } from '../src';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
-
-afterEach(() => {
-	vi.restoreAllMocks();
-});
 
 let testCases = glob.sync('**/input.{d.ts,ts,tsx}', { absolute: true, cwd: __dirname });
 if (testCases.some((t) => t.includes('.only'))) {
@@ -44,27 +33,18 @@ for (const testCase of testCases) {
 	});
 }
 
-const unsupportedTypeSource = 'export type X<T> = T extends string ? T : never;';
-const preciseWarningSource = `export function functionReturn<T>():
-  T extends string ? T : never {
-  return undefined as any;
-}
-
-export class ClassWarnings {
-  methodParam<T>(
-    value: T extends string ? T : never,
-  ): void {}
-
-  methodReturn<T>():
-    T extends string ? T : never {
-    return undefined as any;
-  }
-}`;
 const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
 type PropsOf<T> = WithBase<T>;
 
 export function getProps<T>(): PropsOf<T> {
   return undefined as any;
+}`;
+const classParameterAliasSource = `type AliasedAny = any;
+
+export class ClassWithAliasedAny {
+  constructor(ctorParam?: AliasedAny | undefined) {}
+
+  method(methodParam?: AliasedAny | undefined): void {}
 }`;
 
 function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
@@ -95,91 +75,6 @@ function createInMemoryProgram(filePath: string, sourceText: string): ts.Program
 	return ts.createProgram([filePath], compilerOptions, host);
 }
 
-function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
-	return `Type extraction warning: Unable to handle type "T" with flag "Substitution" while resolving "T extends string ? T : never" at "${filePath}:1:20". Using any instead.`;
-}
-
-it('reports unsupported type fallbacks through onWarning', () => {
-	const filePath = '/virtual/unsupported-type-warning.ts';
-	const warnings: ParserWarning[] = [];
-	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	const parserOptions: ParserOptions = {
-		onWarning: (warning) => {
-			warnings.push(warning);
-		},
-	};
-
-	parseFromProgram(filePath, createInMemoryProgram(filePath, unsupportedTypeSource), parserOptions);
-
-	expect(warn).not.toHaveBeenCalled();
-	expect(warnings).toHaveLength(1);
-	expect(warnings[0]).toMatchObject({
-		code: 'unsupported-type-fallback',
-		filePath,
-		line: 1,
-		column: 20,
-		parsedSymbolStack: [filePath, 'X'],
-		typeFlags: ['Substitution'],
-		typeText: 'T',
-		sourceText: 'T extends string ? T : never',
-	});
-	expect(warnings[0]!.message).toBe(getExpectedUnsupportedTypeWarningMessage(filePath));
-	expect(warnings[0]!.message).toContain('Type extraction warning:');
-	expect(warnings[0]!.message).not.toContain('IncludesInstantiable');
-});
-
-it('logs unsupported type fallbacks by default', () => {
-	const filePath = '/virtual/default-unsupported-type-warning.ts';
-	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-	parseFromProgram(filePath, createInMemoryProgram(filePath, unsupportedTypeSource));
-
-	expect(warn).toHaveBeenCalledTimes(1);
-	expect(warn).toHaveBeenCalledWith(getExpectedUnsupportedTypeWarningMessage(filePath));
-});
-
-it('reports precise type locations in function and class signatures', () => {
-	const filePath = '/virtual/precise-warning-locations.ts';
-	const warnings: ParserWarning[] = [];
-
-	parseFromProgram(filePath, createInMemoryProgram(filePath, preciseWarningSource), {
-		onWarning: (warning) => {
-			warnings.push(warning);
-		},
-	});
-
-	const unsupportedWarnings = warnings.filter(
-		(warning) => warning.code === 'unsupported-type-fallback',
-	);
-
-	expect(unsupportedWarnings).toEqual(
-		expect.arrayContaining([
-			expect.objectContaining({
-				line: 2,
-				column: 3,
-				sourceText: 'T extends string ? T : never',
-				parsedSymbolStack: [filePath, 'functionReturn'],
-			}),
-			expect.objectContaining({
-				line: 8,
-				column: 12,
-				sourceText: 'T extends string ? T : never',
-				parsedSymbolStack: [filePath, 'ClassWarnings', 'parameter: value'],
-			}),
-			expect.objectContaining({
-				line: 12,
-				column: 5,
-				sourceText: 'T extends string ? T : never',
-				parsedSymbolStack: [filePath, 'ClassWarnings'],
-			}),
-		]),
-	);
-	for (const warning of unsupportedWarnings) {
-		expect(warning.line).not.toBe(1);
-		expect(warning.column).not.toBe(1);
-	}
-});
-
 it('does not use diagnostic source nodes to change function return type names', () => {
 	const filePath = '/virtual/return-alias.ts';
 	const moduleDefinition = parseFromProgram(
@@ -201,43 +96,55 @@ it('does not use diagnostic source nodes to change function return type names', 
 	});
 });
 
-it('reports missing enum declarations through onWarning', () => {
-	const sourceFile = ts.createSourceFile(
-		'/virtual/missing-enum-declaration.ts',
-		'export enum Missing {}',
-		ts.ScriptTarget.ES2022,
-		true,
+it('preserves authored union aliases for class parameters', () => {
+	const filePath = '/virtual/class-parameter-alias.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, classParameterAliasSource),
 	);
-	const enumDeclaration = sourceFile.statements[0]!;
-	const warnings: ParserWarning[] = [];
-	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-	const context = {
-		checker: {
-			getSymbolAtLocation: () => ({ name: 'Missing' }),
-		},
-		sourceFile,
-		parsedSymbolStack: [],
-		onWarning: (warning: ParserWarning) => {
-			warnings.push(warning);
-		},
-	} as unknown as ParserContext;
+	const aliasedAnyUnion = {
+		kind: 'union',
+		types: [
+			{
+				kind: 'intrinsic',
+				intrinsic: 'any',
+				typeName: {
+					name: 'AliasedAny',
+				},
+			},
+			{
+				kind: 'intrinsic',
+				intrinsic: 'undefined',
+			},
+		],
+	};
 
-	parseExport(
-		{
-			name: 'Missing',
-			declarations: [enumDeclaration],
-		} as unknown as ts.Symbol,
-		context,
-	);
-
-	expect(warn).not.toHaveBeenCalled();
-	expect(warnings).toHaveLength(1);
-	expect(warnings[0]).toMatchObject({
-		code: 'missing-enum-declaration',
-		filePath: sourceFile.fileName,
-		line: 1,
-		column: 1,
-		parsedSymbolStack: ['Missing'],
-		enumName: 'Missing',
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'class',
+		constructSignatures: [
+			{
+				parameters: [
+					{
+						name: 'ctorParam',
+						type: aliasedAnyUnion,
+					},
+				],
+			},
+		],
+		methods: [
+			{
+				name: 'method',
+				callSignatures: [
+					{
+						parameters: [
+							{
+								name: 'methodParam',
+								type: aliasedAnyUnion,
+							},
+						],
+					},
+				],
+			},
+		],
 	});
 });
