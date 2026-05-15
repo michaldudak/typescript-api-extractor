@@ -232,9 +232,14 @@ function resolveTemplateValueType(
 	resolve: (type: ts.Type, typeNode: ts.TypeNode | undefined, context: ParserContext) => AnyType,
 	substitutions: Map<ts.Symbol, ts.Type>,
 ): AnyType {
+	const typeParameterSubstitutions = new Map(context.typeParameterSubstitutions);
+	for (const [symbol, substitution] of substitutions) {
+		typeParameterSubstitutions.set(symbol, substitution);
+	}
+
 	return resolve(type, undefined, {
 		...context,
-		typeParameterSubstitutions: substitutions,
+		typeParameterSubstitutions,
 	});
 }
 
