@@ -36,6 +36,8 @@ for (const testCase of testCases) {
 const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
 const substitutionTypeWithUnsupportedConstraintSource =
 	'export type X<T extends `prefix-${string}`> = T extends string ? T : never;';
+const substitutionObjectTypeWithUnsupportedConstraintSource =
+	'export type X<T extends `prefix-${string}`> = T extends string ? { v: T } : never;';
 const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
 type PropsOf<T> = WithBase<T>;
 
@@ -121,6 +123,55 @@ it('does not report unsupported warnings when a substitution fallback succeeds',
 		],
 	});
 	expect(warnings).toEqual([]);
+});
+
+it('reports conditional name warnings when the resolved type keeps the conditional alias name', () => {
+	const filePath = '/virtual/substitution-fallback-object-warning.ts';
+	const warnings: ParserWarning[] = [];
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, substitutionObjectTypeWithUnsupportedConstraintSource),
+		{
+			onWarning: (warning) => {
+				warnings.push(warning);
+			},
+		},
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'object',
+		typeName: {
+			name: 'X',
+			typeArguments: [
+				{
+					type: {
+						kind: 'typeParameter',
+						name: 'T',
+						constraint: {
+							kind: 'intrinsic',
+							intrinsic: 'any',
+						},
+					},
+				},
+			],
+		},
+		properties: [
+			{
+				name: 'v',
+			},
+		],
+	});
+	expect(warnings).toEqual(
+		expect.arrayContaining([
+			expect.objectContaining({
+				code: 'unsupported-type-fallback',
+				typeFlags: ['TemplateLiteral'],
+				typeText: '`prefix-${string}`',
+				sourceText: 'T extends string ? { v: T } : never',
+			}),
+		]),
+	);
 });
 
 it('does not use diagnostic source nodes to change function return type names', () => {

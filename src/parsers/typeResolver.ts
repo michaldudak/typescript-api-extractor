@@ -143,9 +143,21 @@ function resolveTypeUncached(
 			typeName = getFullName(type, typeNode, context);
 		}
 
+		const replayNameResolutionWarnings = () => {
+			for (const warning of nameResolutionWarnings) {
+				context.onWarning(warning);
+			}
+			nameResolutionWarnings.length = 0;
+		};
+
+		const returnWithNameResolutionWarnings = <T extends AnyType>(resolvedType: T): T => {
+			replayNameResolutionWarnings();
+			return resolvedType;
+		};
+
 		// If this type was already on the stack, return a shallow version with type info but no properties
 		if (isAlreadyOnStack) {
-			return createShallowType(type, typeName, checker);
+			return returnWithNameResolutionWarnings(createShallowType(type, typeName, checker));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
@@ -160,7 +172,7 @@ function resolveTypeUncached(
 					// Get the type from the symbol's declaration
 					const symbolType = checker.getDeclaredTypeOfSymbol(symbol);
 					if (symbolType && !hasExactFlag(symbolType, ts.TypeFlags.TypeParameter)) {
-						return resolveType(symbolType, typeNode, context);
+						return returnWithNameResolutionWarnings(resolveType(symbolType, typeNode, context));
 					}
 				}
 			}
@@ -170,23 +182,27 @@ function resolveTypeUncached(
 				? checker.getBaseConstraintOfType(type)
 				: undefined;
 
-			return new TypeParameterNode(
-				type.symbol.name,
-				constraintType ? resolveType(constraintType, undefined, context) : undefined,
-				declaration?.default
-					? resolveType(checker.getTypeAtLocation(declaration.default), undefined, context)
-					: undefined,
+			return returnWithNameResolutionWarnings(
+				new TypeParameterNode(
+					type.symbol.name,
+					constraintType ? resolveType(constraintType, undefined, context) : undefined,
+					declaration?.default
+						? resolveType(checker.getTypeAtLocation(declaration.default), undefined, context)
+						: undefined,
+				),
 			);
 		}
 
 		if (checker.isArrayType(type)) {
 			// @ts-expect-error - Private method
 			const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
-			return new ArrayNode(
-				type.aliasSymbol?.name
-					? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
-					: undefined,
-				resolveType(arrayType, undefined, context),
+			return returnWithNameResolutionWarnings(
+				new ArrayNode(
+					type.aliasSymbol?.name
+						? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
+						: undefined,
+					resolveType(arrayType, undefined, context),
+				),
 			);
 		}
 
@@ -222,27 +238,29 @@ function resolveTypeUncached(
 			}
 
 			if (!externalTypeName) {
-				return new IntrinsicNode('any');
+				return returnWithNameResolutionWarnings(new IntrinsicNode('any'));
 			}
 
 			// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 			if (externalTypeName === 'bivarianceHack') {
-				return new ExternalTypeNode(
-					new TypeName('RefCallback', ['React'], typeName?.typeArguments),
+				return returnWithNameResolutionWarnings(
+					new ExternalTypeNode(new TypeName('RefCallback', ['React'], typeName?.typeArguments)),
 				);
 			}
 
-			return new ExternalTypeNode(
-				new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
+			return returnWithNameResolutionWarnings(
+				new ExternalTypeNode(
+					new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
+				),
 			);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Boolean)) {
-			return new IntrinsicNode('boolean');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('boolean'));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Void)) {
-			return new IntrinsicNode('void');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('void'));
 		}
 
 		if (includesCompositeFlag(type, ts.TypeFlags.EnumLike)) {
@@ -253,14 +271,14 @@ function resolveTypeUncached(
 			}
 
 			if (!symbol) {
-				return new IntrinsicNode('any');
+				return returnWithNameResolutionWarnings(new IntrinsicNode('any'));
 			}
 
-			return parseEnum(symbol, context);
+			return returnWithNameResolutionWarnings(parseEnum(symbol, context));
 		}
 
 		if (type.isUnion()) {
-			return resolveUnionType(type, typeName, typeNode, context);
+			return returnWithNameResolutionWarnings(resolveUnionType(type, typeName, typeNode, context));
 		}
 
 		if (type.isIntersection()) {
@@ -275,52 +293,57 @@ function resolveTypeUncached(
 			}
 
 			if (memberTypes.length === 1) {
-				return memberTypes[0];
+				return returnWithNameResolutionWarnings(memberTypes[0]);
 			}
 
 			if (memberTypes.length > 1) {
 				const callSignatures = type.getCallSignatures();
 				if (callSignatures.length >= 1) {
-					return parseFunctionType(type, context)!;
+					return returnWithNameResolutionWarnings(parseFunctionType(type, context)!);
 				}
 
 				const objectType = parseObjectType(type, typeName, context, resolveType);
 				if (objectType) {
-					return new IntersectionNode(typeName, memberTypes, objectType.properties);
+					return returnWithNameResolutionWarnings(
+						new IntersectionNode(typeName, memberTypes, objectType.properties),
+					);
 				}
 
-				return new IntersectionNode(typeName, memberTypes, []);
+				return returnWithNameResolutionWarnings(new IntersectionNode(typeName, memberTypes, []));
 			}
 		}
 
 		if (checker.isTupleType(type)) {
-			return new TupleNode(
-				typeName,
-				(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, undefined, context)) ?? [],
+			return returnWithNameResolutionWarnings(
+				new TupleNode(
+					typeName,
+					(type as ts.TupleType).typeArguments?.map((x) => resolveType(x, undefined, context)) ??
+						[],
+				),
 			);
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.String)) {
-			return new IntrinsicNode('string');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('string'));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Number)) {
-			return new IntrinsicNode('number');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('number'));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.BigInt)) {
-			return new IntrinsicNode('bigint');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('bigint'));
 		}
 
 		if (
 			hasExactFlag(type, ts.TypeFlags.ESSymbol) ||
 			hasExactFlag(type, ts.TypeFlags.UniqueESSymbol)
 		) {
-			return new IntrinsicNode('symbol', typeName);
+			return returnWithNameResolutionWarnings(new IntrinsicNode('symbol', typeName));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Undefined)) {
-			return new IntrinsicNode('undefined');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('undefined'));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Any)) {
@@ -335,29 +358,31 @@ function resolveTypeUncached(
 					// Recursively resolve, passing the memberTypeNode so alias information is preserved
 					unionTypes.push(resolveType(memberType, memberTypeNode, context));
 				}
-				return new UnionNode(typeName, unionTypes);
+				return returnWithNameResolutionWarnings(new UnionNode(typeName, unionTypes));
 			}
-			return new IntrinsicNode('any', typeName);
+			return returnWithNameResolutionWarnings(new IntrinsicNode('any', typeName));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Unknown)) {
-			return new IntrinsicNode('unknown', typeName);
+			return returnWithNameResolutionWarnings(new IntrinsicNode('unknown', typeName));
 		}
 
 		if (includesCompositeFlag(type, ts.TypeFlags.Literal)) {
 			if (type.isLiteral()) {
-				return new LiteralNode(
-					type.isStringLiteral() ? `"${type.value}"` : type.value,
-					typeName,
-					getDocumentationFromSymbol(type.symbol, checker),
+				return returnWithNameResolutionWarnings(
+					new LiteralNode(
+						type.isStringLiteral() ? `"${type.value}"` : type.value,
+						typeName,
+						getDocumentationFromSymbol(type.symbol, checker),
+					),
 				);
 			}
 
-			return new LiteralNode(checker.typeToString(type));
+			return returnWithNameResolutionWarnings(new LiteralNode(checker.typeToString(type)));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Null)) {
-			return new IntrinsicNode('null');
+			return returnWithNameResolutionWarnings(new IntrinsicNode('null'));
 		}
 
 		// TODO: currently types can be either a "function" or an "object" but not both.
@@ -365,7 +390,7 @@ function resolveTypeUncached(
 		// Consider creating a new type that can handle both.
 		const callSignatures = type.getCallSignatures();
 		if (callSignatures.length >= 1) {
-			return parseFunctionType(type, context)!;
+			return returnWithNameResolutionWarnings(parseFunctionType(type, context)!);
 		}
 
 		// Check for class types (have construct signatures)
@@ -373,13 +398,13 @@ function resolveTypeUncached(
 		if (constructSignatures.length >= 1) {
 			const classType = parseClassType(type, context);
 			if (classType) {
-				return classType;
+				return returnWithNameResolutionWarnings(classType);
 			}
 		}
 
 		const objectType = parseObjectType(type, typeName, context, resolveType);
 		if (objectType) {
-			return objectType;
+			return returnWithNameResolutionWarnings(objectType);
 		}
 
 		// Object without properties or object keyword
@@ -387,11 +412,11 @@ function resolveTypeUncached(
 			hasExactFlag(type, ts.TypeFlags.Object) ||
 			(hasExactFlag(type, ts.TypeFlags.NonPrimitive) && checker.typeToString(type) === 'object')
 		) {
-			return new ObjectNode(typeName, [], undefined);
+			return returnWithNameResolutionWarnings(new ObjectNode(typeName, [], undefined));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Never)) {
-			return new IntrinsicNode('never', typeName);
+			return returnWithNameResolutionWarnings(new IntrinsicNode('never', typeName));
 		}
 
 		if (hasExactFlag(type, ts.TypeFlags.Conditional)) {
