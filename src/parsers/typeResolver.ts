@@ -515,9 +515,10 @@ function getWarningNode(
 	return (
 		getSymbolDeclaration(type.aliasSymbol) ??
 		getSymbolDeclaration(type.getSymbol()) ??
-		getCurrentSourceNode(context) ??
+		typeNode ??
+		getCurrentSourceTypeNode(context) ??
 		getSubstitutionTypeDeclaration(type) ??
-		typeNode
+		getCurrentSourceNode(context)
 	);
 }
 
@@ -537,6 +538,35 @@ function getSubstitutionTypeDeclaration(type: ts.Type): ts.Declaration | undefin
 
 function getCurrentSourceNode(context: ParserContext): ts.Node | undefined {
 	return context.sourceNodeStack.at(-1);
+}
+
+function getCurrentSourceTypeNode(context: ParserContext): ts.TypeNode | undefined {
+	return getTypeNodeFromNode(getCurrentSourceNode(context));
+}
+
+function getTypeNodeFromNode(node: ts.Node | undefined): ts.TypeNode | undefined {
+	if (!node) {
+		return undefined;
+	}
+	if (ts.isTypeNode(node)) {
+		return node;
+	}
+	if (ts.isTypeAliasDeclaration(node)) {
+		return node.type;
+	}
+	if (ts.isParameter(node) || ts.isPropertySignature(node) || ts.isPropertyDeclaration(node)) {
+		return node.type;
+	}
+	if (
+		ts.isFunctionDeclaration(node) ||
+		ts.isFunctionExpression(node) ||
+		ts.isMethodSignature(node) ||
+		ts.isMethodDeclaration(node)
+	) {
+		return node.type;
+	}
+
+	return undefined;
 }
 
 function formatWarningLocation(location: WarningLocation): string {
@@ -563,28 +593,7 @@ function getWarningSourceText(node: ts.Node | undefined): string | undefined {
 }
 
 function getTypeTextFromNode(node: ts.Node | undefined): string | undefined {
-	if (!node) {
-		return undefined;
-	}
-	if (ts.isTypeNode(node)) {
-		return node.getText();
-	}
-	if (ts.isTypeAliasDeclaration(node)) {
-		return node.type.getText();
-	}
-	if (ts.isParameter(node) || ts.isPropertySignature(node) || ts.isPropertyDeclaration(node)) {
-		return node.type?.getText();
-	}
-	if (
-		ts.isFunctionDeclaration(node) ||
-		ts.isFunctionExpression(node) ||
-		ts.isMethodSignature(node) ||
-		ts.isMethodDeclaration(node)
-	) {
-		return node.type?.getText();
-	}
-
-	return undefined;
+	return getTypeNodeFromNode(node)?.getText();
 }
 
 function truncateWarningText(text: string): string {

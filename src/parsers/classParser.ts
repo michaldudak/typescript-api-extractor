@@ -152,14 +152,30 @@ function extractMembers(
 			// It's a method - parse all signatures into CallSignature array
 			const signatures: CallSignature[] = tsCallSignatures.map((sig) => {
 				const params = sig.parameters.map((paramSymbol) => parseParameter(paramSymbol, context));
-				const returnType = resolveType(sig.getReturnType(), undefined, context);
+				const returnType = parseReturnType(sig, context);
 				return new CallSignature(params, returnType, parseSignatureTypeParameters(sig, context));
 			});
 
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
 			// It's a property
-			const resolvedType = resolveType(memberType, undefined, context);
+			const propertyTypeNode =
+				(ts.isPropertyDeclaration(memberDeclaration) ||
+					ts.isPropertySignature(memberDeclaration)) &&
+				memberDeclaration.type
+					? memberDeclaration.type
+					: undefined;
+			if (propertyTypeNode) {
+				context.sourceNodeStack.push(propertyTypeNode);
+			}
+			let resolvedType;
+			try {
+				resolvedType = resolveType(memberType, propertyTypeNode, context);
+			} finally {
+				if (propertyTypeNode) {
+					context.sourceNodeStack.pop();
+				}
+			}
 			const isOptional = (member.flags & ts.SymbolFlags.Optional) !== 0;
 
 			// Check readonly in multiple ways:
@@ -218,73 +234,113 @@ function parseConstructSignature(
 	return new ConstructSignature(parameters, documentation);
 }
 
-function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
-	const { checker } = context;
-
-	const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-
-	const parameterType = resolveType(
-		checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-		parameterDeclaration?.type,
-		context,
-	);
-
-	// Clean up summary - remove leading dashes, asterisks, colons, whitespace
-	// (matches functionParser behavior)
-	const summary = parameterSymbol
-		.getDocumentationComment(checker)
-		.map((comment) => comment.text)
-		.join('\n')
-		.replace(/^[\s-*:]*/, '');
-
-	const rawTags = parameterSymbol.getJsDocTags(checker);
-
-	// Preserve all JSDoc tags except @param (matches functionParser behavior)
-	const docTags: DocumentationTag[] = rawTags
-		.filter((t) => t.name !== 'param')
-		.map((t) => {
-			const text = t.text?.map((part) => part.text).join(' ');
-			return {
-				name: t.name,
-				value: text,
-			};
-		});
-
-	let visibility: Visibility | undefined;
-	if (rawTags.some((tag) => tag.name === 'private')) {
-		visibility = 'private';
-	} else if (rawTags.some((tag) => tag.name === 'internal')) {
-		visibility = 'internal';
-	} else if (rawTags.some((tag) => tag.name === 'public')) {
-		visibility = 'public';
+function parseReturnType(signature: ts.Signature, context: ParserContext) {
+	const returnTypeNode = getReturnTypeNode(signature);
+	if (returnTypeNode) {
+		context.sourceNodeStack.push(returnTypeNode);
 	}
 
-	const optional =
-		parameterDeclaration?.questionToken !== undefined ||
-		parameterDeclaration?.initializer !== undefined;
-
-	// Handle default values - extract literal values when possible (matches functionParser)
-	let defaultValue: string | undefined;
-	const initializer = parameterDeclaration?.initializer;
-	if (initializer) {
-		const initializerType = checker.getTypeAtLocation(initializer);
-		if (initializerType.flags & ts.TypeFlags.Literal) {
-			if (initializerType.isStringLiteral()) {
-				defaultValue = `"${initializerType.value}"`;
-			} else if (initializerType.isLiteral()) {
-				defaultValue = initializerType.value.toString();
-			} else {
-				defaultValue = initializer.getText();
-			}
-		} else {
-			defaultValue = initializer.getText();
+	try {
+		return resolveType(signature.getReturnType(), returnTypeNode, context);
+	} finally {
+		if (returnTypeNode) {
+			context.sourceNodeStack.pop();
 		}
 	}
+}
 
-	const documentation =
-		summary?.length || docTags.length
-			? new Documentation(summary || undefined, undefined, visibility, docTags)
-			: undefined;
+function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
+	const declaration = signature.getDeclaration();
+	return declaration && 'type' in declaration ? declaration.type : undefined;
+}
 
-	return new Parameter(parameterType, parameterSymbol.name, documentation, optional, defaultValue);
+function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
+	const { checker, parsedSymbolStack, sourceNodeStack } = context;
+	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
+
+	try {
+		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
+		if (parameterDeclaration?.type) {
+			sourceNodeStack.push(parameterDeclaration.type);
+		}
+
+		try {
+			const parameterType = resolveType(
+				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+				parameterDeclaration?.type,
+				context,
+			);
+
+			// Clean up summary - remove leading dashes, asterisks, colons, whitespace
+			// (matches functionParser behavior)
+			const summary = parameterSymbol
+				.getDocumentationComment(checker)
+				.map((comment) => comment.text)
+				.join('\n')
+				.replace(/^[\s-*:]*/, '');
+
+			const rawTags = parameterSymbol.getJsDocTags(checker);
+
+			// Preserve all JSDoc tags except @param (matches functionParser behavior)
+			const docTags: DocumentationTag[] = rawTags
+				.filter((t) => t.name !== 'param')
+				.map((t) => {
+					const text = t.text?.map((part) => part.text).join(' ');
+					return {
+						name: t.name,
+						value: text,
+					};
+				});
+
+			let visibility: Visibility | undefined;
+			if (rawTags.some((tag) => tag.name === 'private')) {
+				visibility = 'private';
+			} else if (rawTags.some((tag) => tag.name === 'internal')) {
+				visibility = 'internal';
+			} else if (rawTags.some((tag) => tag.name === 'public')) {
+				visibility = 'public';
+			}
+
+			const optional =
+				parameterDeclaration?.questionToken !== undefined ||
+				parameterDeclaration?.initializer !== undefined;
+
+			// Handle default values - extract literal values when possible (matches functionParser)
+			let defaultValue: string | undefined;
+			const initializer = parameterDeclaration?.initializer;
+			if (initializer) {
+				const initializerType = checker.getTypeAtLocation(initializer);
+				if (initializerType.flags & ts.TypeFlags.Literal) {
+					if (initializerType.isStringLiteral()) {
+						defaultValue = `"${initializerType.value}"`;
+					} else if (initializerType.isLiteral()) {
+						defaultValue = initializerType.value.toString();
+					} else {
+						defaultValue = initializer.getText();
+					}
+				} else {
+					defaultValue = initializer.getText();
+				}
+			}
+
+			const documentation =
+				summary?.length || docTags.length
+					? new Documentation(summary || undefined, undefined, visibility, docTags)
+					: undefined;
+
+			return new Parameter(
+				parameterType,
+				parameterSymbol.name,
+				documentation,
+				optional,
+				defaultValue,
+			);
+		} finally {
+			if (parameterDeclaration?.type) {
+				sourceNodeStack.pop();
+			}
+		}
+	} finally {
+		parsedSymbolStack.pop();
+	}
 }

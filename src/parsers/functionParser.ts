@@ -18,7 +18,7 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
 		return new CallSignature(
 			signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
-			resolveType(signature.getReturnType(), undefined, context),
+			parseReturnType(signature, context),
 			parseSignatureTypeParameters(signature, context),
 		);
 	});
@@ -44,6 +44,26 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 		name !== undefined ? new TypeName(name, fqn?.namespaces, fqn?.typeArguments) : undefined;
 
 	return new FunctionNode(typeName, parsedCallSignatures);
+}
+
+function parseReturnType(signature: ts.Signature, context: ParserContext) {
+	const returnTypeNode = getReturnTypeNode(signature);
+	if (returnTypeNode) {
+		context.sourceNodeStack.push(returnTypeNode);
+	}
+
+	try {
+		return resolveType(signature.getReturnType(), returnTypeNode, context);
+	} finally {
+		if (returnTypeNode) {
+			context.sourceNodeStack.pop();
+		}
+	}
+}
+
+function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
+	const declaration = signature.getDeclaration();
+	return declaration && 'type' in declaration ? declaration.type : undefined;
 }
 
 function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
