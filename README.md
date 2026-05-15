@@ -176,7 +176,7 @@ The extractor would produce:
 ## Requirements
 
 - **Node.js**: >= 22
-- **TypeScript**: ^5.8 (peer dependency)
+- **TypeScript**: ^5.8 || ^6.0 (peer dependency)
 
 Make sure you have TypeScript installed in your project:
 
