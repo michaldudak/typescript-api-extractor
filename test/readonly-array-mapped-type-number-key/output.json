@@ -19,8 +19,12 @@
 										"kind": "union",
 										"types": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "unknown"
+												"kind": "typeParameter",
+												"name": "V",
+												"defaultValue": {
+													"kind": "intrinsic",
+													"intrinsic": "unknown"
+												}
 											},
 											{
 												"kind": "intrinsic",
@@ -44,8 +48,12 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "intrinsic",
-									"intrinsic": "unknown"
+									"kind": "typeParameter",
+									"name": "V",
+									"defaultValue": {
+										"kind": "intrinsic",
+										"intrinsic": "unknown"
+									}
 								},
 								{
 									"kind": "intrinsic",

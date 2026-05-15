@@ -1,3 +1,3 @@
-export type Data<K extends string = string, V> = ReadonlyArray<{
+export type Data<V, K extends string = string> = ReadonlyArray<{
 	[key in K]?: V;
 }>;

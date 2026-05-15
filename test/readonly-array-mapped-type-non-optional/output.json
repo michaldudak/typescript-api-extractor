@@ -16,8 +16,12 @@
 									"keyName": "key",
 									"keyType": "string",
 									"valueType": {
-										"kind": "intrinsic",
-										"intrinsic": "unknown"
+										"kind": "typeParameter",
+										"name": "V",
+										"defaultValue": {
+											"kind": "intrinsic",
+											"intrinsic": "unknown"
+										}
 									}
 								}
 							},
@@ -32,8 +36,12 @@
 						"keyName": "key",
 						"keyType": "string",
 						"valueType": {
-							"kind": "intrinsic",
-							"intrinsic": "unknown"
+							"kind": "typeParameter",
+							"name": "V",
+							"defaultValue": {
+								"kind": "intrinsic",
+								"intrinsic": "unknown"
+							}
 						}
 					}
 				}

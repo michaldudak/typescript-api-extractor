@@ -33,9 +33,10 @@ export function resolveType(
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
 ): AnyType {
-	const { resolvedTypeCache, typeStack } = context;
+	const { resolvedTypeCache, typeStack, typeParameterSubstitutions } = context;
 
 	const typeId = getTypeId(type);
+	const hasTypeParameterSubstitutions = Boolean(typeParameterSubstitutions?.size);
 
 	// Build a cache key that incorporates both the type identity and the current
 	// stack depth, because shouldResolveObject / shouldInclude are depth-sensitive.
@@ -47,6 +48,7 @@ export function resolveType(
 	if (
 		cacheKey !== undefined &&
 		!typeNode &&
+		!hasTypeParameterSubstitutions &&
 		resolvedTypeCache.has(cacheKey) &&
 		!typeStack.includes(typeId!)
 	) {
@@ -56,7 +58,12 @@ export function resolveType(
 	const result = resolveTypeUncached(type, typeNode, context);
 
 	// Cache the result for future lookups when there's no typeNode influence
-	if (cacheKey !== undefined && !typeNode && !typeStack.includes(typeId!)) {
+	if (
+		cacheKey !== undefined &&
+		!typeNode &&
+		!hasTypeParameterSubstitutions &&
+		!typeStack.includes(typeId!)
+	) {
 		resolvedTypeCache.set(cacheKey, result);
 	}
 
@@ -114,6 +121,15 @@ function resolveTypeUncached(
 
 	try {
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
+			const substitution = context.typeParameterSubstitutions?.get(type.symbol);
+			if (
+				substitution &&
+				substitution !== type &&
+				(!(substitution.flags & ts.TypeFlags.TypeParameter) || substitution.symbol !== type.symbol)
+			) {
+				return resolveType(substitution, undefined, context);
+			}
+
 			// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
 			// This handles cases where TypeScript doesn't fully instantiate generic parameters,
 			// but the typeNode (authored code) references the actual concrete type.

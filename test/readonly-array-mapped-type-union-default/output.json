@@ -19,12 +19,21 @@
 										"kind": "union",
 										"types": [
 											{
-												"kind": "intrinsic",
-												"intrinsic": "string"
-											},
-											{
-												"kind": "intrinsic",
-												"intrinsic": "number"
+												"kind": "typeParameter",
+												"name": "V",
+												"defaultValue": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														}
+													]
+												}
 											},
 											{
 												"kind": "intrinsic",
@@ -48,12 +57,21 @@
 							"kind": "union",
 							"types": [
 								{
-									"kind": "intrinsic",
-									"intrinsic": "string"
-								},
-								{
-									"kind": "intrinsic",
-									"intrinsic": "number"
+									"kind": "typeParameter",
+									"name": "V",
+									"defaultValue": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "intrinsic",
+												"intrinsic": "string"
+											},
+											{
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											}
+										]
+									}
 								},
 								{
 									"kind": "intrinsic",

@@ -1,5 +1,5 @@
 {
-	"name": "test/readonly-array-mapped-type-any-value/input",
+	"name": "test/readonly-array-mapped-type-plus-optional/input",
 	"exports": [
 		{
 			"name": "Data",
@@ -23,7 +23,7 @@
 												"name": "V",
 												"defaultValue": {
 													"kind": "intrinsic",
-													"intrinsic": "any"
+													"intrinsic": "unknown"
 												}
 											},
 											{
@@ -52,7 +52,7 @@
 									"name": "V",
 									"defaultValue": {
 										"kind": "intrinsic",
-										"intrinsic": "any"
+										"intrinsic": "unknown"
 									}
 								},
 								{

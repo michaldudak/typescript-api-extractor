@@ -75,15 +75,18 @@ function parseIndexSignature(
 		// retain a `MappedTypeNode` declaration, in which case we fall through and
 		// emit no index signature — same outcome as "genuinely no index signature".
 		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
+		const substitutions = getMappedTypeParameterSubstitutions(type);
 
 		// `as` clauses rename keys (e.g. `[K in keyof T as `prefix_${K}`]`); the resulting
 		// key shape can't be represented as a plain index signature, so fall through.
 		if (mappedNode && mappedNode.type && !mappedNode.nameType) {
 			const templateType = checker.getTypeAtLocation(mappedNode.type);
 			const constraintNode = mappedNode.typeParameter.constraint;
-			const constraintType = constraintNode
-				? (checker.getBaseConstraintOfType(checker.getTypeAtLocation(constraintNode)) ??
-					checker.getTypeAtLocation(constraintNode))
+			const constraintNodeType = constraintNode
+				? substituteTypeParameter(checker.getTypeAtLocation(constraintNode), substitutions)
+				: undefined;
+			const constraintType = constraintNodeType
+				? (checker.getBaseConstraintOfType(constraintNodeType) ?? constraintNodeType)
 				: undefined;
 
 			if (constraintType) {
@@ -95,8 +98,11 @@ function parseIndexSignature(
 				}
 
 				if (keyType) {
-					let valueType = resolveTemplateValueType(templateType, type, checker, (t) =>
-						resolveValueType(t, undefined, context),
+					let valueType = resolveTemplateValueType(
+						templateType,
+						context,
+						resolveValueType,
+						substitutions,
 					);
 					// `?`/`+?` adds `undefined` to the value type. `-?` and no modifier
 					// leave it alone. Whitelist the additive forms so future TS modifier
@@ -127,68 +133,109 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
 }
 
-// Mapped-type templates resolved through the AST keep type parameters unresolved
-// (e.g. `V` in `{ [K in string]: V }`). To surface the user-meant type, first try
-// substituting through the instantiated mapped type's `aliasTypeArguments` (so a
-// reuse like `Wrapped<K, V> = ReadonlyArray<MapAlias<K, V>>` propagates `Wrapped`'s
-// `V` rather than collapsing to `MapAlias`'s declared default), and fall back to
-// the type parameter's own declared default when no alias substitution applies.
-function resolveTemplateTypeParam(
+type TypeMapperLike = {
+	source?: ts.Type;
+	target?: ts.Type;
+	sources?: readonly ts.Type[];
+	targets?: readonly ts.Type[];
+	mapper1?: unknown;
+	mapper2?: unknown;
+};
+
+// TypeScript does not expose instantiated mapped-type substitutions publicly.
+// Read the mapper defensively: if its shape changes, we simply get no substitutions.
+function getMappedTypeParameterSubstitutions(type: ts.Type): Map<ts.Symbol, ts.Type> {
+	const substitutions = new Map<ts.Symbol, ts.Type>();
+	const seen = new WeakSet<object>();
+	collectTypeParameterSubstitutions((type as { mapper?: unknown }).mapper, substitutions, seen);
+	return substitutions;
+}
+
+function collectTypeParameterSubstitutions(
+	mapper: unknown,
+	substitutions: Map<ts.Symbol, ts.Type>,
+	seen: WeakSet<object>,
+): void {
+	if (!mapper || typeof mapper !== 'object' || seen.has(mapper)) {
+		return;
+	}
+	seen.add(mapper);
+
+	const mapperLike = mapper as TypeMapperLike;
+	if (isType(mapperLike.source) && isType(mapperLike.target)) {
+		addTypeParameterSubstitution(mapperLike.source, mapperLike.target, substitutions);
+	}
+
+	if (mapperLike.sources && mapperLike.targets) {
+		for (let index = 0; index < mapperLike.sources.length; index += 1) {
+			const source = mapperLike.sources[index];
+			const target = mapperLike.targets[index];
+			if (isType(source) && isType(target)) {
+				addTypeParameterSubstitution(source, target, substitutions);
+			}
+		}
+	}
+
+	collectTypeParameterSubstitutions(mapperLike.mapper1, substitutions, seen);
+	collectTypeParameterSubstitutions(mapperLike.mapper2, substitutions, seen);
+}
+
+function isType(value: unknown): value is ts.Type {
+	return Boolean(value && typeof value === 'object' && 'flags' in value);
+}
+
+function addTypeParameterSubstitution(
+	source: ts.Type,
+	target: ts.Type,
+	substitutions: Map<ts.Symbol, ts.Type>,
+): void {
+	if (!(source.flags & ts.TypeFlags.TypeParameter) || !source.symbol) {
+		return;
+	}
+	substitutions.set(source.symbol, target);
+}
+
+function substituteTypeParameter(
 	type: ts.Type,
-	mappedType: ts.Type,
-	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type>,
+	seen: Set<ts.Symbol> = new Set(),
 ): ts.Type {
 	if (!(type.flags & ts.TypeFlags.TypeParameter)) {
 		return type;
 	}
 
-	const aliasArgs = mappedType.aliasTypeArguments;
-	const aliasSymbol = mappedType.aliasSymbol;
-	if (aliasArgs && aliasSymbol) {
-		const aliasDecl = aliasSymbol.declarations?.find((d) => ts.isTypeAliasDeclaration(d));
-		if (aliasDecl?.typeParameters) {
-			// Match by declaration symbol — `getSymbolAtLocation`/`getTypeAtLocation`
-			// can throw on parameter declarations in unusual binding states.
-			const idx = aliasDecl.typeParameters.findIndex(
-				(tp) => (tp as ts.TypeParameterDeclaration & { symbol?: ts.Symbol }).symbol === type.symbol,
-			);
-			if (idx >= 0 && idx < aliasArgs.length) {
-				const substituted = aliasArgs[idx];
-				if (substituted !== type) {
-					// Substitution can yield another type parameter (outer alias's own
-					// parameter); recurse so its default still applies.
-					return resolveTemplateTypeParam(substituted, mappedType, checker);
-				}
-			}
-		}
+	const substitution = type.symbol ? substitutions.get(type.symbol) : undefined;
+	if (
+		!substitution ||
+		substitution === type ||
+		(substitution.flags & ts.TypeFlags.TypeParameter && substitution.symbol === type.symbol)
+	) {
+		return type;
+	}
+	if (type.symbol && seen.has(type.symbol)) {
+		return type;
+	}
+	if (type.symbol) {
+		seen.add(type.symbol);
 	}
 
-	const declaration = type.symbol?.declarations?.[0];
-	if (declaration && ts.isTypeParameterDeclaration(declaration) && declaration.default) {
-		return checker.getTypeAtLocation(declaration.default);
-	}
-	return type;
+	return substituteTypeParameter(substitution, substitutions, seen);
 }
 
 /**
- * Resolve a mapped-type template into a model-level type, substituting type
- * parameters via the instantiated mapped type's alias arguments (with declared
- * defaults as a fallback). Unions are expanded per-member and rebuilt as a
- * model `UnionNode`, avoiding reliance on the internal `checker.getUnionType` API.
+ * Resolve a mapped-type template with the instantiated mapped type's type-parameter
+ * mapper, so wrapper aliases propagate their type arguments through nested values.
  */
 function resolveTemplateValueType(
 	type: ts.Type,
-	mappedType: ts.Type,
-	checker: ts.TypeChecker,
-	resolve: (type: ts.Type) => AnyType,
+	context: ParserContext,
+	resolve: (type: ts.Type, typeNode: ts.TypeNode | undefined, context: ParserContext) => AnyType,
+	substitutions: Map<ts.Symbol, ts.Type>,
 ): AnyType {
-	if (type.isUnion()) {
-		return new UnionNode(
-			undefined,
-			type.types.map((t) => resolve(resolveTemplateTypeParam(t, mappedType, checker))),
-		);
-	}
-	return resolve(resolveTemplateTypeParam(type, mappedType, checker));
+	return resolve(type, undefined, {
+		...context,
+		typeParameterSubstitutions: substitutions,
+	});
 }
 
 export function parseObjectType(
