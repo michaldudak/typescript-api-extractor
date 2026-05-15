@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
-import { loadConfig, parseFromProgram } from '../src';
+import { loadConfig, parseFromProgram, type ParserWarning } from '../src';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 
@@ -34,6 +34,8 @@ for (const testCase of testCases) {
 }
 
 const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
+const substitutionTypeWithUnsupportedConstraintSource =
+	'export type X<T extends `prefix-${string}`> = T extends string ? T : never;';
 const returnAliasSource = `type WithBase<T> = { [K in keyof T]: T[K] };
 type PropsOf<T> = WithBase<T>;
 
@@ -93,6 +95,32 @@ it('resolves substitution types from representable base types', () => {
 			},
 		],
 	});
+});
+
+it('does not report unsupported warnings when a substitution fallback succeeds', () => {
+	const filePath = '/virtual/substitution-fallback-warning.ts';
+	const warnings: ParserWarning[] = [];
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, substitutionTypeWithUnsupportedConstraintSource),
+		{
+			onWarning: (warning) => {
+				warnings.push(warning);
+			},
+		},
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'intrinsic',
+				intrinsic: 'string',
+			},
+		],
+	});
+	expect(warnings).toEqual([]);
 });
 
 it('does not use diagnostic source nodes to change function return type names', () => {

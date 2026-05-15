@@ -113,14 +113,41 @@ function resolveTypeUncached(
 		typeStack.push(typeId);
 	}
 
-	const typeName = getFullName(type, typeNode, context);
-
-	// If this type was already on the stack, return a shallow version with type info but no properties
-	if (isAlreadyOnStack) {
-		return createShallowType(type, typeName, checker);
-	}
+	let typeName: TypeName | undefined;
 
 	try {
+		// SubstitutionTypes are checker-internal placeholders created while TypeScript
+		// evaluates conditional/infer/mapped types. They represent "baseType, but
+		// under this constraint" rather than a syntax form we can emit directly.
+		// Try this before getFullName(), which may resolve type arguments and emit
+		// warnings that would be misleading if the substitution fallback succeeds.
+		if (!isAlreadyOnStack && hasExactFlag(type, ts.TypeFlags.Substitution)) {
+			const substitutionFallback = resolveSubstitutionFallback(type, context);
+			if (substitutionFallback) {
+				return substitutionFallback;
+			}
+		}
+
+		const nameResolutionWarnings: Array<Parameters<ParserContext['onWarning']>[0]> = [];
+		if (hasExactFlag(type, ts.TypeFlags.Conditional)) {
+			const onWarning = context.onWarning;
+			context.onWarning = (warning) => {
+				nameResolutionWarnings.push(warning);
+			};
+			try {
+				typeName = getFullName(type, typeNode, context);
+			} finally {
+				context.onWarning = onWarning;
+			}
+		} else {
+			typeName = getFullName(type, typeNode, context);
+		}
+
+		// If this type was already on the stack, return a shallow version with type info but no properties
+		if (isAlreadyOnStack) {
+			return createShallowType(type, typeName, checker);
+		}
+
 		if (hasExactFlag(type, ts.TypeFlags.TypeParameter) && type.symbol) {
 			// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
 			// This handles cases where TypeScript doesn't fully instantiate generic parameters,
@@ -394,19 +421,10 @@ function resolveTypeUncached(
 			return new IntrinsicNode('any', typeName);
 		}
 
-		// SubstitutionTypes are checker-internal placeholders created while TypeScript
-		// evaluates conditional/infer/mapped types. They represent "baseType, but
-		// under this constraint" rather than a syntax form we can emit directly.
-		// Prefer a clean representation of the base/constraint over falling back to
-		// `any`, but only when resolving it does not itself hit another unsupported type.
-		if (hasExactFlag(type, ts.TypeFlags.Substitution)) {
-			const substitutionFallback = resolveSubstitutionFallback(type, context);
-			if (substitutionFallback) {
-				return substitutionFallback;
-			}
-		}
-
 		unsupportedFallbackTypes.add(type);
+		for (const warning of nameResolutionWarnings) {
+			context.onWarning(warning);
+		}
 		reportUnsupportedTypeFallback(type, typeNode, context);
 
 		return new IntrinsicNode('any', typeName);
