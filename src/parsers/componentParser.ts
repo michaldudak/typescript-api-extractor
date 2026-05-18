@@ -15,37 +15,45 @@ import { ParserContext } from '../parser';
 
 const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
 
+type FunctionExportNode = ExportNode & { type: FunctionNode };
+
 function isReactReturnType(type: ExternalTypeNode) {
 	return componentReturnTypes.some((regex) => regex.test(type.typeName?.name ?? ''));
 }
 
-export function augmentComponentNodes(nodes: ExportNode[], context: ParserContext): ExportNode[] {
-	return nodes.map((node) => {
-		// This heuristic is not perfect, but it's good enough for now.
-		// A better way would be to explicitly mark components with a JSDoc tag.
-		if (
-			node.type instanceof FunctionNode &&
-			(/^[A-Z]/.test(node.name) || node.name === 'default') &&
-			hasReactNodeLikeReturnType(node.type)
-		) {
-			const newCallSignatures = squashComponentProps(node.type.callSignatures, context);
-			const typeName = node.type.typeName
-				? new TypeName(
-						node.type.typeName?.name,
-						node.type.typeName?.namespaces,
-						node.type.typeName?.typeArguments,
-					)
-				: undefined;
-			return new ExportNode(
-				node.name,
-				new ComponentNode(typeName, newCallSignatures),
-				node.documentation,
-				node.reexportedFrom,
-			);
-		}
-
+export function transformComponentExport(node: ExportNode, context: ParserContext): ExportNode {
+	if (!isComponentExport(node)) {
 		return node;
-	});
+	}
+
+	return node.withType(createComponentNode(node.type, context));
+}
+
+export function isComponentExport(node: ExportNode): node is FunctionExportNode {
+	return (
+		node.type instanceof FunctionNode &&
+		isComponentExportName(node.name) &&
+		hasReactNodeLikeReturnType(node.type)
+	);
+}
+
+function isComponentExportName(name: string): boolean {
+	return /^[A-Z]/.test(name) || name === 'default';
+}
+
+function createComponentNode(type: FunctionNode, context: ParserContext): ComponentNode {
+	return new ComponentNode(
+		cloneTypeName(type.typeName),
+		squashComponentProps(type.callSignatures, context),
+	);
+}
+
+function cloneTypeName(typeName: TypeName | undefined): TypeName | undefined {
+	if (!typeName) {
+		return undefined;
+	}
+
+	return new TypeName(typeName.name, typeName.namespaces, typeName.typeArguments);
 }
 
 function hasReactNodeLikeReturnType(type: FunctionNode) {

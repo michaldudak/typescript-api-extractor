@@ -3,7 +3,7 @@ import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
 import { ParserContext } from '../parser';
 import { parseExport } from './exportParser';
-import { augmentComponentNodes } from './componentParser';
+import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
 
 /**
@@ -129,7 +129,7 @@ export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): 
 				}
 			}
 
-			parsedModuleExports = augmentComponentNodes(parsedModuleExports, context);
+			parsedModuleExports = applyExportTransforms(parsedModuleExports, context);
 
 			const relativeModulePath = path
 				.relative(compilerOptions.rootDir!, JSON.parse(sourceFileSymbol.name))

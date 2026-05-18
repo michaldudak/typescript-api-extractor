@@ -135,6 +135,9 @@ export namespace ComponentRoot {
 	const detailsExport = serializedModuleDefinition.exports.find(
 		(exportNode: { name: string }) => exportNode.name === 'ComponentRootChangeEventDetails',
 	);
+	if (!detailsExport) {
+		throw new Error('Expected ComponentRootChangeEventDetails export to be present');
+	}
 
 	// The barrel export resolves `Component.Root.ChangeEventDetails` before the
 	// top-level type-only export. This pins the authored union order so descriptor

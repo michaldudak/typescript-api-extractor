@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"target": "ES2022",
+		"moduleResolution": "bundler",
+		"module": "ESNext",
+		"jsx": "react-jsx",
+
+		"strict": true,
+		"noEmit": true,
+
+		"esModuleInterop": true,
+		"isolatedModules": true,
+		"types": ["node", "vitest"]
+	},
+	"include": ["src/**/*.ts", "test/*.test.ts"]
+}
