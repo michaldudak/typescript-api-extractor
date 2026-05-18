@@ -247,12 +247,13 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 - `index.ts` is the ordered resolver registry. Resolver order is meaningful:
   specific shapes should appear before broader fallbacks.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
-- `classTypeResolver.ts` handles class detection, constructor signatures, class
-  members, static members, and class type parameters.
+- `classTypeResolver.ts` handles class detection, constructor model assembly,
+  constructor documentation, class members, static members, and class type
+  parameters.
 - `enumTypeResolver.ts` handles enum-like flags and enum symbol/member
   extraction.
-- `functionTypeResolver.ts` handles callable types, call signatures, parameters,
-  return types, and signature type parameters.
+- `functionTypeResolver.ts` handles callable type selection and function model
+  assembly.
 - `intrinsicTypeResolver.ts` handles all primitive/intrinsic flags such as
   `string`, `number`, `boolean`, `void`, `any`, `unknown`, `null`, and `never`.
 - `intersectionTypeResolver.ts` handles intersection members and any merged
@@ -270,12 +271,30 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
   `includeExternalTypes` is disabled.
 - `signatureTypeParameterNodes.ts` is a shared helper for signature type
   parameter metadata used by class and function resolvers.
+- `signatureParser.ts` owns shared function-like signature parsing: call
+  signatures, parameters, parameter docs/defaults, and return types used by
+  callable exports, constructors, and class methods.
 
 A resolver should answer, "Does this `ts.Type` shape apply, and if so, which
 model node should represent it?" It should keep pipeline concerns such as
 ordering, fallback choice, and session recursion explicit. If it needs nested
 type resolution, it should use the active resolver callback from the current
 `TypeResolutionSession` instead of importing `resolveType` directly.
+
+### Model Construction
+
+- Classes in `src/models/types/` are model DTOs with rendering helpers such as
+  `toString()`. They should not own parser policy. Compound constructors are the
+  only exception: they delegate member normalization to `typeCanonicalizer` so
+  all callers get the same union/intersection behavior from normal
+  construction.
+- `src/models/typeCanonicalizer.ts` owns compound member normalization such as
+  flattening nested compounds, simplifying boolean literal unions, removing
+  redundant `never`, keeping nullish members at the end, and deduplicating
+  members.
+- `src/models/typeEquivalence.ts` owns structural equivalence checks used by
+  canonicalization, including the intentional rule that unaliased `any` can act
+  as a wildcard when choosing between duplicate generated signatures.
 
 ### Shared Parser Helpers
 

@@ -3,6 +3,8 @@ export * from './export';
 export * from './module';
 export * from './node';
 export * from './program';
+export * from './typeCanonicalizer';
+export * from './typeEquivalence';
 export * from './typeName';
 
 export * from './types/array';

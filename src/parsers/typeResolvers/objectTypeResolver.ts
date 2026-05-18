@@ -6,9 +6,9 @@ import {
 	TypeName,
 	IndexSignatureNode,
 	AnyType,
-	UnionNode,
 	IntrinsicNode,
 	PropertyNode,
+	UnionNode,
 } from '../../models';
 import { ParserError } from '../../ParserError';
 import {
