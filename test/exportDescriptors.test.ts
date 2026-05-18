@@ -1,49 +1,8 @@
-import path from 'node:path';
 import ts from 'typescript';
 import { expect, it } from 'vitest';
 import { type ParserContext } from '../src';
 import { resolveExportDescriptors } from '../src/parsers/exportDescriptors';
-
-function createInMemoryProgram(files: Record<string, string>): ts.Program {
-	const rootNames = Object.keys(files);
-	const compilerOptions: ts.CompilerOptions = {
-		rootDir: path.dirname(rootNames[0]!),
-		target: ts.ScriptTarget.ES2022,
-		module: ts.ModuleKind.Node16,
-		moduleResolution: ts.ModuleResolutionKind.Node16,
-		strict: true,
-		noEmit: true,
-		skipLibCheck: true,
-	};
-	const host = ts.createCompilerHost(compilerOptions);
-	const getSourceFile = host.getSourceFile.bind(host);
-
-	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
-		const sourceText = files[sourceFileName];
-		if (sourceText !== undefined) {
-			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
-		}
-
-		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
-	};
-	host.fileExists = (sourceFileName) =>
-		files[sourceFileName] !== undefined || ts.sys.fileExists(sourceFileName);
-	host.readFile = (sourceFileName) => files[sourceFileName] ?? ts.sys.readFile(sourceFileName);
-	host.resolveModuleNames = (moduleNames, containingFile) =>
-		moduleNames.map((moduleName) => {
-			const candidate = path.resolve(path.dirname(containingFile), `${moduleName}.ts`);
-			if (files[candidate] !== undefined) {
-				return {
-					resolvedFileName: candidate,
-					extension: ts.Extension.Ts,
-				};
-			}
-
-			return undefined;
-		});
-
-	return ts.createProgram(rootNames, compilerOptions, host);
-}
+import { createInMemoryProgram } from './support/inMemoryProgram';
 
 function createDescriptorContext(filePath: string, program: ts.Program): ParserContext {
 	const sourceFile = program.getSourceFile(filePath);

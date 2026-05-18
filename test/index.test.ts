@@ -4,6 +4,7 @@ import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
 import { loadConfig, parseFromProgram, type ParserWarning } from '../src';
+import { createInMemoryProgram } from './support/inMemoryProgram';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 
@@ -86,34 +87,6 @@ export class Configurator {
    */
   configure(options = defaultOptions, inline = { compact: true }): void {}
 }`;
-
-function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
-	const compilerOptions: ts.CompilerOptions = {
-		rootDir: path.dirname(filePath),
-		target: ts.ScriptTarget.ES2022,
-		module: ts.ModuleKind.Node16,
-		moduleResolution: ts.ModuleResolutionKind.Node16,
-		strict: true,
-		noEmit: true,
-		skipLibCheck: true,
-	};
-	const host = ts.createCompilerHost(compilerOptions);
-	const getSourceFile = host.getSourceFile.bind(host);
-
-	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
-		if (sourceFileName === filePath) {
-			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
-		}
-
-		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
-	};
-	host.fileExists = (sourceFileName) =>
-		sourceFileName === filePath || ts.sys.fileExists(sourceFileName);
-	host.readFile = (sourceFileName) =>
-		sourceFileName === filePath ? sourceText : ts.sys.readFile(sourceFileName);
-
-	return ts.createProgram([filePath], compilerOptions, host);
-}
 
 it('resolves substitution types from representable base types', () => {
 	const filePath = '/virtual/substitution-fallback.ts';

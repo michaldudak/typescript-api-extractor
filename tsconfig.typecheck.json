@@ -12,5 +12,5 @@
 		"isolatedModules": true,
 		"types": ["node", "vitest"]
 	},
-	"include": ["src/**/*.ts", "test/*.test.ts"]
+	"include": ["src/**/*.ts", "test/*.test.ts", "test/support/**/*.ts"]
 }

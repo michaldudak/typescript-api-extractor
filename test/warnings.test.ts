@@ -1,4 +1,3 @@
-import path from 'node:path';
 import ts from 'typescript';
 import { afterEach, expect, it, vi } from 'vitest';
 import {
@@ -8,6 +7,7 @@ import {
 	type ParserWarning,
 } from '../src';
 import { parseExport } from '../src/parsers/exportParser';
+import { createInMemoryProgram } from './support/inMemoryProgram';
 
 afterEach(() => {
 	vi.restoreAllMocks();
@@ -53,34 +53,6 @@ const sourceNodeRestorationSource = `export function withReturn():
 }
 
 export type AfterReturn = \`alias-\${string}\`;`;
-
-function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
-	const compilerOptions: ts.CompilerOptions = {
-		rootDir: path.dirname(filePath),
-		target: ts.ScriptTarget.ES2022,
-		module: ts.ModuleKind.Node16,
-		moduleResolution: ts.ModuleResolutionKind.Node16,
-		strict: true,
-		noEmit: true,
-		skipLibCheck: true,
-	};
-	const host = ts.createCompilerHost(compilerOptions);
-	const getSourceFile = host.getSourceFile.bind(host);
-
-	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
-		if (sourceFileName === filePath) {
-			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
-		}
-
-		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
-	};
-	host.fileExists = (sourceFileName) =>
-		sourceFileName === filePath || ts.sys.fileExists(sourceFileName);
-	host.readFile = (sourceFileName) =>
-		sourceFileName === filePath ? sourceText : ts.sys.readFile(sourceFileName);
-
-	return ts.createProgram([filePath], compilerOptions, host);
-}
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
 	return `Type extraction warning: Unable to handle type "\`prefix-\${string}\`" with flag "TemplateLiteral" at "${filePath}:1:17". Using any instead.`;
