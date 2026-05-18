@@ -215,6 +215,10 @@ substructures that are reused across multiple type classes.
 - `src/parsers/moduleParser.ts` and `src/parsers/exportParser.ts` walk source files
   and exported declarations.
 - `src/parsers/componentParser.ts` contains React component-specific extraction.
+- `src/parsers/exportDescriptors.ts` normalizes export symbols into
+  `ExportDescriptor` records before any output model nodes are built. It owns
+  export-specifier targeting, namespace merging, re-export metadata, export type
+  acquisition, and recoverable export warnings.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.
