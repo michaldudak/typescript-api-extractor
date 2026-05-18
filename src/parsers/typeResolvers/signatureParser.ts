@@ -1,14 +1,8 @@
 import ts from 'typescript';
 import { type ParserContext } from '../../parser';
-import {
-	CallSignature,
-	Documentation,
-	type DocumentationTag,
-	Parameter,
-	type Visibility,
-	type AnyType,
-} from '../../models';
+import { CallSignature, Parameter, type AnyType } from '../../models';
 import { ParserError } from '../../ParserError';
+import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
 
@@ -60,7 +54,7 @@ export function parseParameter(
 					parameterDeclaration?.type,
 					context,
 				);
-				const documentation = parseParameterDocumentation(parameterSymbol, checker);
+				const documentation = getParameterDocumentationFromSymbol(parameterSymbol, checker);
 				const initializer = parameterDeclaration?.initializer;
 
 				return new Parameter(
@@ -101,43 +95,6 @@ export function parseReturnType(
 	);
 }
 
-/**
- * Builds documentation that belongs to a single parameter. Handles `@param`
- * summaries while preserving extra tags like `@public` or `@internal` as
- * parameter metadata rather than copying the parent function documentation.
- */
-export function parseParameterDocumentation(
-	parameterSymbol: ts.Symbol,
-	checker: ts.TypeChecker,
-): Documentation | undefined {
-	const summary = parameterSymbol
-		.getDocumentationComment(checker)
-		.map((comment) => comment.text)
-		.join('\n')
-		.replace(/^[\s-*:]*/, '');
-
-	const rawTags = parameterSymbol.getJsDocTags(checker);
-	const docTags: DocumentationTag[] = rawTags
-		.filter((tag) => tag.name !== 'param')
-		.map((tag) => {
-			const text = tag.text?.map((part) => part.text).join(' ');
-			return {
-				name: tag.name,
-				value: text,
-			};
-		});
-	const visibility = parseDocumentationVisibility(rawTags);
-
-	if (!summary.length && docTags.length === 0) {
-		return undefined;
-	}
-
-	// Keep an empty description for tag-only parameter docs. Existing snapshots
-	// expose that shape for function parameters, so the shared parser preserves
-	// it instead of silently changing serialized API output.
-	return new Documentation(summary, undefined, visibility, docTags);
-}
-
 function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
 	const declaration = signature.getDeclaration();
 	return declaration && 'type' in declaration ? declaration.type : undefined;
@@ -146,22 +103,6 @@ function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
 function getParameterDeclaration(parameterSymbol: ts.Symbol): ts.ParameterDeclaration | undefined {
 	const declaration = parameterSymbol.valueDeclaration ?? parameterSymbol.declarations?.[0];
 	return declaration && ts.isParameter(declaration) ? declaration : undefined;
-}
-
-function parseDocumentationVisibility(tags: ts.JSDocTagInfo[]): Visibility | undefined {
-	if (tags.some((tag) => tag.name === 'private')) {
-		return 'private';
-	}
-
-	if (tags.some((tag) => tag.name === 'internal')) {
-		return 'internal';
-	}
-
-	if (tags.some((tag) => tag.name === 'public')) {
-		return 'public';
-	}
-
-	return undefined;
 }
 
 function parseParameterDefaultValue(

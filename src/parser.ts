@@ -210,7 +210,10 @@ export interface ParserOptions {
 	onWarning?: (warning: ParserWarning) => void;
 }
 
-export type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+export type ParserWarning =
+	| UnsupportedTypeFallbackWarning
+	| MissingEnumDeclarationWarning
+	| MissingDefaultExportSymbolWarning;
 
 export interface ParserWarningBase {
 	message: string;
@@ -230,4 +233,9 @@ export interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
 export interface MissingEnumDeclarationWarning extends ParserWarningBase {
 	code: 'missing-enum-declaration';
 	enumName: string;
+}
+
+export interface MissingDefaultExportSymbolWarning extends ParserWarningBase {
+	code: 'missing-default-export-symbol';
+	sourceText: string;
 }

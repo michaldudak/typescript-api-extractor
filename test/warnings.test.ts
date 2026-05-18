@@ -344,3 +344,36 @@ it('reports missing enum declarations through onWarning', () => {
 		enumName: 'Missing',
 	});
 });
+
+it('reports missing default export symbols through onWarning', () => {
+	const filePath = '/virtual/missing-default-export-symbol.ts';
+	const warnings: ParserWarning[] = [];
+	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+	const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, 'export default 1;'),
+		{
+			onWarning: (warning) => {
+				warnings.push(warning);
+			},
+		},
+	);
+
+	expect(warn).not.toHaveBeenCalled();
+	expect(error).not.toHaveBeenCalled();
+	expect(moduleDefinition.exports).toEqual([]);
+	expect(warnings).toHaveLength(1);
+	expect(warnings[0]).toMatchObject({
+		code: 'missing-default-export-symbol',
+		filePath,
+		line: 1,
+		column: 16,
+		parsedSymbolStack: [filePath, 'default'],
+		sourceText: '1',
+	});
+	expect(warnings[0]!.message).toBe(
+		`Type extraction warning: Could not find the symbol of default export "1" at "${filePath}:1:16". Skipping this export.`,
+	);
+});

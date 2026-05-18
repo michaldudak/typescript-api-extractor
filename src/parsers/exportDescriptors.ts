@@ -296,10 +296,7 @@ function resolveDefaultExportDescriptor(
 ): ExportDescriptor | undefined {
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.expression);
 	if (!exportedSymbol) {
-		console.error(
-			'Failed to get the symbol of the default export in file:',
-			context.sourceFile.fileName,
-		);
+		warnMissingDefaultExportSymbol(exportDeclaration, context);
 		return;
 	}
 
@@ -631,6 +628,27 @@ function warnMissingEnumDeclaration(
 		column: character + 1,
 		parsedSymbolStack: [...context.parsedSymbolStack],
 		enumName: exportedSymbol.name,
+	});
+}
+
+function warnMissingDefaultExportSymbol(
+	exportDeclaration: ts.ExportAssignment,
+	context: ParserContext,
+): void {
+	const expression = exportDeclaration.expression;
+	const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
+		expression.getStart(context.sourceFile),
+	);
+	const sourceText = expression.getText(context.sourceFile);
+
+	context.onWarning({
+		code: 'missing-default-export-symbol',
+		message: `Type extraction warning: Could not find the symbol of default export "${sourceText}" at "${context.sourceFile.fileName}:${line + 1}:${character + 1}". Skipping this export.`,
+		filePath: context.sourceFile.fileName,
+		line: line + 1,
+		column: character + 1,
+		parsedSymbolStack: [...context.parsedSymbolStack],
+		sourceText,
 	});
 }
 
