@@ -1,6 +1,5 @@
 import ts from 'typescript';
-import { type ParserContext } from '../parser';
-import { resolveType } from './typeResolver';
+import { type ParserContext } from '../../parser';
 import {
 	ClassNode,
 	ConstructSignature,
@@ -11,20 +10,48 @@ import {
 	Documentation,
 	DocumentationTag,
 	Visibility,
-} from '../models';
-import { getFullName } from './common';
-import { parseSignatureTypeParameters } from './signatureParser';
-import { TypeName } from '../models/typeName';
-import { getDocumentationFromSymbol } from './documentationParser';
+	type AnyType,
+} from '../../models';
+import { getFullName } from '../common';
+import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
+import { TypeName } from '../../models/typeName';
+import { getDocumentationFromSymbol } from '../documentationParser';
+import {
+	type ResolveTypeInContext,
+	type TypeResolutionRequest,
+	type TypeResolutionSession,
+} from '../typeResolutionTypes';
+
+// Class type handling lives in one resolver module. The exported
+// resolver owns class-shape selection, while private helpers build the ClassNode
+// and its members with the active resolution session.
+
+export function resolveClassType(
+	{ type }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (type.getConstructSignatures().length < 1) {
+		return undefined;
+	}
+
+	return buildClassNodeFromType(type, session.context, session.resolveWithContext);
+}
 
 /**
- * Parses a TypeScript class type into a ClassNode.
+ * Builds a ClassNode after the resolver pipeline has selected a class-shaped
+ * type. The active resolver callback is threaded through nested members so
+ * return types, parameters, and properties stay inside the current resolution
+ * session instead of re-entering through the public resolveType facade.
  *
  * @param type - The TypeScript type representing the class (static side / constructor)
  * @param context - Parser context with type checker and other utilities
  * @returns ClassNode if the type is a class, undefined otherwise
  */
-export function parseClassType(type: ts.Type, context: ParserContext): ClassNode | undefined {
+function buildClassNodeFromType(
+	type: ts.Type,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+): ClassNode | undefined {
 	const constructSignatures = type.getConstructSignatures();
 	if (constructSignatures.length === 0) {
 		return undefined;
@@ -55,7 +82,7 @@ export function parseClassType(type: ts.Type, context: ParserContext): ClassNode
 
 	// Parse construct signatures
 	const parsedConstructSignatures = constructSignatures.map((sig) =>
-		parseConstructSignature(sig, context),
+		buildConstructSignature(sig, context, resolveTypeReference),
 	);
 
 	// Parse instance properties and methods
@@ -65,12 +92,12 @@ export function parseClassType(type: ts.Type, context: ParserContext): ClassNode
 	// Get the instance type to extract instance members
 	const instanceType = constructSignatures[0]?.getReturnType();
 	if (instanceType) {
-		extractMembers(instanceType, false, properties, methods, context);
+		extractMembers(instanceType, false, properties, methods, context, resolveTypeReference);
 	}
 
 	// Extract static members from the class constructor type itself
 	// Static members are properties of the class object, not instances
-	extractMembers(type, true, properties, methods, context);
+	extractMembers(type, true, properties, methods, context, resolveTypeReference);
 
 	// Extract type parameters from the class declaration
 	let typeParameters: TypeName[] | undefined;
@@ -94,6 +121,7 @@ function extractMembers(
 	properties: ClassProperty[],
 	methods: ClassMethod[],
 	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
 ): void {
 	const { checker } = context;
 
@@ -151,9 +179,15 @@ function extractMembers(
 		if (isMethodDeclaration && tsCallSignatures.length > 0) {
 			// It's a method - parse all signatures into CallSignature array
 			const signatures: CallSignature[] = tsCallSignatures.map((sig) => {
-				const params = sig.parameters.map((paramSymbol) => parseParameter(paramSymbol, context));
-				const returnType = parseReturnType(sig, context);
-				return new CallSignature(params, returnType, parseSignatureTypeParameters(sig, context));
+				const params = sig.parameters.map((paramSymbol) =>
+					buildParameterNode(paramSymbol, context, resolveTypeReference),
+				);
+				const returnType = buildReturnType(sig, context, resolveTypeReference);
+				return new CallSignature(
+					params,
+					returnType,
+					buildSignatureTypeParameterNodes(sig, context, resolveTypeReference),
+				);
 			});
 
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
@@ -170,7 +204,7 @@ function extractMembers(
 			}
 			let resolvedType;
 			try {
-				resolvedType = resolveType(memberType, undefined, context);
+				resolvedType = resolveTypeReference(memberType, undefined, context);
 			} finally {
 				if (propertyTypeNode) {
 					context.sourceNodeStack.pop();
@@ -211,14 +245,15 @@ function extractMembers(
 	}
 }
 
-function parseConstructSignature(
+function buildConstructSignature(
 	signature: ts.Signature,
 	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
 ): ConstructSignature {
 	const { checker } = context;
 
 	const parameters = signature.parameters.map((paramSymbol) =>
-		parseParameter(paramSymbol, context),
+		buildParameterNode(paramSymbol, context, resolveTypeReference),
 	);
 
 	// Get documentation from the constructor declaration if available
@@ -234,14 +269,18 @@ function parseConstructSignature(
 	return new ConstructSignature(parameters, documentation);
 }
 
-function parseReturnType(signature: ts.Signature, context: ParserContext) {
+function buildReturnType(
+	signature: ts.Signature,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+) {
 	const returnTypeNode = getReturnTypeNode(signature);
 	if (returnTypeNode) {
 		context.sourceNodeStack.push(returnTypeNode);
 	}
 
 	try {
-		return resolveType(signature.getReturnType(), undefined, context);
+		return resolveTypeReference(signature.getReturnType(), undefined, context);
 	} finally {
 		if (returnTypeNode) {
 			context.sourceNodeStack.pop();
@@ -254,7 +293,11 @@ function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
 	return declaration && 'type' in declaration ? declaration.type : undefined;
 }
 
-function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
+function buildParameterNode(
+	parameterSymbol: ts.Symbol,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+): Parameter {
 	const { checker, parsedSymbolStack, sourceNodeStack } = context;
 	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
 
@@ -266,14 +309,14 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 		}
 
 		try {
-			const parameterType = resolveType(
+			const parameterType = resolveTypeReference(
 				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
 				parameterDeclaration?.type,
 				context,
 			);
 
 			// Clean up summary - remove leading dashes, asterisks, colons, whitespace
-			// (matches functionParser behavior)
+			// (matches function node builder behavior).
 			const summary = parameterSymbol
 				.getDocumentationComment(checker)
 				.map((comment) => comment.text)
@@ -282,7 +325,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 
 			const rawTags = parameterSymbol.getJsDocTags(checker);
 
-			// Preserve all JSDoc tags except @param (matches functionParser behavior)
+			// Preserve all JSDoc tags except @param (matches function node builder behavior).
 			const docTags: DocumentationTag[] = rawTags
 				.filter((t) => t.name !== 'param')
 				.map((t) => {
@@ -306,7 +349,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 				parameterDeclaration?.questionToken !== undefined ||
 				parameterDeclaration?.initializer !== undefined;
 
-			// Handle default values - extract literal values when possible (matches functionParser)
+			// Handle default values - extract literal values when possible (matches function node builder behavior).
 			let defaultValue: string | undefined;
 			const initializer = parameterDeclaration?.initializer;
 			if (initializer) {

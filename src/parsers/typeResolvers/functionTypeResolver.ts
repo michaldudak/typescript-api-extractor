@@ -1,6 +1,5 @@
 import ts, { FunctionDeclaration } from 'typescript';
-import { type ParserContext } from '../parser';
-import { resolveType } from './typeResolver';
+import { type ParserContext } from '../../parser';
 import {
 	FunctionNode,
 	CallSignature,
@@ -8,18 +7,50 @@ import {
 	DocumentationTag,
 	Parameter,
 	Visibility,
-} from '../models';
-import { ParserError } from '../ParserError';
-import { getFullName } from './common';
-import { TypeName } from '../models/typeName';
-import { parseSignatureTypeParameters } from './signatureParser';
+	type AnyType,
+} from '../../models';
+import { ParserError } from '../../ParserError';
+import { getFullName } from '../common';
+import { TypeName } from '../../models/typeName';
+import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
+import {
+	type ResolveTypeInContext,
+	type TypeResolutionRequest,
+	type TypeResolutionSession,
+} from '../typeResolutionTypes';
 
-export function parseFunctionType(type: ts.Type, context: ParserContext): FunctionNode | undefined {
+// Callable type handling lives in one resolver module. The
+// exported resolver selects call-signature types, while private helpers build
+// FunctionNode, parameter, and return-type details within the active session.
+
+export function resolveCallableType(
+	{ type }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (type.getCallSignatures().length < 1) {
+		return undefined;
+	}
+
+	return buildFunctionNodeFromType(type, session.context, session.resolveWithContext);
+}
+
+/**
+ * Builds a FunctionNode after a resolver has selected a callable type. Nested
+ * parameter and return types are resolved through the active session callback
+ * so function construction does not restart resolution through the public API.
+ */
+function buildFunctionNodeFromType(
+	type: ts.Type,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+): FunctionNode | undefined {
 	const parsedCallSignatures = type.getCallSignatures().map((signature) => {
 		return new CallSignature(
-			signature.parameters.map((parameterSymbol) => parseParameter(parameterSymbol, context)),
-			parseReturnType(signature, context),
-			parseSignatureTypeParameters(signature, context),
+			signature.parameters.map((parameterSymbol) =>
+				buildParameterNode(parameterSymbol, context, resolveTypeReference),
+			),
+			buildReturnType(signature, context, resolveTypeReference),
+			buildSignatureTypeParameterNodes(signature, context, resolveTypeReference),
 		);
 	});
 
@@ -46,14 +77,18 @@ export function parseFunctionType(type: ts.Type, context: ParserContext): Functi
 	return new FunctionNode(typeName, parsedCallSignatures);
 }
 
-function parseReturnType(signature: ts.Signature, context: ParserContext) {
+function buildReturnType(
+	signature: ts.Signature,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+) {
 	const returnTypeNode = getReturnTypeNode(signature);
 	if (returnTypeNode) {
 		context.sourceNodeStack.push(returnTypeNode);
 	}
 
 	try {
-		return resolveType(signature.getReturnType(), undefined, context);
+		return resolveTypeReference(signature.getReturnType(), undefined, context);
 	} finally {
 		if (returnTypeNode) {
 			context.sourceNodeStack.pop();
@@ -66,7 +101,11 @@ function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
 	return declaration && 'type' in declaration ? declaration.type : undefined;
 }
 
-function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Parameter {
+function buildParameterNode(
+	parameterSymbol: ts.Symbol,
+	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
+): Parameter {
 	const { checker, parsedSymbolStack, sourceNodeStack } = context;
 	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
 
@@ -75,7 +114,7 @@ function parseParameter(parameterSymbol: ts.Symbol, context: ParserContext): Par
 		sourceNodeStack.push(parameterDeclaration.type ?? parameterDeclaration);
 
 		try {
-			const parameterType = resolveType(
+			const parameterType = resolveTypeReference(
 				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
 				parameterDeclaration.type,
 				context,

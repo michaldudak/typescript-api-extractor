@@ -203,6 +203,79 @@ The extractor would produce:
 }
 ```
 
+## Technical Notes
+
+The parser code is split into a few layers. Type-class modules live in the
+resolver pipeline: each one chooses whether a TypeScript type shape applies and
+constructs the corresponding output model node. Shared helpers exist only for
+substructures that are reused across multiple type classes.
+
+### Entry Points
+
+- `src/parsers/moduleParser.ts` and `src/parsers/exportParser.ts` walk source files
+  and exported declarations.
+- `src/parsers/componentParser.ts` contains React component-specific extraction.
+- `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
+  rest of the parser. It should stay small; the resolver implementation lives in
+  the session and resolver modules.
+
+### Type Resolution
+
+- `src/parsers/typeResolutionSession.ts` owns cross-cutting resolution mechanics:
+  caching, recursion guards, type-parameter substitutions, warning replay, and
+  the active resolver callback used by nested type-class handlers and helpers.
+- `src/parsers/typeResolutionTypes.ts` defines the contracts shared by the
+  resolver pipeline. Resolvers receive a `TypeResolutionRequest` and a
+  `TypeResolutionSession`.
+- `src/parsers/typeResolutionDiagnostics.ts` centralizes recoverable fallback
+  warnings, including source-location selection and TypeScript flag formatting.
+- `src/parsers/typeResolutionUtils.ts` isolates TypeScript internal API access,
+  such as private type IDs and shallow cycle placeholders.
+
+### Type-Class Resolvers
+
+All resolver pipeline modules live in `src/parsers/typeResolvers/`.
+
+- `index.ts` is the ordered resolver registry. Resolver order is meaningful:
+  specific shapes should appear before broader fallbacks.
+- `arrayTypeResolver.ts` handles arrays and element-type recursion.
+- `classTypeResolver.ts` handles class detection, constructor signatures, class
+  members, static members, and class type parameters.
+- `enumTypeResolver.ts` handles enum-like flags and enum symbol/member
+  extraction.
+- `functionTypeResolver.ts` handles callable types, call signatures, parameters,
+  return types, and signature type parameters.
+- `intrinsicTypeResolver.ts` handles all primitive/intrinsic flags such as
+  `string`, `number`, `boolean`, `void`, `any`, `unknown`, `null`, and `never`.
+- `intersectionTypeResolver.ts` handles intersection members and any merged
+  callable/object shape TypeScript exposes for the intersection.
+- `literalTypeResolver.ts` handles string/number/bigint/boolean literal nodes.
+- `objectTypeResolver.ts` handles object-like types, object properties, index
+  signatures, mapped-type index signatures, and object-keyword fallback.
+- `tupleTypeResolver.ts` handles tuple element resolution and tuple arity.
+- `unionTypeResolver.ts` owns union-specific behavior, including preserving
+  authored union member order from `TypeNode`s.
+- `specialTypeResolvers.ts` handles TypeScript-internal or context-sensitive
+  shapes such as type parameters, conditional types, indexed access types, and
+  substitution fallbacks.
+- `externalTypeResolver.ts` contains the external-type policy used when
+  `includeExternalTypes` is disabled.
+- `signatureTypeParameterNodes.ts` is a shared helper for signature type
+  parameter metadata used by class and function resolvers.
+
+A resolver should answer, "Does this `ts.Type` shape apply, and if so, which
+model node should represent it?" It should keep pipeline concerns such as
+ordering, fallback choice, and session recursion explicit. If it needs nested
+type resolution, it should use the active resolver callback from the current
+`TypeResolutionSession` instead of importing `resolveType` directly.
+
+### Shared Parser Helpers
+
+- `common.ts` contains TypeScript name and type-argument helpers shared across
+  parser layers.
+- `documentationParser.ts` converts TypeScript documentation and JSDoc metadata
+  into model documentation nodes.
+
 ## Requirements
 
 - **Node.js**: >= 22

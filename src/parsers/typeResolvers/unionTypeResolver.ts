@@ -1,8 +1,27 @@
 import ts from 'typescript';
-import { AnyType, UnionNode } from '../models';
-import { resolveType } from './typeResolver';
-import { ParserContext } from '../parser';
-import { TypeName } from '../models/typeName';
+import { type AnyType, UnionNode } from '../../models';
+import { type ParserContext } from '../../parser';
+import { TypeName } from '../../models/typeName';
+import {
+	type ResolveTypeInContext,
+	type TypeResolutionRequest,
+	type TypeResolutionSession,
+} from '../typeResolutionTypes';
+
+// Union resolution owns its own resolver adapter because preserving
+// authored member order requires TypeNode reconstruction that is specific to
+// unions and should not be hidden inside the generic compound resolver group.
+
+export function resolveUnionTypeNode(
+	{ type, typeName, typeNode }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (!type.isUnion()) {
+		return undefined;
+	}
+
+	return resolveUnionType(type, typeName, typeNode, session.context, session.resolveWithContext);
+}
 
 /**
  * Flattens nested union TypeNodes to match how TypeScript flattens Types.
@@ -48,7 +67,7 @@ function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecke
  * Attempts to resolve a non-union TypeNode to its underlying union TypeNode
  * by following the declaration chain. This preserves the source order of union members.
  *
- * Only handles indexed access types: `Foo['bar']` → finds `bar`'s declaration TypeNode.
+ * Only handles indexed access types: `Foo['bar']` -> finds `bar`'s declaration TypeNode.
  * Named type references (like `MyAlias`) are intentionally NOT expanded, since they
  * represent authored aliases that should be preserved.
  */
@@ -90,11 +109,12 @@ function resolveToUnionTypeNode(
 	return undefined;
 }
 
-export function resolveUnionType(
+function resolveUnionType(
 	type: ts.UnionType,
 	typeName: TypeName | undefined,
 	typeNode: ts.TypeNode | undefined,
 	context: ParserContext,
+	resolve: ResolveTypeInContext,
 ): AnyType {
 	const { checker } = context;
 
@@ -171,7 +191,7 @@ export function resolveUnionType(
 				}
 				if (foundBooleanLiteral) {
 					// Resolve as the boolean TypeNode (not the individual literals)
-					result.push(resolveType(nodeType, node, context));
+					result.push(resolve(nodeType, node, context));
 					continue;
 				}
 			}
@@ -193,7 +213,7 @@ export function resolveUnionType(
 
 			if (matchedMemberType) {
 				usedMemberTypes.add(matchedMemberType);
-				result.push(resolveType(matchedMemberType, node, context));
+				result.push(resolve(matchedMemberType, node, context));
 			}
 			// If no matching memberType found, skip this TypeNode.
 			// The unmatched memberType will be added at the end.
@@ -204,7 +224,7 @@ export function resolveUnionType(
 		// to the union but there's no corresponding TypeNode for it
 		for (const memberType of memberTypes) {
 			if (!usedMemberTypes.has(memberType)) {
-				result.push(resolveType(memberType, undefined, context));
+				result.push(resolve(memberType, undefined, context));
 			}
 		}
 	} else {
@@ -219,11 +239,11 @@ export function resolveUnionType(
 			// In such case propagate the parent TypeNode to the member types.
 			// It will help to resolve T correctly and won't have any effect on the `undefined` type.
 			for (const memberType of memberTypes) {
-				result.push(resolveType(memberType, typeNode, context));
+				result.push(resolve(memberType, typeNode, context));
 			}
 		} else {
 			for (const memberType of memberTypes) {
-				result.push(resolveType(memberType, undefined, context));
+				result.push(resolve(memberType, undefined, context));
 			}
 		}
 	}
