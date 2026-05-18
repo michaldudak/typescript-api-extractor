@@ -1,27 +1,62 @@
 import ts from 'typescript';
-import { parseProperty } from './propertyParser';
-import { ParserContext } from '../parser';
+import { getDocumentationFromSymbol } from '../documentationParser';
+import { ParserContext } from '../../parser';
 import {
 	ObjectNode,
 	TypeName,
 	IndexSignatureNode,
 	AnyType,
-	UnionNode,
 	IntrinsicNode,
-} from '../models';
+	PropertyNode,
+	UnionNode,
+} from '../../models';
+import { ParserError } from '../../ParserError';
+import {
+	type ResolveTypeInContext,
+	type TypeResolutionRequest,
+	type TypeResolutionSession,
+} from '../typeResolutionTypes';
+import { hasExactFlag } from '../typeResolutionUtils';
+
+// Object-like type handling lives in one resolver module. The
+// exported resolver owns object-shape selection and object-keyword fallback,
+// while private helpers build properties, index signatures, and mapped-type
+// details with the active resolution session.
+
+export function resolveObjectLikeType(
+	{ type, typeName }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	const objectType = buildObjectNodeFromType(
+		type,
+		typeName,
+		session.context,
+		session.resolveWithContext,
+	);
+	if (objectType) {
+		return objectType;
+	}
+
+	const { checker } = session.context;
+	if (
+		hasExactFlag(type, ts.TypeFlags.Object) ||
+		(hasExactFlag(type, ts.TypeFlags.NonPrimitive) && checker.typeToString(type) === 'object')
+	) {
+		return new ObjectNode(typeName, [], undefined);
+	}
+
+	return undefined;
+}
 
 /**
- * Parse the index signature of an object type if it has one.
- * Only works for actual object types (not conditional types, etc.)
+ * Builds the index signature of an object type if it has one. This only works
+ * for actual object types; conditional and other non-object shapes are selected
+ * by resolver adapters before this builder is called.
  */
-function parseIndexSignature(
+function buildIndexSignatureNode(
 	type: ts.Type,
 	context: ParserContext,
-	resolveValueType: (
-		type: ts.Type,
-		typeNode: ts.TypeNode | undefined,
-		context: ParserContext,
-	) => AnyType,
+	resolveValueType: ResolveTypeInContext,
 ): IndexSignatureNode | undefined {
 	const { checker } = context;
 
@@ -68,12 +103,12 @@ function parseIndexSignature(
 	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
 	// Synthesize an index signature by following K's base constraint to string/number.
 	// Intentionally not handled: `as` clauses, and constraints that resolve to a union
-	// (e.g., `K extends 'a' | 'b'`, bigint, symbol, or template-literal types) — those
+	// (e.g., `K extends 'a' | 'b'`, bigint, symbol, or template-literal types) - those
 	// fall through and produce no index signature.
 	if (type.objectFlags & ts.ObjectFlags.Mapped) {
 		// AST-driven: instantiated mapped types and ones loaded from `.d.ts` may not
 		// retain a `MappedTypeNode` declaration, in which case we fall through and
-		// emit no index signature — same outcome as "genuinely no index signature".
+		// emit no index signature - same outcome as "genuinely no index signature".
 		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
 		const substitutions = getMappedTypeParameterSubstitutions(type);
 
@@ -237,21 +272,21 @@ function resolveTemplateValueType(
 		typeParameterSubstitutions.set(symbol, substitution);
 	}
 
-	return resolve(type, undefined, {
-		...context,
-		typeParameterSubstitutions,
-	});
+	return context.runWithTypeParameterSubstitutionScope(typeParameterSubstitutions, () =>
+		resolve(type, undefined, context),
+	);
 }
 
-export function parseObjectType(
+/**
+ * Builds an ObjectNode for a type that the resolver pipeline is treating as an
+ * object-like shape. Member value types use the active resolver callback so
+ * nested properties remain in the same resolution session.
+ */
+function buildObjectNodeFromType(
 	type: ts.Type,
 	typeName: TypeName | undefined,
 	context: ParserContext,
-	resolveValueType?: (
-		type: ts.Type,
-		typeNode: ts.TypeNode | undefined,
-		context: ParserContext,
-	) => AnyType,
+	resolveValueType: ResolveTypeInContext,
 ): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
 
@@ -259,10 +294,8 @@ export function parseObjectType(
 		.getProperties()
 		.filter((property) => includeExternalTypes || !isPropertyExternal(property));
 
-	// Check for index signature even if there are no properties
-	const indexSignature = resolveValueType
-		? parseIndexSignature(type, context, resolveValueType)
-		: undefined;
+	// Check for index signature even if there are no properties.
+	const indexSignature = buildIndexSignatureNode(type, context, resolveValueType);
 
 	// Return an object node if there's either properties or an index signature
 	if (properties.length || indexSignature) {
@@ -330,10 +363,15 @@ export function parseObjectType(
 					typeName,
 					filteredProperties.map((property) => {
 						const declaration = property.valueDeclaration ?? property.declarations?.[0];
-						// MethodSignature uses checker.getTypeOfSymbol fallback in parseProperty
+						// MethodSignature uses checker.getTypeOfSymbol fallback in the property builder.
 						const propertySignature =
 							declaration && ts.isPropertySignature(declaration) ? declaration : undefined;
-						return parseProperty(property, propertySignature, context);
+						return buildPropertyNodeFromSymbol(
+							property,
+							propertySignature,
+							context,
+							resolveValueType,
+						);
 					}),
 					undefined,
 					indexSignature,
@@ -350,5 +388,80 @@ function isPropertyExternal(property: ts.Symbol): boolean {
 		property.declarations?.every((declaration) =>
 			declaration.getSourceFile().fileName.includes('node_modules'),
 		) ?? false
+	);
+}
+
+function buildPropertyNodeFromSymbol(
+	propertySymbol: ts.Symbol,
+	propertySignature: ts.PropertySignature | undefined,
+	context: ParserContext,
+	resolvePropertyType: ResolveTypeInContext,
+): PropertyNode {
+	const { checker } = context;
+
+	return context.runWithSymbolScope(`property: ${propertySymbol.name}`, () => {
+		try {
+			let type: ts.Type;
+			const sourceNode =
+				propertySignature?.type ?? propertySignature ?? propertySymbol.declarations?.[0];
+
+			return context.runWithSourceNodeScope(sourceNode, () => {
+				if (propertySignature) {
+					if (propertySignature.type) {
+						type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+					} else {
+						type = checker.getAnyType();
+					}
+				} else {
+					type = checker.getTypeOfSymbol(propertySymbol);
+				}
+
+				const parsedType = resolvePropertyType(
+					type,
+					isTypeParameterLike(type) ? undefined : propertySignature?.type,
+					context,
+				);
+
+				// Typechecker only gives the type "any" if it's present in a union.
+				// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
+				// So instead we check for the question mark to detect optional types.
+				const isOptional =
+					(type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature
+						? Boolean(propertySignature.questionToken)
+						: Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
+
+				return new PropertyNode(
+					propertySymbol.getName(),
+					parsedType,
+					getDocumentationFromSymbol(propertySymbol, checker),
+					isOptional,
+				);
+			});
+		} catch (error) {
+			if (!(error instanceof ParserError)) {
+				throw new ParserError(error, context.parsedSymbolStack);
+			}
+
+			throw error;
+		}
+	});
+}
+
+function isTypeParameterLike(type: ts.Type): boolean {
+	// Check if the type is a type parameter.
+	return (
+		(type.flags & ts.TypeFlags.TypeParameter) !== 0 ||
+		((type.flags & ts.TypeFlags.Union) !== 0 && isOptionalTypeParameter(type as ts.UnionType))
+	);
+}
+
+function isOptionalTypeParameter(type: ts.UnionType): boolean {
+	// Check if the type is defined as `foo?: T`, where T is a type parameter.
+	return (
+		type.types.length === 2 &&
+		type.types.some((t) => t.flags & ts.TypeFlags.Undefined) &&
+		type.types.some(
+			(t) => 'objectFlags' in t && ((t.objectFlags as number) & ts.ObjectFlags.Instantiated) !== 0,
+		)
 	);
 }

@@ -36,19 +36,66 @@ export function parseFromProgram(
 		throw new Error(`Program doesn't contain file: "${filePath}"`);
 	}
 
-	const parserContext: ParserContext = {
+	const parserContext = createParserContext(checker, sourceFile, program, parserOptions ?? {});
+
+	return parseModule(sourceFile, parserContext);
+}
+
+function createParserContext(
+	checker: ts.TypeChecker,
+	sourceFile: ts.SourceFile,
+	program: ts.Program,
+	parserOptions: ParserOptions,
+): ParserContext {
+	const parsedSymbolStack: string[] = [];
+	const sourceNodeStack: ts.Node[] = [sourceFile];
+
+	const context: ParserContext = {
 		checker,
 		sourceFile,
 		typeStack: [],
 		compilerOptions: program.getCompilerOptions(),
-		parsedSymbolStack: [],
-		sourceNodeStack: [sourceFile],
+		parsedSymbolStack,
+		sourceNodeStack,
 		program,
 		resolvedTypeCache: new Map<string, AnyType>(),
-		...getParserOptions(parserOptions ?? {}),
+		...getParserOptions(parserOptions),
+		runWithSymbolScope: (symbolName, callback) =>
+			runWithStackEntryScope(parsedSymbolStack, symbolName, callback),
+		runWithSourceNodeScope: (sourceNode, callback) => {
+			if (!sourceNode) {
+				return callback();
+			}
+
+			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
+		},
+		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
+			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
+			context.typeParameterSubstitutions = typeParameterSubstitutions;
+
+			try {
+				return callback();
+			} finally {
+				if (previousTypeParameterSubstitutions) {
+					context.typeParameterSubstitutions = previousTypeParameterSubstitutions;
+				} else {
+					delete context.typeParameterSubstitutions;
+				}
+			}
+		},
 	};
 
-	return parseModule(sourceFile, parserContext);
+	return context;
+}
+
+function runWithStackEntryScope<T, TEntry>(stack: TEntry[], entry: TEntry, callback: () => T): T {
+	stack.push(entry);
+
+	try {
+		return callback();
+	} finally {
+		stack.pop();
+	}
 }
 
 function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
@@ -109,6 +156,27 @@ export interface ParserContext extends ResolvedParserOptions {
 	 * produce different results for the same type at different depths.
 	 */
 	resolvedTypeCache: Map<string, AnyType>;
+	/**
+	 * Runs parser work in a scoped diagnostic symbol context. The symbol is
+	 * visible to warning/error metadata only while the callback runs, and the
+	 * stack is restored even when parsing throws.
+	 */
+	runWithSymbolScope<T>(symbolName: string, callback: () => T): T;
+	/**
+	 * Runs parser work in a scoped diagnostic source-node context. Warning
+	 * location fallback reads this stack, and undefined is accepted so callers
+	 * do not need their own conditional push/pop boilerplate.
+	 */
+	runWithSourceNodeScope<T>(sourceNode: ts.Node | undefined, callback: () => T): T;
+	/**
+	 * Runs resolver work in a temporary type-parameter substitution scope for
+	 * mapped/instantiated type expansion. The previous substitution map is
+	 * always restored.
+	 */
+	runWithTypeParameterSubstitutionScope<T>(
+		typeParameterSubstitutions: Map<ts.Symbol, ts.Type>,
+		callback: () => T,
+	): T;
 }
 
 /**
@@ -142,7 +210,10 @@ export interface ParserOptions {
 	onWarning?: (warning: ParserWarning) => void;
 }
 
-export type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+export type ParserWarning =
+	| UnsupportedTypeFallbackWarning
+	| MissingEnumDeclarationWarning
+	| MissingDefaultExportSymbolWarning;
 
 export interface ParserWarningBase {
 	message: string;
@@ -162,4 +233,9 @@ export interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
 export interface MissingEnumDeclarationWarning extends ParserWarningBase {
 	code: 'missing-enum-declaration';
 	enumName: string;
+}
+
+export interface MissingDefaultExportSymbolWarning extends ParserWarningBase {
+	code: 'missing-default-export-symbol';
+	sourceText: string;
 }

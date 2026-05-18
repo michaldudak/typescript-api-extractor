@@ -3,7 +3,7 @@ import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
 import { ParserContext } from '../parser';
 import { parseExport } from './exportParser';
-import { augmentComponentNodes } from './componentParser';
+import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
 
 /**
@@ -80,81 +80,80 @@ function resolveModuleSpecifier(
 }
 
 export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): ModuleNode {
-	const { checker, compilerOptions, parsedSymbolStack } = context;
-	parsedSymbolStack.push(sourceFile.fileName);
+	const { checker, compilerOptions } = context;
 
-	try {
-		const sourceFileSymbol = checker.getSymbolAtLocation(sourceFile);
-		if (!sourceFileSymbol) {
-			throw new Error('Failed to get the source file symbol');
-		}
-
-		// Find modules that are re-exported with `export type *`
-		const typeOnlyStarExportModules = getTypeOnlyStarExportModules(sourceFile);
-
-		// Build a set of source files that correspond to type-only star exports
-		const typeOnlySourceFiles = new Set<ts.SourceFile>();
-		const program = context.program;
-		for (const moduleSpecifier of typeOnlyStarExportModules) {
-			const resolved = resolveModuleSpecifier(moduleSpecifier, sourceFile.fileName, program);
-			if (resolved) {
-				typeOnlySourceFiles.add(resolved);
+	return context.runWithSymbolScope(sourceFile.fileName, () => {
+		try {
+			const sourceFileSymbol = checker.getSymbolAtLocation(sourceFile);
+			if (!sourceFileSymbol) {
+				throw new Error('Failed to get the source file symbol');
 			}
-		}
 
-		let parsedModuleExports: ExportNode[] = [];
-		const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
+			// Find modules that are re-exported with `export type *`
+			const typeOnlyStarExportModules = getTypeOnlyStarExportModules(sourceFile);
 
-		for (const exportedSymbol of exportedSymbols) {
-			// Check if this symbol comes from a type-only star export module
-			// If so, skip it if it's not a pure type
-			const declarations = exportedSymbol.declarations;
-			if (declarations && declarations.length > 0) {
-				const symbolSourceFile = declarations[0].getSourceFile();
-				if (typeOnlySourceFiles.has(symbolSourceFile) && !isPureType(exportedSymbol)) {
-					// This is a value (like a function with merged namespace) from a type-only export
-					// Skip it - TypeScript doesn't actually export it
-					continue;
+			// Build a set of source files that correspond to type-only star exports
+			const typeOnlySourceFiles = new Set<ts.SourceFile>();
+			const program = context.program;
+			for (const moduleSpecifier of typeOnlyStarExportModules) {
+				const resolved = resolveModuleSpecifier(moduleSpecifier, sourceFile.fileName, program);
+				if (resolved) {
+					typeOnlySourceFiles.add(resolved);
 				}
 			}
 
-			const parsedExport = parseExport(exportedSymbol, context);
-			if (!parsedExport) {
-				continue;
+			let parsedModuleExports: ExportNode[] = [];
+			const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
+
+			for (const exportedSymbol of exportedSymbols) {
+				// Check if this symbol comes from a type-only star export module
+				// If so, skip it if it's not a pure type
+				const declarations = exportedSymbol.declarations;
+				if (declarations && declarations.length > 0) {
+					const symbolSourceFile = declarations[0].getSourceFile();
+					if (typeOnlySourceFiles.has(symbolSourceFile) && !isPureType(exportedSymbol)) {
+						// This is a value (like a function with merged namespace) from a type-only export
+						// Skip it - TypeScript doesn't actually export it
+						continue;
+					}
+				}
+
+				const parsedExport = parseExport(exportedSymbol, context);
+				if (!parsedExport) {
+					continue;
+				}
+				if (Array.isArray(parsedExport)) {
+					parsedModuleExports.push(...parsedExport);
+				} else {
+					parsedModuleExports.push(parsedExport);
+				}
 			}
-			if (Array.isArray(parsedExport)) {
-				parsedModuleExports.push(...parsedExport);
-			} else {
-				parsedModuleExports.push(parsedExport);
+
+			parsedModuleExports = applyExportTransforms(parsedModuleExports, context);
+
+			const relativeModulePath = path
+				.relative(compilerOptions.rootDir!, JSON.parse(sourceFileSymbol.name))
+				.replace(/\\/g, '/');
+
+			const imports: string[] = sourceFile.statements
+				.filter((s) => ts.isImportDeclaration(s) && s.moduleSpecifier)
+				.map((statement) => {
+					const importDeclaraion = statement as ts.ImportDeclaration;
+					const text = importDeclaraion.moduleSpecifier.getText();
+					return text.substring(1, text.length - 1); // Remove quotes
+				});
+
+			return new ModuleNode(
+				relativeModulePath,
+				parsedModuleExports,
+				imports.length > 0 ? imports : undefined,
+			);
+		} catch (error) {
+			if (!(error instanceof ParserError)) {
+				throw new ParserError(error, context.parsedSymbolStack);
 			}
-		}
 
-		parsedModuleExports = augmentComponentNodes(parsedModuleExports, context);
-
-		const relativeModulePath = path
-			.relative(compilerOptions.rootDir!, JSON.parse(sourceFileSymbol.name))
-			.replace(/\\/g, '/');
-
-		const imports: string[] = sourceFile.statements
-			.filter((s) => ts.isImportDeclaration(s) && s.moduleSpecifier)
-			.map((statement) => {
-				const importDeclaraion = statement as ts.ImportDeclaration;
-				const text = importDeclaraion.moduleSpecifier.getText();
-				return text.substring(1, text.length - 1); // Remove quotes
-			});
-
-		return new ModuleNode(
-			relativeModulePath,
-			parsedModuleExports,
-			imports.length > 0 ? imports : undefined,
-		);
-	} catch (error) {
-		if (!(error instanceof ParserError)) {
-			throw new ParserError(error, parsedSymbolStack);
-		} else {
 			throw error;
 		}
-	} finally {
-		parsedSymbolStack.pop();
-	}
+	});
 }

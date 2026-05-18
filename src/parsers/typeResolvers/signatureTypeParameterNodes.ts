@@ -1,11 +1,17 @@
 import ts from 'typescript';
-import { type ParserContext } from '../parser';
-import { type AnyType, TypeParameterNode } from '../models';
-import { resolveType } from './typeResolver';
+import { type ParserContext } from '../../parser';
+import { type AnyType, TypeParameterNode } from '../../models';
+import { type ResolveTypeInContext } from '../typeResolutionTypes';
 
-export function parseSignatureTypeParameters(
+/**
+ * Builds type parameter nodes for function-like signatures. This helper stays
+ * shared because both class methods and callable types need the same signature
+ * metadata, while the top-level type-class handling remains in resolver modules.
+ */
+export function buildSignatureTypeParameterNodes(
 	signature: ts.Signature,
 	context: ParserContext,
+	resolveTypeReference: ResolveTypeInContext,
 ): TypeParameterNode[] | undefined {
 	const typeParams = signature.typeParameters;
 	if (!typeParams || typeParams.length === 0) {
@@ -39,11 +45,11 @@ export function parseSignatureTypeParameters(
 		let constraint: AnyType | undefined;
 		if (declaration?.constraint) {
 			const constraintFromNode = context.checker.getTypeAtLocation(declaration.constraint);
-			constraint = resolveType(constraintFromNode, declaration.constraint, context);
+			constraint = resolveTypeReference(constraintFromNode, declaration.constraint, context);
 
 			// If the model couldn't faithfully represent the constraint (degraded to 'any'
 			// but the source constraint isn't actually 'any'), fall back to the base constraint
-			// which may expand to a representable form (e.g., 'keyof T' → string | number | symbol).
+			// which may expand to a representable form (e.g., 'keyof T' -> string | number | symbol).
 			if (
 				constraint.kind === 'intrinsic' &&
 				constraint.intrinsic === 'any' &&
@@ -51,7 +57,7 @@ export function parseSignatureTypeParameters(
 			) {
 				const baseConstraint = context.checker.getBaseConstraintOfType(tp);
 				if (baseConstraint) {
-					constraint = resolveType(baseConstraint, undefined, context);
+					constraint = resolveTypeReference(baseConstraint, undefined, context);
 				}
 			}
 		}
@@ -60,7 +66,7 @@ export function parseSignatureTypeParameters(
 			name,
 			constraint,
 			declaration?.default
-				? resolveType(
+				? resolveTypeReference(
 						context.checker.getTypeAtLocation(declaration.default),
 						declaration.default,
 						context,

@@ -4,6 +4,7 @@ import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
 import { loadConfig, parseFromProgram, type ParserWarning } from '../src';
+import { createInMemoryProgram } from './support/inMemoryProgram';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
 
@@ -68,34 +69,24 @@ export class ClassWithAliasedAny {
 
   method(methodParam?: AliasedAny | undefined): void {}
 }`;
+const sharedSignatureDefaultsSource = `const defaultOptions = { dense: true };
 
-function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
-	const compilerOptions: ts.CompilerOptions = {
-		rootDir: path.dirname(filePath),
-		target: ts.ScriptTarget.ES2022,
-		module: ts.ModuleKind.Node16,
-		moduleResolution: ts.ModuleResolutionKind.Node16,
-		strict: true,
-		noEmit: true,
-		skipLibCheck: true,
-	};
-	const host = ts.createCompilerHost(compilerOptions);
-	const getSourceFile = host.getSourceFile.bind(host);
+/**
+ * @param options - Function options.
+ */
+export function configure(options = defaultOptions, inline = { compact: true }): void {}
 
-	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
-		if (sourceFileName === filePath) {
-			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
-		}
+export class Configurator {
+  /**
+   * @param options - Constructor options.
+   */
+  constructor(options = defaultOptions) {}
 
-		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
-	};
-	host.fileExists = (sourceFileName) =>
-		sourceFileName === filePath || ts.sys.fileExists(sourceFileName);
-	host.readFile = (sourceFileName) =>
-		sourceFileName === filePath ? sourceText : ts.sys.readFile(sourceFileName);
-
-	return ts.createProgram([filePath], compilerOptions, host);
-}
+  /**
+   * @param options - Method options.
+   */
+  configure(options = defaultOptions, inline = { compact: true }): void {}
+}`;
 
 it('resolves substitution types from representable base types', () => {
 	const filePath = '/virtual/substitution-fallback.ts';
@@ -256,6 +247,78 @@ it('preserves authored union aliases for class parameters', () => {
 							{
 								name: 'methodParam',
 								type: aliasedAnyUnion,
+							},
+						],
+					},
+				],
+			},
+		],
+	});
+});
+
+it('parses parameter defaults and docs consistently across function and class signatures', () => {
+	const filePath = '/virtual/shared-signature-defaults.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, sharedSignatureDefaultsSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'function',
+		callSignatures: [
+			{
+				parameters: [
+					{
+						name: 'options',
+						defaultValue: 'defaultOptions',
+						optional: true,
+						documentation: {
+							description: 'Function options.',
+						},
+					},
+					{
+						name: 'inline',
+						defaultValue: '{ compact: true }',
+						optional: true,
+					},
+				],
+			},
+		],
+	});
+	expect(moduleDefinition.exports[1]?.type).toMatchObject({
+		kind: 'class',
+		constructSignatures: [
+			{
+				parameters: [
+					{
+						name: 'options',
+						defaultValue: 'defaultOptions',
+						optional: true,
+						documentation: {
+							description: 'Constructor options.',
+						},
+					},
+				],
+			},
+		],
+		methods: [
+			{
+				name: 'configure',
+				callSignatures: [
+					{
+						parameters: [
+							{
+								name: 'options',
+								defaultValue: 'defaultOptions',
+								optional: true,
+								documentation: {
+									description: 'Method options.',
+								},
+							},
+							{
+								name: 'inline',
+								defaultValue: '{ compact: true }',
+								optional: true,
 							},
 						],
 					},
