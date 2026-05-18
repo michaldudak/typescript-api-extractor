@@ -143,6 +143,7 @@ export namespace ComponentRoot {
 			reexportedFrom: descriptor.reexportedFrom,
 			scope: descriptor.symbolScope,
 			symbolName: descriptor.symbol.name,
+			typeResolutionOrder: descriptor.typeResolutionOrder,
 		})),
 	).toEqual([
 		{
@@ -151,6 +152,7 @@ export namespace ComponentRoot {
 			reexportedFrom: 'ComponentRoot',
 			scope: ['Root'],
 			symbolName: 'ComponentRoot',
+			typeResolutionOrder: 1,
 		},
 		{
 			name: 'Props',
@@ -158,6 +160,7 @@ export namespace ComponentRoot {
 			reexportedFrom: undefined,
 			scope: ['Root', 'Props'],
 			symbolName: 'Props',
+			typeResolutionOrder: 0,
 		},
 	]);
 	expect(context.parsedSymbolStack).toEqual([]);

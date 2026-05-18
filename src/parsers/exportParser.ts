@@ -36,11 +36,30 @@ export function parseExport(
 		return;
 	}
 
-	const exports = descriptors.flatMap(
-		(descriptor) => createExportNodesFromDescriptor(descriptor, parserContext) ?? [],
-	);
+	const nodesByDescriptor = new Map<ExportDescriptor, ExportNode[] | undefined>();
+	for (const descriptor of getTypeResolutionOrderedDescriptors(descriptors)) {
+		nodesByDescriptor.set(descriptor, createExportNodesFromDescriptor(descriptor, parserContext));
+	}
+
+	// Descriptor order is the emitted API order. Type-resolution order is kept
+	// separate because merged namespace members historically resolved before
+	// their owner export, and TypeScript's lazy type/cache behavior can make that
+	// observable in authored union member order.
+	const exports = descriptors.flatMap((descriptor) => nodesByDescriptor.get(descriptor) ?? []);
 
 	return exports.length > 0 ? exports : undefined;
+}
+
+/**
+ * Returns descriptors in the order that should trigger type resolution.
+ *
+ * Example: a merged `Root` export emits as `Root`, `Root.Props`, but resolves
+ * `Root.Props` first to match the pre-descriptor parser's recursive traversal.
+ */
+function getTypeResolutionOrderedDescriptors(descriptors: ExportDescriptor[]): ExportDescriptor[] {
+	return [...descriptors].sort(
+		(left, right) => left.typeResolutionOrder - right.typeResolutionOrder,
+	);
 }
 
 /**
@@ -58,7 +77,7 @@ function createExportNodesFromDescriptor(
 			const sourceNode = descriptor.typeNode ?? descriptor.symbol.declarations?.[0];
 
 			return parserContext.runWithSourceNodeScope(sourceNode, () => {
-				let parsedType = resolveType(descriptor.type, descriptor.typeNode, parserContext);
+				let parsedType = resolveType(descriptor.getType(), descriptor.typeNode, parserContext);
 				if (!parsedType) {
 					return;
 				}

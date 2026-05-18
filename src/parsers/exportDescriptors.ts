@@ -4,6 +4,10 @@ import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 
+interface ExportDescriptorResolutionState {
+	nextTypeResolutionOrder: number;
+}
+
 /**
  * Normalized description of one exported API surface before it is converted to
  * an `ExportNode`. Keeping this shape separate from model construction lets
@@ -15,10 +19,22 @@ export interface ExportDescriptor {
 	name: string;
 	/** Target symbol used for documentation and final type resolution. */
 	symbol: ts.Symbol;
-	/** Type acquired during normalization so declaration dispatch stays in this module. */
-	type: ts.Type;
+	/**
+	 * Lazily acquires the TypeScript type when this descriptor is converted into
+	 * an `ExportNode`. This is deliberately not evaluated during normalization:
+	 * `checker.getTypeAtLocation` mutates TypeScript's lazy internal caches, and
+	 * batched upfront type queries can change observable union/property order.
+	 */
+	getType: () => ts.Type;
 	/** Public namespace path applied when this descriptor came from a namespace export. */
 	parentNamespaces: string[];
+	/**
+	 * Order used when descriptors are converted into `ExportNode`s and their types
+	 * are resolved. This can differ from output order: merged namespace members are
+	 * resolved before their owner export to preserve the legacy TypeScript/cache
+	 * side effects that keep authored union member order stable.
+	 */
+	typeResolutionOrder: number;
 	/** Symbol scopes replayed while converting the descriptor into warning-aware output nodes. */
 	symbolScope: string[];
 	/** Authored type node, when it affects alias or union preservation during type resolution. */
@@ -39,6 +55,7 @@ export function resolveExportDescriptors(
 	context: ParserContext,
 	parentNamespaces: string[] = [],
 	parentSymbolScope: string[] = [],
+	resolutionState: ExportDescriptorResolutionState = { nextTypeResolutionOrder: 0 },
 ): ExportDescriptor[] | undefined {
 	return context.runWithSymbolScope(exportSymbol.name, () => {
 		try {
@@ -55,6 +72,7 @@ export function resolveExportDescriptors(
 				context,
 				parentNamespaces,
 				symbolScope,
+				resolutionState,
 			);
 
 			if (ts.isModuleDeclaration(exportDeclaration)) {
@@ -67,6 +85,7 @@ export function resolveExportDescriptors(
 					context,
 					parentNamespaces,
 					symbolScope,
+					resolutionState,
 				);
 			}
 
@@ -78,6 +97,7 @@ export function resolveExportDescriptors(
 					parentNamespaces,
 					symbolScope,
 					namespaceDescriptors,
+					resolutionState,
 				);
 			}
 
@@ -87,6 +107,7 @@ export function resolveExportDescriptors(
 				context,
 				parentNamespaces,
 				symbolScope,
+				resolutionState,
 			);
 
 			return withNamespaceDescriptors(mainDescriptor, namespaceDescriptors);
@@ -111,6 +132,7 @@ function resolveNamespaceExportDescriptors(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor[] | undefined {
 	const aliasedSymbol = context.checker.getAliasedSymbol(exportSymbol);
 	if (!aliasedSymbol) {
@@ -124,6 +146,7 @@ function resolveNamespaceExportDescriptors(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		),
 	);
 }
@@ -142,6 +165,7 @@ function resolveExportSpecifierDescriptors(
 	parentNamespaces: string[],
 	symbolScope: string[],
 	namespaceDescriptors: ExportDescriptor[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor[] | undefined {
 	const targetSymbol = resolveExportSpecifierTarget(exportSymbol, exportDeclaration, context);
 	if (!targetSymbol) {
@@ -154,8 +178,8 @@ function resolveExportSpecifierDescriptors(
 		context,
 		parentNamespaces,
 		symbolScope,
+		resolutionState,
 	);
-	const type = getExportSpecifierType(targetSymbol, exportDeclaration, context);
 	const isReExport = isModuleReExportSpecifier(exportDeclaration);
 	const reexportedFrom =
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
@@ -164,8 +188,9 @@ function resolveExportSpecifierDescriptors(
 		{
 			name: exportSymbol.name,
 			symbol: targetSymbol,
-			type,
+			getType: () => getExportSpecifierType(targetSymbol, exportDeclaration, context),
 			parentNamespaces,
+			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
 		},
@@ -186,6 +211,7 @@ function resolveDeclarationExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	if (ts.isExportAssignment(exportDeclaration)) {
 		return resolveDefaultExportDescriptor(
@@ -194,6 +220,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 
@@ -204,6 +231,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 
@@ -214,6 +242,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 
@@ -224,6 +253,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 
@@ -234,6 +264,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 
@@ -244,6 +275,7 @@ function resolveDeclarationExportDescriptor(
 			context,
 			parentNamespaces,
 			symbolScope,
+			resolutionState,
 		);
 	}
 }
@@ -260,6 +292,7 @@ function resolveDefaultExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.expression);
 	if (!exportedSymbol) {
@@ -273,8 +306,9 @@ function resolveDefaultExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeOfSymbol(exportedSymbol),
+		getType: () => context.checker.getTypeOfSymbol(exportedSymbol),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 	};
 }
@@ -291,6 +325,7 @@ function resolveValueExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	if (!exportDeclaration.name) {
 		return;
@@ -304,8 +339,9 @@ function resolveValueExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeOfSymbol(exportedSymbol),
+		getType: () => context.checker.getTypeOfSymbol(exportedSymbol),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 	};
 }
@@ -322,6 +358,7 @@ function resolveInterfaceExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -331,8 +368,9 @@ function resolveInterfaceExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeAtLocation(exportDeclaration),
+		getType: () => context.checker.getTypeAtLocation(exportDeclaration),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 		extendsTypes: extractExtendsTypes(exportDeclaration.heritageClauses, context.checker),
 	};
@@ -351,6 +389,7 @@ function resolveEnumExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -366,8 +405,9 @@ function resolveEnumExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeAtLocation(enumDeclaration),
+		getType: () => context.checker.getTypeAtLocation(enumDeclaration),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 	};
 }
@@ -384,6 +424,7 @@ function resolveClassExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	if (!exportDeclaration.name) {
 		return;
@@ -397,8 +438,9 @@ function resolveClassExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeOfSymbol(exportedSymbol),
+		getType: () => context.checker.getTypeOfSymbol(exportedSymbol),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 	};
 }
@@ -415,6 +457,7 @@ function resolveTypeAliasExportDescriptor(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor | undefined {
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -424,8 +467,9 @@ function resolveTypeAliasExportDescriptor(
 	return {
 		name: exportSymbol.name,
 		symbol: exportedSymbol,
-		type: context.checker.getTypeAtLocation(exportDeclaration),
+		getType: () => context.checker.getTypeAtLocation(exportDeclaration),
 		parentNamespaces,
+		typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 		symbolScope,
 		typeNode: exportDeclaration.type,
 	};
@@ -485,6 +529,7 @@ function resolveMergedNamespaceDescriptors(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor[] {
 	const namespaceDescriptors: ExportDescriptor[] = [];
 	const declarations = namespaceOwnerSymbol.declarations;
@@ -509,6 +554,7 @@ function resolveMergedNamespaceDescriptors(
 				context,
 				parentNamespaces,
 				symbolScope,
+				resolutionState,
 			),
 		);
 	}
@@ -522,6 +568,7 @@ function resolveNamespaceMemberDescriptors(
 	context: ParserContext,
 	parentNamespaces: string[],
 	symbolScope: string[],
+	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor[] {
 	const namespaceMembers = context.checker.getExportsOfModule(namespaceSymbol);
 	const descriptors: ExportDescriptor[] = [];
@@ -532,6 +579,7 @@ function resolveNamespaceMemberDescriptors(
 			context,
 			[...parentNamespaces, namespaceExportName],
 			symbolScope,
+			resolutionState,
 		);
 		if (memberDescriptors) {
 			descriptors.push(...memberDescriptors);
@@ -539,6 +587,10 @@ function resolveNamespaceMemberDescriptors(
 	}
 
 	return descriptors;
+}
+
+function getNextTypeResolutionOrder(state: ExportDescriptorResolutionState): number {
+	return state.nextTypeResolutionOrder++;
 }
 
 function withNamespaceDescriptors(

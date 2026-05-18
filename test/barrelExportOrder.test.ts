@@ -1,0 +1,148 @@
+import path from 'node:path';
+import ts from 'typescript';
+import { expect, it } from 'vitest';
+import { parseFromProgram } from '../src';
+
+function createInMemoryProgram(files: Record<string, string>): ts.Program {
+	const rootNames = Object.keys(files);
+	const compilerOptions: ts.CompilerOptions = {
+		rootDir: path.dirname(rootNames[0]!),
+		target: ts.ScriptTarget.ES2022,
+		module: ts.ModuleKind.Node16,
+		moduleResolution: ts.ModuleResolutionKind.Node16,
+		strict: true,
+		noEmit: true,
+		skipLibCheck: true,
+	};
+	const host = ts.createCompilerHost(compilerOptions);
+	const getSourceFile = host.getSourceFile.bind(host);
+
+	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
+		const sourceText = files[sourceFileName];
+		if (sourceText !== undefined) {
+			return ts.createSourceFile(sourceFileName, sourceText, languageVersion, true);
+		}
+
+		return getSourceFile(sourceFileName, languageVersion, onError, shouldCreateNewSourceFile);
+	};
+	host.fileExists = (sourceFileName) =>
+		files[sourceFileName] !== undefined || ts.sys.fileExists(sourceFileName);
+	host.readFile = (sourceFileName) => files[sourceFileName] ?? ts.sys.readFile(sourceFileName);
+	host.resolveModuleNames = (moduleNames, containingFile) =>
+		moduleNames.map((moduleName) => {
+			const candidate = path.resolve(path.dirname(containingFile), `${moduleName}.ts`);
+			if (files[candidate] !== undefined) {
+				return {
+					resolvedFileName: candidate,
+					extension: ts.Extension.Ts,
+				};
+			}
+
+			return undefined;
+		});
+
+	return ts.createProgram(rootNames, compilerOptions, host);
+}
+
+interface SerializedType {
+	value?: string;
+	typeName?: {
+		name: string;
+	};
+	types?: SerializedType[];
+	properties?: SerializedProperty[];
+}
+
+interface SerializedProperty {
+	name: string;
+	type: SerializedType;
+}
+
+function getTriggerPressEventTypeNames(exportType: SerializedType): string[] {
+	const triggerPressMember = exportType.types?.find((member) =>
+		member.properties?.some(
+			(property) => property.name === 'reason' && property.type.value === '"trigger-press"',
+		),
+	);
+	const eventProperty = triggerPressMember?.properties?.find(
+		(property) => property.name === 'event',
+	);
+	const eventTypes = eventProperty?.type.types;
+
+	if (!eventTypes) {
+		throw new Error('Missing trigger-press event union in the parsed export');
+	}
+
+	return eventTypes.map((type) => {
+		if (!type.typeName) {
+			throw new Error('Expected each event union member to be a named external type');
+		}
+		return type.typeName.name;
+	});
+}
+
+it('preserves source union order when a barrel resolves namespaces before type exports', () => {
+	const inputPath = '/virtual/index.ts';
+	const program = createInMemoryProgram({
+		[inputPath]: `export * as Component from './index.parts';
+export type * from './root';
+export { ComponentRoot as Root } from './root';`,
+		'/virtual/index.parts.ts': "export { ComponentRoot as Root } from './root';",
+		'/virtual/reasons.ts': `export const REASONS = {
+  none: 'none',
+  triggerPress: 'trigger-press',
+} as const;`,
+		'/virtual/details.ts': `import { REASONS } from './reasons';
+
+interface ReasonToEventMap {
+  [REASONS.triggerPress]: MouseEvent | PointerEvent | TouchEvent | KeyboardEvent;
+  [REASONS.none]: Event;
+}
+
+export type ReasonToEvent<Reason extends string> = Reason extends keyof ReasonToEventMap
+  ? ReasonToEventMap[Reason]
+  : Event;
+
+type BaseUIChangeEventDetail<Reason extends string> = {
+  reason: Reason;
+  event: ReasonToEvent<Reason>;
+};
+
+export type BaseUIChangeEventDetails<Reason extends string> =
+  Reason extends string ? BaseUIChangeEventDetail<Reason> & {} : never;`,
+		'/virtual/root.ts': `import { type BaseUIChangeEventDetails } from './details';
+import { REASONS } from './reasons';
+
+export function ComponentRoot(): void {}
+
+export type ComponentRootChangeEventReason =
+  | typeof REASONS.triggerPress
+  | typeof REASONS.none;
+
+export type ComponentRootChangeEventDetails =
+  BaseUIChangeEventDetails<ComponentRoot.ChangeEventReason>;
+
+export namespace ComponentRoot {
+  export type ChangeEventReason = ComponentRootChangeEventReason;
+  export type ChangeEventDetails = ComponentRootChangeEventDetails;
+}`,
+	});
+
+	const moduleDefinition = parseFromProgram(inputPath, program);
+	const serializedModuleDefinition = JSON.parse(JSON.stringify(moduleDefinition)) as {
+		exports: Array<{ name: string; type: SerializedType }>;
+	};
+	const detailsExport = serializedModuleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'ComponentRootChangeEventDetails',
+	);
+
+	// The barrel export resolves `Component.Root.ChangeEventDetails` before the
+	// top-level type-only export. This pins the authored union order so descriptor
+	// normalization cannot perturb TypeScript's lazy type cache.
+	expect(getTriggerPressEventTypeNames(detailsExport.type)).toEqual([
+		'MouseEvent',
+		'PointerEvent',
+		'TouchEvent',
+		'KeyboardEvent',
+	]);
+});

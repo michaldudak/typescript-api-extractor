@@ -1,0 +1,102 @@
+import ts from 'typescript';
+import { afterEach, expect, it, vi } from 'vitest';
+import { type ParserContext } from '../src';
+import { type ExportDescriptor } from '../src/parsers/exportDescriptors';
+import { parseExport } from '../src/parsers/exportParser';
+
+const mocks = vi.hoisted(() => ({
+	getDocumentationFromSymbol: vi.fn(),
+	resolveExportDescriptors: vi.fn(),
+	resolveType: vi.fn(),
+}));
+
+vi.mock('../src/parsers/documentationParser', () => ({
+	getDocumentationFromSymbol: mocks.getDocumentationFromSymbol,
+}));
+
+vi.mock('../src/parsers/exportDescriptors', () => ({
+	resolveExportDescriptors: mocks.resolveExportDescriptors,
+}));
+
+vi.mock('../src/parsers/typeResolver', () => ({
+	resolveType: mocks.resolveType,
+}));
+
+afterEach(() => {
+	vi.clearAllMocks();
+});
+
+function createSymbol(name: string): ts.Symbol {
+	return {
+		name,
+		declarations: [],
+	} as unknown as ts.Symbol;
+}
+
+function createDescriptor(
+	name: string,
+	typeResolutionOrder: number,
+	parentNamespaces: string[] = [],
+): ExportDescriptor {
+	return {
+		name,
+		symbol: createSymbol(name),
+		getType: () => ({ debugName: name }) as unknown as ts.Type,
+		parentNamespaces,
+		typeResolutionOrder,
+		symbolScope: [...parentNamespaces, name],
+	};
+}
+
+function createParserContext(): ParserContext {
+	const parsedSymbolStack: string[] = [];
+	const sourceNodeStack: ts.Node[] = [];
+
+	return {
+		parsedSymbolStack,
+		sourceNodeStack,
+		runWithSymbolScope: <T>(symbolName: string, callback: () => T): T => {
+			parsedSymbolStack.push(symbolName);
+			try {
+				return callback();
+			} finally {
+				parsedSymbolStack.pop();
+			}
+		},
+		runWithSourceNodeScope: <T>(sourceNode: ts.Node | undefined, callback: () => T): T => {
+			if (sourceNode) {
+				sourceNodeStack.push(sourceNode);
+			}
+			try {
+				return callback();
+			} finally {
+				if (sourceNode) {
+					sourceNodeStack.pop();
+				}
+			}
+		},
+	} as ParserContext;
+}
+
+it('resolves descriptor types in legacy traversal order while preserving emitted order', () => {
+	const resolvedTypes: string[] = [];
+	mocks.resolveExportDescriptors.mockReturnValue([
+		createDescriptor('Root', 1),
+		createDescriptor('Props', 0, ['Root']),
+	]);
+	mocks.resolveType.mockImplementation((type: { debugName: string }) => {
+		resolvedTypes.push(type.debugName);
+		return {
+			kind: 'intrinsic',
+			intrinsic: 'string',
+			toString: () => 'string',
+		};
+	});
+
+	const exports = parseExport(createSymbol('Root'), createParserContext());
+
+	// Merged namespace members resolve first to preserve TypeScript/cache side
+	// effects, but the public API still emits the owner export before its members.
+	expect(resolvedTypes).toEqual(['Props', 'Root']);
+	expect(exports?.map((exportNode) => exportNode.name)).toEqual(['Root', 'Root.Props']);
+});
