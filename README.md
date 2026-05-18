@@ -227,6 +227,10 @@ substructures that are reused across multiple type classes.
 - `src/parsers/typeResolutionTypes.ts` defines the contracts shared by the
   resolver pipeline. Resolvers receive a `TypeResolutionRequest` and a
   `TypeResolutionSession`.
+- `ParserContext` exposes scoped parser-context helpers for diagnostic symbol
+  scopes, diagnostic source-node scopes, and temporary type-parameter
+  substitutions. Parser code should use these helpers instead of manually pushing
+  and popping diagnostic stacks or swapping substitution maps.
 - `src/parsers/typeResolutionDiagnostics.ts` centralizes recoverable fallback
   warnings, including source-location selection and TypeScript flag formatting.
 - `src/parsers/typeResolutionUtils.ts` isolates TypeScript internal API access,

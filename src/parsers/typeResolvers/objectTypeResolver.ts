@@ -272,10 +272,9 @@ function resolveTemplateValueType(
 		typeParameterSubstitutions.set(symbol, substitution);
 	}
 
-	return resolve(type, undefined, {
-		...context,
-		typeParameterSubstitutions,
-	});
+	return context.runWithTypeParameterSubstitutionScope(typeParameterSubstitutions, () =>
+		resolve(type, undefined, context),
+	);
 }
 
 /**
@@ -398,62 +397,54 @@ function buildPropertyNodeFromSymbol(
 	context: ParserContext,
 	resolvePropertyType: ResolveTypeInContext,
 ): PropertyNode {
-	const { checker, parsedSymbolStack, sourceNodeStack } = context;
-	parsedSymbolStack.push(`property: ${propertySymbol.name}`);
+	const { checker } = context;
 
-	try {
-		let type: ts.Type;
-		const sourceNode =
-			propertySignature?.type ?? propertySignature ?? propertySymbol.declarations?.[0];
-		if (sourceNode) {
-			sourceNodeStack.push(sourceNode);
-		}
-
+	return context.runWithSymbolScope(`property: ${propertySymbol.name}`, () => {
 		try {
-			if (propertySignature) {
-				if (propertySignature.type) {
-					type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+			let type: ts.Type;
+			const sourceNode =
+				propertySignature?.type ?? propertySignature ?? propertySymbol.declarations?.[0];
+
+			return context.runWithSourceNodeScope(sourceNode, () => {
+				if (propertySignature) {
+					if (propertySignature.type) {
+						type = checker.getTypeOfSymbolAtLocation(propertySymbol, propertySignature.type);
+					} else {
+						type = checker.getAnyType();
+					}
 				} else {
-					type = checker.getAnyType();
+					type = checker.getTypeOfSymbol(propertySymbol);
 				}
-			} else {
-				type = checker.getTypeOfSymbol(propertySymbol);
+
+				const parsedType = resolvePropertyType(
+					type,
+					isTypeParameterLike(type) ? undefined : propertySignature?.type,
+					context,
+				);
+
+				// Typechecker only gives the type "any" if it's present in a union.
+				// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
+				// So instead we check for the question mark to detect optional types.
+				const isOptional =
+					(type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature
+						? Boolean(propertySignature.questionToken)
+						: Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
+
+				return new PropertyNode(
+					propertySymbol.getName(),
+					parsedType,
+					getDocumentationFromSymbol(propertySymbol, checker),
+					isOptional,
+				);
+			});
+		} catch (error) {
+			if (!(error instanceof ParserError)) {
+				throw new ParserError(error, context.parsedSymbolStack);
 			}
 
-			const parsedType = resolvePropertyType(
-				type,
-				isTypeParameterLike(type) ? undefined : propertySignature?.type,
-				context,
-			);
-
-			// Typechecker only gives the type "any" if it's present in a union.
-			// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
-			// So instead we check for the question mark to detect optional types.
-			const isOptional =
-				(type.flags & ts.TypeFlags.Any || type.flags & ts.TypeFlags.Unknown) && propertySignature
-					? Boolean(propertySignature.questionToken)
-					: Boolean(propertySymbol.flags & ts.SymbolFlags.Optional);
-
-			return new PropertyNode(
-				propertySymbol.getName(),
-				parsedType,
-				getDocumentationFromSymbol(propertySymbol, checker),
-				isOptional,
-			);
-		} finally {
-			if (sourceNode) {
-				sourceNodeStack.pop();
-			}
+			throw error;
 		}
-	} catch (error) {
-		if (!(error instanceof ParserError)) {
-			throw new ParserError(error, parsedSymbolStack);
-		}
-
-		throw error;
-	} finally {
-		parsedSymbolStack.pop();
-	}
+	});
 }
 
 function isTypeParameterLike(type: ts.Type): boolean {

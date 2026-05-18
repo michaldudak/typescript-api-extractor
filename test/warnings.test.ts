@@ -20,6 +20,13 @@ export interface Props {
   a: Weird;
   b: Weird;
 }`;
+const symbolStackRestorationSource = `type Weird = \`prefix-\${string}\`;
+
+export interface Props {
+  nested: Weird;
+}
+
+export type AfterProps = Weird;`;
 const implicitClassParameterSource = `export class ClassWarnings {
   methodImplicit<T extends string>(
     value = undefined as \`prefix-\${T}\`,
@@ -40,6 +47,12 @@ export class ClassWarnings {
     return undefined as any;
   }
 }`;
+const sourceNodeRestorationSource = `export function withReturn():
+  \`return-\${string}\` {
+  return undefined as any;
+}
+
+export type AfterReturn = \`alias-\${string}\`;`;
 
 function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
 	const compilerOptions: ts.CompilerOptions = {
@@ -143,6 +156,64 @@ it('reports unsupported type fallbacks for repeated cached types', () => {
 	]);
 });
 
+// Warning metadata is the public symptom of parser-context scope leaks, so these
+// tests pin down stack restoration without coupling to the context implementation.
+it('restores parser context after nested property warnings', () => {
+	const filePath = '/virtual/symbol-stack-restoration.ts';
+	const warnings: ParserWarning[] = [];
+
+	parseFromProgram(filePath, createInMemoryProgram(filePath, symbolStackRestorationSource), {
+		onWarning: (warning) => {
+			warnings.push(warning);
+		},
+	});
+
+	const unsupportedWarnings = warnings.filter(
+		(warning) => warning.code === 'unsupported-type-fallback',
+	);
+
+	expect(unsupportedWarnings).toHaveLength(2);
+	expect(unsupportedWarnings).toEqual([
+		expect.objectContaining({
+			sourceText: 'Weird',
+			parsedSymbolStack: [filePath, 'Props', 'property: nested'],
+		}),
+		expect.objectContaining({
+			sourceText: 'Weird',
+			parsedSymbolStack: [filePath, 'AfterProps'],
+		}),
+	]);
+});
+
+it('restores source-node context after nested signature warnings', () => {
+	const filePath = '/virtual/source-node-restoration.ts';
+	const warnings: ParserWarning[] = [];
+
+	parseFromProgram(filePath, createInMemoryProgram(filePath, sourceNodeRestorationSource), {
+		onWarning: (warning) => {
+			warnings.push(warning);
+		},
+	});
+
+	const unsupportedWarnings = warnings.filter(
+		(warning) => warning.code === 'unsupported-type-fallback',
+	);
+
+	expect(unsupportedWarnings).toHaveLength(2);
+	expect(unsupportedWarnings).toEqual([
+		expect.objectContaining({
+			line: 2,
+			sourceText: '`return-${string}`',
+			parsedSymbolStack: [filePath, 'withReturn'],
+		}),
+		expect.objectContaining({
+			line: 6,
+			sourceText: '`alias-${string}`',
+			parsedSymbolStack: [filePath, 'AfterReturn'],
+		}),
+	]);
+});
+
 it('reports implicit class parameter fallback locations at the parameter site', () => {
 	const filePath = '/virtual/implicit-class-parameter-warning.ts';
 	const warnings: ParserWarning[] = [];
@@ -216,15 +287,42 @@ it('reports missing enum declarations through onWarning', () => {
 	const enumDeclaration = sourceFile.statements[0]!;
 	const warnings: ParserWarning[] = [];
 	const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+	const parsedSymbolStack: string[] = [];
+	const sourceNodeStack: ts.Node[] = [sourceFile];
 	const context = {
 		checker: {
 			getSymbolAtLocation: () => ({ name: 'Missing' }),
 		},
 		sourceFile,
-		parsedSymbolStack: [],
+		parsedSymbolStack,
+		sourceNodeStack,
 		onWarning: (warning: ParserWarning) => {
 			warnings.push(warning);
 		},
+		runWithSymbolScope: <T>(symbolName: string, callback: () => T): T => {
+			parsedSymbolStack.push(symbolName);
+			try {
+				return callback();
+			} finally {
+				parsedSymbolStack.pop();
+			}
+		},
+		runWithSourceNodeScope: <T>(sourceNode: ts.Node | undefined, callback: () => T): T => {
+			if (sourceNode) {
+				sourceNodeStack.push(sourceNode);
+			}
+			try {
+				return callback();
+			} finally {
+				if (sourceNode) {
+					sourceNodeStack.pop();
+				}
+			}
+		},
+		runWithTypeParameterSubstitutionScope: <T>(
+			_substitutions: Map<ts.Symbol, ts.Type>,
+			callback: () => T,
+		): T => callback(),
 	} as unknown as ParserContext;
 
 	parseExport(

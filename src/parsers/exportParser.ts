@@ -21,375 +21,374 @@ export function parseExport(
 	parserContext: ParserContext,
 	parentNamespaces: string[] = [],
 ): ExportNode[] | undefined {
-	const { checker, sourceFile, parsedSymbolStack } = parserContext;
-	parsedSymbolStack.push(exportSymbol.name);
+	const { checker, sourceFile } = parserContext;
 
-	try {
-		const declarations = exportSymbol.declarations;
-		if (!declarations || declarations.length === 0) {
-			return;
-		}
-
-		// Collect namespace members from declaration merging (e.g., function X paired with namespace X)
-		// These will be appended AFTER the main export for cleaner diffs
-		const namespaceMembers: ExportNode[] = [];
-		for (const declaration of declarations) {
-			if (ts.isModuleDeclaration(declaration)) {
-				// Handle exported namespace (namespace X { ... })
-				const namespaceSymbol = checker.getSymbolAtLocation(declaration.name);
-				if (!namespaceSymbol) continue;
-				const members = checker.getExportsOfModule(namespaceSymbol);
-				// Use exportSymbol.name (the exported name) not declaration.name.getText() (the original name)
-				// This ensures re-exports like `{ ComponentRoot as Root }` use "Root" not "ComponentRoot"
-				for (const member of members) {
-					const memberExports = parseExport(member, parserContext, [
-						...parentNamespaces,
-						exportSymbol.name,
-					]);
-					if (Array.isArray(memberExports)) {
-						namespaceMembers.push(...memberExports);
-					} else if (memberExports) {
-						namespaceMembers.push(memberExports);
-					}
-				}
-			}
-		}
-
-		// Results array - main export comes first, then namespace members
-		const results: ExportNode[] = [];
-
-		// Use the first declaration for the main export processing
-		const exportDeclaration = declarations[0];
-
-		if (ts.isModuleDeclaration(exportDeclaration)) {
-			// Already handled above - return the namespace members
-			return namespaceMembers.length > 0 ? namespaceMembers : undefined;
-		}
-
-		if (ts.isNamespaceExport(exportDeclaration)) {
-			// Handle namespace re-export: export * as Name from './module'
-			// The aliased symbol points to the source module
-			const aliasedSymbol = checker.getAliasedSymbol(exportSymbol);
-			if (!aliasedSymbol) return;
-
-			// Get the exports of the module
-			const members = checker.getExportsOfModule(aliasedSymbol);
-			const nsName = exportSymbol.name;
-			const namespaceResults: ExportNode[] = [];
-
-			for (const member of members) {
-				const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
-				if (Array.isArray(memberExports)) {
-					namespaceResults.push(...memberExports);
-				} else if (memberExports) {
-					namespaceResults.push(memberExports);
-				}
-			}
-			return namespaceResults;
-		}
-
-		if (ts.isExportSpecifier(exportDeclaration)) {
-			// export { x }
-			// export { x as y }
-			// export { x } from './module'
-			// export { x as y } from './module'
-			const isReExport =
-				ts.isExportDeclaration(exportDeclaration.parent.parent) &&
-				exportDeclaration.parent.parent.moduleSpecifier !== undefined;
-
-			let targetSymbol: ts.Symbol | undefined;
-
-			if (isReExport) {
-				// For re-exports, we need to resolve the aliased symbol from the external module
-				// exportSymbol already points to the correct target symbol
-				targetSymbol = checker.getAliasedSymbol(exportSymbol);
-				if (!targetSymbol || targetSymbol === exportSymbol) {
-					// If aliased symbol resolution fails, try getExportSpecifierLocalTargetSymbol
-					targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
-				}
-			} else {
-				// For local exports, use getExportSpecifierLocalTargetSymbol
-				// `targetSymbol` is the symbol that the export specifier points to:
-				// const x = 1;
-				//       ^ - targetSymbol
-				// export { x };
-				//          ^ - exportDeclaration.symbol
-				targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
-			}
-
-			if (!targetSymbol) {
+	return parserContext.runWithSymbolScope(exportSymbol.name, () => {
+		try {
+			const declarations = exportSymbol.declarations;
+			if (!declarations || declarations.length === 0) {
 				return;
 			}
 
-			// Check the TARGET symbol's declarations for namespace members (declaration merging)
-			// e.g., `export { ComponentRoot as Root }` where ComponentRoot has a merged namespace
-			// We use exportSymbol.name (the alias "Root") so we get "Component.Root.Props" not "ComponentRoot.Props"
-			const targetDeclarations = targetSymbol.declarations;
-			if (targetDeclarations) {
-				for (const decl of targetDeclarations) {
-					if (ts.isModuleDeclaration(decl)) {
-						const namespaceSymbol = checker.getSymbolAtLocation(decl.name);
-						if (!namespaceSymbol) continue;
-						const members = checker.getExportsOfModule(namespaceSymbol);
-						for (const member of members) {
-							const memberExports = parseExport(member, parserContext, [
-								...parentNamespaces,
-								exportSymbol.name, // Use the alias name, not the original name
-							]);
-							if (Array.isArray(memberExports)) {
-								namespaceMembers.push(...memberExports);
-							} else if (memberExports) {
-								namespaceMembers.push(memberExports);
-							}
+			// Collect namespace members from declaration merging (e.g., function X paired with namespace X)
+			// These will be appended AFTER the main export for cleaner diffs
+			const namespaceMembers: ExportNode[] = [];
+			for (const declaration of declarations) {
+				if (ts.isModuleDeclaration(declaration)) {
+					// Handle exported namespace (namespace X { ... })
+					const namespaceSymbol = checker.getSymbolAtLocation(declaration.name);
+					if (!namespaceSymbol) continue;
+					const members = checker.getExportsOfModule(namespaceSymbol);
+					// Use exportSymbol.name (the exported name) not declaration.name.getText() (the original name)
+					// This ensures re-exports like `{ ComponentRoot as Root }` use "Root" not "ComponentRoot"
+					for (const member of members) {
+						const memberExports = parseExport(member, parserContext, [
+							...parentNamespaces,
+							exportSymbol.name,
+						]);
+						if (Array.isArray(memberExports)) {
+							namespaceMembers.push(...memberExports);
+						} else if (memberExports) {
+							namespaceMembers.push(memberExports);
 						}
 					}
 				}
 			}
 
-			// Get the type. For exports of imported types (e.g., `export type { X }`),
-			// the targetSymbol may be an ImportSpecifier. In that case, getTypeAtLocation
-			// on the import specifier can return `any` if the module resolution fails.
-			// Using getTypeAtLocation on the export specifier itself works more reliably.
-			let type: ts.Type;
-			const targetDecl = targetSymbol.declarations?.[0];
-			if (targetDecl && ts.isImportSpecifier(targetDecl)) {
-				// For re-exports of imported types, resolve through the import to check
-				// if the underlying symbol is a class. If so, use getTypeOfSymbol to get
-				// the constructor type (with construct signatures) instead of the instance type.
-				const resolvedSymbol = checker.getAliasedSymbol(targetSymbol);
-				const resolvedDecl = resolvedSymbol?.declarations?.[0];
-				if (
-					resolvedDecl &&
-					(ts.isClassDeclaration(resolvedDecl) || ts.isClassExpression(resolvedDecl))
-				) {
-					type = checker.getTypeOfSymbol(resolvedSymbol);
-				} else {
-					// For non-class re-exports, use the export specifier directly
-					// This handles cases like: import { X } from './m.js'; export type { X }
-					type = checker.getTypeAtLocation(exportDeclaration);
+			// Results array - main export comes first, then namespace members
+			const results: ExportNode[] = [];
+
+			// Use the first declaration for the main export processing
+			const exportDeclaration = declarations[0];
+
+			if (ts.isModuleDeclaration(exportDeclaration)) {
+				// Already handled above - return the namespace members
+				return namespaceMembers.length > 0 ? namespaceMembers : undefined;
+			}
+
+			if (ts.isNamespaceExport(exportDeclaration)) {
+				// Handle namespace re-export: export * as Name from './module'
+				// The aliased symbol points to the source module
+				const aliasedSymbol = checker.getAliasedSymbol(exportSymbol);
+				if (!aliasedSymbol) return;
+
+				// Get the exports of the module
+				const members = checker.getExportsOfModule(aliasedSymbol);
+				const nsName = exportSymbol.name;
+				const namespaceResults: ExportNode[] = [];
+
+				for (const member of members) {
+					const memberExports = parseExport(member, parserContext, [...parentNamespaces, nsName]);
+					if (Array.isArray(memberExports)) {
+						namespaceResults.push(...memberExports);
+					} else if (memberExports) {
+						namespaceResults.push(memberExports);
+					}
 				}
+				return namespaceResults;
+			}
+
+			if (ts.isExportSpecifier(exportDeclaration)) {
+				// export { x }
+				// export { x as y }
+				// export { x } from './module'
+				// export { x as y } from './module'
+				const isReExport =
+					ts.isExportDeclaration(exportDeclaration.parent.parent) &&
+					exportDeclaration.parent.parent.moduleSpecifier !== undefined;
+
+				let targetSymbol: ts.Symbol | undefined;
+
+				if (isReExport) {
+					// For re-exports, we need to resolve the aliased symbol from the external module
+					// exportSymbol already points to the correct target symbol
+					targetSymbol = checker.getAliasedSymbol(exportSymbol);
+					if (!targetSymbol || targetSymbol === exportSymbol) {
+						// If aliased symbol resolution fails, try getExportSpecifierLocalTargetSymbol
+						targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
+					}
+				} else {
+					// For local exports, use getExportSpecifierLocalTargetSymbol
+					// `targetSymbol` is the symbol that the export specifier points to:
+					// const x = 1;
+					//       ^ - targetSymbol
+					// export { x };
+					//          ^ - exportDeclaration.symbol
+					targetSymbol = checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
+				}
+
+				if (!targetSymbol) {
+					return;
+				}
+
+				// Check the TARGET symbol's declarations for namespace members (declaration merging)
+				// e.g., `export { ComponentRoot as Root }` where ComponentRoot has a merged namespace
+				// We use exportSymbol.name (the alias "Root") so we get "Component.Root.Props" not "ComponentRoot.Props"
+				const targetDeclarations = targetSymbol.declarations;
+				if (targetDeclarations) {
+					for (const decl of targetDeclarations) {
+						if (ts.isModuleDeclaration(decl)) {
+							const namespaceSymbol = checker.getSymbolAtLocation(decl.name);
+							if (!namespaceSymbol) continue;
+							const members = checker.getExportsOfModule(namespaceSymbol);
+							for (const member of members) {
+								const memberExports = parseExport(member, parserContext, [
+									...parentNamespaces,
+									exportSymbol.name, // Use the alias name, not the original name
+								]);
+								if (Array.isArray(memberExports)) {
+									namespaceMembers.push(...memberExports);
+								} else if (memberExports) {
+									namespaceMembers.push(memberExports);
+								}
+							}
+						}
+					}
+				}
+
+				// Get the type. For exports of imported types (e.g., `export type { X }`),
+				// the targetSymbol may be an ImportSpecifier. In that case, getTypeAtLocation
+				// on the import specifier can return `any` if the module resolution fails.
+				// Using getTypeAtLocation on the export specifier itself works more reliably.
+				let type: ts.Type;
+				const targetDecl = targetSymbol.declarations?.[0];
+				if (targetDecl && ts.isImportSpecifier(targetDecl)) {
+					// For re-exports of imported types, resolve through the import to check
+					// if the underlying symbol is a class. If so, use getTypeOfSymbol to get
+					// the constructor type (with construct signatures) instead of the instance type.
+					const resolvedSymbol = checker.getAliasedSymbol(targetSymbol);
+					const resolvedDecl = resolvedSymbol?.declarations?.[0];
+					if (
+						resolvedDecl &&
+						(ts.isClassDeclaration(resolvedDecl) || ts.isClassExpression(resolvedDecl))
+					) {
+						type = checker.getTypeOfSymbol(resolvedSymbol);
+					} else {
+						// For non-class re-exports, use the export specifier directly
+						// This handles cases like: import { X } from './m.js'; export type { X }
+						type = checker.getTypeAtLocation(exportDeclaration);
+					}
+				} else if (
+					targetDecl &&
+					(ts.isClassDeclaration(targetDecl) || ts.isClassExpression(targetDecl))
+				) {
+					// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
+					// instead of getTypeAtLocation which returns the instance type
+					type = checker.getTypeOfSymbol(targetSymbol);
+				} else if (targetDecl) {
+					type = checker.getTypeAtLocation(targetDecl);
+				} else {
+					type = checker.getTypeOfSymbol(targetSymbol);
+				}
+
+				// Track the full original name when re-exporting with an alias
+				// e.g., `export { DialogTrigger as Trigger }` -> reexportedFrom: 'DialogTrigger'
+				let reexportedFrom: string | undefined;
+				if (isReExport && targetSymbol.name !== exportSymbol.name) {
+					reexportedFrom = targetSymbol.name;
+				}
+
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					targetSymbol,
+					type,
+					parentNamespaces,
+					undefined,
+					reexportedFrom,
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
+			} else if (ts.isExportAssignment(exportDeclaration)) {
+				// export default x
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.expression);
+				if (!exportedSymbol) {
+					console.error(
+						'Failed to get the symbol of the default export in file:',
+						sourceFile.fileName,
+					);
+					return;
+				}
+
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					checker.getTypeOfSymbol(exportedSymbol),
+					parentNamespaces,
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
 			} else if (
-				targetDecl &&
-				(ts.isClassDeclaration(targetDecl) || ts.isClassExpression(targetDecl))
+				ts.isVariableDeclaration(exportDeclaration) ||
+				ts.isFunctionDeclaration(exportDeclaration)
 			) {
+				// export const x = ...
+				// export function x() {}
+				// export default function x() {}
+				if (!exportDeclaration.name) {
+					// Append namespace members after main export for cleaner diffs
+					results.push(...namespaceMembers);
+					return results.length > 0 ? results : undefined;
+				}
+
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+				if (!exportedSymbol) {
+					// Append namespace members after main export for cleaner diffs
+					results.push(...namespaceMembers);
+					return results.length > 0 ? results : undefined;
+				}
+
+				const type = checker.getTypeOfSymbol(exportedSymbol);
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					type,
+					parentNamespaces,
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
+			} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
+				// export interface X {}
+				// export interface X extends Y {}
+				if (!exportDeclaration.name) {
+					return;
+				}
+
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+				if (!exportedSymbol) {
+					return;
+				}
+
+				// Extract extends clause types
+				const extendsTypes = extractExtendsTypes(exportDeclaration.heritageClauses, checker);
+
+				const type = checker.getTypeAtLocation(exportDeclaration);
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					type,
+					parentNamespaces,
+					undefined,
+					undefined,
+					extendsTypes,
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
+			} else if (ts.isEnumDeclaration(exportDeclaration)) {
+				// export enum x {}
+				if (!exportDeclaration.name) {
+					return;
+				}
+
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+				if (!exportedSymbol) {
+					return;
+				}
+
+				if (!exportedSymbol.declarations?.[0]) {
+					const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+						exportDeclaration.getStart(sourceFile),
+					);
+					parserContext.onWarning({
+						code: 'missing-enum-declaration',
+						message: `Type extraction warning: Could not find the declaration of enum "${exportedSymbol.name}" at "${sourceFile.fileName}:${line + 1}:${character + 1}". Skipping this export.`,
+						filePath: sourceFile.fileName,
+						line: line + 1,
+						column: character + 1,
+						parsedSymbolStack: [...parserContext.parsedSymbolStack],
+						enumName: exportedSymbol.name,
+					});
+					return;
+				}
+
+				const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					type,
+					parentNamespaces,
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
+			} else if (ts.isClassDeclaration(exportDeclaration)) {
+				// export class X {}
+				if (!exportDeclaration.name) {
+					return;
+				}
+
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+				if (!exportedSymbol) {
+					return;
+				}
+
 				// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
 				// instead of getTypeAtLocation which returns the instance type
-				type = checker.getTypeOfSymbol(targetSymbol);
-			} else if (targetDecl) {
-				type = checker.getTypeAtLocation(targetDecl);
-			} else {
-				type = checker.getTypeOfSymbol(targetSymbol);
-			}
-
-			// Track the full original name when re-exporting with an alias
-			// e.g., `export { DialogTrigger as Trigger }` -> reexportedFrom: 'DialogTrigger'
-			let reexportedFrom: string | undefined;
-			if (isReExport && targetSymbol.name !== exportSymbol.name) {
-				reexportedFrom = targetSymbol.name;
-			}
-
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				targetSymbol,
-				type,
-				parentNamespaces,
-				undefined,
-				reexportedFrom,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (ts.isExportAssignment(exportDeclaration)) {
-			// export default x
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.expression);
-			if (!exportedSymbol) {
-				console.error(
-					'Failed to get the symbol of the default export in file:',
-					sourceFile.fileName,
+				const type = checker.getTypeOfSymbol(exportedSymbol);
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					type,
+					parentNamespaces,
 				);
-				return;
-			}
+				if (mainExport) {
+					results.push(...mainExport);
+				}
+				// Append namespace members after main export for cleaner diffs
+				results.push(...namespaceMembers);
+				return results.length > 0 ? results : undefined;
+			} else if (ts.isTypeAliasDeclaration(exportDeclaration)) {
+				// export type X = ...
+				if (!exportDeclaration.name) {
+					return;
+				}
 
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				checker.getTypeOfSymbol(exportedSymbol),
-				parentNamespaces,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (
-			ts.isVariableDeclaration(exportDeclaration) ||
-			ts.isFunctionDeclaration(exportDeclaration)
-		) {
-			// export const x = ...
-			// export function x() {}
-			// export default function x() {}
-			if (!exportDeclaration.name) {
+				const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
+				if (!exportedSymbol) {
+					return;
+				}
+
+				const type = checker.getTypeAtLocation(exportDeclaration);
+				const mainExport = createExportNode(
+					exportSymbol.name,
+					exportedSymbol,
+					type,
+					parentNamespaces,
+					exportDeclaration.type, // Pass the authored type node to preserve union structure
+				);
+				if (mainExport) {
+					results.push(...mainExport);
+				}
 				// Append namespace members after main export for cleaner diffs
 				results.push(...namespaceMembers);
 				return results.length > 0 ? results : undefined;
 			}
-
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!exportedSymbol) {
-				// Append namespace members after main export for cleaner diffs
-				results.push(...namespaceMembers);
-				return results.length > 0 ? results : undefined;
+		} catch (error) {
+			if (!(error instanceof ParserError)) {
+				throw new ParserError(error, parserContext.parsedSymbolStack);
 			}
 
-			const type = checker.getTypeOfSymbol(exportedSymbol);
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				type,
-				parentNamespaces,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (ts.isInterfaceDeclaration(exportDeclaration)) {
-			// export interface X {}
-			// export interface X extends Y {}
-			if (!exportDeclaration.name) {
-				return;
-			}
-
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!exportedSymbol) {
-				return;
-			}
-
-			// Extract extends clause types
-			const extendsTypes = extractExtendsTypes(exportDeclaration.heritageClauses, checker);
-
-			const type = checker.getTypeAtLocation(exportDeclaration);
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				type,
-				parentNamespaces,
-				undefined,
-				undefined,
-				extendsTypes,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (ts.isEnumDeclaration(exportDeclaration)) {
-			// export enum x {}
-			if (!exportDeclaration.name) {
-				return;
-			}
-
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!exportedSymbol) {
-				return;
-			}
-
-			if (!exportedSymbol.declarations?.[0]) {
-				const { line, character } = sourceFile.getLineAndCharacterOfPosition(
-					exportDeclaration.getStart(sourceFile),
-				);
-				parserContext.onWarning({
-					code: 'missing-enum-declaration',
-					message: `Type extraction warning: Could not find the declaration of enum "${exportedSymbol.name}" at "${sourceFile.fileName}:${line + 1}:${character + 1}". Skipping this export.`,
-					filePath: sourceFile.fileName,
-					line: line + 1,
-					column: character + 1,
-					parsedSymbolStack: [...parsedSymbolStack],
-					enumName: exportedSymbol.name,
-				});
-				return;
-			}
-
-			const type = checker.getTypeAtLocation(exportedSymbol.declarations[0]);
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				type,
-				parentNamespaces,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (ts.isClassDeclaration(exportDeclaration)) {
-			// export class X {}
-			if (!exportDeclaration.name) {
-				return;
-			}
-
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!exportedSymbol) {
-				return;
-			}
-
-			// For classes, use getTypeOfSymbol to get the constructor type (with construct signatures)
-			// instead of getTypeAtLocation which returns the instance type
-			const type = checker.getTypeOfSymbol(exportedSymbol);
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				type,
-				parentNamespaces,
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		} else if (ts.isTypeAliasDeclaration(exportDeclaration)) {
-			// export type X = ...
-			if (!exportDeclaration.name) {
-				return;
-			}
-
-			const exportedSymbol = checker.getSymbolAtLocation(exportDeclaration.name);
-			if (!exportedSymbol) {
-				return;
-			}
-
-			const type = checker.getTypeAtLocation(exportDeclaration);
-			const mainExport = createExportNode(
-				exportSymbol.name,
-				exportedSymbol,
-				type,
-				parentNamespaces,
-				exportDeclaration.type, // Pass the authored type node to preserve union structure
-			);
-			if (mainExport) {
-				results.push(...mainExport);
-			}
-			// Append namespace members after main export for cleaner diffs
-			results.push(...namespaceMembers);
-			return results.length > 0 ? results : undefined;
-		}
-	} catch (error) {
-		if (!(error instanceof ParserError)) {
-			throw new ParserError(error, parsedSymbolStack);
-		} else {
 			throw error;
 		}
-	} finally {
-		parsedSymbolStack.pop();
-	}
+	});
 
 	function createExportNode(
 		name: string,
@@ -401,11 +400,8 @@ export function parseExport(
 		extendsTypes?: ExtendsTypeInfo[],
 	) {
 		const sourceNode = typeNode ?? symbol.declarations?.[0];
-		if (sourceNode) {
-			parserContext.sourceNodeStack.push(sourceNode);
-		}
 
-		try {
+		return parserContext.runWithSourceNodeScope(sourceNode, () => {
 			let parsedType = resolveType(type, typeNode, parserContext);
 			if (parsedType) {
 				// Fix type name for external types that resolve to internal symbol names
@@ -453,11 +449,7 @@ export function parseExport(
 					),
 				];
 			}
-		} finally {
-			if (sourceNode) {
-				parserContext.sourceNodeStack.pop();
-			}
-		}
+		});
 	}
 }
 

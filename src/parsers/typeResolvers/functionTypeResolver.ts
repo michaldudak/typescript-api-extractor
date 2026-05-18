@@ -83,17 +83,10 @@ function buildReturnType(
 	resolveTypeReference: ResolveTypeInContext,
 ) {
 	const returnTypeNode = getReturnTypeNode(signature);
-	if (returnTypeNode) {
-		context.sourceNodeStack.push(returnTypeNode);
-	}
 
-	try {
-		return resolveTypeReference(signature.getReturnType(), undefined, context);
-	} finally {
-		if (returnTypeNode) {
-			context.sourceNodeStack.pop();
-		}
-	}
+	return context.runWithSourceNodeScope(returnTypeNode, () =>
+		resolveTypeReference(signature.getReturnType(), undefined, context),
+	);
 }
 
 function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
@@ -106,85 +99,84 @@ function buildParameterNode(
 	context: ParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): Parameter {
-	const { checker, parsedSymbolStack, sourceNodeStack } = context;
-	parsedSymbolStack.push(`parameter: ${parameterSymbol.name}`);
+	const { checker } = context;
 
-	try {
-		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-		sourceNodeStack.push(parameterDeclaration.type ?? parameterDeclaration);
-
+	return context.runWithSymbolScope(`parameter: ${parameterSymbol.name}`, () => {
 		try {
-			const parameterType = resolveTypeReference(
-				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-				parameterDeclaration.type,
-				context,
-			);
+			const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
 
-			const summary = parameterSymbol
-				.getDocumentationComment(checker)
-				.map((comment) => comment.text)
-				.join('\n')
-				.replace(/^[\s-*:]*/, '');
+			return context.runWithSourceNodeScope(
+				parameterDeclaration.type ?? parameterDeclaration,
+				() => {
+					const parameterType = resolveTypeReference(
+						checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
+						parameterDeclaration.type,
+						context,
+					);
 
-			const rawTags = parameterSymbol.getJsDocTags();
+					const summary = parameterSymbol
+						.getDocumentationComment(checker)
+						.map((comment) => comment.text)
+						.join('\n')
+						.replace(/^[\s-*:]*/, '');
 
-			const docTags: DocumentationTag[] = rawTags
-				.filter((t) => t.name !== 'param')
-				.map((t) => {
-					const text = t.text?.map((t) => t.text).join(' ');
-					return {
-						name: t.name,
-						value: text,
-					};
-				});
+					const rawTags = parameterSymbol.getJsDocTags();
 
-			let visibility: Visibility | undefined;
-			if (rawTags.some((tag) => tag.name === 'private')) {
-				visibility = 'private';
-			} else if (rawTags.some((tag) => tag.name === 'internal')) {
-				visibility = 'internal';
-			} else if (rawTags.some((tag) => tag.name === 'public')) {
-				visibility = 'public';
-			}
+					const docTags: DocumentationTag[] = rawTags
+						.filter((t) => t.name !== 'param')
+						.map((t) => {
+							const text = t.text?.map((t) => t.text).join(' ');
+							return {
+								name: t.name,
+								value: text,
+							};
+						});
 
-			const documentation =
-				summary?.length || docTags.length
-					? new Documentation(summary, undefined, visibility, docTags)
-					: undefined;
-
-			let defaultValue: string | undefined;
-			const initializer = parameterDeclaration.initializer;
-			if (initializer) {
-				const initializerType = checker.getTypeAtLocation(initializer);
-				if (initializerType.flags & ts.TypeFlags.Literal) {
-					if (initializerType.isStringLiteral()) {
-						defaultValue = `"${initializerType.value}"`;
-					} else if (initializerType.isLiteral()) {
-						defaultValue = initializerType.value.toString();
-					} else {
-						defaultValue = initializer.getText();
+					let visibility: Visibility | undefined;
+					if (rawTags.some((tag) => tag.name === 'private')) {
+						visibility = 'private';
+					} else if (rawTags.some((tag) => tag.name === 'internal')) {
+						visibility = 'internal';
+					} else if (rawTags.some((tag) => tag.name === 'public')) {
+						visibility = 'public';
 					}
-				}
+
+					const documentation =
+						summary?.length || docTags.length
+							? new Documentation(summary, undefined, visibility, docTags)
+							: undefined;
+
+					let defaultValue: string | undefined;
+					const initializer = parameterDeclaration.initializer;
+					if (initializer) {
+						const initializerType = checker.getTypeAtLocation(initializer);
+						if (initializerType.flags & ts.TypeFlags.Literal) {
+							if (initializerType.isStringLiteral()) {
+								defaultValue = `"${initializerType.value}"`;
+							} else if (initializerType.isLiteral()) {
+								defaultValue = initializerType.value.toString();
+							} else {
+								defaultValue = initializer.getText();
+							}
+						}
+					}
+
+					return new Parameter(
+						parameterType,
+						parameterSymbol.getName(),
+						documentation,
+						parameterDeclaration.questionToken !== undefined ||
+							parameterDeclaration.initializer !== undefined,
+						defaultValue,
+					);
+				},
+			);
+		} catch (error) {
+			if (!(error instanceof ParserError)) {
+				throw new ParserError(error, context.parsedSymbolStack);
 			}
 
-			return new Parameter(
-				parameterType,
-				parameterSymbol.getName(),
-				documentation,
-				parameterDeclaration.questionToken !== undefined ||
-					parameterDeclaration.initializer !== undefined,
-				defaultValue,
-			);
-		} finally {
-			sourceNodeStack.pop();
+			throw error;
 		}
-	} catch (error) {
-		if (!(error instanceof ParserError)) {
-			throw new ParserError(error, parsedSymbolStack);
-		}
-
-		throw error;
-	} finally {
-		parsedSymbolStack.pop();
-	}
+	});
 }
