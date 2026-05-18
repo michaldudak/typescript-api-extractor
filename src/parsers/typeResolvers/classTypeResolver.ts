@@ -5,15 +5,10 @@ import {
 	ConstructSignature,
 	ClassProperty,
 	ClassMethod,
-	CallSignature,
-	Parameter,
 	Documentation,
-	DocumentationTag,
-	Visibility,
 	type AnyType,
 } from '../../models';
 import { getFullName } from '../common';
-import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
 import { TypeName } from '../../models/typeName';
 import { getDocumentationFromSymbol } from '../documentationParser';
 import {
@@ -21,6 +16,7 @@ import {
 	type TypeResolutionRequest,
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
+import { parseCallSignature, parseParameter } from './signatureParser';
 
 // Class type handling lives in one resolver module. The exported
 // resolver owns class-shape selection, while private helpers build the ClassNode
@@ -177,18 +173,11 @@ function extractMembers(
 
 		const tsCallSignatures = memberType.getCallSignatures();
 		if (isMethodDeclaration && tsCallSignatures.length > 0) {
-			// It's a method - parse all signatures into CallSignature array
-			const signatures: CallSignature[] = tsCallSignatures.map((sig) => {
-				const params = sig.parameters.map((paramSymbol) =>
-					buildParameterNode(paramSymbol, context, resolveTypeReference),
-				);
-				const returnType = buildReturnType(sig, context, resolveTypeReference);
-				return new CallSignature(
-					params,
-					returnType,
-					buildSignatureTypeParameterNodes(sig, context, resolveTypeReference),
-				);
-			});
+			// Method signatures share the same parameter/default/return parsing as
+			// free functions, keeping class APIs aligned with callable exports.
+			const signatures = tsCallSignatures.map((sig) =>
+				parseCallSignature(sig, context, resolveTypeReference),
+			);
 
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
@@ -245,7 +234,7 @@ function buildConstructSignature(
 	const { checker } = context;
 
 	const parameters = signature.parameters.map((paramSymbol) =>
-		buildParameterNode(paramSymbol, context, resolveTypeReference),
+		parseParameter(paramSymbol, context, resolveTypeReference),
 	);
 
 	// Get documentation from the constructor declaration if available
@@ -259,107 +248,4 @@ function buildConstructSignature(
 	}
 
 	return new ConstructSignature(parameters, documentation);
-}
-
-function buildReturnType(
-	signature: ts.Signature,
-	context: ParserContext,
-	resolveTypeReference: ResolveTypeInContext,
-) {
-	const returnTypeNode = getReturnTypeNode(signature);
-
-	return context.runWithSourceNodeScope(returnTypeNode, () =>
-		resolveTypeReference(signature.getReturnType(), undefined, context),
-	);
-}
-
-function getReturnTypeNode(signature: ts.Signature): ts.TypeNode | undefined {
-	const declaration = signature.getDeclaration();
-	return declaration && 'type' in declaration ? declaration.type : undefined;
-}
-
-function buildParameterNode(
-	parameterSymbol: ts.Symbol,
-	context: ParserContext,
-	resolveTypeReference: ResolveTypeInContext,
-): Parameter {
-	const { checker } = context;
-
-	return context.runWithSymbolScope(`parameter: ${parameterSymbol.name}`, () => {
-		const parameterDeclaration = parameterSymbol.valueDeclaration as ts.ParameterDeclaration;
-		const parameterSourceNode = parameterDeclaration?.type ?? parameterDeclaration;
-
-		return context.runWithSourceNodeScope(parameterSourceNode, () => {
-			const parameterType = resolveTypeReference(
-				checker.getTypeOfSymbolAtLocation(parameterSymbol, parameterSymbol.valueDeclaration!),
-				parameterDeclaration?.type,
-				context,
-			);
-
-			// Clean up summary - remove leading dashes, asterisks, colons, whitespace
-			// (matches function node builder behavior).
-			const summary = parameterSymbol
-				.getDocumentationComment(checker)
-				.map((comment) => comment.text)
-				.join('\n')
-				.replace(/^[\s-*:]*/, '');
-
-			const rawTags = parameterSymbol.getJsDocTags(checker);
-
-			// Preserve all JSDoc tags except @param (matches function node builder behavior).
-			const docTags: DocumentationTag[] = rawTags
-				.filter((t) => t.name !== 'param')
-				.map((t) => {
-					const text = t.text?.map((part) => part.text).join(' ');
-					return {
-						name: t.name,
-						value: text,
-					};
-				});
-
-			let visibility: Visibility | undefined;
-			if (rawTags.some((tag) => tag.name === 'private')) {
-				visibility = 'private';
-			} else if (rawTags.some((tag) => tag.name === 'internal')) {
-				visibility = 'internal';
-			} else if (rawTags.some((tag) => tag.name === 'public')) {
-				visibility = 'public';
-			}
-
-			const optional =
-				parameterDeclaration?.questionToken !== undefined ||
-				parameterDeclaration?.initializer !== undefined;
-
-			// Handle default values - extract literal values when possible (matches function node builder behavior).
-			let defaultValue: string | undefined;
-			const initializer = parameterDeclaration?.initializer;
-			if (initializer) {
-				const initializerType = checker.getTypeAtLocation(initializer);
-				if (initializerType.flags & ts.TypeFlags.Literal) {
-					if (initializerType.isStringLiteral()) {
-						defaultValue = `"${initializerType.value}"`;
-					} else if (initializerType.isLiteral()) {
-						defaultValue = initializerType.value.toString();
-					} else {
-						defaultValue = initializer.getText();
-					}
-				} else {
-					defaultValue = initializer.getText();
-				}
-			}
-
-			const documentation =
-				summary?.length || docTags.length
-					? new Documentation(summary || undefined, undefined, visibility, docTags)
-					: undefined;
-
-			return new Parameter(
-				parameterType,
-				parameterSymbol.name,
-				documentation,
-				optional,
-				defaultValue,
-			);
-		});
-	});
 }

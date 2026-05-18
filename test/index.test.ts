@@ -68,6 +68,24 @@ export class ClassWithAliasedAny {
 
   method(methodParam?: AliasedAny | undefined): void {}
 }`;
+const sharedSignatureDefaultsSource = `const defaultOptions = { dense: true };
+
+/**
+ * @param options - Function options.
+ */
+export function configure(options = defaultOptions, inline = { compact: true }): void {}
+
+export class Configurator {
+  /**
+   * @param options - Constructor options.
+   */
+  constructor(options = defaultOptions) {}
+
+  /**
+   * @param options - Method options.
+   */
+  configure(options = defaultOptions, inline = { compact: true }): void {}
+}`;
 
 function createInMemoryProgram(filePath: string, sourceText: string): ts.Program {
 	const compilerOptions: ts.CompilerOptions = {
@@ -256,6 +274,78 @@ it('preserves authored union aliases for class parameters', () => {
 							{
 								name: 'methodParam',
 								type: aliasedAnyUnion,
+							},
+						],
+					},
+				],
+			},
+		],
+	});
+});
+
+it('parses parameter defaults and docs consistently across function and class signatures', () => {
+	const filePath = '/virtual/shared-signature-defaults.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, sharedSignatureDefaultsSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'function',
+		callSignatures: [
+			{
+				parameters: [
+					{
+						name: 'options',
+						defaultValue: 'defaultOptions',
+						optional: true,
+						documentation: {
+							description: 'Function options.',
+						},
+					},
+					{
+						name: 'inline',
+						defaultValue: '{ compact: true }',
+						optional: true,
+					},
+				],
+			},
+		],
+	});
+	expect(moduleDefinition.exports[1]?.type).toMatchObject({
+		kind: 'class',
+		constructSignatures: [
+			{
+				parameters: [
+					{
+						name: 'options',
+						defaultValue: 'defaultOptions',
+						optional: true,
+						documentation: {
+							description: 'Constructor options.',
+						},
+					},
+				],
+			},
+		],
+		methods: [
+			{
+				name: 'configure',
+				callSignatures: [
+					{
+						parameters: [
+							{
+								name: 'options',
+								defaultValue: 'defaultOptions',
+								optional: true,
+								documentation: {
+									description: 'Method options.',
+								},
+							},
+							{
+								name: 'inline',
+								defaultValue: '{ compact: true }',
+								optional: true,
 							},
 						],
 					},
