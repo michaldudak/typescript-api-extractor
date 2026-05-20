@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { ModuleNode, type AnyType } from './models';
 import { parseModule } from './parsers/moduleParser';
+import { type ScopedParserContext } from './parserContext';
 
 /**
  * Creates a program, parses the specified file and returns the PropTypes as an AST, if you need to parse more than one file
@@ -46,11 +47,11 @@ function createParserContext(
 	sourceFile: ts.SourceFile,
 	program: ts.Program,
 	parserOptions: ParserOptions,
-): ParserContext {
+): ScopedParserContext {
 	const parsedSymbolStack: string[] = [];
 	const sourceNodeStack: ts.Node[] = [sourceFile];
 
-	const context: ParserContext = {
+	const context: ScopedParserContext = {
 		checker,
 		sourceFile,
 		typeStack: [],
@@ -156,27 +157,6 @@ export interface ParserContext extends ResolvedParserOptions {
 	 * produce different results for the same type at different depths.
 	 */
 	resolvedTypeCache: Map<string, AnyType>;
-	/**
-	 * Runs parser work in a scoped diagnostic symbol context. The symbol is
-	 * visible to warning/error metadata only while the callback runs, and the
-	 * stack is restored even when parsing throws.
-	 */
-	runWithSymbolScope<T>(symbolName: string, callback: () => T): T;
-	/**
-	 * Runs parser work in a scoped diagnostic source-node context. Warning
-	 * location fallback reads this stack, and undefined is accepted so callers
-	 * do not need their own conditional push/pop boilerplate.
-	 */
-	runWithSourceNodeScope<T>(sourceNode: ts.Node | undefined, callback: () => T): T;
-	/**
-	 * Runs resolver work in a temporary type-parameter substitution scope for
-	 * mapped/instantiated type expansion. The previous substitution map is
-	 * always restored.
-	 */
-	runWithTypeParameterSubstitutionScope<T>(
-		typeParameterSubstitutions: Map<ts.Symbol, ts.Type>,
-		callback: () => T,
-	): T;
 }
 
 /**

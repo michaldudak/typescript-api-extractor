@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { IntrinsicNode, type AnyType } from '../models';
 import { type TypeName } from '../models/typeName';
-import { type ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 import { getFullName } from './common';
 import { reportUnsupportedTypeFallback } from './typeResolutionDiagnostics';
 import {
@@ -22,7 +22,7 @@ const unsupportedFallbackTypes = new WeakSet<ts.Type>();
  * cache keys, recursion guards, substitution probes, and warning replay.
  */
 export class TypeResolutionSession implements TypeResolutionSessionContract {
-	constructor(readonly context: ParserContext) {}
+	constructor(readonly context: ScopedParserContext) {}
 
 	/**
 	 * Adapter passed to lower-level parsers that still accept a resolver callback.
@@ -38,43 +38,50 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 	};
 
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType {
-		const { resolvedTypeCache, typeStack, typeParameterSubstitutions } = this.context;
+		const { resolvedTypeCache, typeStack } = this.context;
 
 		const typeId = getTypeId(type);
-		const hasTypeParameterSubstitutions = Boolean(typeParameterSubstitutions?.size);
 
 		// Build a cache key that incorporates both the type identity and the current
 		// stack depth, because shouldResolveObject / shouldInclude are depth-sensitive.
 		const cacheKey = typeId !== undefined ? `${typeId}@${typeStack.length}` : undefined;
 
-		// Check the cache first for types we've already resolved.
-		// Only use cache when there's no typeNode (which can affect alias resolution)
-		// and when we're not in a recursive context (type isn't already on the stack).
 		if (
 			cacheKey !== undefined &&
-			!typeNode &&
-			!hasTypeParameterSubstitutions &&
-			resolvedTypeCache.has(cacheKey) &&
-			!unsupportedFallbackTypes.has(type) &&
-			!typeStack.includes(typeId!)
+			this.isCacheable(type, typeNode, typeId!) &&
+			resolvedTypeCache.has(cacheKey)
 		) {
 			return resolvedTypeCache.get(cacheKey)!;
 		}
 
 		const result = this.resolveUncached(type, typeNode);
 
-		// Cache the result for future lookups when there's no typeNode influence.
-		if (
-			cacheKey !== undefined &&
-			!typeNode &&
-			!hasTypeParameterSubstitutions &&
-			!unsupportedFallbackTypes.has(type) &&
-			!typeStack.includes(typeId!)
-		) {
+		// Re-check cacheability after resolution: resolveUncached may have marked
+		// this type as an unsupported fallback, which must not be memoized.
+		if (cacheKey !== undefined && this.isCacheable(type, typeNode, typeId!)) {
 			resolvedTypeCache.set(cacheKey, result);
 		}
 
 		return result;
+	}
+
+	/**
+	 * A single type id can resolve to different model nodes depending on context,
+	 * so memoizing is only safe when none of those influences are in play: an
+	 * associated typeNode can steer alias resolution, active type-parameter
+	 * substitutions change member types, the unsupported fallback emits
+	 * context-specific warnings, and a type currently on the recursion stack would
+	 * cache a shallow placeholder instead of its full shape.
+	 */
+	private isCacheable(type: ts.Type, typeNode: ts.TypeNode | undefined, typeId: number): boolean {
+		const { typeStack, typeParameterSubstitutions } = this.context;
+
+		return (
+			!typeNode &&
+			!typeParameterSubstitutions?.size &&
+			!unsupportedFallbackTypes.has(type) &&
+			!typeStack.includes(typeId)
+		);
 	}
 
 	private resolveUncached(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType {

@@ -174,13 +174,15 @@ The extractor would produce:
 
 ```json
 {
-	"name": "MyComponent",
+	"name": "src/MyComponent",
 	"exports": [
 		{
 			"name": "MyComponent",
 			"type": {
 				"kind": "component",
-				"name": "MyComponent",
+				"typeName": {
+					"name": "MyComponent"
+				},
 				"props": [
 					{
 						"name": "title",

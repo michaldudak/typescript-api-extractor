@@ -1,5 +1,5 @@
 import ts, { FunctionDeclaration } from 'typescript';
-import { type ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import { FunctionNode, type AnyType } from '../../models';
 import { getFullName } from '../common';
 import { TypeName } from '../../models/typeName';
@@ -32,7 +32,7 @@ export function resolveCallableType(
  */
 function buildFunctionNodeFromType(
 	type: ts.Type,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): FunctionNode | undefined {
 	const parsedCallSignatures = type

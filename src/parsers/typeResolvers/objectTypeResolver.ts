@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { getDocumentationFromSymbol } from '../documentationParser';
-import { ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import {
 	ObjectNode,
 	TypeName,
@@ -17,6 +17,10 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
+import {
+	getMappedTypeParameterSubstitutions,
+	substituteTypeParameter,
+} from './mappedTypeSubstitutions';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -55,7 +59,7 @@ export function resolveObjectLikeType(
  */
 function buildIndexSignatureNode(
 	type: ts.Type,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): IndexSignatureNode | undefined {
 	const { checker } = context;
@@ -168,103 +172,18 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
 }
 
-type TypeMapperLike = {
-	source?: ts.Type;
-	target?: ts.Type;
-	sources?: readonly ts.Type[];
-	targets?: readonly ts.Type[];
-	mapper1?: unknown;
-	mapper2?: unknown;
-};
-
-// TypeScript does not expose instantiated mapped-type substitutions publicly.
-// Read the mapper defensively: if its shape changes, we simply get no substitutions.
-function getMappedTypeParameterSubstitutions(type: ts.Type): Map<ts.Symbol, ts.Type> {
-	const substitutions = new Map<ts.Symbol, ts.Type>();
-	const seen = new WeakSet<object>();
-	collectTypeParameterSubstitutions((type as { mapper?: unknown }).mapper, substitutions, seen);
-	return substitutions;
-}
-
-function collectTypeParameterSubstitutions(
-	mapper: unknown,
-	substitutions: Map<ts.Symbol, ts.Type>,
-	seen: WeakSet<object>,
-): void {
-	if (!mapper || typeof mapper !== 'object' || seen.has(mapper)) {
-		return;
-	}
-	seen.add(mapper);
-
-	const mapperLike = mapper as TypeMapperLike;
-	if (isType(mapperLike.source) && isType(mapperLike.target)) {
-		addTypeParameterSubstitution(mapperLike.source, mapperLike.target, substitutions);
-	}
-
-	if (mapperLike.sources && mapperLike.targets) {
-		for (let index = 0; index < mapperLike.sources.length; index += 1) {
-			const source = mapperLike.sources[index];
-			const target = mapperLike.targets[index];
-			if (isType(source) && isType(target)) {
-				addTypeParameterSubstitution(source, target, substitutions);
-			}
-		}
-	}
-
-	collectTypeParameterSubstitutions(mapperLike.mapper1, substitutions, seen);
-	collectTypeParameterSubstitutions(mapperLike.mapper2, substitutions, seen);
-}
-
-function isType(value: unknown): value is ts.Type {
-	return Boolean(value && typeof value === 'object' && 'flags' in value);
-}
-
-function addTypeParameterSubstitution(
-	source: ts.Type,
-	target: ts.Type,
-	substitutions: Map<ts.Symbol, ts.Type>,
-): void {
-	if (!(source.flags & ts.TypeFlags.TypeParameter) || !source.symbol) {
-		return;
-	}
-	substitutions.set(source.symbol, target);
-}
-
-function substituteTypeParameter(
-	type: ts.Type,
-	substitutions: Map<ts.Symbol, ts.Type>,
-	seen: Set<ts.Symbol> = new Set(),
-): ts.Type {
-	if (!(type.flags & ts.TypeFlags.TypeParameter)) {
-		return type;
-	}
-
-	const substitution = type.symbol ? substitutions.get(type.symbol) : undefined;
-	if (
-		!substitution ||
-		substitution === type ||
-		(substitution.flags & ts.TypeFlags.TypeParameter && substitution.symbol === type.symbol)
-	) {
-		return type;
-	}
-	if (type.symbol && seen.has(type.symbol)) {
-		return type;
-	}
-	if (type.symbol) {
-		seen.add(type.symbol);
-	}
-
-	return substituteTypeParameter(substitution, substitutions, seen);
-}
-
 /**
  * Resolve a mapped-type template with the instantiated mapped type's type-parameter
  * mapper, so wrapper aliases propagate their type arguments through nested values.
  */
 function resolveTemplateValueType(
 	type: ts.Type,
-	context: ParserContext,
-	resolve: (type: ts.Type, typeNode: ts.TypeNode | undefined, context: ParserContext) => AnyType,
+	context: ScopedParserContext,
+	resolve: (
+		type: ts.Type,
+		typeNode: ts.TypeNode | undefined,
+		context: ScopedParserContext,
+	) => AnyType,
 	substitutions: Map<ts.Symbol, ts.Type>,
 ): AnyType {
 	const typeParameterSubstitutions = new Map(context.typeParameterSubstitutions);
@@ -285,7 +204,7 @@ function resolveTemplateValueType(
 function buildObjectNodeFromType(
 	type: ts.Type,
 	typeName: TypeName | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
@@ -394,7 +313,7 @@ function isPropertyExternal(property: ts.Symbol): boolean {
 function buildPropertyNodeFromSymbol(
 	propertySymbol: ts.Symbol,
 	propertySignature: ts.PropertySignature | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolvePropertyType: ResolveTypeInContext,
 ): PropertyNode {
 	const { checker } = context;

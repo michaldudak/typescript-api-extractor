@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { afterEach, expect, it, vi } from 'vitest';
-import { type ParserContext } from '../src';
+import { type ScopedParserContext } from '../src/parserContext';
 import { type ExportDescriptor } from '../src/parsers/exportDescriptors';
 import { parseExport } from '../src/parsers/exportParser';
 
@@ -48,7 +48,7 @@ function createDescriptor(
 	};
 }
 
-function createParserContext(): ParserContext {
+function createParserContext(): ScopedParserContext {
 	const parsedSymbolStack: string[] = [];
 	const sourceNodeStack: ts.Node[] = [];
 
@@ -75,7 +75,7 @@ function createParserContext(): ParserContext {
 				}
 			}
 		},
-	} as ParserContext;
+	} as ScopedParserContext;
 }
 
 it('resolves descriptor types in legacy traversal order while preserving emitted order', () => {

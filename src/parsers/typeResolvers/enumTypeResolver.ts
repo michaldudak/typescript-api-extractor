@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import { EnumNode, EnumMember, IntrinsicNode, type AnyType } from '../../models';
 import { getDocumentationFromSymbol } from '../documentationParser';
 import { getTypeNamespaces } from '../common';
@@ -32,7 +32,7 @@ export function resolveEnumLikeType(
 	return buildEnumNodeFromSymbol(symbol, session.context);
 }
 
-function buildEnumNodeFromSymbol(symbol: ts.Symbol, context: ParserContext): EnumNode {
+function buildEnumNodeFromSymbol(symbol: ts.Symbol, context: ScopedParserContext): EnumNode {
 	const { checker } = context;
 
 	return context.runWithSymbolScope(symbol.name, () => {

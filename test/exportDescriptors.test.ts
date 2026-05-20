@@ -1,10 +1,10 @@
 import ts from 'typescript';
 import { expect, it } from 'vitest';
-import { type ParserContext } from '../src';
+import { type ScopedParserContext } from '../src/parserContext';
 import { resolveExportDescriptors } from '../src/parsers/exportDescriptors';
 import { createInMemoryProgram } from './support/inMemoryProgram';
 
-function createDescriptorContext(filePath: string, program: ts.Program): ParserContext {
+function createDescriptorContext(filePath: string, program: ts.Program): ScopedParserContext {
 	const sourceFile = program.getSourceFile(filePath);
 	if (!sourceFile) {
 		throw new Error(`Missing source file: ${filePath}`);
@@ -49,7 +49,7 @@ function createDescriptorContext(filePath: string, program: ts.Program): ParserC
 			_substitutions: Map<ts.Symbol, ts.Type>,
 			callback: () => T,
 		): T => callback(),
-	} as ParserContext;
+	} as ScopedParserContext;
 
 	return context;
 }

@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { type ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import { type AnyType, TypeParameterNode } from '../../models';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 
@@ -10,7 +10,7 @@ import { type ResolveTypeInContext } from '../typeResolutionTypes';
  */
 export function buildSignatureTypeParameterNodes(
 	signature: ts.Signature,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): TypeParameterNode[] | undefined {
 	const typeParams = signature.typeParameters;

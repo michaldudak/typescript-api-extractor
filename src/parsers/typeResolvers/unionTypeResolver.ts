@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { type AnyType, UnionNode } from '../../models';
-import { type ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import { TypeName } from '../../models/typeName';
 import {
 	type ResolveTypeInContext,
@@ -113,7 +113,7 @@ function resolveUnionType(
 	type: ts.UnionType,
 	typeName: TypeName | undefined,
 	typeNode: ts.TypeNode | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolve: ResolveTypeInContext,
 ): AnyType {
 	const { checker } = context;

@@ -1,11 +1,7 @@
 import ts from 'typescript';
 import { afterEach, expect, it, vi } from 'vitest';
-import {
-	parseFromProgram,
-	type ParserContext,
-	type ParserOptions,
-	type ParserWarning,
-} from '../src';
+import { parseFromProgram, type ParserOptions, type ParserWarning } from '../src';
+import { type ScopedParserContext } from '../src/parserContext';
 import { parseExport } from '../src/parsers/exportParser';
 import { createInMemoryProgram } from './support/inMemoryProgram';
 
@@ -295,7 +291,7 @@ it('reports missing enum declarations through onWarning', () => {
 			_substitutions: Map<ts.Symbol, ts.Type>,
 			callback: () => T,
 		): T => callback(),
-	} as unknown as ParserContext;
+	} as unknown as ScopedParserContext;
 
 	parseExport(
 		{

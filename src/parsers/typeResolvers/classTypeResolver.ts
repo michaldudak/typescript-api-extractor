@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { type ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import {
 	ClassNode,
 	ConstructSignature,
@@ -45,7 +45,7 @@ export function resolveClassType(
  */
 function buildClassNodeFromType(
 	type: ts.Type,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): ClassNode | undefined {
 	const constructSignatures = type.getConstructSignatures();
@@ -116,7 +116,7 @@ function extractMembers(
 	isStatic: boolean,
 	properties: ClassProperty[],
 	methods: ClassMethod[],
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): void {
 	const { checker } = context;
@@ -228,7 +228,7 @@ function extractMembers(
 
 function buildConstructSignature(
 	signature: ts.Signature,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): ConstructSignature {
 	const { checker } = context;

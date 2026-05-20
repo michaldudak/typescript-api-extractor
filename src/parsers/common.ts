@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { TypeArgument, TypeName } from '../models/typeName';
 import { resolveType } from './typeResolver';
-import { ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 
 /**
  * Known TypeScript compiler-generated internal symbol names.
@@ -64,7 +64,7 @@ function getQualifiedNameNamespaces(typeNodeName: ts.EntityName): string[] {
 export function getFullName(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): TypeName | undefined {
 	const { checker } = context;
 
@@ -199,7 +199,7 @@ function getTypeArguments(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	typeSymbol: ts.Symbol | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
 

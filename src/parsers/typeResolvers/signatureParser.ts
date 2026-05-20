@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { type ParserContext } from '../../parser';
+import { type ScopedParserContext } from '../../parserContext';
 import { CallSignature, Parameter, type AnyType } from '../../models';
 import { ParserError } from '../../ParserError';
 import { getParameterDocumentationFromSymbol } from '../documentationParser';
@@ -16,7 +16,7 @@ import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes'
  */
 export function parseCallSignature(
 	signature: ts.Signature,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): CallSignature {
 	return new CallSignature(
@@ -35,7 +35,7 @@ export function parseCallSignature(
  */
 export function parseParameter(
 	parameterSymbol: ts.Symbol,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): Parameter {
 	const { checker } = context;
@@ -85,7 +85,7 @@ export function parseParameter(
  */
 export function parseReturnType(
 	signature: ts.Signature,
-	context: ParserContext,
+	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): AnyType {
 	const returnTypeNode = getReturnTypeNode(signature);

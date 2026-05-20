@@ -1,7 +1,7 @@
 import ts from 'typescript';
-import { type ParserContext } from '../parser';
 import { type AnyType } from '../models';
 import { type TypeName } from '../models/typeName';
+import { type ScopedParserContext } from '../parserContext';
 
 // Boundary note: resolver modules choose how a ts.Type enters the model and
 // own pipeline precedence, warning replay, session-aware recursion, and model
@@ -10,10 +10,10 @@ import { type TypeName } from '../models/typeName';
 export type ResolveTypeInContext = (
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ) => AnyType;
 
-export type NameResolutionWarning = Parameters<ParserContext['onWarning']>[0];
+export type NameResolutionWarning = Parameters<ScopedParserContext['onWarning']>[0];
 
 export interface TypeResolutionRequest {
 	type: ts.Type;
@@ -27,7 +27,7 @@ export interface TypeResolutionRequest {
  * orchestration class, which avoids turning the split modules into a cycle.
  */
 export interface TypeResolutionSession {
-	readonly context: ParserContext;
+	readonly context: ScopedParserContext;
 	readonly resolveWithContext: ResolveTypeInContext;
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType;
 }

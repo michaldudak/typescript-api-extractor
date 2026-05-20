@@ -1,24 +1,11 @@
 import ts from 'typescript';
-import { ExportNode, TypeName, type AnyType } from '../models';
+import { ExportNode, TypeName, withTypeName, type AnyType } from '../models';
 import { ParserError } from '../ParserError';
-import { type ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 import { isInternalSymbolName } from './common';
 import { getDocumentationFromSymbol } from './documentationParser';
 import { type ExportDescriptor, resolveExportDescriptors } from './exportDescriptors';
 import { resolveType } from './typeResolver';
-
-/**
- * Returns a shallow copy of a type node with a different typeName.
- * Avoids mutating the original, which may be shared via the resolved-type cache.
- *
- * Example: an anonymous external re-export that resolved as `__type` can be
- * copied with the public export name `Rect`.
- */
-function withTypeName<T extends AnyType>(node: T, typeName: TypeName): T {
-	return Object.assign(Object.create(Object.getPrototypeOf(node) as object), node, {
-		typeName,
-	}) as T;
-}
 
 /**
  * Converts one TypeScript module export symbol into output `ExportNode`s.
@@ -28,7 +15,7 @@ function withTypeName<T extends AnyType>(node: T, typeName: TypeName): T {
  */
 export function parseExport(
 	exportSymbol: ts.Symbol,
-	parserContext: ParserContext,
+	parserContext: ScopedParserContext,
 	parentNamespaces: string[] = [],
 ): ExportNode[] | undefined {
 	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, parentNamespaces);
@@ -70,7 +57,7 @@ function getTypeResolutionOrderedDescriptors(descriptors: ExportDescriptor[]): E
  */
 function createExportNodesFromDescriptor(
 	descriptor: ExportDescriptor,
-	parserContext: ParserContext,
+	parserContext: ScopedParserContext,
 ): ExportNode[] | undefined {
 	return runWithSymbolScopes(parserContext, descriptor.symbolScope, () => {
 		try {
@@ -154,7 +141,7 @@ function applyExportTypeNameContext<T extends AnyType>(
  * both entries while type-resolution warnings are produced.
  */
 function runWithSymbolScopes<T>(
-	parserContext: ParserContext,
+	parserContext: ScopedParserContext,
 	symbolScope: string[],
 	callback: () => T,
 ): T {

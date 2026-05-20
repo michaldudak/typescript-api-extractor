@@ -1,11 +1,25 @@
 import ts from 'typescript';
-import { ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
+}
+
+/**
+ * Threaded context shared by every descriptor resolver. `context` and
+ * `resolutionState` stay stable for a whole top-level resolution, while
+ * `parentNamespaces` and `symbolScope` grow as the resolver descends into
+ * namespace members. Bundling them keeps the recursive call sites from
+ * threading the same four positional arguments through every helper.
+ */
+interface ExportDescriptorScope {
+	context: ScopedParserContext;
+	parentNamespaces: string[];
+	symbolScope: string[];
+	resolutionState: ExportDescriptorResolutionState;
 }
 
 /**
@@ -49,17 +63,29 @@ export interface ExportDescriptor {
  * Example: `export namespace Dialog { export type Props = ... }` returns
  * descriptors for the namespace members rather than an output node for the
  * namespace declaration itself.
+ *
+ * @param exportSymbol Module-level export symbol being normalized; its name becomes the public descriptor name.
+ * @param context Parser context providing the TypeScript checker and scope helpers.
+ * @param parentNamespaces Namespace path inherited from enclosing namespace exports, prefixed onto the public name.
+ * @param parentSymbolScope Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata.
+ * @param resolutionState Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order.
  */
 export function resolveExportDescriptors(
 	exportSymbol: ts.Symbol,
-	context: ParserContext,
+	context: ScopedParserContext,
 	parentNamespaces: string[] = [],
 	parentSymbolScope: string[] = [],
 	resolutionState: ExportDescriptorResolutionState = { nextTypeResolutionOrder: 0 },
 ): ExportDescriptor[] | undefined {
 	return context.runWithSymbolScope(exportSymbol.name, () => {
 		try {
-			const symbolScope = [...parentSymbolScope, exportSymbol.name];
+			const scope: ExportDescriptorScope = {
+				context,
+				parentNamespaces,
+				symbolScope: [...parentSymbolScope, exportSymbol.name],
+				resolutionState,
+			};
+
 			const declarations = exportSymbol.declarations;
 			if (!declarations || declarations.length === 0) {
 				return;
@@ -69,10 +95,7 @@ export function resolveExportDescriptors(
 			const namespaceDescriptors = resolveMergedNamespaceDescriptors(
 				exportSymbol,
 				exportSymbol.name,
-				context,
-				parentNamespaces,
-				symbolScope,
-				resolutionState,
+				scope,
 			);
 
 			if (ts.isModuleDeclaration(exportDeclaration)) {
@@ -80,34 +103,22 @@ export function resolveExportDescriptors(
 			}
 
 			if (ts.isNamespaceExport(exportDeclaration)) {
-				return resolveNamespaceExportDescriptors(
-					exportSymbol,
-					context,
-					parentNamespaces,
-					symbolScope,
-					resolutionState,
-				);
+				return resolveNamespaceExportDescriptors(exportSymbol, scope);
 			}
 
 			if (ts.isExportSpecifier(exportDeclaration)) {
 				return resolveExportSpecifierDescriptors(
 					exportSymbol,
 					exportDeclaration,
-					context,
-					parentNamespaces,
-					symbolScope,
+					scope,
 					namespaceDescriptors,
-					resolutionState,
 				);
 			}
 
 			const mainDescriptor = resolveDeclarationExportDescriptor(
 				exportSymbol,
 				exportDeclaration,
-				context,
-				parentNamespaces,
-				symbolScope,
-				resolutionState,
+				scope,
 			);
 
 			return withNamespaceDescriptors(mainDescriptor, namespaceDescriptors);
@@ -126,28 +137,21 @@ export function resolveExportDescriptors(
  *
  * Example: `export * as Component from './parts'` gives every member from
  * `./parts` the parent namespace `Component`.
+ *
+ * @param exportSymbol The `export * as Name` alias symbol.
+ * @param scope Current resolution scope (checker/scope helpers, namespace path, symbol scope, order counter).
  */
 function resolveNamespaceExportDescriptors(
 	exportSymbol: ts.Symbol,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor[] | undefined {
-	const aliasedSymbol = context.checker.getAliasedSymbol(exportSymbol);
+	const aliasedSymbol = scope.context.checker.getAliasedSymbol(exportSymbol);
 	if (!aliasedSymbol) {
 		return;
 	}
 
 	return asNonEmptyDescriptors(
-		resolveNamespaceMemberDescriptors(
-			aliasedSymbol,
-			exportSymbol.name,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		),
+		resolveNamespaceMemberDescriptors(aliasedSymbol, exportSymbol.name, scope),
 	);
 }
 
@@ -157,16 +161,19 @@ function resolveNamespaceExportDescriptors(
  * Example: `export { ComponentRoot as Root } from './root'` targets the
  * `ComponentRoot` symbol, records `reexportedFrom: 'ComponentRoot'`, and keeps
  * the public descriptor name `Root`.
+ *
+ * @param exportSymbol The export specifier's public symbol (the `as` name).
+ * @param exportDeclaration The export specifier declaration being normalized.
+ * @param scope Current resolution scope.
+ * @param namespaceDescriptors Descriptors already collected for namespaces merged onto this symbol.
  */
 function resolveExportSpecifierDescriptors(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ExportSpecifier,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
+	scope: ExportDescriptorScope,
 	namespaceDescriptors: ExportDescriptor[],
-	resolutionState: ExportDescriptorResolutionState,
 ): ExportDescriptor[] | undefined {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const targetSymbol = resolveExportSpecifierTarget(exportSymbol, exportDeclaration, context);
 	if (!targetSymbol) {
 		return withNamespaceDescriptors(undefined, namespaceDescriptors);
@@ -175,10 +182,7 @@ function resolveExportSpecifierDescriptors(
 	const targetNamespaceDescriptors = resolveMergedNamespaceDescriptors(
 		targetSymbol,
 		exportSymbol.name,
-		context,
-		parentNamespaces,
-		symbolScope,
-		resolutionState,
+		scope,
 	);
 	const isReExport = isModuleReExportSpecifier(exportDeclaration);
 	const reexportedFrom =
@@ -204,79 +208,38 @@ function resolveExportSpecifierDescriptors(
  *
  * Example: `export interface Props {}` is routed to the interface builder,
  * while `export type Mode = 'a' | 'b'` is routed to the type-alias builder.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The symbol's primary declaration, used to pick the matching builder.
+ * @param scope Current resolution scope.
  */
 function resolveDeclarationExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.Declaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
 	if (ts.isExportAssignment(exportDeclaration)) {
-		return resolveDefaultExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveDefaultExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 
 	if (ts.isVariableDeclaration(exportDeclaration) || ts.isFunctionDeclaration(exportDeclaration)) {
-		return resolveValueExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveValueExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 
 	if (ts.isInterfaceDeclaration(exportDeclaration)) {
-		return resolveInterfaceExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveInterfaceExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 
 	if (ts.isEnumDeclaration(exportDeclaration)) {
-		return resolveEnumExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveEnumExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 
 	if (ts.isClassDeclaration(exportDeclaration)) {
-		return resolveClassExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveClassExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 
 	if (ts.isTypeAliasDeclaration(exportDeclaration)) {
-		return resolveTypeAliasExportDescriptor(
-			exportSymbol,
-			exportDeclaration,
-			context,
-			parentNamespaces,
-			symbolScope,
-			resolutionState,
-		);
+		return resolveTypeAliasExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
 }
 
@@ -285,15 +248,17 @@ function resolveDeclarationExportDescriptor(
  *
  * Example: `export default Button` resolves the symbol at `Button` and emits a
  * descriptor using the compiler's synthetic default export name.
+ *
+ * @param exportSymbol The synthetic default export symbol.
+ * @param exportDeclaration The `export default` assignment.
+ * @param scope Current resolution scope.
  */
 function resolveDefaultExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ExportAssignment,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.expression);
 	if (!exportedSymbol) {
 		warnMissingDefaultExportSymbol(exportDeclaration, context);
@@ -315,19 +280,21 @@ function resolveDefaultExportDescriptor(
  *
  * Example: `export const useThing = ...` and `export function useThing() {}`
  * both resolve their declaration name and use `getTypeOfSymbol`.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The exported variable or function declaration.
+ * @param scope Current resolution scope.
  */
 function resolveValueExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.VariableDeclaration | ts.FunctionDeclaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
 	if (!exportDeclaration.name) {
 		return;
 	}
 
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
 		return;
@@ -348,15 +315,17 @@ function resolveValueExportDescriptor(
  *
  * Example: `export interface AlertProps extends Dialog.Props {}` keeps
  * `extendsTypes` so consumers can see the authored inheritance relationship.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The interface declaration whose heritage clauses supply `extends` metadata.
+ * @param scope Current resolution scope.
  */
 function resolveInterfaceExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.InterfaceDeclaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
 		return;
@@ -379,15 +348,17 @@ function resolveInterfaceExportDescriptor(
  *
  * Example: `export enum Side { Start }` resolves through the enum declaration
  * before model construction.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The enum declaration.
+ * @param scope Current resolution scope.
  */
 function resolveEnumExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.EnumDeclaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
 		return;
@@ -414,19 +385,21 @@ function resolveEnumExportDescriptor(
  *
  * Example: `export class Dialog {}` uses `getTypeOfSymbol` so construct
  * signatures are available to the class resolver.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The class declaration, resolved as a constructor type.
+ * @param scope Current resolution scope.
  */
 function resolveClassExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ClassDeclaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
 	if (!exportDeclaration.name) {
 		return;
 	}
 
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
 		return;
@@ -447,15 +420,17 @@ function resolveClassExportDescriptor(
  *
  * Example: `export type Value = 'a' | 'b'` stores the union syntax node so the
  * type resolver can preserve authored union structure and aliases.
+ *
+ * @param exportSymbol The export symbol being normalized.
+ * @param exportDeclaration The type-alias declaration whose `type` node is preserved for resolution.
+ * @param scope Current resolution scope.
  */
 function resolveTypeAliasExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.TypeAliasDeclaration,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor | undefined {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
 		return;
@@ -472,10 +447,18 @@ function resolveTypeAliasExportDescriptor(
 	};
 }
 
+/**
+ * Resolves the symbol an export specifier ultimately targets, following module
+ * re-export aliases when the specifier comes from another module.
+ *
+ * @param exportSymbol The export specifier's public symbol.
+ * @param exportDeclaration The export specifier declaration.
+ * @param context Parser context providing the TypeScript checker.
+ */
 function resolveExportSpecifierTarget(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ExportSpecifier,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): ts.Symbol | undefined {
 	if (!isModuleReExportSpecifier(exportDeclaration)) {
 		return context.checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
@@ -487,10 +470,18 @@ function resolveExportSpecifierTarget(
 		: context.checker.getExportSpecifierLocalTargetSymbol(exportDeclaration);
 }
 
+/**
+ * Acquires the TypeScript type for an export specifier target, preferring the
+ * constructor type for classes and following import aliases to their source.
+ *
+ * @param targetSymbol The symbol the specifier targets.
+ * @param exportDeclaration The export specifier declaration.
+ * @param context Parser context providing the TypeScript checker.
+ */
 function getExportSpecifierType(
 	targetSymbol: ts.Symbol,
 	exportDeclaration: ts.ExportSpecifier,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): ts.Type {
 	const targetDeclaration = targetSymbol.declarations?.[0];
 	if (targetDeclaration && ts.isImportSpecifier(targetDeclaration)) {
@@ -520,13 +511,18 @@ function getExportSpecifierType(
 	return context.checker.getTypeOfSymbol(targetSymbol);
 }
 
+/**
+ * Collects descriptors for any namespace (module) declarations merged onto a
+ * symbol, such as a function or class that also declares a namespace.
+ *
+ * @param namespaceOwnerSymbol Symbol whose declarations may include namespace declarations.
+ * @param namespaceExportName Public name under which the merged members are exposed.
+ * @param scope Current resolution scope.
+ */
 function resolveMergedNamespaceDescriptors(
 	namespaceOwnerSymbol: ts.Symbol,
 	namespaceExportName: string,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor[] {
 	const namespaceDescriptors: ExportDescriptor[] = [];
 	const declarations = namespaceOwnerSymbol.declarations;
@@ -539,34 +535,33 @@ function resolveMergedNamespaceDescriptors(
 			continue;
 		}
 
-		const namespaceSymbol = context.checker.getSymbolAtLocation(declaration.name);
+		const namespaceSymbol = scope.context.checker.getSymbolAtLocation(declaration.name);
 		if (!namespaceSymbol) {
 			continue;
 		}
 
 		namespaceDescriptors.push(
-			...resolveNamespaceMemberDescriptors(
-				namespaceSymbol,
-				namespaceExportName,
-				context,
-				parentNamespaces,
-				symbolScope,
-				resolutionState,
-			),
+			...resolveNamespaceMemberDescriptors(namespaceSymbol, namespaceExportName, scope),
 		);
 	}
 
 	return namespaceDescriptors;
 }
 
+/**
+ * Normalizes every member exported from a namespace symbol, prepending the
+ * namespace name onto each member's namespace path.
+ *
+ * @param namespaceSymbol Namespace symbol whose module exports become member descriptors.
+ * @param namespaceExportName Public name prepended to each member's namespace path.
+ * @param scope Current resolution scope.
+ */
 function resolveNamespaceMemberDescriptors(
 	namespaceSymbol: ts.Symbol,
 	namespaceExportName: string,
-	context: ParserContext,
-	parentNamespaces: string[],
-	symbolScope: string[],
-	resolutionState: ExportDescriptorResolutionState,
+	scope: ExportDescriptorScope,
 ): ExportDescriptor[] {
+	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const namespaceMembers = context.checker.getExportsOfModule(namespaceSymbol);
 	const descriptors: ExportDescriptor[] = [];
 
@@ -586,10 +581,22 @@ function resolveNamespaceMemberDescriptors(
 	return descriptors;
 }
 
+/**
+ * Returns the next type-resolution order value and advances the shared counter.
+ *
+ * @param state Shared resolution state holding the next order value.
+ */
 function getNextTypeResolutionOrder(state: ExportDescriptorResolutionState): number {
 	return state.nextTypeResolutionOrder++;
 }
 
+/**
+ * Combines an owner descriptor with its merged namespace descriptors, returning
+ * undefined when nothing was produced.
+ *
+ * @param mainDescriptor The owner export's descriptor, if one was produced.
+ * @param namespaceDescriptors Descriptors collected for merged namespace members.
+ */
 function withNamespaceDescriptors(
 	mainDescriptor: ExportDescriptor | undefined,
 	namespaceDescriptors: ExportDescriptor[],
@@ -600,10 +607,21 @@ function withNamespaceDescriptors(
 	return asNonEmptyDescriptors(descriptors);
 }
 
+/**
+ * Returns the descriptor list, or undefined when it is empty.
+ *
+ * @param descriptors Candidate descriptor list.
+ */
 function asNonEmptyDescriptors(descriptors: ExportDescriptor[]): ExportDescriptor[] | undefined {
 	return descriptors.length > 0 ? descriptors : undefined;
 }
 
+/**
+ * Returns whether an export specifier re-exports from another module
+ * (`export { x } from './other'`) rather than re-exporting a local binding.
+ *
+ * @param exportDeclaration The export specifier declaration.
+ */
 function isModuleReExportSpecifier(exportDeclaration: ts.ExportSpecifier): boolean {
 	return (
 		ts.isExportDeclaration(exportDeclaration.parent.parent) &&
@@ -611,10 +629,18 @@ function isModuleReExportSpecifier(exportDeclaration: ts.ExportSpecifier): boole
 	);
 }
 
+/**
+ * Emits the recoverable warning for an enum symbol that has no usable
+ * declaration, so the export can be skipped without aborting parsing.
+ *
+ * @param exportedSymbol The enum symbol missing a declaration.
+ * @param exportDeclaration The enum declaration providing the warning location.
+ * @param context Parser context used to format and dispatch the warning.
+ */
 function warnMissingEnumDeclaration(
 	exportedSymbol: ts.Symbol,
 	exportDeclaration: ts.EnumDeclaration,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): void {
 	const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
 		exportDeclaration.getStart(context.sourceFile),
@@ -631,9 +657,16 @@ function warnMissingEnumDeclaration(
 	});
 }
 
+/**
+ * Emits the recoverable warning for a default export whose expression has no
+ * resolvable symbol, so the export can be skipped without aborting parsing.
+ *
+ * @param exportDeclaration The `export default` assignment providing the warning location.
+ * @param context Parser context used to format and dispatch the warning.
+ */
 function warnMissingDefaultExportSymbol(
 	exportDeclaration: ts.ExportAssignment,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): void {
 	const expression = exportDeclaration.expression;
 	const { line, character } = context.sourceFile.getLineAndCharacterOfPosition(
@@ -658,6 +691,9 @@ function warnMissingDefaultExportSymbol(
  *
  * For utility types like Omit, Pick, Partial, etc., extracts the first type argument
  * as the base type being extended.
+ *
+ * @param heritageClauses The declaration's heritage clauses, or undefined when it has none.
+ * @param checker TypeScript checker used to resolve extended type symbols.
  */
 function extractExtendsTypes(
 	heritageClauses: ts.NodeArray<ts.HeritageClause> | undefined,
@@ -728,6 +764,9 @@ function extractExtendsTypes(
  * Resolves the underlying symbol for a type, following type alias chains.
  * For generic type aliases like `type Props<T> = DialogProps<T>`, this returns
  * the symbol for `DialogProps` rather than `Props`.
+ *
+ * @param type The type whose underlying alias symbol is resolved.
+ * @param checker TypeScript checker used to follow alias chains.
  */
 function resolveUnderlyingSymbol(type: ts.Type, checker: ts.TypeChecker): ts.Symbol | undefined {
 	const symbol = type.aliasSymbol ?? type.symbol;

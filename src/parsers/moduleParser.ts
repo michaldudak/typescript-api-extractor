@@ -1,7 +1,7 @@
 import path from 'node:path';
 import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
-import { ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 import { parseExport } from './exportParser';
 import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
@@ -79,7 +79,7 @@ function resolveModuleSpecifier(
 	return undefined;
 }
 
-export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): ModuleNode {
+export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserContext): ModuleNode {
 	const { checker, compilerOptions } = context;
 
 	return context.runWithSymbolScope(sourceFile.fileName, () => {
@@ -118,15 +118,11 @@ export function parseModule(sourceFile: ts.SourceFile, context: ParserContext): 
 					}
 				}
 
-				const parsedExport = parseExport(exportedSymbol, context);
-				if (!parsedExport) {
+				const parsedExports = parseExport(exportedSymbol, context);
+				if (!parsedExports) {
 					continue;
 				}
-				if (Array.isArray(parsedExport)) {
-					parsedModuleExports.push(...parsedExport);
-				} else {
-					parsedModuleExports.push(parsedExport);
-				}
+				parsedModuleExports.push(...parsedExports);
 			}
 
 			parsedModuleExports = applyExportTransforms(parsedModuleExports, context);

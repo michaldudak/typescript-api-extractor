@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { type AnyType } from '../models';
-import { type ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 import { TypeResolutionSession } from './typeResolutionSession';
 
 /**
@@ -15,7 +15,7 @@ import { TypeResolutionSession } from './typeResolutionSession';
 export function resolveType(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): AnyType {
 	return new TypeResolutionSession(context).resolve(type, typeNode);
 }
