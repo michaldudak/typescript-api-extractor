@@ -100,7 +100,10 @@ interface ParserOptions {
 	onWarning?: (warning: ParserWarning) => void;
 }
 
-type ParserWarning = UnsupportedTypeFallbackWarning | MissingEnumDeclarationWarning;
+type ParserWarning =
+	| UnsupportedTypeFallbackWarning
+	| MissingEnumDeclarationWarning
+	| MissingDefaultExportSymbolWarning;
 
 interface ParserWarningBase {
 	message: string;
@@ -120,6 +123,11 @@ interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
 interface MissingEnumDeclarationWarning extends ParserWarningBase {
 	code: 'missing-enum-declaration';
 	enumName: string;
+}
+
+interface MissingDefaultExportSymbolWarning extends ParserWarningBase {
+	code: 'missing-default-export-symbol';
+	sourceText: string;
 }
 ```
 
@@ -210,15 +218,35 @@ resolver pipeline: each one chooses whether a TypeScript type shape applies and
 constructs the corresponding output model node. Shared helpers exist only for
 substructures that are reused across multiple type classes.
 
+### Architecture Principles
+
+- Keep normalization and construction as separate phases. Export parsing first
+  creates `ExportDescriptor` records, then converts them into `ExportNode`
+  models once export targeting, namespace metadata, and re-export metadata are
+  stable.
+- Keep type resolution as an ordered pipeline. Resolver order is observable for
+  overlapping TypeScript shapes, so broad fallback resolvers should stay behind
+  more specific resolvers.
+- Keep parser context scoped. Parser code should use `ParserContext` scope
+  helpers for symbol stacks, source-node stacks, and type-parameter
+  substitutions instead of mutating ambient parser state directly.
+- Keep model policy centralized. Type model classes are DTO-like and can render
+  themselves, while compound normalization and structural equivalence live in
+  dedicated model helpers.
+
 ### Entry Points
 
 - `src/parsers/moduleParser.ts` and `src/parsers/exportParser.ts` walk source files
   and exported declarations.
-- `src/parsers/componentParser.ts` contains React component-specific extraction.
 - `src/parsers/exportDescriptors.ts` normalizes export symbols into
   `ExportDescriptor` records before any output model nodes are built. It owns
   export-specifier targeting, namespace merging, re-export metadata, export type
   acquisition, and recoverable export warnings.
+- `src/parsers/exportTransforms.ts` applies post-export transforms after generic
+  export nodes are built. Today it runs the React component transform from
+  `componentParser.ts`.
+- `src/parsers/componentParser.ts` contains React component-specific extraction
+  and should remain a transform policy rather than a generic export parser.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.
@@ -291,17 +319,19 @@ type resolution, it should use the active resolver callback from the current
 - `src/models/typeCanonicalizer.ts` owns compound member normalization such as
   flattening nested compounds, simplifying boolean literal unions, removing
   redundant `never`, keeping nullish members at the end, and deduplicating
-  members.
+  members. It exports the singleton `typeCanonicalizer`; the implementation
+  class is internal so callers use one shared normalization policy.
 - `src/models/typeEquivalence.ts` owns structural equivalence checks used by
   canonicalization, including the intentional rule that unaliased `any` can act
-  as a wildcard when choosing between duplicate generated signatures.
+  as a wildcard when choosing between duplicate generated signatures. It exports
+  the singleton `typeEquivalenceChecker`; the implementation class is internal.
 
 ### Shared Parser Helpers
 
 - `common.ts` contains TypeScript name and type-argument helpers shared across
   parser layers.
-- `documentationParser.ts` converts TypeScript documentation and JSDoc metadata
-  into model documentation nodes.
+- `documentationParser.ts` converts TypeScript documentation, JSDoc metadata, and
+  parameter documentation into model documentation nodes.
 
 ## Requirements
 

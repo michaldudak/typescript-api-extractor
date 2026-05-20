@@ -34,6 +34,7 @@ export function createInMemoryProgram(
 	};
 	const host = ts.createCompilerHost(compilerOptions);
 	const getSourceFile = host.getSourceFile.bind(host);
+	const directoryExists = host.directoryExists?.bind(host);
 
 	host.getSourceFile = (sourceFileName, languageVersion, onError, shouldCreateNewSourceFile) => {
 		const sourceText = files[sourceFileName];
@@ -46,8 +47,28 @@ export function createInMemoryProgram(
 	host.fileExists = (sourceFileName) =>
 		files[sourceFileName] !== undefined || ts.sys.fileExists(sourceFileName);
 	host.readFile = (sourceFileName) => files[sourceFileName] ?? ts.sys.readFile(sourceFileName);
-	host.resolveModuleNames = (moduleNames, containingFile) =>
-		moduleNames.map((moduleName) => resolveInMemoryModule(moduleName, containingFile, files));
+	host.directoryExists = (directoryName) =>
+		hasInMemoryFileInDirectory(directoryName, files) ||
+		directoryExists?.(directoryName) ||
+		ts.sys.directoryExists(directoryName);
+	host.resolveModuleNameLiterals = (
+		moduleLiterals,
+		containingFile,
+		redirectedReference,
+		resolutionOptions = compilerOptions,
+		containingSourceFile,
+	) =>
+		moduleLiterals.map((moduleLiteral) =>
+			resolveModule(
+				moduleLiteral.text,
+				containingFile,
+				files,
+				resolutionOptions,
+				host,
+				redirectedReference,
+				ts.getModeForUsageLocation(containingSourceFile, moduleLiteral, resolutionOptions),
+			),
+		);
 
 	return ts.createProgram(rootNames, compilerOptions, host);
 }
@@ -56,18 +77,59 @@ function resolveInMemoryModule(
 	moduleName: string,
 	containingFile: string,
 	files: InMemoryFiles,
-): ts.ResolvedModuleFull | undefined {
+): ts.ResolvedModuleWithFailedLookupLocations | undefined {
 	for (const extension of supportedExtensions) {
 		const candidate = path.resolve(path.dirname(containingFile), `${moduleName}${extension}`);
 		if (files[candidate] !== undefined) {
 			return {
-				resolvedFileName: candidate,
-				extension: extensionKinds[extension],
+				resolvedModule: {
+					resolvedFileName: candidate,
+					extension: extensionKinds[extension],
+				},
 			};
 		}
 	}
 
 	return undefined;
+}
+
+function resolveModule(
+	moduleName: string,
+	containingFile: string,
+	files: InMemoryFiles,
+	compilerOptions: ts.CompilerOptions,
+	host: ts.ModuleResolutionHost,
+	redirectedReference: ts.ResolvedProjectReference | undefined,
+	resolutionMode: ts.ResolutionMode,
+): ts.ResolvedModuleWithFailedLookupLocations {
+	const inMemoryModule = resolveInMemoryModule(moduleName, containingFile, files);
+	if (inMemoryModule) {
+		return inMemoryModule;
+	}
+
+	// The in-memory lookup only covers simple relative virtual files. Delegate
+	// everything else back to TypeScript so package imports, `paths` mappings,
+	// and lib resolution behave the same way they do in real programs.
+	return ts.resolveModuleName(
+		moduleName,
+		containingFile,
+		compilerOptions,
+		host,
+		undefined,
+		redirectedReference,
+		resolutionMode,
+	);
+}
+
+function hasInMemoryFileInDirectory(directoryName: string, files: InMemoryFiles): boolean {
+	const normalizedDirectoryName = path.resolve(directoryName);
+
+	// TypeScript's resolver checks directories before probing candidate files.
+	// Virtual path-mapped modules therefore need their containing directories to
+	// exist from the resolver's point of view, even though they are not on disk.
+	return Object.keys(files).some((fileName) =>
+		path.resolve(fileName).startsWith(`${normalizedDirectoryName}${path.sep}`),
+	);
 }
 
 const supportedExtensions = ['.ts', '.tsx', '.d.ts'] as const;

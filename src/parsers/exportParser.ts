@@ -122,28 +122,29 @@ function applyExportTypeNameContext<T extends AnyType>(
 		return parsedType;
 	}
 
-	const oldTypeName = (parsedType as { typeName: TypeName | undefined }).typeName;
+	let typeName = (parsedType as { typeName: TypeName | undefined }).typeName;
+	let typeNameChanged = false;
 
 	// Fix type names for resolved anonymous/internal symbols. Re-exported aliases
 	// can otherwise lose their authored export name and surface as `__type`.
-	if (oldTypeName?.name != null && isInternalSymbolName(oldTypeName.name)) {
-		return withTypeName(
-			parsedType,
-			new TypeName(descriptor.name, oldTypeName.namespaces, oldTypeName.typeArguments),
-		);
+	if (typeName?.name != null && isInternalSymbolName(typeName.name)) {
+		typeName = new TypeName(descriptor.name, typeName.namespaces, typeName.typeArguments);
+		typeNameChanged = true;
 	}
 
 	// Namespace exports define a new public reference path, so the exported node
 	// should use the namespace context even when the underlying type came from
 	// another module or declaration name.
 	if (descriptor.parentNamespaces.length > 0) {
-		return withTypeName(
-			parsedType,
-			new TypeName(descriptor.name, descriptor.parentNamespaces, oldTypeName?.typeArguments),
-		);
+		// Apply namespace context after anonymous-name repair. The old sequential
+		// export parser first replaced `__type` with the public member name and
+		// then overwrote the namespace, so `export * as NS` exposed `NS.member`
+		// even for anonymous external object declarations.
+		typeName = new TypeName(descriptor.name, descriptor.parentNamespaces, typeName?.typeArguments);
+		typeNameChanged = true;
 	}
 
-	return parsedType;
+	return typeNameChanged && typeName ? withTypeName(parsedType, typeName) : parsedType;
 }
 
 /**
