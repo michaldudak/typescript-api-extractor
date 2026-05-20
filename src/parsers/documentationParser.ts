@@ -1,6 +1,11 @@
 import ts from 'typescript';
 import { Documentation, DocumentationTag } from '../models';
 
+/**
+ * Reads documentation for a symbol, preferring its first declaration's JSDoc and
+ * falling back to the checker's resolved documentation comment (e.g. for symbols
+ * whose own declarations are not directly annotated).
+ */
 export function getDocumentationFromSymbol(
 	symbol: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
@@ -18,6 +23,11 @@ export function getDocumentationFromSymbol(
 	return comment ? new Documentation(comment) : undefined;
 }
 
+/**
+ * Extracts the description, `@default`, visibility, and remaining custom tags from
+ * a node's JSDoc. Only a single JSDoc block is consumed; `@param` and visibility
+ * tags are handled elsewhere and excluded from the generic tag list.
+ */
 export function getDocumentationFromNode(node: ts.Node): Documentation | undefined {
 	const comments = ts.getJSDocCommentsAndTags(node);
 	if (comments && comments.length === 1) {

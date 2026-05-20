@@ -46,5 +46,10 @@ export interface TypeResolver {
 	 * and index-like fallbacks that resolve to a different underlying type.
 	 */
 	replayNameResolutionWarnings?: boolean;
+	/**
+	 * Attempts to resolve the request's `ts.Type` into a model node. Returns
+	 * `undefined` to decline, which lets the pipeline fall through to the next
+	 * resolver; this is how precedence between overlapping TypeScript shapes works.
+	 */
 	resolve(request: TypeResolutionRequest, session: TypeResolutionSession): AnyType | undefined;
 }

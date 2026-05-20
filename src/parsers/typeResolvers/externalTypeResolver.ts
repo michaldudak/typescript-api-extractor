@@ -30,6 +30,11 @@ const allowedBuiltInReactTypes = new Set([
 // resolvers prevents node_modules heuristics from leaking into object/function
 // parsing.
 
+/**
+ * Summarizes a type defined in an external package as an opaque ExternalTypeNode
+ * reference, preserving the authored name. Declines (returns undefined) when
+ * `includeExternalTypes` is set or the type is local, so it is expanded normally.
+ */
 export function resolveExternalType(
 	{ type, typeName }: TypeResolutionRequest,
 	session: TypeResolutionSession,

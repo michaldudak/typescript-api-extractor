@@ -79,6 +79,11 @@ function resolveModuleSpecifier(
 	return undefined;
 }
 
+/**
+ * Parses a source file into a ModuleNode: resolves every module export, drops
+ * values re-exported through `export type *`, then applies post-parse export
+ * transforms such as the React component transform.
+ */
 export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserContext): ModuleNode {
 	const { checker, compilerOptions } = context;
 

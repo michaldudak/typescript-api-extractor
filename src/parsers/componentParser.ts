@@ -21,6 +21,11 @@ function isReactReturnType(type: ExternalTypeNode) {
 	return componentReturnTypes.some((regex) => regex.test(type.typeName?.name ?? ''));
 }
 
+/**
+ * Rewrites a function export into a ComponentNode when it looks like a React
+ * component (see `isComponentExport`), squashing the props parameter of every
+ * call signature into one merged prop list. Non-component exports pass through.
+ */
 export function transformComponentExport(node: ExportNode, context: ParserContext): ExportNode {
 	if (!isComponentExport(node)) {
 		return node;
@@ -29,6 +34,10 @@ export function transformComponentExport(node: ExportNode, context: ParserContex
 	return node.withType(createComponentNode(node.type, context));
 }
 
+/**
+ * Heuristic for whether an export is a React component: a function whose name is
+ * capitalized (or `default`) and whose return type looks like a React node.
+ */
 export function isComponentExport(node: ExportNode): node is FunctionExportNode {
 	return (
 		node.type instanceof FunctionNode &&

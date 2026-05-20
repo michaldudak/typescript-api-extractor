@@ -11,10 +11,18 @@ import {
 } from '../models';
 import { TypeName } from '../models/typeName';
 
+/**
+ * Returns true only when every bit of `flag` is set on the type. Use for flags
+ * that must match exactly, as opposed to `includesCompositeFlag`.
+ */
 export function hasExactFlag(type: ts.Type, flag: number) {
 	return (type.flags & flag) === flag;
 }
 
+/**
+ * Returns true when the type has any bit of `flag` set. Use for composite flag
+ * groups such as `Literal` or `EnumLike`, where matching any member is enough.
+ */
 export function includesCompositeFlag(type: ts.Type, flag: number) {
 	return (type.flags & flag) !== 0;
 }

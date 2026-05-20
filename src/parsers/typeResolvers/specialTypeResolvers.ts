@@ -8,6 +8,11 @@ import { hasExactFlag } from '../typeResolutionUtils';
 // substitute a more concrete type, or intentionally fall back to `any` for
 // unsupported internals.
 
+/**
+ * Resolves a bare type parameter `T`. Prefers an active substitution, then a
+ * concrete type recovered from the authored `typeNode`, and otherwise emits a
+ * TypeParameterNode carrying the parameter's constraint and default.
+ */
 export function resolveTypeParameterType(
 	{ type, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
@@ -54,6 +59,11 @@ export function resolveTypeParameterType(
 	);
 }
 
+/**
+ * Resolves a conditional type `T extends X ? A : B`. Since the parser cannot
+ * evaluate the condition in the general case, it emits both resolved branches as
+ * a union (or the single branch TypeScript managed to resolve).
+ */
 export function resolveConditionalType(
 	{ type }: TypeResolutionRequest,
 	session: TypeResolutionSession,
@@ -78,6 +88,11 @@ export function resolveConditionalType(
 	return undefined;
 }
 
+/**
+ * Resolves `keyof T` and indexed-access `T[K]` types, which have no direct model
+ * representation, by expanding their base constraint. Falls back to `any` when the
+ * constraint is unavailable (e.g. unresolved type parameters) — an expected limit.
+ */
 export function resolveIndexLikeType(
 	{ type, typeName }: TypeResolutionRequest,
 	session: TypeResolutionSession,
@@ -98,6 +113,11 @@ export function resolveIndexLikeType(
 	return new IntrinsicNode('any', typeName);
 }
 
+/**
+ * Resolves a checker-internal SubstitutionType (a base type narrowed under a
+ * constraint while TypeScript evaluates conditional/infer types) by probing its
+ * base type and then its constraint, since the substitution has no model form.
+ */
 export function resolveSubstitutionFallback(
 	type: ts.Type,
 	session: TypeResolutionSession,
