@@ -229,9 +229,10 @@ substructures that are reused across multiple type classes.
 - Keep type resolution as an ordered pipeline. Resolver order is observable for
   overlapping TypeScript shapes, so broad fallback resolvers should stay behind
   more specific resolvers.
-- Keep parser context scoped. Parser code should use `ParserContext` scope
-  helpers for symbol stacks, source-node stacks, and type-parameter
-  substitutions instead of mutating ambient parser state directly.
+- Keep parser context scoped. Parser code should use the internal
+  `ScopedParserContext` scope helpers for symbol stacks, source-node stacks, and
+  type-parameter substitutions instead of mutating ambient parser state directly.
+  The public `ParserContext` stays the observable parser state and options shape.
 - Keep model policy centralized. Type model classes are DTO-like and can render
   themselves, while compound normalization and structural equivalence live in
   dedicated model helpers.
@@ -261,10 +262,12 @@ substructures that are reused across multiple type classes.
 - `src/parsers/typeResolutionTypes.ts` defines the contracts shared by the
   resolver pipeline. Resolvers receive a `TypeResolutionRequest` and a
   `TypeResolutionSession`.
-- `ParserContext` exposes scoped parser-context helpers for diagnostic symbol
-  scopes, diagnostic source-node scopes, and temporary type-parameter
-  substitutions. Parser code should use these helpers instead of manually pushing
-  and popping diagnostic stacks or swapping substitution maps.
+- `ScopedParserContext` (in `src/parserContext.ts`) exposes scoped parser-context
+  helpers for diagnostic symbol scopes, diagnostic source-node scopes, and
+  temporary type-parameter substitutions. Parser code should use these helpers
+  instead of manually pushing and popping diagnostic stacks or swapping
+  substitution maps. The public `ParserContext` (exported from `src/parser.ts`)
+  stays focused on observable parser state and options.
 - `src/parsers/typeResolutionDiagnostics.ts` centralizes recoverable fallback
   warnings, including source-location selection and TypeScript flag formatting.
 - `src/parsers/typeResolutionUtils.ts` isolates TypeScript internal API access,
