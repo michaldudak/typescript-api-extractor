@@ -1,13 +1,15 @@
 import { ArrayNode } from './types/array';
 import { ExternalTypeNode } from './types/external';
 import { FunctionNode } from './types/function';
-import { IntersectionNode } from './types/intersection';
 import { IntrinsicNode } from './types/intrinsic';
 import { ObjectNode } from './types/object';
 import { TupleNode } from './types/tuple';
 import { TypeParameterNode } from './types/typeParameter';
-import { UnionNode } from './types/union';
 import { type AnyType } from './node';
+
+// UnionNode and IntersectionNode are matched by `kind` rather than `instanceof`:
+// they construct themselves through typeCanonicalizer, which imports this module,
+// so importing them here would form a module-initialization cycle.
 
 type TypeParameterRenameMap = ReadonlyMap<string, string>;
 type EquivalentTypeName = {
@@ -77,11 +79,11 @@ class TypeEquivalence {
 			return this.areFunctionsEquivalentIgnoringAny(type1, type2, typeParamRenames);
 		}
 
-		if (type1 instanceof UnionNode && type2 instanceof UnionNode) {
+		if (type1.kind === 'union' && type2.kind === 'union') {
 			return this.membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
 		}
 
-		if (type1 instanceof IntersectionNode && type2 instanceof IntersectionNode) {
+		if (type1.kind === 'intersection' && type2.kind === 'intersection') {
 			return this.membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
 		}
 
@@ -228,7 +230,7 @@ class TypeEquivalence {
 			);
 		}
 
-		if (type instanceof UnionNode || type instanceof IntersectionNode) {
+		if (type.kind === 'union' || type.kind === 'intersection') {
 			return type.types.some((member) => this.containsAny(member));
 		}
 

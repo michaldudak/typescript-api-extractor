@@ -1,14 +1,15 @@
 import { type AnyType } from './node';
 import { typeEquivalenceChecker } from './typeEquivalence';
 import { FunctionNode } from './types/function';
-import { IntersectionNode } from './types/intersection';
 import { IntrinsicNode } from './types/intrinsic';
 import { LiteralNode } from './types/literal';
 import { ExternalTypeNode } from './types/external';
 import { TypeParameterNode } from './types/typeParameter';
-import { UnionNode } from './types/union';
 
-type CompoundNodeConstructor = typeof UnionNode | typeof IntersectionNode;
+// UnionNode and IntersectionNode are matched by `kind` rather than imported and
+// checked with `instanceof`: those DTOs canonicalize themselves through this
+// module, so importing them here would form a module-initialization cycle
+// (types/union.ts -> typeCanonicalizer.ts -> types/union.ts).
 
 /**
  * Normalizes compound type members before they are placed in a model DTO.
@@ -17,7 +18,7 @@ type CompoundNodeConstructor = typeof UnionNode | typeof IntersectionNode;
  */
 class TypeCanonicalizer {
 	canonicalizeUnionMembers(types: readonly AnyType[]): AnyType[] {
-		const flatTypes = this.flattenTypes(types, UnionNode);
+		const flatTypes = this.flattenTypes(types, 'union');
 		this.sanitizeBooleanLiterals(flatTypes);
 		this.sanitizeNeverMembers(flatTypes);
 		this.sortMemberTypes(flatTypes);
@@ -25,7 +26,7 @@ class TypeCanonicalizer {
 	}
 
 	canonicalizeIntersectionMembers(types: readonly AnyType[]): AnyType[] {
-		const flatTypes = this.flattenTypes(types, IntersectionNode);
+		const flatTypes = this.flattenTypes(types, 'intersection');
 		this.sortMemberTypes(flatTypes);
 		return this.deduplicateMemberTypes(flatTypes);
 	}
@@ -34,11 +35,11 @@ class TypeCanonicalizer {
 	 * Flattens nested, unaliased compound nodes. Aliased compounds are preserved
 	 * because their TypeName is part of the public API identity.
 	 */
-	flattenTypes(nodes: readonly AnyType[], nodeToProcess: CompoundNodeConstructor): AnyType[] {
+	flattenTypes(nodes: readonly AnyType[], kind: 'union' | 'intersection'): AnyType[] {
 		let flatTypes: AnyType[] = [];
 		nodes.forEach((node) => {
-			if (node instanceof nodeToProcess && !node.typeName) {
-				flatTypes = flatTypes.concat(this.flattenTypes(node.types, nodeToProcess));
+			if (node.kind === kind && !node.typeName) {
+				flatTypes = flatTypes.concat(this.flattenTypes(node.types, kind));
 			} else {
 				flatTypes.push(node);
 			}
