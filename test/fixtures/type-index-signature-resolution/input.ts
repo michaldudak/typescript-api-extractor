@@ -1,3 +1,5 @@
+import { HelperType } from './helper';
+
 // Test index signature types with various key names and patterns
 
 // Basic index signatures
@@ -46,9 +48,6 @@ export function test2(): { [key: string]: number } {
 export function MyComponent(props: { className?: string; [key: string]: unknown }) {
 	return null;
 }
-
-// Imported index signature types (from helper file)
-import { HelperType } from './helper';
 
 export type MyType = HelperType;
 export { HelperType };

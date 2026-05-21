@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 // Base types (simulating Dialog types)
 export interface DialogRootProps<Payload = unknown> {
 	open?: boolean;
@@ -64,6 +66,3 @@ export namespace AlertDialogRoot {
 	export type ChangeEventReason = AlertDialogRootChangeEventReason;
 	export type ChangeEventDetails = AlertDialogRootChangeEventDetails;
 }
-
-// Type import to make React.ReactNode work
-import type * as React from 'react';
