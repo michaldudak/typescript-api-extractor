@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-array-syntax-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "acceptsArrayProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "acceptsArrayProps"
 				},
 				"callSignatures": [
 					{
@@ -95,11 +95,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "acceptsArrayParameters",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "acceptsArrayParameters"
 				},
 				"callSignatures": [
 					{

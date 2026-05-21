@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-object-shape-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "acceptsInlineObjectTypes",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "acceptsInlineObjectTypes"
 				},
 				"callSignatures": [
 					{
@@ -63,11 +63,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "acceptsNamedObjectTypes",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "acceptsNamedObjectTypes"
 				},
 				"callSignatures": [
 					{
@@ -133,11 +133,11 @@
 			}
 		},
 		{
-			"name": "test3",
+			"name": "acceptsObjectProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test3"
+					"name": "acceptsObjectProps"
 				},
 				"callSignatures": [
 					{

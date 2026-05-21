@@ -7,7 +7,7 @@ const DEFAULT_VALUE = 'default';
  * @param withInlineDefault The parameter with a default value.
  * @param withReferencedDefault The parameter with a default value from a constant.
  */
-export function test(
+export function optionalParameters(
 	required: number,
 	optional?: number,
 	withInlineDefault = 42,

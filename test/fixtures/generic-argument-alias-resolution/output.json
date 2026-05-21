@@ -2,11 +2,11 @@
 	"name": "test/fixtures/generic-argument-alias-resolution/input",
 	"exports": [
 		{
-			"name": "test",
+			"name": "acceptsGenericAlias",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test"
+					"name": "acceptsGenericAlias"
 				},
 				"callSignatures": [
 					{

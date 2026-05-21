@@ -13,6 +13,6 @@ export namespace Root {
 	}
 }
 
-export function Component(props: Root.Props) {
+export function NamespacedAliasComponent(props: Root.Props) {
 	return <div />;
 }

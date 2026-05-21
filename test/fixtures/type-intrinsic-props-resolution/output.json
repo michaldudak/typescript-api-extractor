@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-intrinsic-props-resolution/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "IntrinsicPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "IntrinsicPropsComponent"
 				},
 				"props": [
 					{

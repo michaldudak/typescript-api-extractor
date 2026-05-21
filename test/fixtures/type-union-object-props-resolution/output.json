@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-union-object-props-resolution/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "UnionPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "UnionPropsComponent"
 				},
 				"props": [
 					{

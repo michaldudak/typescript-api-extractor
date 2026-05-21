@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function Component(props: Props): React.ReactElement {
+export function LiteralPropsComponent(props: Props): React.ReactElement {
 	return <div>{props.stringLiteral}</div>;
 }
 

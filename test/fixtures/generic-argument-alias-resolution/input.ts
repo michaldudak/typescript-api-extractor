@@ -1,4 +1,4 @@
-export function test(a: GenericObject<MyUnion>) {
+export function acceptsGenericAlias(a: GenericObject<MyUnion>) {
 	return null;
 }
 

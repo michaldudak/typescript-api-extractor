@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-literal-union-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "acceptsLiteralUnionProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "acceptsLiteralUnionProps"
 				},
 				"callSignatures": [
 					{
@@ -267,11 +267,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "acceptsLiteralUnionParameters",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "acceptsLiteralUnionParameters"
 				},
 				"callSignatures": [
 					{
@@ -470,11 +470,11 @@
 			}
 		},
 		{
-			"name": "test3",
+			"name": "acceptsKeyofProp",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test3"
+					"name": "acceptsKeyofProp"
 				},
 				"callSignatures": [
 					{

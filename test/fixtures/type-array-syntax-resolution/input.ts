@@ -1,6 +1,6 @@
-export function test1(params: Params) {}
+export function acceptsArrayProps(params: Params) {}
 
-export function test2(a1: Array<string>, a2: number[]) {}
+export function acceptsArrayParameters(a1: Array<string>, a2: number[]) {}
 
 interface Params {
 	arr1: Array<string>;

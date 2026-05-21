@@ -33,14 +33,14 @@ export interface IndexedInterface {
 }
 
 // Function with index signature parameters
-export function test1(
+export function acceptsIndexSignatures(
 	stringIndex: { [key: string]: number },
 	numberIndex: { [key: number]: string },
 	mixedIndex: { [key: string]: boolean | string },
 ) {}
 
 // Function that returns index signature type
-export function test2(): { [key: string]: number } {
+export function returnsIndexSignature(): { [key: string]: number } {
 	return {};
 }
 

@@ -2,11 +2,11 @@
 	"name": "test/fixtures/namespace-nested-alias-resolution/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "NamespacedAliasComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "NamespacedAliasComponent"
 				},
 				"props": [
 					{

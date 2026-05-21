@@ -6,4 +6,4 @@ class Internal {
 	static staticProp: string = 'hello';
 }
 
-export type T = Internal;
+export type InternalAlias = Internal;

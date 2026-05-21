@@ -2,11 +2,11 @@
 	"name": "test/fixtures/generic-default-argument-resolution/input",
 	"exports": [
 		{
-			"name": "f1",
+			"name": "defaultParam",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f1"
+					"name": "defaultParam"
 				},
 				"callSignatures": [
 					{
@@ -50,11 +50,11 @@
 			}
 		},
 		{
-			"name": "f2",
+			"name": "stringParam",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f2"
+					"name": "stringParam"
 				},
 				"callSignatures": [
 					{
@@ -98,11 +98,11 @@
 			}
 		},
 		{
-			"name": "f3",
+			"name": "numberParam",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f3"
+					"name": "numberParam"
 				},
 				"callSignatures": [
 					{
@@ -146,11 +146,11 @@
 			}
 		},
 		{
-			"name": "f4",
+			"name": "genericParam",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f4"
+					"name": "genericParam"
 				},
 				"callSignatures": [
 					{
@@ -200,11 +200,11 @@
 			}
 		},
 		{
-			"name": "f5",
+			"name": "defaultPair",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f5"
+					"name": "defaultPair"
 				},
 				"callSignatures": [
 					{
@@ -263,11 +263,11 @@
 			}
 		},
 		{
-			"name": "f6",
+			"name": "stringPair",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f6"
+					"name": "stringPair"
 				},
 				"callSignatures": [
 					{
@@ -326,11 +326,11 @@
 			}
 		},
 		{
-			"name": "f7",
+			"name": "numberPair",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f7"
+					"name": "numberPair"
 				},
 				"callSignatures": [
 					{
@@ -389,11 +389,11 @@
 			}
 		},
 		{
-			"name": "f8",
+			"name": "partialStringPair",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f8"
+					"name": "partialStringPair"
 				},
 				"callSignatures": [
 					{
@@ -452,11 +452,11 @@
 			}
 		},
 		{
-			"name": "f9",
+			"name": "partialNumberPair",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "f9"
+					"name": "partialNumberPair"
 				},
 				"callSignatures": [
 					{

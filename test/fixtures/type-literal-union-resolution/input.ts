@@ -1,6 +1,6 @@
-export function test1(parameters: Params) {}
+export function acceptsLiteralUnionProps(parameters: Params) {}
 
-export function test2(
+export function acceptsLiteralUnionParameters(
 	inlineStringUnion: 'foo' | 'bar' | 'baz',
 	inlineNumberUnion: 1 | 2 | 3,
 	referencedStringUnion: StringUnion,
@@ -9,7 +9,7 @@ export function test2(
 	indirectUnion: IndirectStringUnion | undefined,
 ) {}
 
-export function test3(prop: keyof Params) {}
+export function acceptsKeyofProp(prop: keyof Params) {}
 
 interface Params {
 	inlineStringUnion: 'foo' | 'bar' | 'baz';

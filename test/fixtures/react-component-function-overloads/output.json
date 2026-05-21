@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-component-function-overloads/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "OverloadedComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "OverloadedComponent"
 				},
 				"props": [
 					{

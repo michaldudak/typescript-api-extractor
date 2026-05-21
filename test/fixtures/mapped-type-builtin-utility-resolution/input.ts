@@ -6,10 +6,10 @@ interface Base {
 type PartialType = Partial<Base>;
 type RequiredType = Required<Base>;
 
-export function test1(params: PartialType) {}
+export function partialAlias(params: PartialType) {}
 
-export function test2(params: RequiredType) {}
+export function requiredAlias(params: RequiredType) {}
 
-export function test3(params: Partial<Base>) {}
+export function inlinePartial(params: Partial<Base>) {}
 
-export function test4(params: Required<Base>) {}
+export function inlineRequired(params: Required<Base>) {}

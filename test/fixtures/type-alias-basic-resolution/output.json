@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-alias-basic-resolution/input",
 	"exports": [
 		{
-			"name": "fn1",
+			"name": "acceptsAliases",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn1"
+					"name": "acceptsAliases"
 				},
 				"callSignatures": [
 					{
@@ -248,11 +248,11 @@
 			}
 		},
 		{
-			"name": "A",
+			"name": "AliasContainer",
 			"type": {
 				"kind": "object",
 				"typeName": {
-					"name": "A"
+					"name": "AliasContainer"
 				},
 				"properties": [
 					{

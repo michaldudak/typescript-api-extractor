@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-conditional-return-and-props/input",
 	"exports": [
 		{
-			"name": "fn",
+			"name": "conditionalReturn",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn"
+					"name": "conditionalReturn"
 				},
 				"callSignatures": [
 					{
@@ -52,11 +52,11 @@
 			}
 		},
 		{
-			"name": "Component1",
+			"name": "ConditionalPropsComponent",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "Component1"
+					"name": "ConditionalPropsComponent"
 				},
 				"callSignatures": [
 					{

@@ -5,7 +5,7 @@ type ComponentProps<TState, RenderFunctionProps = GenericHTMLProps> = {
 	render?: ComponentRenderFn<RenderFunctionProps, TState>;
 };
 
-export function fn(props: MyComponent.Props) {}
+export function namespacedProps(props: MyComponent.Props) {}
 
 type ComponentRenderFn<Props, State> = (props: Props, state: State) => React.ReactElement<unknown>;
 

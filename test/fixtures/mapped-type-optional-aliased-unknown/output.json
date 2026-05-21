@@ -2,11 +2,11 @@
 	"name": "test/fixtures/mapped-type-optional-aliased-unknown/input",
 	"exports": [
 		{
-			"name": "T",
+			"name": "OptionalUnknownMap",
 			"type": {
 				"kind": "object",
 				"typeName": {
-					"name": "T",
+					"name": "OptionalUnknownMap",
 					"typeArguments": [
 						{
 							"type": {

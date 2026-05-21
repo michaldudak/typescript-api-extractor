@@ -2,11 +2,11 @@
 	"name": "test/fixtures/mapped-type-builtin-utility-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "partialAlias",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "partialAlias"
 				},
 				"callSignatures": [
 					{
@@ -67,11 +67,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "requiredAlias",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "requiredAlias"
 				},
 				"callSignatures": [
 					{
@@ -114,11 +114,11 @@
 			}
 		},
 		{
-			"name": "test3",
+			"name": "inlinePartial",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test3"
+					"name": "inlinePartial"
 				},
 				"callSignatures": [
 					{
@@ -217,11 +217,11 @@
 			}
 		},
 		{
-			"name": "test4",
+			"name": "inlineRequired",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test4"
+					"name": "inlineRequired"
 				},
 				"callSignatures": [
 					{

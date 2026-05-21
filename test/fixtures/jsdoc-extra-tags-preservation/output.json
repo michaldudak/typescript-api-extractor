@@ -2,11 +2,11 @@
 	"name": "test/fixtures/jsdoc-extra-tags-preservation/input",
 	"exports": [
 		{
-			"name": "test",
+			"name": "documentedFunction",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test"
+					"name": "documentedFunction"
 				},
 				"callSignatures": [
 					{
@@ -157,7 +157,7 @@
 				"tags": [
 					{
 						"name": "example",
-						"value": "test();"
+						"value": "documentedFunction();"
 					},
 					{
 						"name": "type",

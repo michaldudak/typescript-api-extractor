@@ -1,1 +1,1 @@
-export function test(params: Record<string, unknown>) {}
+export function acceptsRecord(params: Record<string, unknown>) {}

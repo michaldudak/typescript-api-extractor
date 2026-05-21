@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-props-callback-types/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "CallbackPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "CallbackPropsComponent"
 				},
 				"props": [
 					{

@@ -1,6 +1,6 @@
 export namespace Root {
 	export namespace Sub {
-		export function fn1(params: Params) {}
+		export function nestedParams(params: Params) {}
 
 		export interface Params {
 			s: Grade;
@@ -14,7 +14,7 @@ export namespace Root {
 			bad,
 		}
 
-		export function Component() {
+		export function NestedComponent() {
 			return <div />;
 		}
 
@@ -25,7 +25,7 @@ export namespace Root {
 		}
 	}
 
-	export function fn2() {}
+	export function rootFunction() {}
 
 	export type NamespacedType = OutsideType;
 }
@@ -34,8 +34,8 @@ export namespace Other {
 	export type Orientation = 'horizontal' | 'vertical';
 }
 
-export function fn3(params: Root.Sub.Params) {}
+export function acceptsNestedParams(params: Root.Sub.Params) {}
 
-export function fn4(a: Root.NamespacedType) {}
+export function acceptsNamespacedType(a: Root.NamespacedType) {}
 
 type OutsideType = 'one' | 'two';

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function Component(props: PropsA | PropsB): React.ReactElement {
+export function UnionPropsComponent(props: PropsA | PropsB): React.ReactElement {
 	return <div>{props.matching}</div>;
 }
 

@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-props-literal-types/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "LiteralPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "LiteralPropsComponent"
 				},
 				"props": [
 					{

@@ -2,11 +2,11 @@
 	"name": "test/fixtures/function-parameters-optional-and-defaults/input",
 	"exports": [
 		{
-			"name": "test",
+			"name": "optionalParameters",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test"
+					"name": "optionalParameters"
 				},
 				"callSignatures": [
 					{

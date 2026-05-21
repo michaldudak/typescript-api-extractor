@@ -2,7 +2,7 @@
 	"name": "test/fixtures/class-private-members-type-alias-filtering/input",
 	"exports": [
 		{
-			"name": "T",
+			"name": "InternalAlias",
 			"type": {
 				"kind": "object",
 				"typeName": {

@@ -4,12 +4,12 @@ interface Base {
 	c: number;
 }
 
-export function test1(params: Pick<Base, 'a' | 'b'>) {}
+export function acceptsPickedProps(params: Pick<Base, 'a' | 'b'>) {}
 
-export function test2(params: Omit<Base, 'c'>): number {
+export function acceptsOmittedProps(params: Omit<Base, 'c'>): number {
 	return 1;
 }
 
-export function test3(params: Parameters<typeof test1>) {}
+export function acceptsParameterTuple(params: Parameters<typeof acceptsPickedProps>) {}
 
-export function test4(params: ReturnType<typeof test2>) {}
+export function acceptsReturnType(params: ReturnType<typeof acceptsOmittedProps>) {}

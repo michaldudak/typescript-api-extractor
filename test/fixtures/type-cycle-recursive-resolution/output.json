@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-cycle-recursive-resolution/input",
 	"exports": [
 		{
-			"name": "Test",
+			"name": "recursiveObject",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "Test"
+					"name": "recursiveObject"
 				},
 				"callSignatures": [
 					{

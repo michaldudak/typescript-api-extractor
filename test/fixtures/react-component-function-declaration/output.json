@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-component-function-declaration/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "DeclaredComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "DeclaredComponent"
 				},
 				"props": [
 					{

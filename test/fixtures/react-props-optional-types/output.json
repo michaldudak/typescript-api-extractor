@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-props-optional-types/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "OptionalPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "OptionalPropsComponent"
 				},
 				"props": [
 					{

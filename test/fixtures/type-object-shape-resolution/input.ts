@@ -1,13 +1,13 @@
-export function test1(emptyObject: {}, objectKeyword: object, record: Record<string, any>) {}
+export function acceptsInlineObjectTypes(emptyObject: {}, objectKeyword: object, record: Record<string, any>) {}
 
-export function test2(
+export function acceptsNamedObjectTypes(
 	emptyInterface: EmptyInterface,
 	emptyObject: EmptyObject,
 	objectKeyword: ObjectKeyword,
 	recordType: RecordType,
 ) {}
 
-export function test3(params: Params) {}
+export function acceptsObjectProps(params: Params) {}
 
 interface Params {
 	emptyInterface: EmptyInterface;

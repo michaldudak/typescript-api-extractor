@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-utility-types-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "acceptsPickedProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "acceptsPickedProps"
 				},
 				"callSignatures": [
 					{
@@ -120,11 +120,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "acceptsOmittedProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "acceptsOmittedProps"
 				},
 				"callSignatures": [
 					{
@@ -229,11 +229,11 @@
 			}
 		},
 		{
-			"name": "test3",
+			"name": "acceptsParameterTuple",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test3"
+					"name": "acceptsParameterTuple"
 				},
 				"callSignatures": [
 					{
@@ -352,11 +352,11 @@
 			}
 		},
 		{
-			"name": "test4",
+			"name": "acceptsReturnType",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test4"
+					"name": "acceptsReturnType"
 				},
 				"callSignatures": [
 					{

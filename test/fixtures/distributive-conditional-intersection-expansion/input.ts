@@ -23,7 +23,7 @@ type TabsLikeNoHack = EventDetailsNoHack<'none', { direction: 'left' | 'right' }
 // With & {}:
 type TabsLikeWithHack = EventDetailsWithHack<'none', { direction: 'left' | 'right' }>;
 
-export interface Component {
+export interface EventDetailsHandlers {
 	onNoHack: (details: TabsLikeNoHack) => void;
 	onWithHack: (details: TabsLikeWithHack) => void;
 }

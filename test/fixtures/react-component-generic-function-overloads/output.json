@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-component-generic-function-overloads/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "GenericOverloadedComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component"
+					"name": "GenericOverloadedComponent"
 				},
 				"props": [
 					{

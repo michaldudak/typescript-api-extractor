@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-index-signature-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "acceptsIndexSignatures",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "acceptsIndexSignatures"
 				},
 				"callSignatures": [
 					{
@@ -78,11 +78,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "returnsIndexSignature",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "returnsIndexSignature"
 				},
 				"callSignatures": [
 					{

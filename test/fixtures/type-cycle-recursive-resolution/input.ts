@@ -1,4 +1,4 @@
-export function Test(x: TestObject1<string>): void {}
+export function recursiveObject(x: TestObject1<string>): void {}
 
 export interface TestObject1<T> {
 	obj2: TestObject2<T>;

@@ -1,6 +1,6 @@
 type OriginalType = 0 | 1;
 
-export function Component(props: RootNamespace.Props) {
+export function NamespacedCallbackComponent(props: RootNamespace.Props) {
 	return <div />;
 }
 

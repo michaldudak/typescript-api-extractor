@@ -2,11 +2,11 @@
 	"name": "test/fixtures/namespace-export-resolution/input",
 	"exports": [
 		{
-			"name": "fn3",
+			"name": "acceptsNestedParams",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn3"
+					"name": "acceptsNestedParams"
 				},
 				"callSignatures": [
 					{
@@ -140,11 +140,11 @@
 			}
 		},
 		{
-			"name": "fn4",
+			"name": "acceptsNamespacedType",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn4"
+					"name": "acceptsNamespacedType"
 				},
 				"callSignatures": [
 					{
@@ -180,11 +180,11 @@
 			}
 		},
 		{
-			"name": "Root.fn2",
+			"name": "Root.rootFunction",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn2",
+					"name": "rootFunction",
 					"namespaces": ["Root"]
 				},
 				"callSignatures": [
@@ -199,11 +199,11 @@
 			}
 		},
 		{
-			"name": "Root.Sub.fn1",
+			"name": "Root.Sub.nestedParams",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn1",
+					"name": "nestedParams",
 					"namespaces": ["Root", "Sub"]
 				},
 				"callSignatures": [
@@ -338,11 +338,11 @@
 			}
 		},
 		{
-			"name": "Root.Sub.Component",
+			"name": "Root.Sub.NestedComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Component",
+					"name": "NestedComponent",
 					"namespaces": ["Root", "Sub"]
 				},
 				"props": []

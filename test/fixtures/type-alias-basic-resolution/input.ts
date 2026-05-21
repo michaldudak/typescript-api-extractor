@@ -1,4 +1,4 @@
-export interface A {
+export interface AliasContainer {
 	a: Alias;
 	r: MyRecord<string, string>;
 	s: AliasToGeneric;
@@ -12,7 +12,7 @@ export interface A {
 	ou?: AliasedUnknown;
 }
 
-export function fn1(
+export function acceptsAliases(
 	a: Alias,
 	r: MyRecord<string, string>,
 	s: AliasToGeneric,

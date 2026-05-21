@@ -2,11 +2,11 @@
 	"name": "test/fixtures/generic-props-namespace-specialization/input",
 	"exports": [
 		{
-			"name": "fn",
+			"name": "namespacedProps",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "fn"
+					"name": "namespacedProps"
 				},
 				"callSignatures": [
 					{

@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-record-resolution/input",
 	"exports": [
 		{
-			"name": "test",
+			"name": "acceptsRecord",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test"
+					"name": "acceptsRecord"
 				},
 				"callSignatures": [
 					{

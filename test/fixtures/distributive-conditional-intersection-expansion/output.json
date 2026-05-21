@@ -2,11 +2,11 @@
 	"name": "test/fixtures/distributive-conditional-intersection-expansion/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "EventDetailsHandlers",
 			"type": {
 				"kind": "object",
 				"typeName": {
-					"name": "Component"
+					"name": "EventDetailsHandlers"
 				},
 				"properties": [
 					{

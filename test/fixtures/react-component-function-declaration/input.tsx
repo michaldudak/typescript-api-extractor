@@ -1,4 +1,4 @@
-export function Component(props: Props) {
+export function DeclaredComponent(props: Props) {
 	return <div {...props} />;
 }
 

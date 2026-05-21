@@ -4,13 +4,13 @@ import type * as React from 'react';
  * This is a test.
  *
  * @example
- * test();
+ * documentedFunction();
  *
  * @type {function}
  * @public
  * @category important-functions
  */
-export function test(params: Params) {}
+export function documentedFunction(params: Params) {}
 
 interface Params {
 	s: string;

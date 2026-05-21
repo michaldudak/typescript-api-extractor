@@ -2,11 +2,11 @@
 	"name": "test/fixtures/type-intersection-resolution/input",
 	"exports": [
 		{
-			"name": "test1",
+			"name": "inlineIntersection",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test1"
+					"name": "inlineIntersection"
 				},
 				"callSignatures": [
 					{
@@ -131,11 +131,11 @@
 			}
 		},
 		{
-			"name": "test2",
+			"name": "aliasedIntersection",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test2"
+					"name": "aliasedIntersection"
 				},
 				"callSignatures": [
 					{
@@ -263,11 +263,11 @@
 			}
 		},
 		{
-			"name": "test3",
+			"name": "intersectionWithMethod",
 			"type": {
 				"kind": "function",
 				"typeName": {
-					"name": "test3"
+					"name": "intersectionWithMethod"
 				},
 				"callSignatures": [
 					{

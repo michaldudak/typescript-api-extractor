@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function Component(props: Props): React.ReactElement {
+export function IntrinsicPropsComponent(props: Props): React.ReactElement {
 	return <div>{props.s}</div>;
 }
 
