@@ -1,0 +1,63 @@
+{
+	"name": "test/fixtures/namespace-callback-alias-resolution/input",
+	"exports": [
+		{
+			"name": "Component",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Component"
+				},
+				"props": [
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "union",
+														"typeName": {
+															"name": "Alias",
+															"namespaces": ["RootNamespace"]
+														},
+														"types": [
+															{
+																"kind": "literal",
+																"value": 0
+															},
+															{
+																"kind": "literal",
+																"value": 1
+															}
+														]
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"name": "p",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}
