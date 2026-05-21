@@ -1,2 +1,2 @@
 pnpm-lock.yaml
-test/*/output.json
+test/fixtures/**/output.json
