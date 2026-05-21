@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 type ComponentProps<TState, RenderFunctionProps = GenericHTMLProps> = {
 	className?: string | ((state: TState) => string);
 	render?: ComponentRenderFn<RenderFunctionProps, TState>;

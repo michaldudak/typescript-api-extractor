@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 /**
  * A hook defined as an arrow function.
  *

@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 export function Component<Value>(props: Props1<Value>): React.ReactNode;
 export function Component<Value>(props: Props2<Value>): React.ReactNode;
 export function Component<Value>(props: Props1<Value> | Props2<Value>): React.ReactNode {

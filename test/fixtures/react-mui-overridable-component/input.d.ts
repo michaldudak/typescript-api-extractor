@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 // Material UI's OverridableComponent
 
 declare const Component: OverridableComponent<ComponentTypeMap> & { muiName: string };

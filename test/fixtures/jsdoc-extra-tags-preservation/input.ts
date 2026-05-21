@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 /**
  * This is a test.
  *

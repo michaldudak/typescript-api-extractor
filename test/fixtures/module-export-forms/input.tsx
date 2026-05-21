@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 export function inlineExport() {}
 
 function overloadedFunction(a: number): number;

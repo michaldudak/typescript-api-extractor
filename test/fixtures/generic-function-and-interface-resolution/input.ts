@@ -1,3 +1,5 @@
+import type * as React from 'react';
+
 export function genericFunction<T extends React.HTMLAttributes<HTMLElement>>(
 	params: GenericFunctionParameters<T>,
 ): T {
