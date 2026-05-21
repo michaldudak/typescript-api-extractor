@@ -277,6 +277,7 @@
 									"parameters": [
 										{
 											"type": {
+												"kind": "external",
 												"typeName": {
 													"name": "Promise",
 													"typeArguments": [
@@ -288,8 +289,7 @@
 															"equalToDefault": false
 														}
 													]
-												},
-												"kind": "external"
+												}
 											},
 											"name": "value",
 											"optional": false
@@ -366,6 +366,7 @@
 										}
 									],
 									"returnValueType": {
+										"kind": "external",
 										"typeName": {
 											"name": "Promise",
 											"typeArguments": [
@@ -377,8 +378,7 @@
 													"equalToDefault": false
 												}
 											]
-										},
-										"kind": "external"
+										}
 									},
 									"typeParameters": [
 										{

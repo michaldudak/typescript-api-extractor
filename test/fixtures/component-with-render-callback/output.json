@@ -15,6 +15,7 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactElement",
 										"namespaces": ["React"],
@@ -35,6 +36,7 @@
 															"intrinsic": "string"
 														},
 														{
+															"kind": "external",
 															"typeName": {
 																"name": "JSXElementConstructor",
 																"namespaces": ["React"],
@@ -47,16 +49,14 @@
 																		"equalToDefault": false
 																	}
 																]
-															},
-															"kind": "external"
+															}
 														}
 													]
 												},
 												"equalToDefault": true
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -65,22 +65,22 @@
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLProps",
 														"namespaces": ["React"],
 														"typeArguments": [
 															{
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLElement"
-																	},
-																	"kind": "external"
+																	}
 																},
 																"equalToDefault": false
 															}
 														]
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											},
@@ -110,22 +110,22 @@
 											"parameters": [
 												{
 													"type": {
+														"kind": "external",
 														"typeName": {
 															"name": "HTMLProps",
 															"namespaces": ["React"],
 															"typeArguments": [
 																{
 																	"type": {
+																		"kind": "external",
 																		"typeName": {
 																			"name": "HTMLElement"
-																		},
-																		"kind": "external"
+																		}
 																	},
 																	"equalToDefault": false
 																}
 															]
-														},
-														"kind": "external"
+														}
 													},
 													"name": "props",
 													"optional": false
@@ -152,6 +152,7 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactElement",
 													"namespaces": ["React"],
@@ -172,6 +173,7 @@
 																		"intrinsic": "string"
 																	},
 																	{
+																		"kind": "external",
 																		"typeName": {
 																			"name": "JSXElementConstructor",
 																			"namespaces": ["React"],
@@ -184,16 +186,14 @@
 																					"equalToDefault": false
 																				}
 																			]
-																		},
-																		"kind": "external"
+																		}
 																	}
 																]
 															},
 															"equalToDefault": true
 														}
 													]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]
@@ -249,6 +249,7 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactElement",
 										"namespaces": ["React"],
@@ -269,6 +270,7 @@
 															"intrinsic": "string"
 														},
 														{
+															"kind": "external",
 															"typeName": {
 																"name": "JSXElementConstructor",
 																"namespaces": ["React"],
@@ -281,16 +283,14 @@
 																		"equalToDefault": false
 																	}
 																]
-															},
-															"kind": "external"
+															}
 														}
 													]
 												},
 												"equalToDefault": true
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -299,22 +299,22 @@
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLProps",
 														"namespaces": ["React"],
 														"typeArguments": [
 															{
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLElement"
-																	},
-																	"kind": "external"
+																	}
 																},
 																"equalToDefault": false
 															}
 														]
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											},
@@ -344,22 +344,22 @@
 											"parameters": [
 												{
 													"type": {
+														"kind": "external",
 														"typeName": {
 															"name": "HTMLProps",
 															"namespaces": ["React"],
 															"typeArguments": [
 																{
 																	"type": {
+																		"kind": "external",
 																		"typeName": {
 																			"name": "HTMLElement"
-																		},
-																		"kind": "external"
+																		}
 																	},
 																	"equalToDefault": false
 																}
 															]
-														},
-														"kind": "external"
+														}
 													},
 													"name": "props",
 													"optional": false
@@ -386,6 +386,7 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactElement",
 													"namespaces": ["React"],
@@ -406,6 +407,7 @@
 																		"intrinsic": "string"
 																	},
 																	{
+																		"kind": "external",
 																		"typeName": {
 																			"name": "JSXElementConstructor",
 																			"namespaces": ["React"],
@@ -418,16 +420,14 @@
 																					"equalToDefault": false
 																				}
 																			]
-																		},
-																		"kind": "external"
+																		}
 																	}
 																]
 															},
 															"equalToDefault": true
 														}
 													]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]

@@ -46,11 +46,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",
@@ -318,11 +318,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",
@@ -641,11 +641,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",
@@ -742,11 +742,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",
@@ -1285,11 +1285,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",
@@ -1550,11 +1550,11 @@
 					{
 						"name": "children",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"documentation": {
 							"description": "Child elements",

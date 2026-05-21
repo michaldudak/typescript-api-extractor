@@ -165,33 +165,33 @@
 							},
 							{
 								"type": {
+									"kind": "external",
 									"typeName": {
 										"name": "ForwardedRef",
 										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "Element"
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								"name": "ref",
 								"optional": false
 							}
 						],
 						"returnValueType": {
+							"kind": "external",
 							"typeName": {
 								"name": "Element",
 								"namespaces": ["JSX"]
-							},
-							"kind": "external"
+							}
 						}
 					}
 				]

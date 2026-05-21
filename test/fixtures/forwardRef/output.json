@@ -56,22 +56,22 @@
 										]
 									},
 									{
+										"kind": "external",
 										"typeName": {
 											"name": "RefAttributes",
 											"namespaces": ["React"],
 											"typeArguments": [
 												{
 													"type": {
+														"kind": "external",
 														"typeName": {
 															"name": "HTMLDivElement"
-														},
-														"kind": "external"
+														}
 													},
 													"equalToDefault": false
 												}
 											]
-										},
-										"kind": "external"
+										}
 									}
 								],
 								"properties": [

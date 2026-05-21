@@ -37,10 +37,10 @@
 															{
 																"name": "event",
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "Event"
-																	},
-																	"kind": "external"
+																	}
 																},
 																"optional": false
 															},
@@ -97,10 +97,10 @@
 													{
 														"name": "event",
 														"type": {
+															"kind": "external",
 															"typeName": {
 																"name": "Event"
-															},
-															"kind": "external"
+															}
 														},
 														"optional": false
 													},
@@ -180,10 +180,10 @@
 															{
 																"name": "event",
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "Event"
-																	},
-																	"kind": "external"
+																	}
 																},
 																"optional": false
 															},
@@ -240,10 +240,10 @@
 													{
 														"name": "event",
 														"type": {
+															"kind": "external",
 															"typeName": {
 																"name": "Event"
-															},
-															"kind": "external"
+															}
 														},
 														"optional": false
 													},

@@ -111,6 +111,7 @@
 										"properties": []
 									},
 									"defaultValue": {
+										"kind": "external",
 										"typeName": {
 											"name": "Record",
 											"typeArguments": [
@@ -129,8 +130,7 @@
 													"equalToDefault": false
 												}
 											]
-										},
-										"kind": "external"
+										}
 									},
 									"kind": "typeParameter"
 								},
@@ -142,6 +142,7 @@
 											"properties": []
 										},
 										"defaultValue": {
+											"kind": "external",
 											"typeName": {
 												"name": "Record",
 												"typeArguments": [
@@ -160,8 +161,7 @@
 														"equalToDefault": false
 													}
 												]
-											},
-											"kind": "external"
+											}
 										},
 										"kind": "typeParameter"
 									}

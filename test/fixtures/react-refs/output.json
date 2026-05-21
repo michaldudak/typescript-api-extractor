@@ -12,55 +12,55 @@
 					{
 						"name": "refObject",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "RefObject",
 								"namespaces": ["React"],
 								"typeArguments": [
 									{
 										"type": {
+											"kind": "external",
 											"typeName": {
 												"name": "HTMLInputElement"
-											},
-											"kind": "external"
+											}
 										},
 										"equalToDefault": false
 									}
 								]
-							},
-							"kind": "external"
+							}
 						},
 						"optional": false
 					},
 					{
 						"name": "refCallback",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "RefCallback",
 								"namespaces": ["React"]
-							},
-							"kind": "external"
+							}
 						},
 						"optional": false
 					},
 					{
 						"name": "ref",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "Ref",
 								"namespaces": ["React"],
 								"typeArguments": [
 									{
 										"type": {
+											"kind": "external",
 											"typeName": {
 												"name": "HTMLInputElement"
-											},
-											"kind": "external"
+											}
 										},
 										"equalToDefault": false
 									}
 								]
-							},
-							"kind": "external"
+							}
 						},
 						"optional": false
 					},
@@ -70,22 +70,22 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "RefObject",
 										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLInputElement"
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",
@@ -101,11 +101,11 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "RefCallback",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",
@@ -121,22 +121,22 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "Ref",
 										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLInputElement"
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",

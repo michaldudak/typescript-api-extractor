@@ -101,22 +101,22 @@
 												]
 											},
 											{
+												"kind": "external",
 												"typeName": {
 													"name": "RefAttributes",
 													"namespaces": ["React"],
 													"typeArguments": [
 														{
 															"type": {
+																"kind": "external",
 																"typeName": {
 																	"name": "HTMLButtonElement"
-																},
-																"kind": "external"
+																}
 															},
 															"equalToDefault": false
 														}
 													]
-												},
-												"kind": "external"
+												}
 											}
 										],
 										"properties": [
@@ -277,22 +277,22 @@
 												]
 											},
 											{
+												"kind": "external",
 												"typeName": {
 													"name": "RefAttributes",
 													"namespaces": ["React"],
 													"typeArguments": [
 														{
 															"type": {
+																"kind": "external",
 																"typeName": {
 																	"name": "HTMLButtonElement"
-																},
-																"kind": "external"
+																}
 															},
 															"equalToDefault": false
 														}
 													]
-												},
-												"kind": "external"
+												}
 											}
 										],
 										"properties": [

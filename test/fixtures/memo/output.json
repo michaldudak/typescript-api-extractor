@@ -66,11 +66,11 @@
 											}
 										],
 										"returnValueType": {
+											"kind": "external",
 											"typeName": {
 												"name": "Element",
 												"namespaces": ["JSX"]
-											},
-											"kind": "external"
+											}
 										}
 									}
 								]

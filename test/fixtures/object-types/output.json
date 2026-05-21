@@ -29,6 +29,7 @@
 							},
 							{
 								"type": {
+									"kind": "external",
 									"typeName": {
 										"name": "Record",
 										"typeArguments": [
@@ -47,8 +48,7 @@
 												"equalToDefault": false
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								"name": "record",
 								"optional": false
@@ -219,6 +219,7 @@
 										{
 											"name": "inlineRecordType",
 											"type": {
+												"kind": "external",
 												"typeName": {
 													"name": "Record",
 													"typeArguments": [
@@ -237,8 +238,7 @@
 															"equalToDefault": false
 														}
 													]
-												},
-												"kind": "external"
+												}
 											},
 											"optional": false
 										}

@@ -14,25 +14,25 @@
 						"value": "\"clipping-ancestors\""
 					},
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Element"
-						},
-						"kind": "external"
+						}
 					},
 					{
 						"kind": "array",
 						"elementType": {
+							"kind": "external",
 							"typeName": {
 								"name": "Element"
-							},
-							"kind": "external"
+							}
 						}
 					},
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Rect"
-						},
-						"kind": "external"
+						}
 					}
 				]
 			},
@@ -50,16 +50,16 @@
 				},
 				"types": [
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Element"
-						},
-						"kind": "external"
+						}
 					},
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Point"
-						},
-						"kind": "external"
+						}
 					}
 				]
 			},
@@ -71,10 +71,10 @@
 		{
 			"name": "Padding",
 			"type": {
+				"kind": "external",
 				"typeName": {
 					"name": "Padding"
-				},
-				"kind": "external"
+				}
 			},
 			"documentation": {
 				"description": "Padding can be a number or a partial side object.\nThis is a UNION type that should be EXPANDED (not collapsed to just \"Padding\").",
@@ -84,10 +84,10 @@
 		{
 			"name": "NestedRect",
 			"type": {
+				"kind": "external",
 				"typeName": {
 					"name": "NestedRect"
-				},
-				"kind": "external"
+				}
 			},
 			"documentation": {
 				"description": "A rectangle with x, y coordinates and width, height dimensions.\n\nTypeScript will resolve this to Prettify<Coords & Dimensions>,\nbut consumers should see \"Rect\" in their type information.",
@@ -122,25 +122,25 @@
 											"value": "\"clipping-ancestors\""
 										},
 										{
+											"kind": "external",
 											"typeName": {
 												"name": "Element"
-											},
-											"kind": "external"
+											}
 										},
 										{
 											"kind": "array",
 											"elementType": {
+												"kind": "external",
 												"typeName": {
 													"name": "Element"
-												},
-												"kind": "external"
+												}
 											}
 										},
 										{
+											"kind": "external",
 											"typeName": {
 												"name": "Rect"
-											},
-											"kind": "external"
+											}
 										}
 									]
 								},
@@ -171,16 +171,16 @@
 									},
 									"types": [
 										{
+											"kind": "external",
 											"typeName": {
 												"name": "Element"
-											},
-											"kind": "external"
+											}
 										},
 										{
+											"kind": "external",
 											"typeName": {
 												"name": "Point"
-											},
-											"kind": "external"
+											}
 										}
 									]
 								},
@@ -202,10 +202,10 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "Padding"
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",
@@ -225,10 +225,10 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "NestedRect"
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",

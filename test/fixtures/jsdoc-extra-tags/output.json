@@ -51,31 +51,31 @@
 														"parameters": [
 															{
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "ChangeEvent",
 																		"namespaces": ["React"],
 																		"typeArguments": [
 																			{
 																				"type": {
+																					"kind": "external",
 																					"typeName": {
 																						"name": "HTMLInputElement"
-																					},
-																					"kind": "external"
+																					}
 																				},
 																				"equalToDefault": false
 																			},
 																			{
 																				"type": {
+																					"kind": "external",
 																					"typeName": {
 																						"name": "Element"
-																					},
-																					"kind": "external"
+																					}
 																				},
 																				"equalToDefault": true
 																			}
 																		]
-																	},
-																	"kind": "external"
+																	}
 																},
 																"name": "event",
 																"optional": false

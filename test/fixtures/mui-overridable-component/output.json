@@ -14,6 +14,7 @@
 								{
 									"name": "RootComponent",
 									"constraint": {
+										"kind": "external",
 										"typeName": {
 											"name": "ElementType",
 											"namespaces": ["React"],
@@ -746,8 +747,7 @@
 													"equalToDefault": true
 												}
 											]
-										},
-										"kind": "external"
+										}
 									},
 									"kind": "typeParameter"
 								},
@@ -815,11 +815,11 @@
 							},
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "CSSProperties",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",

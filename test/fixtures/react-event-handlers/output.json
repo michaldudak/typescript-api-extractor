@@ -12,22 +12,22 @@
 					{
 						"name": "onClick",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "MouseEventHandler",
 								"namespaces": ["React"],
 								"typeArguments": [
 									{
 										"type": {
+											"kind": "external",
 											"typeName": {
 												"name": "Element"
-											},
-											"kind": "external"
+											}
 										},
 										"equalToDefault": true
 									}
 								]
-							},
-							"kind": "external"
+							}
 						},
 						"optional": false
 					},
@@ -37,22 +37,22 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "KeyboardEventHandler",
 										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "Element"
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": true
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",
@@ -65,22 +65,22 @@
 					{
 						"name": "onFocus",
 						"type": {
+							"kind": "external",
 							"typeName": {
 								"name": "FocusEventHandler",
 								"namespaces": ["React"],
 								"typeArguments": [
 									{
 										"type": {
+											"kind": "external",
 											"typeName": {
 												"name": "HTMLDivElement"
-											},
-											"kind": "external"
+											}
 										},
 										"equalToDefault": false
 									}
 								]
-							},
-							"kind": "external"
+							}
 						},
 						"optional": false
 					},
@@ -90,22 +90,22 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "FocusEventHandler",
 										"namespaces": ["React"],
 										"typeArguments": [
 											{
 												"type": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLDivElement"
-													},
-													"kind": "external"
+													}
 												},
 												"equalToDefault": false
 											}
 										]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "intrinsic",

@@ -185,11 +185,11 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -228,11 +228,11 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]
@@ -555,11 +555,11 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -598,11 +598,11 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]
@@ -972,11 +972,11 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -1015,11 +1015,11 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]
@@ -1537,11 +1537,11 @@
 							"kind": "union",
 							"types": [
 								{
+									"kind": "external",
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
-									},
-									"kind": "external"
+									}
 								},
 								{
 									"kind": "function",
@@ -1580,11 +1580,11 @@
 												}
 											],
 											"returnValueType": {
+												"kind": "external",
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
-												},
-												"kind": "external"
+												}
 											}
 										}
 									]

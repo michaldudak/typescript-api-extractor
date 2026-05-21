@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import ts from 'typescript';
 import { it, expect } from 'vitest';
 import glob from 'fast-glob';
+import prettier from 'prettier';
 import { loadConfig, parseFromProgram } from '../src';
 
 const regenerateOutput = process.env.UPDATE_OUTPUT === 'true';
@@ -31,7 +32,13 @@ for (const testCase of testCases) {
 				JSON.parse(fs.readFileSync(expectedOutput, 'utf8')),
 			);
 		} else {
-			fs.writeFileSync(expectedOutput, `${JSON.stringify(moduleDefinition, null, '\t')}\n`);
+			fs.writeFileSync(
+				expectedOutput,
+				await prettier.format(JSON.stringify(moduleDefinition, null, '\t'), {
+					...(await prettier.resolveConfig(expectedOutput)),
+					filepath: expectedOutput,
+				}),
+			);
 		}
 	});
 }

@@ -14,25 +14,25 @@
 						"value": "\"clipping-ancestors\""
 					},
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Element"
-						},
-						"kind": "external"
+						}
 					},
 					{
 						"kind": "array",
 						"elementType": {
+							"kind": "external",
 							"typeName": {
 								"name": "Element"
-							},
-							"kind": "external"
+							}
 						}
 					},
 					{
+						"kind": "external",
 						"typeName": {
 							"name": "Rect"
-						},
-						"kind": "external"
+						}
 					}
 				]
 			}

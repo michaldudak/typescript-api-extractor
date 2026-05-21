@@ -77,44 +77,44 @@
 												"parameters": [
 													{
 														"type": {
+															"kind": "external",
 															"typeName": {
 																"name": "HTMLAttributes",
 																"namespaces": ["React"],
 																"typeArguments": [
 																	{
 																		"type": {
+																			"kind": "external",
 																			"typeName": {
 																				"name": "HTMLElement"
-																			},
-																			"kind": "external"
+																			}
 																		},
 																		"equalToDefault": false
 																	}
 																]
-															},
-															"kind": "external"
+															}
 														},
 														"name": "externalProps",
 														"optional": false
 													}
 												],
 												"returnValueType": {
+													"kind": "external",
 													"typeName": {
 														"name": "HTMLAttributes",
 														"namespaces": ["React"],
 														"typeArguments": [
 															{
 																"type": {
+																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLElement"
-																	},
-																	"kind": "external"
+																	}
 																},
 																"equalToDefault": false
 															}
 														]
-													},
-													"kind": "external"
+													}
 												}
 											}
 										]
@@ -124,11 +124,11 @@
 								{
 									"name": "ref",
 									"type": {
+										"kind": "external",
 										"typeName": {
 											"name": "RefCallback",
 											"namespaces": ["React"]
-										},
-										"kind": "external"
+										}
 									},
 									"optional": false
 								}
