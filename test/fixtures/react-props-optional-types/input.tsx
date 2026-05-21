@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export function Component(props: Props): React.ReactElement {
-	return <div {...props} />;
+	return <div>{props.requiredString}</div>;
 }
 
 interface Props {

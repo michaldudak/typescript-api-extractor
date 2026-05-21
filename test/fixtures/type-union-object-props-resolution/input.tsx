@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export function Component(props: PropsA | PropsB): React.ReactElement {
-	return <div {...props} />;
+	return <div>{props.matching}</div>;
 }
 
 interface PropsA {

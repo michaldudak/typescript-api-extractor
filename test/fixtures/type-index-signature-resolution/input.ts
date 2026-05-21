@@ -50,7 +50,7 @@ export function MyComponent(props: { className?: string; [key: string]: unknown 
 }
 
 export type MyType = HelperType;
-export { HelperType };
+export type { HelperType };
 
 export interface MyInterface {
 	data: HelperType;

@@ -411,8 +411,37 @@
 		{
 			"name": "HelperType",
 			"type": {
-				"kind": "intrinsic",
-				"intrinsic": "any"
+				"kind": "object",
+				"typeName": {
+					"name": "HelperType"
+				},
+				"properties": [],
+				"indexSignature": {
+					"keyName": "fileName",
+					"keyType": "string",
+					"valueType": {
+						"kind": "object",
+						"properties": [
+							{
+								"name": "source",
+								"type": {
+									"kind": "union",
+									"types": [
+										{
+											"kind": "intrinsic",
+											"intrinsic": "string"
+										},
+										{
+											"kind": "intrinsic",
+											"intrinsic": "null"
+										}
+									]
+								},
+								"optional": false
+							}
+						]
+					}
+				}
 			}
 		},
 		{

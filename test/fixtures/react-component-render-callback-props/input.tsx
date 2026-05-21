@@ -28,5 +28,5 @@ export type AccordionHeaderProps = BaseUIComponentProps<Accordion.Item.State>;
 
 // Also export directly to test the deduplication
 export function AccordionHeader(props: AccordionHeaderProps): React.ReactElement {
-	return <div {...props} />;
+	return <div>{typeof props.render === 'function' ? null : props.render}</div>;
 }
