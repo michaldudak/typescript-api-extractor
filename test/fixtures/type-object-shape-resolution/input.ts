@@ -1,4 +1,8 @@
-export function acceptsInlineObjectTypes(emptyObject: {}, objectKeyword: object, record: Record<string, any>) {}
+export function acceptsInlineObjectTypes(
+	emptyObject: {},
+	objectKeyword: object,
+	record: Record<string, any>,
+) {}
 
 export function acceptsNamedObjectTypes(
 	emptyInterface: EmptyInterface,
