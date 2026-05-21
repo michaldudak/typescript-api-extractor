@@ -18,6 +18,9 @@ import { TypeParameterNode } from './types/typeParameter';
  * overload signatures that differ only by `any` fallback members.
  */
 class TypeCanonicalizer {
+	private nextObjectKey = 0;
+	private readonly objectKeys = new WeakMap<object, number>();
+
 	canonicalizeUnionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'union');
 		this.sanitizeBooleanLiterals(flatTypes);
@@ -173,6 +176,19 @@ class TypeCanonicalizer {
 	}
 
 	private getNonFunctionMemberKey(type: AnyType): unknown {
+		const scalarKey = this.getScalarMemberKey(type);
+		if (scalarKey !== undefined) {
+			return scalarKey;
+		}
+
+		if (type instanceof TypeOperatorNode) {
+			return this.getTypeOperatorMemberKey(type);
+		}
+
+		return type;
+	}
+
+	private getScalarMemberKey(type: AnyType): string | undefined {
 		if (type instanceof LiteralNode) {
 			return `literal:${type.value}`;
 		}
@@ -182,14 +198,47 @@ class TypeCanonicalizer {
 		if (type instanceof TypeParameterNode) {
 			return `typeparam:${type.name}`;
 		}
-		if (type instanceof TypeOperatorNode) {
-			return `typeoperator:${type.toString()}:${type.resolvedType.toString()}`;
-		}
 		if (type instanceof IntrinsicNode) {
 			return `intrinsic:${type.typeName?.toString() ?? type.intrinsic}`;
 		}
 
-		return type;
+		return undefined;
+	}
+
+	private getTypeOperatorMemberKey(type: TypeOperatorNode): string {
+		return [
+			'typeoperator',
+			type.typeName?.toString() ?? '',
+			type.operator,
+			this.getTypeOperatorChildKey(type.type),
+			this.getTypeOperatorChildKey(type.resolvedType),
+		].join(':');
+	}
+
+	private getTypeOperatorChildKey(type: AnyType): string {
+		const scalarKey = this.getScalarMemberKey(type);
+		if (scalarKey !== undefined) {
+			return scalarKey;
+		}
+
+		if (type instanceof TypeOperatorNode) {
+			return this.getTypeOperatorMemberKey(type);
+		}
+
+		// Use identity for compound children to avoid rendering very large
+		// resolved unions just to build a canonicalization Set key.
+		return `${type.kind}:${this.getObjectKey(type)}`;
+	}
+
+	private getObjectKey(type: object): number {
+		let key = this.objectKeys.get(type);
+		if (key === undefined) {
+			key = this.nextObjectKey;
+			this.nextObjectKey += 1;
+			this.objectKeys.set(type, key);
+		}
+
+		return key;
 	}
 }
 
