@@ -1,7 +1,6 @@
 import ts, { FunctionDeclaration } from 'typescript';
 import { type ScopedParserContext } from '../../parserContext';
 import { FunctionNode, type AnyType } from '../../models';
-import { getFullName } from '../common';
 import { TypeName } from '../../models/typeName';
 import {
 	type ResolveTypeInContext,
@@ -15,14 +14,14 @@ import { parseCallSignature } from './signatureParser';
 // shared parameter, default, documentation, and return-type details.
 
 export function resolveCallableType(
-	{ type }: TypeResolutionRequest,
+	{ type, typeName }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	if (type.getCallSignatures().length < 1) {
 		return undefined;
 	}
 
-	return buildFunctionNodeFromType(type, session.context, session.resolveWithContext);
+	return buildFunctionNodeFromType(type, typeName, session.context, session.resolveWithContext);
 }
 
 /**
@@ -32,6 +31,7 @@ export function resolveCallableType(
  */
 function buildFunctionNodeFromType(
 	type: ts.Type,
+	typeName: TypeName | undefined,
 	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): FunctionNode | undefined {
@@ -45,19 +45,16 @@ function buildFunctionNodeFromType(
 
 	const symbol = type.aliasSymbol ?? type.getSymbol();
 
-	const fqn = getFullName(type, undefined, context);
-
-	let name = fqn?.name;
-
 	// Functions with `export default` are named "default" in the type checker.
-	// Their original name is stored in the value declaration.
-	if (name === 'default') {
-		name =
-			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default';
+	// Keep the session-computed TypeName for every other callable so aliases
+	// recovered from authored type nodes retain their namespace and type args.
+	if (typeName?.name === 'default') {
+		typeName = new TypeName(
+			(symbol?.valueDeclaration as FunctionDeclaration | undefined)?.name?.getText() ?? 'default',
+			typeName.namespaces,
+			typeName.typeArguments,
+		);
 	}
-
-	const typeName =
-		name !== undefined ? new TypeName(name, fqn?.namespaces, fqn?.typeArguments) : undefined;
 
 	return new FunctionNode(typeName, parsedCallSignatures);
 }

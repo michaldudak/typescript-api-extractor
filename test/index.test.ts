@@ -88,6 +88,11 @@ export class Configurator {
   configure(options = defaultOptions, inline = { compact: true }): void {}
 }`;
 const namespaceExternalAnonymousSource = 'export const thing: { value: number };';
+const callableAliasSource = `export namespace API {
+  export type Handler<T = string> = (value: T) => void;
+}
+
+export type PublicHandler = API.Handler<number>;`;
 
 it('resolves substitution types from representable base types', () => {
 	const filePath = '/virtual/substitution-fallback.ts';
@@ -347,6 +352,34 @@ it('preserves namespace type names when anonymous external members are namespace
 		typeName: {
 			name: 'thing',
 			namespaces: ['NS'],
+		},
+	});
+});
+
+it('uses the session-computed type name for callable aliases', () => {
+	const filePath = '/virtual/callable-alias.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, callableAliasSource),
+	);
+
+	const publicHandler = moduleDefinition.exports.find(
+		(exportNode) => exportNode.name === 'PublicHandler',
+	);
+	expect(publicHandler?.type).toMatchObject({
+		kind: 'function',
+		typeName: {
+			name: 'Handler',
+			namespaces: ['API'],
+			typeArguments: [
+				{
+					type: {
+						kind: 'intrinsic',
+						intrinsic: 'number',
+					},
+					equalToDefault: false,
+				},
+			],
 		},
 	});
 });

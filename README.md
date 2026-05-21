@@ -170,11 +170,13 @@ export function MyComponent(props: Props) {
 }
 ```
 
-The extractor would produce:
+`ModuleNode.name` is the parsed file path relative to `compilerOptions.rootDir`,
+including the file extension. For a file at `src/MyComponent.ts`, the extractor
+would produce:
 
 ```json
 {
-	"name": "src/MyComponent",
+	"name": "src/MyComponent.ts",
 	"exports": [
 		{
 			"name": "MyComponent",
