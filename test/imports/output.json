@@ -1,8 +1,0 @@
-{
-	"name": "test/imports/input",
-	"exports": [],
-	"imports": [
-		"react",
-		"../../src/models/export"
-	]
-}

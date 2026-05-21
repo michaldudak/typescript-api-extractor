@@ -1,0 +1,42 @@
+{
+	"name": "test/fixtures/external-mapped-type-dts/input",
+	"exports": [
+		{
+			"name": "Boundary",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Boundary"
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"clipping-ancestors\""
+					},
+					{
+						"typeName": {
+							"name": "Element"
+						},
+						"kind": "external"
+					},
+					{
+						"kind": "array",
+						"elementType": {
+							"typeName": {
+								"name": "Element"
+							},
+							"kind": "external"
+						}
+					},
+					{
+						"typeName": {
+							"name": "Rect"
+						},
+						"kind": "external"
+					}
+				]
+			}
+		}
+	],
+	"imports": ["floating-ui"]
+}

@@ -1,0 +1,154 @@
+{
+	"name": "test/fixtures/react-refs/input",
+	"exports": [
+		{
+			"name": "Test",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Test"
+				},
+				"props": [
+					{
+						"name": "refObject",
+						"type": {
+							"typeName": {
+								"name": "RefObject",
+								"namespaces": ["React"],
+								"typeArguments": [
+									{
+										"type": {
+											"typeName": {
+												"name": "HTMLInputElement"
+											},
+											"kind": "external"
+										},
+										"equalToDefault": false
+									}
+								]
+							},
+							"kind": "external"
+						},
+						"optional": false
+					},
+					{
+						"name": "refCallback",
+						"type": {
+							"typeName": {
+								"name": "RefCallback",
+								"namespaces": ["React"]
+							},
+							"kind": "external"
+						},
+						"optional": false
+					},
+					{
+						"name": "ref",
+						"type": {
+							"typeName": {
+								"name": "Ref",
+								"namespaces": ["React"],
+								"typeArguments": [
+									{
+										"type": {
+											"typeName": {
+												"name": "HTMLInputElement"
+											},
+											"kind": "external"
+										},
+										"equalToDefault": false
+									}
+								]
+							},
+							"kind": "external"
+						},
+						"optional": false
+					},
+					{
+						"name": "optionalRefObject",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"typeName": {
+										"name": "RefObject",
+										"namespaces": ["React"],
+										"typeArguments": [
+											{
+												"type": {
+													"typeName": {
+														"name": "HTMLInputElement"
+													},
+													"kind": "external"
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"kind": "external"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "optionalRefCallback",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"typeName": {
+										"name": "RefCallback",
+										"namespaces": ["React"]
+									},
+									"kind": "external"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "optionalRef",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"typeName": {
+										"name": "Ref",
+										"namespaces": ["React"],
+										"typeArguments": [
+											{
+												"type": {
+													"typeName": {
+														"name": "HTMLInputElement"
+													},
+													"kind": "external"
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"kind": "external"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

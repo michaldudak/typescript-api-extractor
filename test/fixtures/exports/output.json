@@ -1,0 +1,221 @@
+{
+	"name": "test/fixtures/exports/input",
+	"exports": [
+		{
+			"name": "inlineExport",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "inlineExport"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "default",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "defaultExport"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "overloadedFunction",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "overloadedFunction"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						}
+					},
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "aliasedOverloadedFunction",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "overloadedFunction"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						}
+					},
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"name": "a",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "functionAndNamespaceDeclaration",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "functionAndNamespaceDeclaration"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "Params",
+										"namespaces": ["functionAndNamespaceDeclaration"]
+									},
+									"properties": [
+										{
+											"name": "a",
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "number"
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "params",
+								"optional": false
+							},
+							{
+								"type": {
+									"typeName": {
+										"name": "ForwardedRef",
+										"namespaces": ["React"],
+										"typeArguments": [
+											{
+												"type": {
+													"typeName": {
+														"name": "Element"
+													},
+													"kind": "external"
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"kind": "external"
+								},
+								"name": "ref",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"typeName": {
+								"name": "Element",
+								"namespaces": ["JSX"]
+							},
+							"kind": "external"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "functionAndNamespaceDeclaration.Params",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Params",
+					"namespaces": ["functionAndNamespaceDeclaration"]
+				},
+				"properties": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

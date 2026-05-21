@@ -1,0 +1,123 @@
+{
+	"name": "test/fixtures/react-event-handlers/input",
+	"exports": [
+		{
+			"name": "Test",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Test"
+				},
+				"props": [
+					{
+						"name": "onClick",
+						"type": {
+							"typeName": {
+								"name": "MouseEventHandler",
+								"namespaces": ["React"],
+								"typeArguments": [
+									{
+										"type": {
+											"typeName": {
+												"name": "Element"
+											},
+											"kind": "external"
+										},
+										"equalToDefault": true
+									}
+								]
+							},
+							"kind": "external"
+						},
+						"optional": false
+					},
+					{
+						"name": "onKeyDown",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"typeName": {
+										"name": "KeyboardEventHandler",
+										"namespaces": ["React"],
+										"typeArguments": [
+											{
+												"type": {
+													"typeName": {
+														"name": "Element"
+													},
+													"kind": "external"
+												},
+												"equalToDefault": true
+											}
+										]
+									},
+									"kind": "external"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "onFocus",
+						"type": {
+							"typeName": {
+								"name": "FocusEventHandler",
+								"namespaces": ["React"],
+								"typeArguments": [
+									{
+										"type": {
+											"typeName": {
+												"name": "HTMLDivElement"
+											},
+											"kind": "external"
+										},
+										"equalToDefault": false
+									}
+								]
+							},
+							"kind": "external"
+						},
+						"optional": false
+					},
+					{
+						"name": "onBlur",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"typeName": {
+										"name": "FocusEventHandler",
+										"namespaces": ["React"],
+										"typeArguments": [
+											{
+												"type": {
+													"typeName": {
+														"name": "HTMLDivElement"
+													},
+													"kind": "external"
+												},
+												"equalToDefault": false
+											}
+										]
+									},
+									"kind": "external"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

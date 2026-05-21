@@ -1,0 +1,135 @@
+{
+	"name": "test/fixtures/mapped-types-custom/input",
+	"exports": [
+		{
+			"name": "Comp",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "Comp"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "Props"
+									},
+									"properties": [
+										{
+											"name": "r",
+											"type": {
+												"kind": "object",
+												"typeName": {
+													"name": "Rect"
+												},
+												"properties": [
+													{
+														"name": "x",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													},
+													{
+														"name": "y",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													},
+													{
+														"name": "width",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													},
+													{
+														"name": "height",
+														"type": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														"optional": false
+													}
+												]
+											},
+											"optional": false
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "Props",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Props"
+				},
+				"properties": [
+					{
+						"name": "r",
+						"type": {
+							"kind": "object",
+							"typeName": {
+								"name": "Rect"
+							},
+							"properties": [
+								{
+									"name": "x",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								},
+								{
+									"name": "y",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								},
+								{
+									"name": "width",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								},
+								{
+									"name": "height",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									},
+									"optional": false
+								}
+							]
+						},
+						"optional": false
+					}
+				]
+			}
+		}
+	]
+}

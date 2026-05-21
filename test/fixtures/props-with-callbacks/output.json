@@ -1,0 +1,163 @@
+{
+	"name": "test/fixtures/props-with-callbacks/input",
+	"exports": [
+		{
+			"name": "Component",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "Component"
+				},
+				"props": [
+					{
+						"name": "onChange",
+						"type": {
+							"kind": "function",
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"typeName": {
+													"name": "ChangeEvent",
+													"namespaces": ["React"],
+													"typeArguments": [
+														{
+															"type": {
+																"typeName": {
+																	"name": "HTMLInputElement"
+																},
+																"kind": "external"
+															},
+															"equalToDefault": false
+														},
+														{
+															"type": {
+																"typeName": {
+																	"name": "Element"
+																},
+																"kind": "external"
+															},
+															"equalToDefault": true
+														}
+													]
+												},
+												"kind": "external"
+											},
+											"name": "event",
+											"optional": false
+										},
+										{
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"name": "reason",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					},
+					{
+						"name": "onClosing",
+						"type": {
+							"kind": "function",
+							"typeName": {
+								"name": "OnClosingCallback"
+							},
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "boolean"
+											},
+											"name": "animated",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "boolean"
+									}
+								}
+							]
+						},
+						"optional": false
+					},
+					{
+						"name": "onOpen",
+						"type": {
+							"kind": "function",
+							"typeName": {
+								"name": "OnOpenCallback"
+							},
+							"callSignatures": [
+								{
+									"parameters": [
+										{
+											"type": {
+												"kind": "intrinsic",
+												"intrinsic": "boolean"
+											},
+											"name": "animated",
+											"optional": false
+										}
+									],
+									"returnValueType": {
+										"kind": "intrinsic",
+										"intrinsic": "void"
+									}
+								}
+							]
+						},
+						"optional": false
+					},
+					{
+						"name": "onClosed",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

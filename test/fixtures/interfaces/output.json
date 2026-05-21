@@ -1,0 +1,106 @@
+{
+	"name": "test/fixtures/interfaces/input",
+	"exports": [
+		{
+			"name": "Interface1",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Interface1"
+				},
+				"properties": [
+					{
+						"name": "s",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					},
+					{
+						"name": "b",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "boolean"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Interface2",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Interface2"
+				},
+				"properties": [
+					{
+						"name": "n",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "Interface2Alias",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Interface2"
+				},
+				"properties": [
+					{
+						"name": "n",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "default",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "default"
+				},
+				"properties": [
+					{
+						"name": "n1",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "number"
+						},
+						"optional": false
+					},
+					{
+						"name": "n2",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "number"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	]
+}
