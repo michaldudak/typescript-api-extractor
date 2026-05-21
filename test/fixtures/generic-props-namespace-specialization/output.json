@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/generics-closed/input",
+	"name": "test/fixtures/generic-props-namespace-specialization/input",
 	"exports": [
 		{
 			"name": "fn",

@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/forwardRef/input",
+	"name": "test/fixtures/forward-ref/input",
 	"exports": [
 		{
 			"name": "TestComponent",

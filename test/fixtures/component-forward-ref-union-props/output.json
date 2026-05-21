@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/component-forwardRef-with-union-props/input",
+	"name": "test/fixtures/component-forward-ref-union-props/input",
 	"exports": [
 		{
 			"name": "Button",

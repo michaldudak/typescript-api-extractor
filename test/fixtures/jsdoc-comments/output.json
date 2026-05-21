@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/jsdocs/input",
+	"name": "test/fixtures/jsdoc-comments/input",
 	"exports": [
 		{
 			"name": "TestComponent",

@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/class/input",
+	"name": "test/fixtures/class-members/input",
 	"exports": [
 		{
 			"name": "Container",

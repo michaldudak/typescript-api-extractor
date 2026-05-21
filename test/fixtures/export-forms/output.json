@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/exports/input",
+	"name": "test/fixtures/export-forms/input",
 	"exports": [
 		{
 			"name": "inlineExport",

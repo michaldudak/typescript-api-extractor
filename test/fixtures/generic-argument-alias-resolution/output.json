@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/generics-closed-parameters/input",
+	"name": "test/fixtures/generic-argument-alias-resolution/input",
 	"exports": [
 		{
 			"name": "test",

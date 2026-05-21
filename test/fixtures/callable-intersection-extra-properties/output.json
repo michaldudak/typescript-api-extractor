@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/callable-types-with-other-properties/input",
+	"name": "test/fixtures/callable-intersection-extra-properties/input",
 	"exports": [
 		{
 			"name": "test",

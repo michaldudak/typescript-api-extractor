@@ -1,4 +1,3 @@
-'use client';
 import * as React from 'react';
 
 // React.forwardRef makes props an intersection of the provided props and RefAttributes.

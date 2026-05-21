@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/enum/input",
+	"name": "test/fixtures/enums/input",
 	"exports": [
 		{
 			"name": "Side",

@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/external-mapped-type-dts/input",
+	"name": "test/fixtures/external-mapped-type-name-preservation/input",
 	"exports": [
 		{
 			"name": "Boundary",

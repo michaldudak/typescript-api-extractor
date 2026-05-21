@@ -1,5 +1,5 @@
 {
-	"name": "test/fixtures/mapped-types-custom/input",
+	"name": "test/fixtures/mapped-type-prettify-intersection/input",
 	"exports": [
 		{
 			"name": "Comp",
