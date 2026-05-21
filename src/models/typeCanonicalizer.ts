@@ -4,6 +4,7 @@ import { FunctionNode } from './types/function';
 import { IntrinsicNode } from './types/intrinsic';
 import { LiteralNode } from './types/literal';
 import { ExternalTypeNode } from './types/external';
+import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
 
 // UnionNode and IntersectionNode are matched by `kind` rather than imported and
@@ -180,6 +181,9 @@ class TypeCanonicalizer {
 		}
 		if (type instanceof TypeParameterNode) {
 			return `typeparam:${type.name}`;
+		}
+		if (type instanceof TypeOperatorNode) {
+			return `typeoperator:${type.toString()}:${type.resolvedType.toString()}`;
 		}
 		if (type instanceof IntrinsicNode) {
 			return `intrinsic:${type.typeName?.toString() ?? type.intrinsic}`;

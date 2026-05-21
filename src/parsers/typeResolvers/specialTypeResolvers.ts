@@ -46,13 +46,26 @@ export function resolveTypeParameterType(
 	}
 
 	const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
-	const constraintType = declaration?.constraint
-		? checker.getBaseConstraintOfType(type)
-		: undefined;
+	let constraint: AnyType | undefined;
+	if (declaration?.constraint) {
+		const shouldPreserveConstraintSyntax =
+			ts.isTypeOperatorNode(declaration.constraint) &&
+			declaration.constraint.operator === ts.SyntaxKind.KeyOfKeyword;
+		const constraintType = shouldPreserveConstraintSyntax
+			? checker.getTypeAtLocation(declaration.constraint)
+			: checker.getBaseConstraintOfType(type);
+
+		constraint = constraintType
+			? session.resolve(
+					constraintType,
+					shouldPreserveConstraintSyntax ? declaration.constraint : undefined,
+				)
+			: undefined;
+	}
 
 	return new TypeParameterNode(
 		type.symbol.name,
-		constraintType ? session.resolve(constraintType, undefined) : undefined,
+		constraint,
 		declaration?.default
 			? session.resolve(checker.getTypeAtLocation(declaration.default), undefined)
 			: undefined,
@@ -89,9 +102,9 @@ export function resolveConditionalType(
 }
 
 /**
- * Resolves `keyof T` and indexed-access `T[K]` types, which have no direct model
- * representation, by expanding their base constraint. Falls back to `any` when the
- * constraint is unavailable (e.g. unresolved type parameters) — an expected limit.
+ * Resolves index-like types without useful authored syntax by expanding their
+ * base constraint. Falls back to `any` when the constraint is unavailable
+ * (e.g. unresolved indexed access types) — an expected limit.
  */
 export function resolveIndexLikeType(
 	{ type, typeName }: TypeResolutionRequest,

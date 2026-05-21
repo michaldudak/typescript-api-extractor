@@ -4,6 +4,7 @@ import { FunctionNode } from './types/function';
 import { IntrinsicNode } from './types/intrinsic';
 import { ObjectNode } from './types/object';
 import { TupleNode } from './types/tuple';
+import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
 import { type AnyType } from './node';
 
@@ -58,6 +59,8 @@ class TypeEquivalence {
 			if (
 				!(type1 instanceof FunctionNode) &&
 				!(type2 instanceof FunctionNode) &&
+				!(type1 instanceof TypeOperatorNode) &&
+				!(type2 instanceof TypeOperatorNode) &&
 				type1.toString() === type2.toString()
 			) {
 				return true;
@@ -97,6 +100,14 @@ class TypeEquivalence {
 			}
 			return type1.types.every((t1, index) =>
 				this.areEquivalentIgnoringAny(t1, type2.types[index], typeParamRenames),
+			);
+		}
+
+		if (type1 instanceof TypeOperatorNode && type2 instanceof TypeOperatorNode) {
+			return (
+				type1.operator === type2.operator &&
+				this.areEquivalentIgnoringAny(type1.type, type2.type, typeParamRenames) &&
+				this.areEquivalentIgnoringAny(type1.resolvedType, type2.resolvedType, typeParamRenames)
 			);
 		}
 
@@ -240,6 +251,10 @@ class TypeEquivalence {
 
 		if (type instanceof TupleNode) {
 			return type.types.some((member) => this.containsAny(member));
+		}
+
+		if (type instanceof TypeOperatorNode) {
+			return this.containsAny(type.type) || this.containsAny(type.resolvedType);
 		}
 
 		if (type instanceof ObjectNode) {

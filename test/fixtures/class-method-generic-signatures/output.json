@@ -25,21 +25,33 @@
 										"type": {
 											"name": "K",
 											"constraint": {
-												"kind": "union",
-												"types": [
-													{
-														"kind": "intrinsic",
-														"intrinsic": "string"
+												"operator": "keyof",
+												"type": {
+													"name": "T",
+													"constraint": {
+														"kind": "object",
+														"properties": []
 													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "number"
-													},
-													{
-														"kind": "intrinsic",
-														"intrinsic": "symbol"
-													}
-												]
+													"kind": "typeParameter"
+												},
+												"resolvedType": {
+													"kind": "union",
+													"types": [
+														{
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														},
+														{
+															"kind": "intrinsic",
+															"intrinsic": "symbol"
+														}
+													]
+												},
+												"kind": "typeOperator"
 											},
 											"kind": "typeParameter"
 										},
@@ -76,21 +88,33 @@
 									{
 										"name": "K",
 										"constraint": {
-											"kind": "union",
-											"types": [
-												{
-													"kind": "intrinsic",
-													"intrinsic": "string"
+											"operator": "keyof",
+											"type": {
+												"name": "T",
+												"constraint": {
+													"kind": "object",
+													"properties": []
 												},
-												{
-													"kind": "intrinsic",
-													"intrinsic": "number"
-												},
-												{
-													"kind": "intrinsic",
-													"intrinsic": "symbol"
-												}
-											]
+												"kind": "typeParameter"
+											},
+											"resolvedType": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "number"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "symbol"
+													}
+												]
+											},
+											"kind": "typeOperator"
 										},
 										"kind": "typeParameter"
 									}
