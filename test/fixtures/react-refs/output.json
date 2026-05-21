@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-refs/input",
 	"exports": [
 		{
-			"name": "Test",
+			"name": "RefPropsComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Test"
+					"name": "RefPropsComponent"
 				},
 				"props": [
 					{

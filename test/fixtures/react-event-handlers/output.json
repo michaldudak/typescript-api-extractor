@@ -2,11 +2,11 @@
 	"name": "test/fixtures/react-event-handlers/input",
 	"exports": [
 		{
-			"name": "Test",
+			"name": "EventHandlersComponent",
 			"type": {
 				"kind": "component",
 				"typeName": {
-					"name": "Test"
+					"name": "EventHandlersComponent"
 				},
 				"props": [
 					{

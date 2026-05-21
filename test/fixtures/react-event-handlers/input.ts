@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function Test(props: Props): React.ReactNode {
+export function EventHandlersComponent(props: Props): React.ReactNode {
 	return null;
 }
 

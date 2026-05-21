@@ -28,6 +28,7 @@
 		"prebuild": "rimraf ./dist",
 		"build": "tsc --project tsconfig.json",
 		"typecheck": "tsc --project tsconfig.typecheck.json",
+		"typecheck:test-inputs": "tsc --project test/tsconfig.inputs.json",
 		"test": "vitest",
 		"test:regen": "cross-env UPDATE_OUTPUT=true vitest run",
 		"prepack": "pnpm build",

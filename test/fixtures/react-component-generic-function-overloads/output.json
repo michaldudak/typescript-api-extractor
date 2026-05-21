@@ -1,0 +1,110 @@
+{
+	"name": "test/fixtures/react-component-generic-function-overloads/input",
+	"exports": [
+		{
+			"name": "GenericOverloadedComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "GenericOverloadedComponent"
+				},
+				"props": [
+					{
+						"name": "discriminant",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "boolean"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "variant1Prop",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "variant1OptionalProp",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "mandatoryProp",
+						"type": {
+							"name": "Value",
+							"kind": "typeParameter"
+						},
+						"optional": false
+					},
+					{
+						"name": "variant2Prop",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "variant2OptionalProp",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

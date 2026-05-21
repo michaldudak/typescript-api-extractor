@@ -19,7 +19,7 @@ type OverridesBoth = Outer<number, string>;
 // Uses both Outer defaults (no angle brackets)
 type UsesBothDefaults = Outer;
 
-export interface Component {
+export interface AliasDefaults {
 	withOuterDefault: UsesOuterDefault;
 	overridesBoth: OverridesBoth;
 	usesBothDefaults: UsesBothDefaults;

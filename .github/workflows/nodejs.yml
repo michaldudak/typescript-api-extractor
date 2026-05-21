@@ -22,6 +22,7 @@ jobs:
       - run: pnpm install
       - run: pnpm build
       - run: pnpm typecheck
+      - run: pnpm typecheck:test-inputs
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm dlx pkg-pr-new publish --pnpm --compact
