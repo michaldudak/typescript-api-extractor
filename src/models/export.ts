@@ -34,6 +34,16 @@ export class ExportNode {
 		public extendsTypes?: ExtendsTypeInfo[],
 	) {}
 
+	withType(type: AnyType): ExportNode {
+		return new ExportNode(
+			this.name,
+			type,
+			this.documentation,
+			this.reexportedFrom,
+			this.extendsTypes,
+		);
+	}
+
 	/**
 	 * Whether the export is public.
 	 * Exports are considered public if they are not explicitly marked as private or internal.

@@ -32,3 +32,15 @@ export type AnyType =
 	| TupleNode
 	| TypeParameterNode
 	| UnionNode;
+
+/**
+ * Returns a copy of a type node with a different typeName. Cloning through the
+ * prototype preserves the node's already-resolved (and canonicalized) shape,
+ * which calling the constructor again would recompute. This lives in the model
+ * layer so parser code can re-label a node without reaching into its internals.
+ */
+export function withTypeName<T extends AnyType>(node: T, typeName: TypeName): T {
+	return Object.assign(Object.create(Object.getPrototypeOf(node) as object), node, {
+		typeName,
+	}) as T;
+}

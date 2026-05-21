@@ -1,0 +1,126 @@
+{
+	"name": "test/fixtures/memo/input",
+	"exports": [
+		{
+			"name": "TestComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "MemoExoticComponent",
+					"namespaces": ["React"],
+					"typeArguments": [
+						{
+							"type": {
+								"kind": "function",
+								"typeName": {
+									"name": "TestComponent"
+								},
+								"callSignatures": [
+									{
+										"parameters": [
+											{
+												"type": {
+													"kind": "object",
+													"typeName": {
+														"name": "Props"
+													},
+													"properties": [
+														{
+															"name": "className",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														},
+														{
+															"name": "id",
+															"type": {
+																"kind": "union",
+																"types": [
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "string"
+																	},
+																	{
+																		"kind": "intrinsic",
+																		"intrinsic": "undefined"
+																	}
+																]
+															},
+															"optional": true
+														}
+													]
+												},
+												"name": "props",
+												"optional": false
+											}
+										],
+										"returnValueType": {
+											"kind": "external",
+											"typeName": {
+												"name": "Element",
+												"namespaces": ["JSX"]
+											}
+										}
+									}
+								]
+							},
+							"equalToDefault": false
+						}
+					]
+				},
+				"props": [
+					{
+						"name": "className",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "id",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			},
+			"documentation": {
+				"description": "A test component",
+				"tags": []
+			}
+		}
+	],
+	"imports": ["react"]
+}

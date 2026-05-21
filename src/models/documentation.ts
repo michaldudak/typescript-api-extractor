@@ -11,7 +11,7 @@ export class Documentation {
 	}
 
 	getTagValue(name: string): string | undefined {
-		return this.tags.find((tag) => tag.name === name)?.name;
+		return this.tags.find((tag) => tag.name === name)?.value;
 	}
 }
 

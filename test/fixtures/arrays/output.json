@@ -1,0 +1,139 @@
+{
+	"name": "test/fixtures/arrays/input",
+	"exports": [
+		{
+			"name": "test1",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "test1"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"typeName": {
+										"name": "Params"
+									},
+									"properties": [
+										{
+											"name": "arr1",
+											"type": {
+												"kind": "array",
+												"elementType": {
+													"kind": "intrinsic",
+													"intrinsic": "string"
+												}
+											},
+											"optional": false
+										},
+										{
+											"name": "arr2",
+											"type": {
+												"kind": "array",
+												"elementType": {
+													"kind": "intrinsic",
+													"intrinsic": "number"
+												}
+											},
+											"optional": false
+										},
+										{
+											"name": "optionalArr1",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "array",
+														"elementType": {
+															"kind": "intrinsic",
+															"intrinsic": "string"
+														}
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										},
+										{
+											"name": "optionalArr2",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "array",
+														"elementType": {
+															"kind": "intrinsic",
+															"intrinsic": "number"
+														}
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								"name": "params",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		},
+		{
+			"name": "test2",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "test2"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "array",
+									"elementType": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									}
+								},
+								"name": "a1",
+								"optional": false
+							},
+							{
+								"type": {
+									"kind": "array",
+									"elementType": {
+										"kind": "intrinsic",
+										"intrinsic": "number"
+									}
+								},
+								"name": "a2",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "void"
+						}
+					}
+				]
+			}
+		}
+	]
+}

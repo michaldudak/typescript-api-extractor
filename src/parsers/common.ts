@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { TypeArgument, TypeName } from '../models/typeName';
 import { resolveType } from './typeResolver';
-import { ParserContext } from '../parser';
+import { type ScopedParserContext } from '../parserContext';
 
 /**
  * Known TypeScript compiler-generated internal symbol names.
@@ -61,10 +61,16 @@ function getQualifiedNameNamespaces(typeNodeName: ts.EntityName): string[] {
 	return namespaces;
 }
 
+/**
+ * Derives the public `TypeName` for a type: its name, enclosing namespaces, and
+ * type arguments. When an authored `typeNode` is available it is used to recover
+ * the originally written alias name and namespace path, which TypeScript discards
+ * when it resolves simple aliases. Returns undefined for anonymous/unnameable types.
+ */
 export function getFullName(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): TypeName | undefined {
 	const { checker } = context;
 
@@ -117,6 +123,11 @@ export function getFullName(
 	);
 }
 
+/**
+ * Returns the names of the namespace/module declarations enclosing a type's
+ * declaration, outermost first (e.g. `['Dialog']` for a type declared in
+ * `namespace Dialog`).
+ */
 export function getTypeNamespaces(type: ts.Type): string[] {
 	const symbol = type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
@@ -199,7 +210,7 @@ function getTypeArguments(
 	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	typeSymbol: ts.Symbol | undefined,
-	context: ParserContext,
+	context: ScopedParserContext,
 ): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
 

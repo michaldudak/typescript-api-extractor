@@ -1,21 +1,24 @@
-import { AnyType, TypeNode } from '../node';
-import { PropertyNode } from './object';
-import { TypeName } from '../typeName';
-import { deduplicateMemberTypes, flattenTypes, sortMemberTypes } from './compoundTypeUtils';
+import { type AnyType, type TypeNode } from '../node';
+import { typeCanonicalizer } from '../typeCanonicalizer';
+import { type PropertyNode } from './object';
+import { type TypeName } from '../typeName';
 
 export class IntersectionNode implements TypeNode {
 	readonly kind = 'intersection';
-	typeName: TypeName | undefined;
-	types: readonly AnyType[];
-	properties: readonly PropertyNode[] = [];
+	readonly typeName: TypeName | undefined;
+	readonly types: readonly AnyType[];
+	readonly properties: readonly PropertyNode[] = [];
 
-	constructor(typeName: TypeName | undefined, types: AnyType[], properties: PropertyNode[]) {
-		const flatTypes = flattenTypes(types, IntersectionNode);
-		sortMemberTypes(flatTypes);
-		this.types = deduplicateMemberTypes(flatTypes);
-
+	constructor(
+		typeName: TypeName | undefined,
+		types: readonly AnyType[],
+		properties: readonly PropertyNode[],
+	) {
 		this.typeName = typeName?.name ? typeName : undefined;
-		this.properties = properties;
+		// Keep the constructor API consistent with other model nodes while
+		// delegating normalization policy to the canonicalizer module.
+		this.types = typeCanonicalizer.canonicalizeIntersectionMembers(types);
+		this.properties = [...properties];
 	}
 
 	toString(): string {

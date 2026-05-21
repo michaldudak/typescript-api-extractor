@@ -1,21 +1,17 @@
-import { AnyType, TypeNode } from '../node';
-import { LiteralNode } from './literal';
-import { IntrinsicNode } from './intrinsic';
-import { deduplicateMemberTypes, flattenTypes, sortMemberTypes } from './compoundTypeUtils';
-import { TypeName } from '../typeName';
+import { type AnyType, type TypeNode } from '../node';
+import { typeCanonicalizer } from '../typeCanonicalizer';
+import { type TypeName } from '../typeName';
 
 export class UnionNode implements TypeNode {
 	readonly kind = 'union';
-	typeName: TypeName | undefined;
-	types: readonly AnyType[];
+	readonly typeName: TypeName | undefined;
+	readonly types: readonly AnyType[];
 
-	constructor(name: TypeName | undefined, types: AnyType[]) {
-		const flatTypes = flattenTypes(types, UnionNode);
-		sanitizeBooleanLiterals(flatTypes);
-		sanitizeNeverMembers(flatTypes);
-		sortMemberTypes(flatTypes);
-		this.types = deduplicateMemberTypes(flatTypes);
-		this.typeName = name;
+	constructor(typeName: TypeName | undefined, types: readonly AnyType[]) {
+		this.typeName = typeName;
+		// Keep the constructor API consistent with other model nodes while
+		// delegating normalization policy to the canonicalizer module.
+		this.types = typeCanonicalizer.canonicalizeUnionMembers(types);
 	}
 
 	toString(): string {
@@ -24,53 +20,5 @@ export class UnionNode implements TypeNode {
 		}
 
 		return '(' + this.types.map((type) => type.toString()).join(' | ') + ')';
-	}
-}
-
-/**
- * Typescript parses foo?: boolean as a union of `true | false | undefined`.
- * We want to simplify this to just `boolean | undefined`.
- */
-function sanitizeBooleanLiterals(members: AnyType[]): void {
-	const trueLiteralIndex = members.findIndex((x) => x instanceof LiteralNode && x.value === 'true');
-	const falseLiteralIndex = members.findIndex(
-		(x) => x instanceof LiteralNode && x.value === 'false',
-	);
-
-	if (trueLiteralIndex !== -1 && falseLiteralIndex !== -1) {
-		const booleanNode = new IntrinsicNode('boolean');
-		if (trueLiteralIndex > falseLiteralIndex) {
-			members.splice(trueLiteralIndex, 1);
-			members.splice(falseLiteralIndex, 1, booleanNode);
-		} else {
-			members.splice(falseLiteralIndex, 1);
-			members.splice(trueLiteralIndex, 1, booleanNode);
-		}
-	}
-}
-
-/**
- * `never` in a union is redundant when other members are present.
- * Preserve standalone `never` and aliased `never` (with typeName).
- */
-function sanitizeNeverMembers(members: AnyType[]): void {
-	if (members.length <= 1) {
-		return;
-	}
-
-	const hasNonRedundantMember = members.some(
-		(member) =>
-			!(member instanceof IntrinsicNode && member.intrinsic === 'never' && !member.typeName),
-	);
-
-	if (!hasNonRedundantMember) {
-		return;
-	}
-
-	for (let i = members.length - 1; i >= 0; i--) {
-		const member = members[i];
-		if (member instanceof IntrinsicNode && member.intrinsic === 'never' && !member.typeName) {
-			members.splice(i, 1);
-		}
 	}
 }

@@ -1,0 +1,262 @@
+import ts from 'typescript';
+import { type AnyType, UnionNode } from '../../models';
+import { type ScopedParserContext } from '../../parserContext';
+import { TypeName } from '../../models/typeName';
+import {
+	type ResolveTypeInContext,
+	type TypeResolutionRequest,
+	type TypeResolutionSession,
+} from '../typeResolutionTypes';
+
+// Union resolution owns its own resolver adapter because preserving
+// authored member order requires TypeNode reconstruction that is specific to
+// unions and should not be hidden inside the generic compound resolver group.
+
+export function resolveUnionTypeNode(
+	{ type, typeName, typeNode }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (!type.isUnion()) {
+		return undefined;
+	}
+
+	return resolveUnionType(type, typeName, typeNode, session.context, session.resolveWithContext);
+}
+
+/**
+ * Flattens nested union TypeNodes to match how TypeScript flattens Types.
+ * For example: `(string | ((state: State) => string | undefined)) | undefined`
+ * The TypeNode has 2 members but TypeScript flattens the Types to 3 members.
+ * This function recursively flattens nested unions while unwrapping parenthesized types.
+ *
+ * Also handles indexed access types (e.g., `Foo['bar']`) whose resolved type is a union:
+ * it follows the declaration chain to find the source-ordered union TypeNode and flattens
+ * its members in place. Named type references are intentionally not expanded.
+ */
+function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecker): ts.TypeNode[] {
+	const result: ts.TypeNode[] = [];
+
+	for (const member of typeNode.types) {
+		// Unwrap parenthesized types like `(string | number)`
+		let unwrapped = member;
+		while (ts.isParenthesizedTypeNode(unwrapped)) {
+			unwrapped = unwrapped.type;
+		}
+
+		// If the unwrapped type is a union, recursively flatten it
+		if (ts.isUnionTypeNode(unwrapped)) {
+			result.push(...flattenUnionTypeNode(unwrapped, checker));
+		} else {
+			// Check if this non-union TypeNode resolves to a union type.
+			// This currently handles indexed access types (e.g., `Foo['bar']`) whose
+			// resolved type is a union. We follow the declaration to find the source-ordered
+			// union TypeNode and flatten its members to preserve authored order.
+			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker);
+			if (underlyingUnion) {
+				result.push(...flattenUnionTypeNode(underlyingUnion, checker));
+			} else {
+				result.push(unwrapped);
+			}
+		}
+	}
+
+	return result;
+}
+
+/**
+ * Attempts to resolve a non-union TypeNode to its underlying union TypeNode
+ * by following the declaration chain. This preserves the source order of union members.
+ *
+ * Only handles indexed access types: `Foo['bar']` -> finds `bar`'s declaration TypeNode.
+ * Named type references (like `MyAlias`) are intentionally NOT expanded, since they
+ * represent authored aliases that should be preserved.
+ */
+function resolveToUnionTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): ts.UnionTypeNode | undefined {
+	if (!ts.isIndexedAccessTypeNode(typeNode)) {
+		return undefined;
+	}
+
+	// Only resolve if the type actually resolves to a union
+	const resolvedType = checker.getTypeFromTypeNode(typeNode);
+	if (!resolvedType.isUnion()) {
+		return undefined;
+	}
+
+	// For `Foo['bar']`, resolve the object type and find the property's declaration
+	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
+	const indexType = checker.getTypeFromTypeNode(typeNode.indexType);
+
+	// The index must be a string literal (e.g., 'container')
+	if (indexType.isStringLiteral()) {
+		const prop = objectType.getProperty(indexType.value);
+		const propDecl = prop?.declarations?.[0];
+		if (
+			propDecl &&
+			(ts.isPropertySignature(propDecl) || ts.isPropertyDeclaration(propDecl)) &&
+			propDecl.type
+		) {
+			if (ts.isUnionTypeNode(propDecl.type)) {
+				return propDecl.type;
+			}
+			// The property type itself might be an indexed access that resolves to a union
+			return resolveToUnionTypeNode(propDecl.type, checker);
+		}
+	}
+
+	return undefined;
+}
+
+function resolveUnionType(
+	type: ts.UnionType,
+	typeName: TypeName | undefined,
+	typeNode: ts.TypeNode | undefined,
+	context: ScopedParserContext,
+	resolve: ResolveTypeInContext,
+): AnyType {
+	const { checker } = context;
+
+	let memberTypes: ts.Type[] = type.types;
+	const result: AnyType[] = [];
+
+	// @ts-expect-error - Internal API
+	if (type.origin?.isUnion()) {
+		// If a union type contains another union, `type.types` will contain the flattened types.
+		// To resolve the original union type, we need to use the internal `type.origin.types`.
+		// For example, given the types:
+		// type U1 = string | number;
+		// type U2 = U1 | boolean;
+		// The `type.types` will contain [string, number, boolean], but we
+		// need to resolve the original union type [U1, boolean] to get the correct type nodes.
+		// `type.origin.types` will contain [U1, boolean].
+
+		// @ts-expect-error - Internal API
+		memberTypes = type.origin.types;
+	}
+
+	// If there's no provided type node or it's is not a union,
+	// We check if the type declaration is an alias.
+	// If so, it can point to the original union type.
+	//
+	// For example:
+	// function f(x: Params) {}
+	// type Params = SomeType | SomeOtherType;
+	//
+	// In this case `typeNode` will be set to the type reference of the function parameter,
+	// so we extract the needed union definition.
+	const typeAliasDeclaration = type.aliasSymbol?.declarations?.[0];
+	if (
+		(!typeNode || !ts.isUnionTypeNode(typeNode)) &&
+		typeAliasDeclaration &&
+		ts.isTypeAliasDeclaration(typeAliasDeclaration) &&
+		ts.isUnionTypeNode(typeAliasDeclaration.type)
+	) {
+		typeNode = typeAliasDeclaration.type;
+	}
+
+	if (typeNode && ts.isUnionTypeNode(typeNode)) {
+		// Match union member types with TypeNodes (what TS resolves to what was authored in code).
+		// This is necessary as TS takes shortcuts when resolving types and drops information
+		// about simple aliases like `type Foo = Bar;` (it behaves like `Bar` doesn't exist).
+		//
+		// A TypeNode is considered a match for a memberType if:
+		// - The TypeNode resolves to the same Type as `memberType`. This is the simplest case.
+		// - The `memberType` is a closed generic of type represented by TypeNode.
+		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
+
+		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
+		const flattenedTypeNodes = flattenUnionTypeNode(typeNode, checker);
+
+		// Match each TypeNode to a memberType and resolve in source order
+		const usedMemberTypes = new Set<ts.Type>();
+
+		for (const node of flattenedTypeNodes) {
+			const nodeType = checker.getTypeFromTypeNode(node);
+
+			// Special case: boolean TypeNode matches both false and true literal types
+			// TypeScript expands `boolean` to `false | true` in union types
+			// We need to mark ALL boolean literals as used since they correspond to a single boolean TypeNode
+			const isBooleanNode = (nodeType.flags & ts.TypeFlags.Boolean) !== 0;
+
+			if (isBooleanNode) {
+				// Mark all boolean literal memberTypes as used
+				let foundBooleanLiteral = false;
+				for (const memberType of memberTypes) {
+					if ((memberType.flags & ts.TypeFlags.BooleanLiteral) !== 0) {
+						usedMemberTypes.add(memberType);
+						foundBooleanLiteral = true;
+					}
+				}
+				if (foundBooleanLiteral) {
+					// Resolve as the boolean TypeNode (not the individual literals)
+					result.push(resolve(nodeType, node, context));
+					continue;
+				}
+			}
+
+			// Find a matching memberType for this TypeNode
+			let matchedMemberType: ts.Type | undefined;
+
+			for (const memberType of memberTypes) {
+				if (usedMemberTypes.has(memberType)) {
+					continue;
+				}
+
+				// Check for direct match or closed generic
+				if (memberType === nodeType || isClosedGeneric(memberType, nodeType)) {
+					matchedMemberType = memberType;
+					break;
+				}
+			}
+
+			if (matchedMemberType) {
+				usedMemberTypes.add(matchedMemberType);
+				result.push(resolve(matchedMemberType, node, context));
+			}
+			// If no matching memberType found, skip this TypeNode.
+			// The unmatched memberType will be added at the end.
+		}
+
+		// Add any memberTypes that weren't matched to a TypeNode
+		// This handles cases like optional properties where TypeScript adds `undefined`
+		// to the union but there's no corresponding TypeNode for it
+		for (const memberType of memberTypes) {
+			if (!usedMemberTypes.has(memberType)) {
+				result.push(resolve(memberType, undefined, context));
+			}
+		}
+	} else {
+		// Type is an union type, but TypeNode is not.
+		// This can happen for optional properties: `foo?: T` is resolved as `T | undefined`.
+		if (
+			memberTypes.length === 2 &&
+			memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined) &&
+			typeNode &&
+			ts.isTypeReferenceNode(typeNode)
+		) {
+			// In such case propagate the parent TypeNode to the member types.
+			// It will help to resolve T correctly and won't have any effect on the `undefined` type.
+			for (const memberType of memberTypes) {
+				result.push(resolve(memberType, typeNode, context));
+			}
+		} else {
+			for (const memberType of memberTypes) {
+				result.push(resolve(memberType, undefined, context));
+			}
+		}
+	}
+
+	const typeNameToUse = typeName?.name ? typeName : undefined;
+
+	return result.length === 1 ? result[0] : new UnionNode(typeNameToUse, result);
+}
+
+function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {
+	if (!('target' in type1)) {
+		return false;
+	}
+
+	return type1.target === type2 || ('target' in type2 && type1.target === type2.target);
+}
