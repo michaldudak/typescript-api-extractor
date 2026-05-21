@@ -230,3 +230,108 @@ it('preserves keyof constraints on signature type parameters', () => {
 		],
 	});
 });
+
+it('resolves non-union keyof results without falling back to any', () => {
+	const filePath = '/virtual/keyof-non-union-results.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram(
+					filePath,
+					`export type StringKey = keyof { a: string };
+export type NumericKey = keyof { 1: string };
+export type EmptyKey = keyof {};
+export type UnknownKey = keyof unknown;`,
+				),
+			),
+		),
+	);
+
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('StringKey')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'literal',
+			value: '"a"',
+		},
+	});
+	expect(exportByName('NumericKey')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'literal',
+			value: 1,
+		},
+	});
+	expect(exportByName('EmptyKey')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'intrinsic',
+			intrinsic: 'never',
+		},
+	});
+	expect(exportByName('UnknownKey')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			kind: 'intrinsic',
+			intrinsic: 'unknown',
+		},
+		resolvedType: {
+			kind: 'intrinsic',
+			intrinsic: 'never',
+		},
+	});
+});
+
+it('uses the instantiated result type for generic keyof operators', () => {
+	const filePath = '/virtual/keyof-instantiated-generic.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram(
+					filePath,
+					`type Wrapper<T> = { keys: keyof T };
+
+export type Concrete = Wrapper<{ a: string; b: number }>;`,
+				),
+			),
+		),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'object',
+		properties: [
+			{
+				name: 'keys',
+				type: {
+					kind: 'typeOperator',
+					operator: 'keyof',
+					type: {
+						kind: 'typeParameter',
+						name: 'T',
+					},
+					resolvedType: {
+						kind: 'union',
+						types: [
+							{
+								kind: 'literal',
+								value: '"a"',
+							},
+							{
+								kind: 'literal',
+								value: '"b"',
+							},
+						],
+					},
+				},
+			},
+		],
+	});
+});
