@@ -1,5 +1,0 @@
-{
-	"name": "test/fixtures/imports/input",
-	"exports": [],
-	"imports": ["react", "../../../src/models/export"]
-}

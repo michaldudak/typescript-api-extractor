@@ -1,0 +1,42 @@
+{
+	"name": "test/fixtures/external-mapped-type-name-preservation/input",
+	"exports": [
+		{
+			"name": "Boundary",
+			"type": {
+				"kind": "union",
+				"typeName": {
+					"name": "Boundary"
+				},
+				"types": [
+					{
+						"kind": "literal",
+						"value": "\"clipping-ancestors\""
+					},
+					{
+						"kind": "external",
+						"typeName": {
+							"name": "Element"
+						}
+					},
+					{
+						"kind": "array",
+						"elementType": {
+							"kind": "external",
+							"typeName": {
+								"name": "Element"
+							}
+						}
+					},
+					{
+						"kind": "external",
+						"typeName": {
+							"name": "Rect"
+						}
+					}
+				]
+			}
+		}
+	],
+	"imports": ["floating-ui"]
+}

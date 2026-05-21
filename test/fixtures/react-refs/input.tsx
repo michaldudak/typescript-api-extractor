@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-export function Test(props: Props) {
+export function RefPropsComponent(props: Props) {
 	return <div />;
 }
 

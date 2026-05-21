@@ -2,11 +2,11 @@
 	"name": "test/fixtures/alias-with-explicit-type-args/input",
 	"exports": [
 		{
-			"name": "Component",
+			"name": "AliasDefaults",
 			"type": {
 				"kind": "object",
 				"typeName": {
-					"name": "Component"
+					"name": "AliasDefaults"
 				},
 				"properties": [
 					{
