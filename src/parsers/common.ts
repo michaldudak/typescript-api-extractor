@@ -346,6 +346,10 @@ function isGenericArgumentsSameAsDefault(
 		return true; // No arguments to compare
 	}
 
+	if (argumentIndex >= typeArguments.length) {
+		return false;
+	}
+
 	if (!targetSymbol?.declarations || targetSymbol.declarations.length === 0) {
 		return false;
 	}
@@ -368,6 +372,9 @@ function isGenericArgumentsSameAsDefault(
 
 	const argumentType = typeArguments[argumentIndex];
 	const typeParameterDeclaration = typeParameters[argumentIndex];
+	if (!typeParameterDeclaration) {
+		return false;
+	}
 
 	if (!typeParameterDeclaration.default) {
 		return false; // Argument provided for a parameter without a default
