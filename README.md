@@ -343,13 +343,6 @@ type resolution, it should use the active resolver callback from the current
 ## Requirements
 
 - **Node.js**: >= 22
-- **TypeScript**: ^5.8 || ^6.0 (peer dependency)
-
-Make sure you have TypeScript installed in your project:
-
-```bash
-npm install typescript
-```
 
 ## License
 
