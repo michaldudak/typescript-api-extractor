@@ -36,12 +36,16 @@ pnpm add typescript-api-extractor
 ## Usage
 
 ```typescript
-import ts from 'typescript';
-import { loadConfig, parseFromProgram, type ModuleNode } from 'typescript-api-extractor';
+import {
+	createProgram,
+	loadConfig,
+	parseFromProgram,
+	type ModuleNode,
+} from 'typescript-api-extractor';
 
 // Load TypeScript configuration
 const config = loadConfig('./tsconfig.json');
-const program = ts.createProgram(config.fileNames, config.options);
+const program = createProgram(config.fileNames, config.options);
 
 // Parse all files in the project
 for (const file of config.fileNames) {
@@ -56,15 +60,26 @@ for (const file of config.fileNames) {
 
 ## API Reference
 
+### `createProgram(rootNames: string[], options: CompilerOptions)`
+
+Creates a TypeScript program using the version of TypeScript bundled with
+`typescript-api-extractor`. This is the recommended way to create a program for
+`parseFromProgram`.
+
+- **Parameters:**
+  - `rootNames`: Entry files to include in the program
+  - `options`: TypeScript compiler options
+- **Returns:** `Program`
+
 ### `loadConfig(tsConfigPath: string)`
 
 Loads and parses a TypeScript configuration file.
 
 - **Parameters:**
   - `tsConfigPath`: Path to the `tsconfig.json` file
-- **Returns:** `{ options: ts.CompilerOptions, fileNames: string[] }`
+- **Returns:** `{ options: CompilerOptions, fileNames: string[] }`
 
-### `parseFile(filePath: string, options: ts.CompilerOptions, parserOptions?: ParserOptions)`
+### `parseFile(filePath: string, options: CompilerOptions, parserOptions?: ParserOptions)`
 
 Parses a single TypeScript file and returns the extracted API information.
 
@@ -74,7 +89,7 @@ Parses a single TypeScript file and returns the extracted API information.
   - `parserOptions`: Optional parser configuration
 - **Returns:** `ModuleNode`
 
-### `parseFromProgram(filePath: string, program: ts.Program, parserOptions?: ParserOptions)`
+### `parseFromProgram(filePath: string, program: Program, parserOptions?: ParserOptions)`
 
 Parses a file from an existing TypeScript program for better performance when parsing multiple files.
 
