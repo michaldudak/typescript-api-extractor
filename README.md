@@ -60,16 +60,9 @@ for (const file of config.fileNames) {
 
 ## API Reference
 
-### `createProgram(rootNames: string[], options: CompilerOptions)`
+### `createProgram`
 
-Creates a TypeScript program using the version of TypeScript bundled with
-`typescript-api-extractor`. This is the recommended way to create a program for
-`parseFromProgram`.
-
-- **Parameters:**
-  - `rootNames`: Entry files to include in the program
-  - `options`: TypeScript compiler options
-- **Returns:** `Program`
+Re-export of TypeScript’s `createProgram` from the TypeScript version bundled with `typescript-api-extractor`. It has the same overloads/signature as `typescript.createProgram` and returns a `Program`.
 
 ### `loadConfig(tsConfigPath: string)`
 
