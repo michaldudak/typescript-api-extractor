@@ -69,7 +69,7 @@
 											"kind": "external",
 											"typeName": {
 												"name": "Element",
-												"namespaces": ["JSX"]
+												"namespaces": ["React", "JSX"]
 											}
 										}
 									}
