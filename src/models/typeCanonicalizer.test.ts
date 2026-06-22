@@ -5,6 +5,7 @@ import {
 	IntrinsicNode,
 	LiteralNode,
 	Parameter,
+	TypeOperatorNode,
 	TypeParameterNode,
 	UnionNode,
 	typeEquivalenceChecker,
@@ -100,4 +101,28 @@ it('keeps generic function members with different constraints or defaults', () =
 		stringDefault,
 		numberDefault,
 	]);
+});
+
+it('canonicalizes type operator members without stringifying resolved results', () => {
+	const resolvedType = new UnionNode(undefined, [new LiteralNode('"a"'), new LiteralNode('"b"')]);
+	Object.defineProperty(resolvedType, 'toString', {
+		value: () => {
+			throw new Error('resolvedType should not be stringified for canonicalization');
+		},
+	});
+
+	const firstOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
+		resolvedType,
+	);
+	const secondOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
+		resolvedType,
+	);
+
+	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);
 });

@@ -10,6 +10,7 @@ import { IntrinsicNode } from './types/intrinsic';
 import { LiteralNode } from './types/literal';
 import { ObjectNode } from './types/object';
 import { TupleNode } from './types/tuple';
+import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
 import { UnionNode } from './types/union';
 
@@ -30,6 +31,7 @@ export type AnyType =
 	| LiteralNode
 	| ObjectNode
 	| TupleNode
+	| TypeOperatorNode
 	| TypeParameterNode
 	| UnionNode;
 

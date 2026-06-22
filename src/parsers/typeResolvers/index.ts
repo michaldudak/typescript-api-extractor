@@ -14,6 +14,7 @@ import {
 } from './specialTypeResolvers';
 import { resolveExternalType } from './externalTypeResolver';
 import { resolveTupleType } from './tupleTypeResolver';
+import { resolveTypeOperatorType } from './typeOperatorTypeResolver';
 import { resolveUnionTypeNode } from './unionTypeResolver';
 
 // Registry note: ordered from the most specific TS type shapes to broader
@@ -24,6 +25,7 @@ export const typeResolvers: TypeResolver[] = [
 	{ name: 'type-parameter', resolve: resolveTypeParameterType },
 	{ name: 'array', resolve: resolveArrayType },
 	{ name: 'external', resolve: resolveExternalType },
+	{ name: 'type-operator', resolve: resolveTypeOperatorType },
 	{ name: 'intrinsic', resolve: resolveIntrinsicType },
 	{ name: 'enum', resolve: resolveEnumLikeType },
 	{ name: 'union', resolve: resolveUnionTypeNode },

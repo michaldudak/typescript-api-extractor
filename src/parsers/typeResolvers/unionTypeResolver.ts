@@ -174,6 +174,18 @@ function resolveUnionType(
 
 		for (const node of flattenedTypeNodes) {
 			const nodeType = checker.getTypeFromTypeNode(node);
+			const preservedCompositeMember = resolvePreservedCompositeMember(
+				node,
+				nodeType,
+				memberTypes,
+				usedMemberTypes,
+				context,
+				resolve,
+			);
+			if (preservedCompositeMember) {
+				result.push(preservedCompositeMember);
+				continue;
+			}
 
 			// Special case: boolean TypeNode matches both false and true literal types
 			// TypeScript expands `boolean` to `false | true` in union types
@@ -259,4 +271,40 @@ function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {
 	}
 
 	return type1.target === type2 || ('target' in type2 && type1.target === type2.target);
+}
+
+function resolvePreservedCompositeMember(
+	typeNode: ts.TypeNode,
+	nodeType: ts.Type,
+	memberTypes: readonly ts.Type[],
+	usedMemberTypes: Set<ts.Type>,
+	context: ScopedParserContext,
+	resolve: ResolveTypeInContext,
+): AnyType | undefined {
+	if (!isPreservedCompositeMemberNode(typeNode) || !nodeType.isUnion()) {
+		return undefined;
+	}
+
+	let matched = false;
+	for (const memberType of memberTypes) {
+		if (usedMemberTypes.has(memberType)) {
+			continue;
+		}
+		if (!unionContainsMember(nodeType, memberType)) {
+			continue;
+		}
+
+		usedMemberTypes.add(memberType);
+		matched = true;
+	}
+
+	return matched ? resolve(nodeType, typeNode, context) : undefined;
+}
+
+function isPreservedCompositeMemberNode(typeNode: ts.TypeNode): boolean {
+	return ts.isTypeOperatorNode(typeNode) && typeNode.operator === ts.SyntaxKind.KeyOfKeyword;
+}
+
+function unionContainsMember(unionType: ts.UnionType, memberType: ts.Type): boolean {
+	return unionType.types.some((unionMemberType) => unionMemberType === memberType);
 }
