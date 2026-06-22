@@ -36,7 +36,7 @@
 		"prettier": "prettier --write ."
 	},
 	"dependencies": {
-		"es-toolkit": "^1.47.0",
+		"es-toolkit": "^1.47.1",
 		"typescript": "^5.8 || ^6.0"
 	},
 	"devDependencies": {
