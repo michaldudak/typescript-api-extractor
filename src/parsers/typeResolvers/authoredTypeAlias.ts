@@ -240,6 +240,13 @@ function getTypeAliasReferenceFromTypeNode(
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (ts.isImportTypeNode(unwrapped) && unwrapped.qualifier) {
+		const symbol = checker.getSymbolAtLocation(unwrapped.qualifier);
+		const targetSymbol =
+			symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+		const declaration = targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+		return declaration ? { declaration, typeArgumentNodes: unwrapped.typeArguments } : undefined;
+	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
 		return undefined;
 	}

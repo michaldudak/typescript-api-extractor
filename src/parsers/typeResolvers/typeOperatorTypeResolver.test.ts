@@ -1500,6 +1500,53 @@ export type PublicKeys = Keys;`,
 	});
 });
 
+it('preserves qualified and project-mapped keyof alias references', () => {
+	const dependencyPath = '/virtual/keyof-reference-forms-dependency.ts';
+	const entryPath = '/virtual/keyof-reference-forms-entry.ts';
+	const program = createInMemoryProgram(
+		{
+			[dependencyPath]: `export interface Params {
+  dependency: string;
+}
+export type Keys = keyof Params;`,
+			[entryPath]: `interface LocalParams {
+  local: string;
+}
+namespace LocalTypes {
+  export type Keys = keyof LocalParams;
+}
+
+import RelativeTypes = require('./keyof-reference-forms-dependency');
+import MappedTypes = require('@project/keyof-reference-forms-dependency');
+
+export type LocalQualifiedKeys = LocalTypes.Keys;
+export type ImportTypeKeys = import('./keyof-reference-forms-dependency').Keys;
+export type ImportEqualsKeys = RelativeTypes.Keys;
+export type PathMappedKeys = MappedTypes.Keys;`,
+		},
+		{
+			baseUrl: '/virtual',
+			paths: { '@project/*': ['*'] },
+		},
+	);
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('LocalQualifiedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'LocalParams' } },
+	});
+	for (const name of ['ImportTypeKeys', 'ImportEqualsKeys', 'PathMappedKeys']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+		});
+	}
+});
+
 it('does not treat unrelated generic array-alias arguments as element syntax', () => {
 	const filePath = '/virtual/keyof-array-alias-arguments.ts';
 	const moduleDefinition = parseSerializedModule(

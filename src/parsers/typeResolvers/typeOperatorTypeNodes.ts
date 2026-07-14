@@ -94,6 +94,18 @@ export function containsKeyofTypeOperatorOrAlias(
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
 		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker));
 	}
+	if (ts.isImportTypeNode(unwrapped)) {
+		const declaration = getImportTypeAliasDeclaration(unwrapped, checker);
+		if (
+			!declaration ||
+			isExternalTypeAliasDeclaration(declaration) ||
+			seenAliases.has(declaration)
+		) {
+			return false;
+		}
+		seenAliases.add(declaration);
+		return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seenAliases);
+	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
 		return false;
 	}
@@ -107,13 +119,9 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 
-	const localDeclaration = findLocalTypeAliasDeclaration(unwrapped);
 	const declaration =
-		localDeclaration ??
-		(isRelativeImportedTypeReference(unwrapped)
-			? getTypeAliasDeclaration(unwrapped, checker)
-			: undefined);
-	if (!declaration || seenAliases.has(declaration)) {
+		findLocalTypeAliasDeclaration(unwrapped) ?? getTypeAliasDeclaration(unwrapped, checker);
+	if (!declaration || isExternalTypeAliasDeclaration(declaration) || seenAliases.has(declaration)) {
 		return false;
 	}
 	seenAliases.add(declaration);
@@ -282,6 +290,23 @@ function getTypeAliasDeclaration(
 	const targetSymbol =
 		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+}
+
+function getImportTypeAliasDeclaration(
+	typeNode: ts.ImportTypeNode,
+	checker: ts.TypeChecker,
+): ts.TypeAliasDeclaration | undefined {
+	if (!typeNode.qualifier) {
+		return undefined;
+	}
+	const symbol = checker.getSymbolAtLocation(typeNode.qualifier);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+}
+
+function isExternalTypeAliasDeclaration(declaration: ts.TypeAliasDeclaration): boolean {
+	return /[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName);
 }
 
 function findLocalTypeAliasDeclaration(
