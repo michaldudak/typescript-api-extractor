@@ -161,6 +161,33 @@ interface ExportNode {
 
 `TypeNode` represents a TypeScript type. There are multiple classes of types. See the contents of the `src/models/types` directory to discover them.
 
+### Type Operators
+
+Authored `keyof` expressions are represented without expanding away their syntax:
+
+```typescript
+interface TypeOperatorNode {
+	kind: 'typeOperator';
+	operator: 'keyof';
+	type: TypeNode;
+	resolvedType: TypeNode;
+	resolutionKind: 'exact' | 'baseConstraint' | 'fallback';
+}
+```
+
+- `type` is the authored operand. Named object operands are intentionally shallow
+  references because expanding their properties does not change the operator or
+  its key result.
+- `resolvedType` is the checker result used to describe the keys available from
+  the operator.
+- `resolutionKind: 'exact'` means `resolvedType` is the concrete result.
+- `resolutionKind: 'baseConstraint'` means the operand is still generic, so
+  `resolvedType` is the best available base constraint rather than its eventual
+  instantiated result. For example, `keyof T` commonly resolves to
+  `string | number | symbol` at extraction time.
+- `resolutionKind: 'fallback'` means the checker exposed neither a concrete
+  result nor a usable base constraint; `resolvedType` is `any`.
+
 ### Example Output
 
 For a React component like this:
