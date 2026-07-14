@@ -705,6 +705,75 @@ export type Keys = keyof Params;`,
 	expect(includedProperties).toEqual([]);
 });
 
+it('preserves keyof syntax in index-signature and mapped-template values', () => {
+	const filePath = '/virtual/keyof-index-signatures.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export interface StringDictionary {
+  [name: string]: keyof Params;
+}
+
+export interface NumberDictionary {
+  [index: number]: keyof Params;
+}
+
+export type MappedDictionary<K extends string> = {
+  [P in K]: keyof Params;
+};
+
+export type DictionaryKeys = keyof StringDictionary;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedValueType = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { kind: 'object', typeName: { name: 'Params' }, properties: [] },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('StringDictionary')?.type.indexSignature).toMatchObject({
+		keyName: 'name',
+		keyType: 'string',
+		valueType: expectedValueType,
+	});
+	expect(exportByName('NumberDictionary')?.type.indexSignature).toMatchObject({
+		keyName: 'index',
+		keyType: 'number',
+		valueType: expectedValueType,
+	});
+	expect(exportByName('MappedDictionary')?.type.indexSignature).toMatchObject({
+		keyName: 'P',
+		keyType: 'string',
+		valueType: expectedValueType,
+	});
+	expect(exportByName('DictionaryKeys')?.type.type).toMatchObject({
+		kind: 'object',
+		typeName: { name: 'StringDictionary' },
+		properties: [],
+		indexSignature: {
+			keyName: 'name',
+			keyType: 'string',
+			valueType: expectedValueType,
+		},
+	});
+});
+
 it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';

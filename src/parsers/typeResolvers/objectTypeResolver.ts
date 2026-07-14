@@ -120,7 +120,11 @@ function buildIndexSignatureNode(
 		return {
 			keyName: getKeyName(stringIndexInfo),
 			keyType: 'string',
-			valueType: resolveValueType(stringIndexInfo.type, undefined, context),
+			valueType: resolveValueType(
+				stringIndexInfo.type,
+				getIndexValueTypeNode(stringIndexInfo),
+				context,
+			),
 		};
 	}
 
@@ -130,7 +134,11 @@ function buildIndexSignatureNode(
 		return {
 			keyName: getKeyName(numberIndexInfo),
 			keyType: 'number',
-			valueType: resolveValueType(numberIndexInfo.type, undefined, context),
+			valueType: resolveValueType(
+				numberIndexInfo.type,
+				getIndexValueTypeNode(numberIndexInfo),
+				context,
+			),
 		};
 	}
 
@@ -170,6 +178,7 @@ function buildIndexSignatureNode(
 				if (keyType) {
 					let valueType = resolveTemplateValueType(
 						templateType,
+						mappedNode.type,
 						context,
 						resolveValueType,
 						substitutions,
@@ -199,6 +208,11 @@ function buildIndexSignatureNode(
 	return undefined;
 }
 
+function getIndexValueTypeNode(indexInfo: ts.IndexInfo): ts.TypeNode | undefined {
+	const declaration = indexInfo.declaration;
+	return declaration && ts.isIndexSignatureDeclaration(declaration) ? declaration.type : undefined;
+}
+
 function isObjectType(type: ts.Type): type is ts.ObjectType {
 	return Boolean(type.flags & ts.TypeFlags.Object);
 }
@@ -209,6 +223,7 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
  */
 function resolveTemplateValueType(
 	type: ts.Type,
+	typeNode: ts.TypeNode,
 	context: ScopedParserContext,
 	resolve: (
 		type: ts.Type,
@@ -223,7 +238,7 @@ function resolveTemplateValueType(
 	}
 
 	return context.runWithTypeParameterSubstitutionScope(typeParameterSubstitutions, () =>
-		resolve(type, undefined, context),
+		resolve(type, typeNode, context),
 	);
 }
 
