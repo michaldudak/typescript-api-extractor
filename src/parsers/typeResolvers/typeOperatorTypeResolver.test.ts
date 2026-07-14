@@ -619,6 +619,51 @@ export type ExplicitCompositeDefault = MaybePartialKeys<Params>;`,
 	}
 });
 
+it('preserves keyof mapped-value syntax after mapped type instantiation', () => {
+	const filePath = '/virtual/keyof-instantiated-mapped-values.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Mapped<K extends string> = {
+  [Key in K]: keyof Params;
+};
+
+export type Dictionary = Mapped<string>;
+export type Finite = Mapped<'value'>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('Dictionary')?.type.indexSignature).toMatchObject({
+		keyName: 'Key',
+		keyType: 'string',
+		valueType: expectedOperator,
+	});
+	expect(exportByName('Finite')?.type.properties).toMatchObject([
+		{ name: 'value', type: expectedOperator },
+	]);
+});
+
 it('preserves authored keyof arguments through identity and container aliases', () => {
 	const filePath = '/virtual/keyof-generic-argument-syntax.ts';
 	const moduleDefinition = parseSerializedModule(

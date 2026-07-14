@@ -21,10 +21,7 @@ import {
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
-import {
-	containsKeyofTypeOperator,
-	containsKeyofTypeOperatorOrAlias,
-} from './typeOperatorTypeNodes';
+import { containsKeyofTypeOperatorOrAlias } from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -104,6 +101,31 @@ function buildIndexSignatureNode(
 	if (!isObjectType(type)) {
 		return undefined;
 	}
+	const mappedNode =
+		type.objectFlags & ts.ObjectFlags.Mapped
+			? type.symbol?.declarations?.find(ts.isMappedTypeNode)
+			: undefined;
+	const mappedSubstitutions = mappedNode ? getMappedTypeParameterSubstitutions(type) : undefined;
+	const stringIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.String);
+	const numberIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.Number);
+	const mappedTemplateContainsKeyof = Boolean(
+		mappedNode?.type && containsKeyofTypeOperatorOrAlias(mappedNode.type, checker),
+	);
+	const mappedIndexSignature =
+		mappedNode &&
+		mappedSubstitutions &&
+		(mappedTemplateContainsKeyof || (!stringIndexInfo && !numberIndexInfo))
+			? buildMappedIndexSignatureNode(
+					type,
+					mappedNode,
+					mappedSubstitutions,
+					context,
+					resolveValueType,
+				)
+			: undefined;
+	if (mappedIndexSignature) {
+		return mappedIndexSignature;
+	}
 
 	// Helper to extract key parameter name from index signature declaration
 	const getKeyName = (indexInfo: ts.IndexInfo): string | undefined => {
@@ -119,7 +141,6 @@ function buildIndexSignatureNode(
 	};
 
 	// Try string index first
-	const stringIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.String);
 	if (stringIndexInfo) {
 		return {
 			keyName: getKeyName(stringIndexInfo),
@@ -133,7 +154,6 @@ function buildIndexSignatureNode(
 	}
 
 	// Then try number index
-	const numberIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.Number);
 	if (numberIndexInfo) {
 		return {
 			keyName: getKeyName(numberIndexInfo),
@@ -146,73 +166,69 @@ function buildIndexSignatureNode(
 		};
 	}
 
-	// For mapped types with a generic key (e.g., { [key in K]?: V } where K extends string),
-	// getIndexInfoOfType returns nothing because K is an unresolved TypeParameter.
-	// Synthesize an index signature by following K's base constraint to string/number.
-	// Intentionally not handled: `as` clauses, and constraints that resolve to a union
-	// (e.g., `K extends 'a' | 'b'`, bigint, symbol, or template-literal types) - those
-	// fall through and produce no index signature.
-	if (type.objectFlags & ts.ObjectFlags.Mapped) {
-		// AST-driven: instantiated mapped types and ones loaded from `.d.ts` may not
-		// retain a `MappedTypeNode` declaration, in which case we fall through and
-		// emit no index signature - same outcome as "genuinely no index signature".
-		const mappedNode = type.symbol?.declarations?.find(ts.isMappedTypeNode);
-		const substitutions = getMappedTypeParameterSubstitutions(type);
+	return undefined;
+}
 
-		// `as` clauses rename keys (e.g. `[K in keyof T as `prefix_${K}`]`); the resulting
-		// key shape can't be represented as a plain index signature, so fall through.
-		if (mappedNode && mappedNode.type && !mappedNode.nameType) {
-			const templateType = checker.getTypeAtLocation(mappedNode.type);
-			const constraintNode = mappedNode.typeParameter.constraint;
-			const constraintNodeType = constraintNode
-				? substituteTypeParameter(checker.getTypeAtLocation(constraintNode), substitutions)
-				: undefined;
-			const constraintType = constraintNodeType
-				? (checker.getBaseConstraintOfType(constraintNodeType) ?? constraintNodeType)
-				: undefined;
-
-			if (constraintType) {
-				let keyType: 'string' | 'number' | undefined;
-				if (constraintType.flags & ts.TypeFlags.String) {
-					keyType = 'string';
-				} else if (constraintType.flags & ts.TypeFlags.Number) {
-					keyType = 'number';
-				}
-
-				if (keyType) {
-					const templateTypeNode = containsKeyofTypeOperator(mappedNode.type)
-						? mappedNode.type
-						: undefined;
-					let valueType = resolveTemplateValueType(
-						templateType,
-						templateTypeNode,
-						context,
-						resolveValueType,
-						substitutions,
-					);
-					// `?`/`+?` adds `undefined` to the value type. `-?` and no modifier
-					// leave it alone. Whitelist the additive forms so future TS modifier
-					// kinds don't get treated as `?`.
-					const questionToken = mappedNode.questionToken;
-					if (
-						questionToken &&
-						(questionToken.kind === ts.SyntaxKind.QuestionToken ||
-							questionToken.kind === ts.SyntaxKind.PlusToken)
-					) {
-						valueType = new UnionNode(undefined, [valueType, new IntrinsicNode('undefined')]);
-					}
-
-					return {
-						keyName: mappedNode.typeParameter.name.text,
-						keyType,
-						valueType,
-					};
-				}
-			}
-		}
+function buildMappedIndexSignatureNode(
+	type: ts.ObjectType,
+	mappedNode: ts.MappedTypeNode,
+	substitutions: Map<ts.Symbol, ts.Type>,
+	context: ScopedParserContext,
+	resolveValueType: ResolveTypeInContext,
+): IndexSignatureNode | undefined {
+	const { checker } = context;
+	// `as` clauses rename keys (e.g. `[K in keyof T as `prefix_${K}`]`); the resulting
+	// key shape can't be represented as a plain index signature, so fall through.
+	if (!mappedNode.type || mappedNode.nameType) {
+		return undefined;
 	}
 
-	return undefined;
+	const constraintNode = mappedNode.typeParameter.constraint;
+	const constraintNodeType = constraintNode
+		? substituteTypeParameter(checker.getTypeAtLocation(constraintNode), substitutions)
+		: undefined;
+	const constraintType = constraintNodeType
+		? (checker.getBaseConstraintOfType(constraintNodeType) ?? constraintNodeType)
+		: undefined;
+	let keyType: 'string' | 'number' | undefined;
+	if (constraintType && constraintType.flags & ts.TypeFlags.String) {
+		keyType = 'string';
+	} else if (constraintType && constraintType.flags & ts.TypeFlags.Number) {
+		keyType = 'number';
+	}
+	if (!keyType) {
+		return undefined;
+	}
+
+	const indexInfo = checker.getIndexInfoOfType(
+		type,
+		keyType === 'string' ? ts.IndexKind.String : ts.IndexKind.Number,
+	);
+	const templateType = indexInfo?.type ?? checker.getTypeAtLocation(mappedNode.type);
+	const templateTypeNode = containsKeyofTypeOperatorOrAlias(mappedNode.type, checker)
+		? mappedNode.type
+		: undefined;
+	let valueType = resolveTemplateValueType(
+		templateType,
+		templateTypeNode,
+		context,
+		resolveValueType,
+		substitutions,
+	);
+	const questionToken = mappedNode.questionToken;
+	if (
+		questionToken &&
+		(questionToken.kind === ts.SyntaxKind.QuestionToken ||
+			questionToken.kind === ts.SyntaxKind.PlusToken)
+	) {
+		valueType = new UnionNode(undefined, [valueType, new IntrinsicNode('undefined')]);
+	}
+
+	return {
+		keyName: mappedNode.typeParameter.name.text,
+		keyType,
+		valueType,
+	};
 }
 
 function getIndexValueTypeNode(
@@ -268,6 +284,11 @@ function buildObjectNodeFromType(
 	resolveValueType: ResolveTypeInContext,
 ): ObjectNode | undefined {
 	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
+	const mappedNode =
+		isObjectType(type) && type.objectFlags & ts.ObjectFlags.Mapped
+			? type.symbol?.declarations?.find(ts.isMappedTypeNode)
+			: undefined;
+	const mappedSubstitutions = mappedNode ? getMappedTypeParameterSubstitutions(type) : undefined;
 
 	const properties = type
 		.getProperties()
@@ -350,6 +371,8 @@ function buildObjectNodeFromType(
 							propertySignature,
 							context,
 							resolveValueType,
+							mappedNode?.type,
+							mappedSubstitutions,
 						);
 					}),
 					undefined,
@@ -375,6 +398,8 @@ function buildPropertyNodeFromSymbol(
 	propertySignature: ts.PropertySignature | undefined,
 	context: ScopedParserContext,
 	resolvePropertyType: ResolveTypeInContext,
+	mappedTemplateTypeNode?: ts.TypeNode,
+	mappedSubstitutions?: Map<ts.Symbol, ts.Type>,
 ): PropertyNode {
 	const { checker } = context;
 
@@ -395,11 +420,19 @@ function buildPropertyNodeFromSymbol(
 					type = checker.getTypeOfSymbol(propertySymbol);
 				}
 
-				const parsedType = resolvePropertyType(
-					type,
-					isTypeParameterLike(type) ? undefined : propertySignature?.type,
-					context,
-				);
+				const propertyTypeNode = isTypeParameterLike(type)
+					? undefined
+					: (propertySignature?.type ?? mappedTemplateTypeNode);
+				const parsedType =
+					mappedTemplateTypeNode && mappedSubstitutions
+						? resolveTemplateValueType(
+								type,
+								propertyTypeNode,
+								context,
+								resolvePropertyType,
+								mappedSubstitutions,
+							)
+						: resolvePropertyType(type, propertyTypeNode, context);
 
 				// Typechecker only gives the type "any" if it's present in a union.
 				// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.
