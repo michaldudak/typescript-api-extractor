@@ -290,20 +290,22 @@ function resolvePreservedCompositeMember(
 	if (!isPreservedCompositeMemberNode(typeNode)) {
 		return undefined;
 	}
+	const unionMembers = nodeType.isUnion() ? new Set(nodeType.types) : undefined;
+	const containsMember = (memberType: ts.Type) =>
+		unionMembers
+			? unionMembers.has(memberType)
+			: typesAreEquivalent(nodeType, memberType, context.checker);
+
 	// `memberTypes` may come from TypeScript's union origin and omit an authored
 	// subset such as `keyof Narrow`. Validate against the normalized union instead.
-	if (
-		!normalizedMemberTypes.some((memberType) =>
-			compositeContainsMember(nodeType, memberType, context.checker),
-		)
-	) {
+	if (!normalizedMemberTypes.some(containsMember)) {
 		return undefined;
 	}
 
 	for (const memberType of memberTypes) {
 		const covered = memberType.isUnion()
 			? typesAreEquivalent(nodeType, memberType, context.checker)
-			: compositeContainsMember(nodeType, memberType, context.checker);
+			: containsMember(memberType);
 		if (!covered) {
 			continue;
 		}
@@ -316,22 +318,6 @@ function resolvePreservedCompositeMember(
 
 function isPreservedCompositeMemberNode(typeNode: ts.TypeNode): boolean {
 	return getKeyofTypeOperatorNode(typeNode) !== undefined;
-}
-
-function compositeContainsMember(
-	compositeType: ts.Type,
-	memberType: ts.Type,
-	checker: ts.TypeChecker,
-): boolean {
-	if (compositeType.isUnion()) {
-		return compositeType.types.some((compositeMemberType) => compositeMemberType === memberType);
-	}
-
-	return (
-		compositeType === memberType ||
-		(checker.isTypeAssignableTo(compositeType, memberType) &&
-			checker.isTypeAssignableTo(memberType, compositeType))
-	);
 }
 
 function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
