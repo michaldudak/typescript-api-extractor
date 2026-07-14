@@ -79,8 +79,14 @@ function getTupleElementTypeNode(
 		return undefined;
 	}
 
-	let element = getTupleElementTypeNodeAtSemanticIndex(unwrapped, index, semanticElementCount);
-	const authoredElementIndex = element ? unwrapped.elements.indexOf(element) : -1;
+	const selection = getTupleElementSelection(
+		unwrapped,
+		index,
+		semanticElementCount,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	let element = selection?.typeNode;
 	let isRest = false;
 	if (element && ts.isNamedTupleMember(element)) {
 		isRest = element.dotDotDotToken != null;
@@ -100,12 +106,11 @@ function getTupleElementTypeNode(
 			typeParameterTypeNodeSubstitutions,
 		);
 		const substitutedRestTuple = unwrapReadonlyContainerTypeNode(substitutedRestType);
-		if (ts.isTupleTypeNode(substitutedRestTuple) && authoredElementIndex >= 0) {
-			const semanticRestElementCount = semanticElementCount - (unwrapped.elements.length - 1);
+		if (ts.isTupleTypeNode(substitutedRestTuple) && selection?.restSemanticIndex != null) {
 			element = getTupleElementTypeNodeAtSemanticIndex(
 				substitutedRestTuple,
-				index - authoredElementIndex,
-				semanticRestElementCount,
+				selection.restSemanticIndex,
+				selection.restSemanticElementCount,
 			);
 			isRest = false;
 			if (element && ts.isNamedTupleMember(element)) {
@@ -157,4 +162,101 @@ function getTupleElementTypeNode(
 	}
 
 	return element;
+}
+
+interface TupleElementSelection {
+	typeNode: ts.TypeNode;
+	restSemanticIndex?: number;
+	restSemanticElementCount: number;
+}
+
+function getTupleElementSelection(
+	tupleTypeNode: ts.TupleTypeNode,
+	semanticIndex: number,
+	semanticElementCount: number,
+	checker: ts.TypeChecker,
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
+): TupleElementSelection | undefined {
+	const widths = tupleTypeNode.elements.map((element) =>
+		getKnownTupleElementWidth(element, checker, typeParameterTypeNodeSubstitutions, new Set()),
+	);
+	if (
+		widths.every((width): width is number => width != null) &&
+		widths.reduce((total, width) => total + width, 0) === semanticElementCount
+	) {
+		let semanticOffset = 0;
+		for (let authoredIndex = 0; authoredIndex < tupleTypeNode.elements.length; authoredIndex += 1) {
+			const element = tupleTypeNode.elements[authoredIndex]!;
+			const width = widths[authoredIndex]!;
+			if (semanticIndex < semanticOffset + width) {
+				return {
+					typeNode: element,
+					restSemanticIndex: isRestTupleElementNode(element)
+						? semanticIndex - semanticOffset
+						: undefined,
+					restSemanticElementCount: width,
+				};
+			}
+			semanticOffset += width;
+		}
+	}
+
+	const typeNode = getTupleElementTypeNodeAtSemanticIndex(
+		tupleTypeNode,
+		semanticIndex,
+		semanticElementCount,
+	);
+	if (!typeNode) {
+		return undefined;
+	}
+	const authoredIndex = tupleTypeNode.elements.indexOf(typeNode);
+	return {
+		typeNode,
+		restSemanticIndex: isRestTupleElementNode(typeNode) ? semanticIndex - authoredIndex : undefined,
+		restSemanticElementCount: semanticElementCount - (tupleTypeNode.elements.length - 1),
+	};
+}
+
+function getKnownTupleElementWidth(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seen: Set<ts.TypeNode>,
+): number | undefined {
+	if (!isRestTupleElementNode(typeNode)) {
+		return 1;
+	}
+
+	let restTypeNode = ts.isNamedTupleMember(typeNode) ? typeNode.type : typeNode;
+	while (ts.isRestTypeNode(restTypeNode)) {
+		restTypeNode = restTypeNode.type;
+	}
+	const substituted = substituteTypeParameterTypeNode(
+		restTypeNode,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	const tuple = unwrapReadonlyContainerTypeNode(substituted);
+	if (!ts.isTupleTypeNode(tuple) || seen.has(tuple)) {
+		return undefined;
+	}
+	const nestedSeen = new Set(seen);
+	nestedSeen.add(tuple);
+	const widths = tuple.elements.map((element) =>
+		getKnownTupleElementWidth(
+			element,
+			checker,
+			typeParameterTypeNodeSubstitutions,
+			new Set(nestedSeen),
+		),
+	);
+	return widths.every((width): width is number => width != null)
+		? widths.reduce((total, width) => total + width, 0)
+		: undefined;
+}
+
+function isRestTupleElementNode(typeNode: ts.TypeNode): boolean {
+	return ts.isNamedTupleMember(typeNode)
+		? typeNode.dotDotDotToken != null
+		: ts.isRestTypeNode(typeNode);
 }

@@ -798,11 +798,21 @@ it('matches fixed keyof syntax after an expanded variadic tuple element', () => 
   b: number;
 }
 
+interface OtherParams {
+  c: string;
+  d: number;
+}
+
 type AppendKeys<T extends unknown[]> = [...T, keyof Params];
 type Spread<T extends unknown[]> = [...T];
+type DoubleSpread<T extends unknown[], U extends unknown[]> = [...T, ...U];
 
 export type Result = AppendKeys<[string, number]>;
 export type SpreadResult = Spread<[keyof Params, string]>;
+export type DoubleSpreadResult = DoubleSpread<
+  [keyof Params, number],
+  [string, keyof OtherParams]
+>;
 export type Middle = Result[1];
 export type Last = Result[2];`,
 		),
@@ -831,6 +841,22 @@ export type Last = Result[2];`,
 	expect(exportByName('SpreadResult')?.type.types).toMatchObject([
 		expectedOperator,
 		{ kind: 'intrinsic', intrinsic: 'string' },
+	]);
+	expect(exportByName('DoubleSpreadResult')?.type.types).toMatchObject([
+		expectedOperator,
+		{ kind: 'intrinsic', intrinsic: 'number' },
+		{ kind: 'intrinsic', intrinsic: 'string' },
+		{
+			...expectedOperator,
+			type: { typeName: { name: 'OtherParams' } },
+			resolvedType: {
+				kind: 'union',
+				types: [
+					{ kind: 'literal', value: '"c"' },
+					{ kind: 'literal', value: '"d"' },
+				],
+			},
+		},
 	]);
 	expect(exportByName('Middle')?.type).toEqual({
 		kind: 'intrinsic',
