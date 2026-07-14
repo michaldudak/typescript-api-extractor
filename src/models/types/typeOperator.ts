@@ -13,7 +13,7 @@ export class TypeOperatorNode implements TypeNode {
 		readonly operator: TypeOperator,
 		readonly type: AnyType,
 		readonly resolvedType: AnyType,
-		readonly resolutionKind: TypeOperatorResolutionKind,
+		readonly resolutionKind: TypeOperatorResolutionKind = 'exact',
 	) {
 		this.typeName = typeName?.name ? typeName : undefined;
 	}

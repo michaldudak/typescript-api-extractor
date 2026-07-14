@@ -139,6 +139,17 @@ it('canonicalizes structurally equivalent type operator members', () => {
 	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);
 });
 
+it('defaults legacy type operator construction to exact resolution', () => {
+	const operator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
+		new LiteralNode('"value"'),
+	);
+
+	expect(operator.resolutionKind).toBe('exact');
+});
+
 it('keeps type operators whose container operands differ by readonly', () => {
 	const resolvedType = new LiteralNode('"length"');
 	const mutableOperator = new TypeOperatorNode(
