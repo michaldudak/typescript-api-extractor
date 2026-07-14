@@ -965,6 +965,37 @@ export type SymbolKeys = keyof { [iterator]: string };`,
 	});
 });
 
+it('keeps third-party keyof re-exports external unless expansion is enabled', () => {
+	const filePath = '/virtual/keyof-external-reexport.ts';
+	const packagePath = '/virtual/node_modules/keyof-package/index.d.ts';
+	const files = {
+		[filePath]: `export { type Keys } from './node_modules/keyof-package/index';`,
+		[packagePath]: `export interface Params {
+  external: string;
+}
+export type Keys = keyof Params;`,
+	};
+
+	for (const options of [undefined, { includeExternalTypes: false }]) {
+		const moduleDefinition = JSON.parse(
+			JSON.stringify(parseFromProgram(filePath, createInMemoryProgram(files), options)),
+		);
+		expect(moduleDefinition.exports[0]).toMatchObject({
+			name: 'Keys',
+			type: { kind: 'external', typeName: { name: 'Keys' } },
+		});
+	}
+	const expandedModule = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, createInMemoryProgram(files), { includeExternalTypes: true }),
+		),
+	);
+	expect(expandedModule.exports[0]).toMatchObject({
+		name: 'Keys',
+		type: { kind: 'typeOperator', operator: 'keyof' },
+	});
+});
+
 it('keeps semantic result names off the operator and preserves unique-symbol identity', () => {
 	const filePath = '/virtual/keyof-result-identity.ts';
 	const program = createInMemoryProgram(

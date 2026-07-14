@@ -35,6 +35,7 @@ export function resolveAuthoredKeyofAlias(
 		semanticDeclaration?.getSourceFile() ?? request.typeNode?.getSourceFile();
 	if (
 		authoredSourceFile &&
+		!session.context.includeExternalTypes &&
 		session.context.program.isSourceFileFromExternalLibrary(authoredSourceFile)
 	) {
 		return undefined;
@@ -101,21 +102,25 @@ export function resolveAuthoredKeyofAlias(
 export function typeAliasContainsKeyofInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+	includeExternalTypes = false,
 ): boolean {
 	if (seen.has(declaration)) {
 		return false;
 	}
 	seen.add(declaration);
+	if (
+		!includeExternalTypes &&
+		/[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName)
+	) {
+		return false;
+	}
 	if (containsKeyofTypeOperator(declaration.type)) {
 		return true;
-	}
-	if (/[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName)) {
-		return false;
 	}
 
 	const referencedDeclaration = findLocalTypeAliasDeclaration(declaration.type);
 	return referencedDeclaration
-		? typeAliasContainsKeyofInSource(referencedDeclaration, seen)
+		? typeAliasContainsKeyofInSource(referencedDeclaration, seen, includeExternalTypes)
 		: false;
 }
 

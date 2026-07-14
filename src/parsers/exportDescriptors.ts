@@ -4,6 +4,7 @@ import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 import { typeAliasContainsKeyofInSource } from './typeResolvers/authoredTypeAlias';
+import { getKeyofTypeOperatorNode } from './typeResolvers/typeOperatorTypeNodes';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
@@ -190,6 +191,11 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
+	const targetTypeAliasIsExternal =
+		targetTypeAlias != null &&
+		/[\\/]node_modules[\\/]/.test(targetTypeAlias.getSourceFile().fileName);
+	const targetIsExternalKeyofAlias =
+		targetTypeAliasIsExternal && getKeyofTypeOperatorNode(targetTypeNode) != null;
 
 	return withNamespaceDescriptors(
 		{
@@ -201,7 +207,9 @@ function resolveExportSpecifierDescriptors(
 			symbolScope,
 			reexportedFrom,
 			typeNode:
-				targetTypeAlias && typeAliasContainsKeyofInSource(targetTypeAlias)
+				targetTypeAlias &&
+				(targetIsExternalKeyofAlias ||
+					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
 					? targetTypeNode
 					: undefined,
 		},

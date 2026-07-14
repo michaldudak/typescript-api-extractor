@@ -36,12 +36,13 @@ const allowedBuiltInReactTypes = new Set([
  * `includeExternalTypes` is set or the type is local, so it is expanded normally.
  */
 export function resolveExternalType(
-	{ type, typeName }: TypeResolutionRequest,
+	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	const { checker, includeExternalTypes } = session.context;
+	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
 
-	if (includeExternalTypes || !isTypeExternal(type, checker)) {
+	if (includeExternalTypes || (!isTypeExternal(type, checker) && !authoredExternalAliasName)) {
 		return undefined;
 	}
 
@@ -65,7 +66,11 @@ export function resolveExternalType(
 	if (resolvedIsExternalInterface && !type.aliasSymbol) {
 		externalTypeName = resolvedSymbolName;
 	} else {
-		externalTypeName = typeName?.name || type.aliasSymbol?.getName?.() || resolvedSymbolName;
+		externalTypeName =
+			typeName?.name ||
+			authoredExternalAliasName ||
+			type.aliasSymbol?.getName?.() ||
+			resolvedSymbolName;
 	}
 
 	if (!externalTypeName) {
@@ -80,6 +85,29 @@ export function resolveExternalType(
 	return new ExternalTypeNode(
 		new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
 	);
+}
+
+export function isExternalTypeNode(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): boolean {
+	return getExternalTypeAliasName(typeNode, checker) !== undefined;
+}
+
+function getExternalTypeAliasName(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): string | undefined {
+	let declaration = typeNode?.parent;
+	while (declaration && !ts.isTypeAliasDeclaration(declaration)) {
+		declaration = declaration.parent;
+	}
+	if (!declaration || !ts.isTypeAliasDeclaration(declaration)) {
+		return undefined;
+	}
+
+	const symbol = checker.getSymbolAtLocation(declaration.name);
+	return isSymbolExternal(symbol, checker) ? declaration.name.text : undefined;
 }
 
 function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {

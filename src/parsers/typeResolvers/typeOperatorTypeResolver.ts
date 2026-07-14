@@ -15,7 +15,7 @@ import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getKeyofTypeForOperand, getTypeId } from '../typeResolutionUtils';
-import { resolveExternalType } from './externalTypeResolver';
+import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import {
@@ -34,6 +34,12 @@ export function resolveTypeOperatorType(
 	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	if (
+		!session.context.includeExternalTypes &&
+		isExternalTypeNode(typeNode, session.context.checker)
+	) {
+		return undefined;
+	}
 	const operatorNode = getKeyofTypeOperatorNode(typeNode);
 	if (!operatorNode) {
 		return resolveCollapsedTypeOperatorSyntax(type, typeNode, typeName, session);
