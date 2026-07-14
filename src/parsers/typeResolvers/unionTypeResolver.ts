@@ -8,6 +8,7 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import {
+	containsKeyofTypeOperatorOrAlias,
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
 	substituteTypeParameterTypeNode,
@@ -187,6 +188,13 @@ function resolveUnionType(
 			);
 			if (preservedCompositeMember) {
 				result.push(preservedCompositeMember);
+				continue;
+			}
+			if (
+				nodeType.flags & ts.TypeFlags.Never &&
+				containsKeyofTypeOperatorOrAlias(node, checker, new Set(), context.includeExternalTypes)
+			) {
+				result.push(resolve(nodeType, node, context));
 				continue;
 			}
 

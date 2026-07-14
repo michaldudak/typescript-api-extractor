@@ -1194,6 +1194,41 @@ export type MaybeKeys = keyof Params | undefined;`,
 	expect(exportByName('MaybeKeys')?.type.types[0].resolvedType).not.toHaveProperty('typeName');
 });
 
+it('preserves an aliased never keyof member in a surviving union', () => {
+	const filePath = '/virtual/keyof-aliased-never-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`type EmptyKeys = keyof {};
+
+export type AliasUnion = EmptyKeys | 'a' | 'b';
+export type DirectUnion = keyof {} | 'a' | 'b';`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedTypes = [
+		{
+			kind: 'typeOperator',
+			operator: 'keyof',
+			resolvedType: { kind: 'intrinsic', intrinsic: 'never' },
+			resolutionKind: 'exact',
+		},
+		{ kind: 'literal', value: '"a"' },
+		{ kind: 'literal', value: '"b"' },
+	];
+
+	expect(exportByName('AliasUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: expectedTypes,
+	});
+	expect(exportByName('DirectUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: expectedTypes,
+	});
+});
+
 it('uses the instantiated result type for generic keyof operators', () => {
 	const filePath = '/virtual/keyof-instantiated-generic.ts';
 	const moduleDefinition = JSON.parse(
