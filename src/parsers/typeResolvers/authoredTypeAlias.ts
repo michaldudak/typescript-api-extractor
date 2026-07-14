@@ -177,7 +177,7 @@ export function typeAliasContainsKeyofInSource(
 		: false;
 }
 
-/** Identifies a source-only alias chain that ends at a relative project import. */
+/** Identifies a source-only alias chain that needs checker-backed project-reference resolution. */
 export function typeAliasReferencesProjectImportInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
@@ -191,13 +191,55 @@ export function typeAliasReferencesProjectImportInSource(
 	seen.add(declaration);
 
 	const typeNode = unwrapParenthesizedTypeNode(declaration.type);
+	if (ts.isImportTypeNode(typeNode)) {
+		return ts.isLiteralTypeNode(typeNode.argument) && ts.isStringLiteral(typeNode.argument.literal);
+	}
 	if (!ts.isTypeReferenceNode(typeNode)) {
 		return false;
 	}
 	const localDeclaration = findLocalTypeAliasDeclaration(typeNode);
 	return localDeclaration
 		? typeAliasReferencesProjectImportInSource(localDeclaration, seen)
-		: isRelativeImportedTypeReference(typeNode);
+		: isProjectReferenceCandidateInSource(typeNode);
+}
+
+function isProjectReferenceCandidateInSource(typeNode: ts.TypeReferenceNode): boolean {
+	if (isRelativeImportedTypeReference(typeNode)) {
+		return true;
+	}
+
+	let rootName = typeNode.typeName;
+	while (ts.isQualifiedName(rootName)) {
+		rootName = rootName.left;
+	}
+	if (!ts.isIdentifier(rootName)) {
+		return false;
+	}
+
+	return typeNode.getSourceFile().statements.some((statement) => {
+		if (ts.isImportEqualsDeclaration(statement)) {
+			return statement.name.text === rootName.text;
+		}
+		if (ts.isModuleDeclaration(statement)) {
+			return ts.isIdentifier(statement.name) && statement.name.text === rootName.text;
+		}
+		if (!ts.isImportDeclaration(statement) || !statement.importClause) {
+			return false;
+		}
+
+		const { importClause } = statement;
+		if (importClause.name?.text === rootName.text) {
+			return true;
+		}
+		const bindings = importClause.namedBindings;
+		return bindings && ts.isNamespaceImport(bindings)
+			? bindings.name.text === rootName.text
+			: Boolean(
+					bindings &&
+					ts.isNamedImports(bindings) &&
+					bindings.elements.some((element) => element.name.text === rootName.text),
+				);
+	});
 }
 
 function typeNodeContainsKeyofAliasInSource(typeNode: ts.TypeNode | undefined): boolean {

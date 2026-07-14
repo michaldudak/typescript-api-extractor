@@ -1757,6 +1757,60 @@ export type PathMappedKeys = MappedTypes.Keys;`,
 	}
 });
 
+it('preserves project reference forms through export specifiers', () => {
+	const dependencyPath = '/virtual/keyof-export-forms-dependency.ts';
+	const sourcePath = '/virtual/keyof-export-forms-source.ts';
+	const entryPath = '/virtual/keyof-export-forms-entry.ts';
+	const program = createInMemoryProgram(
+		{
+			[dependencyPath]: `export interface Params {
+  dependency: string;
+}
+export type Keys = keyof Params;`,
+			[sourcePath]: `interface LocalParams {
+  local: string;
+}
+namespace LocalTypes {
+  export type Keys = keyof LocalParams;
+}
+
+import RelativeTypes = require('./keyof-export-forms-dependency');
+import MappedTypes = require('@project/keyof-export-forms-dependency');
+
+export type LocalQualifiedKeys = LocalTypes.Keys;
+export type ImportTypeKeys = import('./keyof-export-forms-dependency').Keys;
+export type ImportEqualsKeys = RelativeTypes.Keys;
+export type PathMappedKeys = MappedTypes.Keys;`,
+			[entryPath]: `export {
+  type LocalQualifiedKeys,
+  type ImportTypeKeys,
+  type ImportEqualsKeys,
+  type PathMappedKeys,
+} from './keyof-export-forms-source';`,
+		},
+		{
+			baseUrl: '/virtual',
+			paths: { '@project/*': ['*'] },
+		},
+	);
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('LocalQualifiedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'LocalParams' } },
+	});
+	for (const name of ['ImportTypeKeys', 'ImportEqualsKeys', 'PathMappedKeys']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+		});
+	}
+});
+
 it('does not treat unrelated generic array-alias arguments as element syntax', () => {
 	const filePath = '/virtual/keyof-array-alias-arguments.ts';
 	const moduleDefinition = parseSerializedModule(
