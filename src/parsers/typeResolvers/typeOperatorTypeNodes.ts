@@ -320,28 +320,38 @@ export function getPropertyTypeNode(
 	property: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
-	const candidates: ts.TypeNode[] = [];
-	for (const declaration of property?.declarations ?? []) {
+	const declarations = property?.declarations ?? [];
+	const getterTypeNode = declarations.find(
+		(declaration): declaration is ts.GetAccessorDeclaration =>
+			ts.isGetAccessorDeclaration(declaration) && declaration.type != null,
+	)?.type;
+	if (getterTypeNode) {
+		return getterTypeNode;
+	}
+
+	const readableCandidates: ts.TypeNode[] = [];
+	for (const declaration of declarations) {
 		if (
 			(ts.isPropertySignature(declaration) ||
 				ts.isPropertyDeclaration(declaration) ||
-				ts.isParameter(declaration) ||
-				ts.isGetAccessorDeclaration(declaration)) &&
+				ts.isParameter(declaration)) &&
 			declaration.type
 		) {
-			candidates.push(declaration.type);
+			readableCandidates.push(declaration.type);
 		}
 	}
 
-	for (const declaration of property?.declarations ?? []) {
+	const setterCandidates: ts.TypeNode[] = [];
+	for (const declaration of declarations) {
 		if (ts.isSetAccessorDeclaration(declaration)) {
 			const parameterType = declaration.parameters[0]?.type;
 			if (parameterType) {
-				candidates.push(parameterType);
+				setterCandidates.push(parameterType);
 			}
 		}
 	}
 
+	const candidates = readableCandidates.length > 0 ? readableCandidates : setterCandidates;
 	const first = candidates[0];
 	if (!first) {
 		return undefined;

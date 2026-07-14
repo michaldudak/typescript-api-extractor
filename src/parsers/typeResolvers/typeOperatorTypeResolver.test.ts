@@ -2319,6 +2319,14 @@ export class Example {
     this.accessorValue = value;
   }
 
+  get asymmetricKey(): keyof Params {
+    return this.accessorValue;
+  }
+
+  set asymmetricKey(value: keyof Params | undefined) {
+    this.accessorValue = value ?? 'a';
+  }
+
   set setterKey(value: keyof Params) {}
 }
 
@@ -2349,7 +2357,14 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 			],
 		},
 	});
-	for (const propertyName of ['instance', 'value', 'accessorKey', 'pairedKey', 'setterKey']) {
+	for (const propertyName of [
+		'instance',
+		'value',
+		'accessorKey',
+		'pairedKey',
+		'asymmetricKey',
+		'setterKey',
+	]) {
 		expect(propertyByName(propertyName)).toMatchObject({
 			type: { kind: 'typeOperator', operator: 'keyof' },
 		});
