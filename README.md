@@ -315,7 +315,8 @@ substructures that are reused across multiple type classes.
 All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 
 - `index.ts` is the ordered resolver registry. Resolver order is meaningful:
-  specific shapes should appear before broader fallbacks.
+  syntax-first operators and specific shapes should appear before semantic
+  fallbacks that would discard authored syntax.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
 - `classTypeResolver.ts` handles class detection, constructor model assembly,
   constructor documentation, class members, static members, and class type
@@ -332,8 +333,14 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 - `objectTypeResolver.ts` handles object-like types, object properties, index
   signatures, mapped-type index signatures, and object-keyword fallback.
 - `tupleTypeResolver.ts` handles tuple element resolution and tuple arity.
+- `typeOperatorTypeResolver.ts` preserves authored `keyof` syntax, resolves its
+  operand and semantic result separately, and records whether that result is
+  exact, a base constraint, or a fallback.
+- `typeOperatorTypeNodes.ts` contains the shared syntax helpers used to find and
+  propagate authored `keyof` nodes through parenthesized and nested type syntax.
 - `unionTypeResolver.ts` owns union-specific behavior, including preserving
-  authored union member order from `TypeNode`s.
+  authored union member order and overlapping type-operator members from
+  `TypeNode`s.
 - `specialTypeResolvers.ts` handles TypeScript-internal or context-sensitive
   shapes such as type parameters, conditional types, indexed access types, and
   substitution fallbacks.

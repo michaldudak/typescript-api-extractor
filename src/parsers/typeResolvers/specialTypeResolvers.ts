@@ -113,8 +113,9 @@ export function resolveIndexLikeType(
 		return undefined;
 	}
 
-	// Index (keyof T) and IndexedAccess (T[K]) types can't be represented directly.
-	// Expand them via getBaseConstraintOfType to a representable form.
+	// Checker-internal Index and IndexedAccess shapes that reach this fallback no
+	// longer have authored syntax the earlier resolvers can preserve. Expand them
+	// via getBaseConstraintOfType to a representable form.
 	// When the base constraint is unavailable (e.g., T[K] with unresolved type parameters),
 	// fall back to 'any' silently. This is an expected limitation, not a parser bug.
 	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);
