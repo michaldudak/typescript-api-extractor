@@ -293,6 +293,43 @@ export type UnknownKey = keyof unknown;`,
 	});
 });
 
+it('preserves undefined when an optional or explicit-union keyof result is never', () => {
+	const filePath = '/virtual/keyof-never-with-undefined.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export interface Options {
+  empty?: keyof {};
+  unknown?: keyof unknown;
+}
+
+export type MaybeEmpty = keyof {} | undefined;
+export type MaybeUnknown = undefined | keyof unknown;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedMaybeNever = {
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeOperator',
+				operator: 'keyof',
+				resolvedType: { kind: 'intrinsic', intrinsic: 'never' },
+			},
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	};
+
+	expect(exportByName('Options')?.type.properties).toMatchObject([
+		{ name: 'empty', optional: true, type: expectedMaybeNever },
+		{ name: 'unknown', optional: true, type: expectedMaybeNever },
+	]);
+	expect(exportByName('MaybeEmpty')?.type).toMatchObject(expectedMaybeNever);
+	expect(exportByName('MaybeUnknown')?.type).toMatchObject(expectedMaybeNever);
+});
+
 it('uses the instantiated result type for generic keyof operators', () => {
 	const filePath = '/virtual/keyof-instantiated-generic.ts';
 	const moduleDefinition = JSON.parse(
