@@ -935,8 +935,16 @@ export type PatternResult = PatternKeys;`,
 		resolutionKind: 'fallback',
 	});
 	expect(warnings).toHaveLength(1);
-	expect(warnings[0]).toMatchObject({
+	expect(warnings[0]).toEqual({
 		code: 'unsupported-type-fallback',
+		message:
+			'Type extraction warning: Unable to handle type "`data-${string}`" with flag "TemplateLiteral" while resolving "keyof Pattern" at "/virtual/keyof-top-type-aliases.ts:11:20". Using any instead.',
+		filePath,
+		line: 11,
+		column: 20,
+		parsedSymbolStack: [filePath, 'PatternResult'],
+		typeFlags: ['TemplateLiteral'],
+		typeText: '`data-${string}`',
 		sourceText: 'keyof Pattern',
 	});
 });
