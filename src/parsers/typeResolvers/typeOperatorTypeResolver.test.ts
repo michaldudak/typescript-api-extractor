@@ -1386,6 +1386,34 @@ export type ReorderedArgument = Reordered<keyof Params, number>;`,
 	});
 });
 
+it('does not change unrelated tuple member aliases when a sibling uses keyof', () => {
+	const filePath = '/virtual/keyof-tuple-sibling.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+}
+
+type WithBase<T> = { [K in keyof T]: T[K] };
+type PropsOf<T> = WithBase<T>;
+
+export type WithoutKeyof<T> = [PropsOf<T>, number];
+export type WithKeyof<T> = [PropsOf<T>, keyof Params];`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('WithoutKeyof')?.type.types[0].typeName).toMatchObject({ name: 'WithBase' });
+	expect(exportByName('WithKeyof')?.type.types[0].typeName).toMatchObject({ name: 'WithBase' });
+	expect(exportByName('WithKeyof')?.type.types[1]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+});
+
 it('preserves parenthesized and union-nested keyof constraints consistently', () => {
 	const filePath = '/virtual/keyof-parenthesized.ts';
 	const moduleDefinition = parseSerializedModule(

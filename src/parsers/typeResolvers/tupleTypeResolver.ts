@@ -52,7 +52,7 @@ function getTupleElementTypeNode(
 	index: number,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
-	if (!containsKeyofTypeOperatorOrAlias(typeNode, checker) || !typeNode) {
+	if (!typeNode) {
 		return undefined;
 	}
 
@@ -70,6 +70,9 @@ function getTupleElementTypeNode(
 	while (element && (ts.isOptionalTypeNode(element) || ts.isRestTypeNode(element))) {
 		isRest ||= ts.isRestTypeNode(element);
 		element = element.type;
+	}
+	if (!element || !containsKeyofTypeOperatorOrAlias(element, checker)) {
+		return undefined;
 	}
 	if (element && isRest) {
 		return getArrayElementTypeNode(element, checker) ?? element;
