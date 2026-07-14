@@ -389,6 +389,14 @@ it('reconstructs checker-collapsed intersections, conditionals, and indexed acce
   b: number;
 }
 
+interface Alpha {
+  alpha: string;
+}
+
+interface Beta {
+  beta: number;
+}
+
 interface Box {
   keys: keyof Params;
 }
@@ -419,6 +427,8 @@ export type OptionalIntersection = (keyof Params & string) | undefined;
 export type ConcreteConditional = true extends true ? keyof Params : never;
 export type TrueConditionalWithAny = true extends true ? keyof Params : any;
 export type FalseConditionalWithAny = false extends true ? any : keyof Params;
+type Select<T extends { kind: string }> = T['kind'] extends 'a' ? keyof Alpha : keyof Beta;
+export type CompositeConditional = Select<{ kind: 'a' }>;
 export type IndexedKeys = Box['keys'];
 export type NestedIndexedKeys = NestedBox['keys'];
 export type GenericIndexedKeys = GenericBox<Params>['keys'];
@@ -460,6 +470,13 @@ export type TupleIndexedKeys = KeyTuple[0];`,
 	expect(exportByName('ConcreteConditional')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('TrueConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('FalseConditionalWithAny')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('CompositeConditional')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Alpha' } },
+		resolvedType: { kind: 'literal', value: '"alpha"' },
+		resolutionKind: 'exact',
+	});
 	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('NestedIndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('GenericIndexedKeys')?.type).toMatchObject(expectedOperator);

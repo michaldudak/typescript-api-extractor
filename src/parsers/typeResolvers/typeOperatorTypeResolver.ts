@@ -302,6 +302,23 @@ function getConcreteConditionalBranch(
 	const { checker, typeParameterSubstitutions } = session.context;
 	const authoredCheckType = checker.getTypeFromTypeNode(typeNode.checkType);
 	const authoredExtendsType = checker.getTypeFromTypeNode(typeNode.extendsType);
+	if (
+		typeParameterSubstitutions?.size &&
+		((!(authoredCheckType.flags & ts.TypeFlags.TypeParameter) &&
+			typeNodeReferencesSubstitutedParameter(
+				typeNode.checkType,
+				checker,
+				typeParameterSubstitutions,
+			)) ||
+			(!(authoredExtendsType.flags & ts.TypeFlags.TypeParameter) &&
+				typeNodeReferencesSubstitutedParameter(
+					typeNode.extendsType,
+					checker,
+					typeParameterSubstitutions,
+				)))
+	) {
+		return undefined;
+	}
 	const checkType = typeParameterSubstitutions
 		? substituteTypeParameter(authoredCheckType, typeParameterSubstitutions)
 		: authoredCheckType;
@@ -321,6 +338,29 @@ function getConcreteConditionalBranch(
 	return checker.isTypeAssignableTo(checkType, extendsType)
 		? typeNode.trueType
 		: typeNode.falseType;
+}
+
+function typeNodeReferencesSubstitutedParameter(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type>,
+): boolean {
+	let found = false;
+	const visit = (node: ts.Node): void => {
+		if (found) {
+			return;
+		}
+		if (ts.isTypeReferenceNode(node)) {
+			const symbol = checker.getSymbolAtLocation(node.typeName);
+			if (symbol && substitutions.has(symbol)) {
+				found = true;
+				return;
+			}
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(typeNode);
+	return found;
 }
 
 function resolveTypeOperatorOperand(
