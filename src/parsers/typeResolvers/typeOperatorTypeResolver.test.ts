@@ -1004,6 +1004,23 @@ export function acceptsKeys(keys: (keyof Params)[]): void {}`,
 	expect(renderedProgram.getSyntacticDiagnostics()).toEqual([]);
 });
 
+it('parenthesizes function types when rendering array elements', () => {
+	const filePath = '/virtual/keyof-function-array-rendering.ts';
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export type MutableKeys = keyof (() => void)[];
+export type ReadonlyKeys = keyof readonly (() => void)[];`,
+		),
+	);
+	const exportByName = (name: string) =>
+		parsedModule.exports.find((exportNode) => exportNode.name === name);
+
+	expect(exportByName('MutableKeys')?.type.toString()).toBe('keyof (() => void)[]');
+	expect(exportByName('ReadonlyKeys')?.type.toString()).toBe('keyof readonly (() => void)[]');
+});
+
 it('does not expand properties that are discarded from named object operands', () => {
 	const filePath = '/virtual/keyof-shallow-operand.ts';
 	const objectResolutions: string[] = [];

@@ -22,7 +22,9 @@ export class ArrayNode implements TypeNode {
 
 		const renderedElement = this.elementType.toString();
 		const element =
-			this.elementType.kind === 'typeOperator' ? `(${renderedElement})` : renderedElement;
+			this.elementType.kind === 'typeOperator' || this.elementType.kind === 'function'
+				? `(${renderedElement})`
+				: renderedElement;
 		return `${this.isReadonly ? 'readonly ' : ''}${element}[]`;
 	}
 }
