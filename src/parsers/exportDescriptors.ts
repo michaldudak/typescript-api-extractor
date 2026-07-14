@@ -5,6 +5,7 @@ import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 import {
 	typeAliasContainsKeyofInSource,
+	typeAliasReplaysKeyofInSource,
 	typeAliasReferencesProjectImportInSource,
 } from './typeResolvers/authoredTypeAlias';
 
@@ -207,7 +208,8 @@ function resolveExportSpecifierDescriptors(
 			reexportedFrom,
 			typeNode:
 				targetTypeAlias &&
-				(targetTypeAliasIsExternal ||
+				((targetTypeAliasIsExternal &&
+					(!reexportedFrom || typeAliasReplaysKeyofInSource(targetTypeAlias))) ||
 					typeAliasReferencesProjectImportInSource(targetTypeAlias) ||
 					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
 					? targetTypeNode

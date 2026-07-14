@@ -199,6 +199,52 @@ export function typeAliasContainsKeyofInSource(
 	return typeNodeContainsKeyofInSource(declaration.type, seen, includeExternalTypes);
 }
 
+/** Checks whether an alias's emitted root/container shape can replay `keyof` syntax. */
+export function typeAliasReplaysKeyofInSource(
+	declaration: ts.TypeAliasDeclaration,
+	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+): boolean {
+	if (seen.has(declaration)) {
+		return false;
+	}
+	seen.add(declaration);
+	return typeNodeReplaysKeyofInSource(declaration.type, seen);
+}
+
+function typeNodeReplaysKeyofInSource(
+	typeNode: ts.TypeNode,
+	seen: Set<ts.TypeAliasDeclaration>,
+): boolean {
+	if (ts.isNamedTupleMember(typeNode)) {
+		typeNode = typeNode.type;
+	}
+	while (ts.isOptionalTypeNode(typeNode) || ts.isRestTypeNode(typeNode)) {
+		typeNode = typeNode.type;
+	}
+	typeNode = unwrapReadonlyContainerTypeNode(typeNode);
+	if (ts.isTypeOperatorNode(typeNode) && typeNode.operator === ts.SyntaxKind.KeyOfKeyword) {
+		return true;
+	}
+	if (ts.isArrayTypeNode(typeNode)) {
+		return typeNodeReplaysKeyofInSource(typeNode.elementType, seen);
+	}
+	if (ts.isTupleTypeNode(typeNode)) {
+		return typeNode.elements.some((element) => typeNodeReplaysKeyofInSource(element, seen));
+	}
+	if (ts.isUnionTypeNode(typeNode) || ts.isIntersectionTypeNode(typeNode)) {
+		return typeNode.types.some((member) => typeNodeReplaysKeyofInSource(member, seen));
+	}
+	if (ts.isConditionalTypeNode(typeNode)) {
+		return (
+			typeNodeReplaysKeyofInSource(typeNode.trueType, seen) ||
+			typeNodeReplaysKeyofInSource(typeNode.falseType, seen)
+		);
+	}
+
+	const referencedDeclaration = findLocalTypeAliasDeclaration(typeNode);
+	return referencedDeclaration ? typeAliasReplaysKeyofInSource(referencedDeclaration, seen) : false;
+}
+
 function typeNodeContainsKeyofInSource(
 	typeNode: ts.TypeNode,
 	seen: Set<ts.TypeAliasDeclaration>,
