@@ -57,3 +57,46 @@ export function containsKeyofTypeOperator(typeNode: ts.TypeNode | undefined): bo
 
 	return found;
 }
+
+/** Flattens authored intersection syntax while preserving source order. */
+export function flattenIntersectionTypeNodes(
+	typeNode: ts.TypeNode,
+): readonly ts.TypeNode[] | undefined {
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (!ts.isIntersectionTypeNode(unwrapped)) {
+		return undefined;
+	}
+
+	return unwrapped.types.flatMap((member) => {
+		const nestedMembers = flattenIntersectionTypeNodes(member);
+		return nestedMembers ?? [unwrapParenthesizedTypeNode(member)];
+	});
+}
+
+/** Follows a string-literal indexed access to the property's authored type node. */
+export function getIndexedAccessSourceTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): ts.TypeNode | undefined {
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
+		return undefined;
+	}
+
+	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
+	const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
+	if (!indexType.isStringLiteral()) {
+		return undefined;
+	}
+
+	const property = objectType.getProperty(indexType.value);
+	const declaration = property?.declarations?.find(
+		(candidate): candidate is ts.PropertySignature | ts.PropertyDeclaration =>
+			ts.isPropertySignature(candidate) || ts.isPropertyDeclaration(candidate),
+	);
+	if (!declaration?.type) {
+		return undefined;
+	}
+
+	return getIndexedAccessSourceTypeNode(declaration.type, checker) ?? declaration.type;
+}

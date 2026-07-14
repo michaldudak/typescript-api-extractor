@@ -7,7 +7,11 @@ import {
 	type TypeResolutionRequest,
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
-import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import {
+	getIndexedAccessSourceTypeNode,
+	getKeyofTypeOperatorNode,
+	unwrapParenthesizedTypeNode,
+} from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
 
 // Union resolution owns its own resolver adapter because preserving
@@ -77,38 +81,15 @@ function resolveToUnionTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 ): ts.UnionTypeNode | undefined {
-	if (!ts.isIndexedAccessTypeNode(typeNode)) {
-		return undefined;
-	}
-
 	// Only resolve if the type actually resolves to a union
 	const resolvedType = checker.getTypeFromTypeNode(typeNode);
 	if (!resolvedType.isUnion()) {
 		return undefined;
 	}
 
-	// For `Foo['bar']`, resolve the object type and find the property's declaration
-	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
-	const indexType = checker.getTypeFromTypeNode(typeNode.indexType);
-
-	// The index must be a string literal (e.g., 'container')
-	if (indexType.isStringLiteral()) {
-		const prop = objectType.getProperty(indexType.value);
-		const propDecl = prop?.declarations?.[0];
-		if (
-			propDecl &&
-			(ts.isPropertySignature(propDecl) || ts.isPropertyDeclaration(propDecl)) &&
-			propDecl.type
-		) {
-			if (ts.isUnionTypeNode(propDecl.type)) {
-				return propDecl.type;
-			}
-			// The property type itself might be an indexed access that resolves to a union
-			return resolveToUnionTypeNode(propDecl.type, checker);
-		}
-	}
-
-	return undefined;
+	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker);
+	const unwrappedSource = sourceTypeNode ? unwrapParenthesizedTypeNode(sourceTypeNode) : undefined;
+	return unwrappedSource && ts.isUnionTypeNode(unwrappedSource) ? unwrappedSource : undefined;
 }
 
 function resolveUnionType(

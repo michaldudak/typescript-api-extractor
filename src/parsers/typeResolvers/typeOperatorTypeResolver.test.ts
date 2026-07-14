@@ -361,6 +361,61 @@ export type Concrete = MaybeKeys<Params>;`,
 	});
 });
 
+it('reconstructs checker-collapsed intersections, conditionals, and indexed access', () => {
+	const filePath = '/virtual/keyof-collapsed-wrappers.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+interface Box {
+  keys: keyof Params;
+}
+
+export type ConcreteIntersection = keyof Params & string;
+export type OptionalIntersection = (keyof Params & string) | undefined;
+export type ConcreteConditional = true extends true ? keyof Params : never;
+export type IndexedKeys = Box['keys'];`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { kind: 'object', typeName: { name: 'Params' }, properties: [] },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('ConcreteIntersection')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }],
+	});
+	expect(exportByName('OptionalIntersection')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'intersection',
+				types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }],
+			},
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+	expect(exportByName('ConcreteConditional')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(

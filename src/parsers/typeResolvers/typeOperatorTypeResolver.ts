@@ -1,5 +1,6 @@
 import ts from 'typescript';
 import {
+	IntersectionNode,
 	IntrinsicNode,
 	LiteralNode,
 	ObjectNode,
@@ -19,6 +20,8 @@ import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import {
 	containsKeyofTypeOperator,
+	flattenIntersectionTypeNodes,
+	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
@@ -33,7 +36,7 @@ export function resolveTypeOperatorType(
 ): AnyType | undefined {
 	const operatorNode = getKeyofTypeOperatorNode(typeNode);
 	if (!operatorNode) {
-		return resolveCollapsedTypeOperatorUnion(typeNode, typeName, session);
+		return resolveCollapsedTypeOperatorSyntax(type, typeNode, typeName, session);
 	}
 
 	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
@@ -76,7 +79,8 @@ export function getKeyofResultTypeFromSyntax(
 	);
 }
 
-function resolveCollapsedTypeOperatorUnion(
+function resolveCollapsedTypeOperatorSyntax(
+	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	typeName: TypeResolutionRequest['typeName'],
 	session: TypeResolutionSession,
@@ -86,20 +90,88 @@ function resolveCollapsedTypeOperatorUnion(
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (!ts.isUnionTypeNode(unwrapped) || !containsKeyofTypeOperator(unwrapped)) {
+	if (ts.isIndexedAccessTypeNode(unwrapped)) {
+		const sourceTypeNode = getIndexedAccessSourceTypeNode(unwrapped, session.context.checker);
+		if (sourceTypeNode && containsKeyofTypeOperator(sourceTypeNode)) {
+			return resolveAuthoredTypeNode(sourceTypeNode, session);
+		}
+	}
+	if (!containsKeyofTypeOperator(unwrapped)) {
 		return undefined;
 	}
+	if (ts.isUnionTypeNode(unwrapped)) {
+		return resolveAuthoredUnion(unwrapped, typeName, session);
+	}
+	if (ts.isIntersectionTypeNode(unwrapped) && !type.isIntersection()) {
+		return resolveAuthoredIntersection(unwrapped, typeName, session);
+	}
+	if (ts.isConditionalTypeNode(unwrapped) && (type.flags & ts.TypeFlags.Conditional) === 0) {
+		return resolveCollapsedConditional(type, unwrapped, typeName, session);
+	}
+	return undefined;
+}
 
+function resolveAuthoredUnion(
+	typeNode: ts.UnionTypeNode,
+	typeName: TypeResolutionRequest['typeName'],
+	session: TypeResolutionSession,
+): UnionNode {
 	return new UnionNode(
 		typeName,
-		unwrapped.types.map((memberTypeNode) => {
-			const operatorNode = getKeyofTypeOperatorNode(memberTypeNode);
-			const memberType = operatorNode
-				? getKeyofResultTypeFromSyntax(operatorNode, session.context)
-				: session.context.checker.getTypeFromTypeNode(memberTypeNode);
-			return session.resolve(memberType, memberTypeNode);
-		}),
+		typeNode.types.map((memberTypeNode) => resolveAuthoredTypeNode(memberTypeNode, session)),
 	);
+}
+
+function resolveAuthoredIntersection(
+	typeNode: ts.IntersectionTypeNode,
+	typeName: TypeResolutionRequest['typeName'],
+	session: TypeResolutionSession,
+): IntersectionNode {
+	const memberTypeNodes = flattenIntersectionTypeNodes(typeNode) ?? typeNode.types;
+	return new IntersectionNode(
+		typeName,
+		memberTypeNodes.map((memberTypeNode) => resolveAuthoredTypeNode(memberTypeNode, session)),
+		[],
+	);
+}
+
+function resolveCollapsedConditional(
+	type: ts.Type,
+	typeNode: ts.ConditionalTypeNode,
+	typeName: TypeResolutionRequest['typeName'],
+	session: TypeResolutionSession,
+): AnyType {
+	const { checker } = session.context;
+	const trueType = checker.getTypeFromTypeNode(typeNode.trueType);
+	const falseType = checker.getTypeFromTypeNode(typeNode.falseType);
+	const trueMatches = typesAreEquivalent(type, trueType, checker);
+	const falseMatches = typesAreEquivalent(type, falseType, checker);
+	if (trueMatches && !falseMatches) {
+		return resolveAuthoredTypeNode(typeNode.trueType, session);
+	}
+	if (falseMatches && !trueMatches) {
+		return resolveAuthoredTypeNode(typeNode.falseType, session);
+	}
+
+	return new UnionNode(typeName, [
+		resolveAuthoredTypeNode(typeNode.trueType, session),
+		resolveAuthoredTypeNode(typeNode.falseType, session),
+	]);
+}
+
+function resolveAuthoredTypeNode(typeNode: ts.TypeNode, session: TypeResolutionSession): AnyType {
+	const operatorNode = getKeyofTypeOperatorNode(typeNode);
+	const type = operatorNode
+		? getKeyofResultTypeFromSyntax(operatorNode, session.context)
+		: session.context.checker.getTypeFromTypeNode(typeNode);
+	return (
+		resolveTypeOperatorType({ type, typeName: undefined, typeNode }, session) ??
+		session.resolve(type, typeNode)
+	);
+}
+
+function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
+	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
 }
 
 function resolveTypeOperatorOperand(

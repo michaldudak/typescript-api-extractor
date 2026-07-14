@@ -6,8 +6,8 @@ import { resolveObjectLikeType } from './objectTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
+	flattenIntersectionTypeNodes,
 	getKeyofTypeOperatorNode,
-	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
 
@@ -61,19 +61,7 @@ export function resolveIntersectionType(
 function getIntersectionMemberTypeNodes(
 	typeNode: ts.TypeNode | undefined,
 ): readonly ts.TypeNode[] | undefined {
-	if (!typeNode) {
-		return undefined;
-	}
-
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (!ts.isIntersectionTypeNode(unwrapped)) {
-		return undefined;
-	}
-
-	return unwrapped.types.flatMap((member) => {
-		const nestedMembers = getIntersectionMemberTypeNodes(member);
-		return nestedMembers ?? [unwrapParenthesizedTypeNode(member)];
-	});
+	return typeNode ? flattenIntersectionTypeNodes(typeNode) : undefined;
 }
 
 function matchIntersectionMemberTypeNodes(
