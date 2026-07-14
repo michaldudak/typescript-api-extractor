@@ -951,6 +951,36 @@ export type Promised = NestedPromise<keyof Params>;`,
 	);
 });
 
+it('preserves keyof arguments through concrete aliases and named re-exports', () => {
+	const sourcePath = '/virtual/keyof-generic-argument-source.ts';
+	const entryPath = '/virtual/keyof-generic-argument-entry.ts';
+	const program = createInMemoryProgram({
+		[sourcePath]: `interface Params {
+  a: string;
+  b: number;
+}
+
+type Box<T> = { value: T };
+type Wrapped = Box<keyof Params>;
+
+export type Public = Wrapped;`,
+		[entryPath]: `export { type Public } from './keyof-generic-argument-source';`,
+	});
+
+	for (const moduleDefinition of [
+		parseSerializedModule(sourcePath, program),
+		parseSerializedModule(entryPath, program),
+	]) {
+		const exported = moduleDefinition.exports.find(
+			(exportNode: { name: string }) => exportNode.name === 'Public',
+		);
+		expect(exported?.type.properties[0]).toMatchObject({
+			name: 'value',
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		});
+	}
+});
+
 it('preserves nested generic keyof arguments in returns and class properties', () => {
 	const filePath = '/virtual/keyof-generic-boundaries.ts';
 	const moduleDefinition = parseSerializedModule(

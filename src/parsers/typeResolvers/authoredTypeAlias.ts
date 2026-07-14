@@ -89,16 +89,29 @@ export function resolveAuthoredKeyofAlias(
 	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
 		return undefined;
 	}
-
-	if (
-		!reference ||
-		(!replaysAuthoredArgument &&
-			(!typeAliasContainsKeyof(
+	const replaysConcreteKeyofObjectArgument = Boolean(
+		reference &&
+		concreteAliasReplaysKeyofObjectArgument(
+			reference.declaration,
+			checker,
+			session.context.includeExternalTypes,
+		),
+	);
+	const referenceContainsKeyof = Boolean(
+		reference &&
+		(replaysConcreteKeyofObjectArgument ||
+			typeAliasContainsKeyof(
 				reference.declaration,
 				checker,
 				new Set(),
 				session.context.includeExternalTypes,
-			) ||
+			)),
+	);
+
+	if (
+		!reference ||
+		(!replaysAuthoredArgument &&
+			(!referenceContainsKeyof ||
 				!aliasNeedsSyntaxReplay(
 					reference.declaration,
 					checker,
@@ -418,8 +431,9 @@ function aliasNeedsSyntaxReplay(
 	}
 	seen.add(declaration);
 	if (
-		containsKeyofTypeOperator(declaration.type) &&
-		containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes)
+		concreteAliasReplaysKeyofObjectArgument(declaration, checker, includeExternalTypes) ||
+		(containsKeyofTypeOperator(declaration.type) &&
+			containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes))
 	) {
 		return true;
 	}
@@ -440,6 +454,55 @@ function aliasNeedsSyntaxReplay(
 		ts.isIntersectionTypeNode(typeNode) ||
 		ts.isConditionalTypeNode(typeNode) ||
 		ts.isIndexedAccessTypeNode(typeNode)
+	);
+}
+
+function concreteAliasReplaysKeyofObjectArgument(
+	declaration: ts.TypeAliasDeclaration,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+): boolean {
+	if (declaration.typeParameters?.length) {
+		return false;
+	}
+	const reference = unwrapParenthesizedTypeNode(declaration.type);
+	if (!ts.isTypeReferenceNode(reference) || !reference.typeArguments?.length) {
+		return false;
+	}
+	const target = getTypeAliasDeclaration(reference, checker);
+	if (
+		!target ||
+		!ts.isTypeLiteralNode(unwrapParenthesizedTypeNode(target.type)) ||
+		(!includeExternalTypes && /[\\/]node_modules[\\/]/.test(target.getSourceFile().fileName))
+	) {
+		return false;
+	}
+
+	const substitutions = new Map<ts.Symbol, ts.TypeNode>();
+	for (let index = 0; index < (target.typeParameters?.length ?? 0); index += 1) {
+		const parameter = target.typeParameters![index]!;
+		const argument = reference.typeArguments[index] ?? parameter.default;
+		if (!argument || !containsKeyofTypeOperator(argument)) {
+			continue;
+		}
+		for (const symbol of [
+			checker.getTypeAtLocation(parameter).symbol,
+			checker.getSymbolAtLocation(parameter.name),
+		]) {
+			if (symbol) {
+				substitutions.set(symbol, argument);
+			}
+		}
+	}
+
+	return (
+		substitutions.size > 0 &&
+		aliasBodyUsesKeyofTypeNodeSubstitution(
+			target.type,
+			substitutions,
+			checker,
+			includeExternalTypes,
+		)
 	);
 }
 
