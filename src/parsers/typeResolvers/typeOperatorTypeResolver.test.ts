@@ -1,7 +1,7 @@
 import path from 'node:path';
 import ts from 'typescript';
 import { expect, it } from 'vitest';
-import { parseFromProgram } from '../../index';
+import { parseFromProgram, type ParserWarning } from '../../index';
 import { FunctionNode, TypeOperatorNode } from '../../models';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
@@ -739,7 +739,7 @@ export type UnknownKey = keyof unknown;`,
 
 it('marks unsupported single and union result members as fallbacks', () => {
 	const filePath = '/virtual/keyof-result-fallback.ts';
-	const warnings: Array<{ code: string; typeFlags?: string[] }> = [];
+	const warnings: ParserWarning[] = [];
 	const program = createInMemoryProgram(
 		filePath,
 		`type Pattern = \`pattern-\${string}\`;
@@ -774,15 +774,28 @@ export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };
 			]),
 		},
 	});
-	expect(warnings).toHaveLength(2);
-	expect(warnings).toEqual(
-		expect.arrayContaining([
-			expect.objectContaining({
-				code: 'unsupported-type-fallback',
-				typeFlags: expect.arrayContaining(['TemplateLiteral']),
-			}),
-		]),
-	);
+	expect(warnings).toMatchObject([
+		{
+			code: 'unsupported-type-fallback',
+			filePath,
+			line: 4,
+			column: 27,
+			parsedSymbolStack: [filePath, 'PatternKeys'],
+			typeFlags: ['TemplateLiteral'],
+			typeText: '`pattern-${string}`',
+			sourceText: 'keyof { [K in Pattern]: unknown }',
+		},
+		{
+			code: 'unsupported-type-fallback',
+			filePath,
+			line: 5,
+			column: 32,
+			parsedSymbolStack: [filePath, 'MixedPatternKeys'],
+			typeFlags: ['TemplateLiteral'],
+			typeText: '`mixed-${string}`',
+			sourceText: "keyof { [K in MixedPattern | 'fixed']: unknown }",
+		},
+	]);
 });
 
 it('preserves undefined when an optional or explicit-union keyof result is never', () => {
