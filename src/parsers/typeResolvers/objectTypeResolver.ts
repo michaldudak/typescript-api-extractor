@@ -21,7 +21,7 @@ import {
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
-import { containsKeyofTypeOperatorOrAlias } from './typeOperatorTypeNodes';
+import { containsKeyofTypeOperatorOrAlias, getPropertyTypeNode } from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -325,6 +325,9 @@ function buildObjectNodeFromType(
 							| ts.MethodSignature
 							| ts.PropertyAssignment
 							| ts.PropertyDeclaration
+							| ts.ParameterDeclaration
+							| ts.GetAccessorDeclaration
+							| ts.SetAccessorDeclaration
 							| ts.ShorthandPropertyAssignment
 							| undefined);
 
@@ -333,7 +336,7 @@ function buildObjectNodeFromType(
 					}
 
 					// Skip private/protected class members
-					if (ts.isPropertyDeclaration(declaration) && ts.canHaveModifiers(declaration)) {
+					if (ts.canHaveModifiers(declaration)) {
 						const modifiers = ts.getModifiers(declaration);
 						if (
 							modifiers?.some(
@@ -347,12 +350,21 @@ function buildObjectNodeFromType(
 						}
 					}
 
+					const isKeyofClassMember =
+						(ts.isParameter(declaration) ||
+							ts.isGetAccessorDeclaration(declaration) ||
+							ts.isSetAccessorDeclaration(declaration)) &&
+						containsKeyofTypeOperatorOrAlias(
+							getPropertyTypeNode(property, context.checker),
+							context.checker,
+						);
 					return (
 						(ts.isPropertySignature(declaration) ||
 							ts.isMethodSignature(declaration) ||
 							ts.isPropertyAssignment(declaration) ||
 							ts.isPropertyDeclaration(declaration) ||
-							ts.isShorthandPropertyAssignment(declaration)) &&
+							ts.isShorthandPropertyAssignment(declaration) ||
+							isKeyofClassMember) &&
 						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 					);
 				});
@@ -366,6 +378,7 @@ function buildObjectNodeFromType(
 						// MethodSignature uses checker.getTypeOfSymbol fallback in the property builder.
 						const propertySignature =
 							declaration && ts.isPropertySignature(declaration) ? declaration : undefined;
+						const propertyTypeNode = getPropertyTypeNode(property, context.checker);
 						return buildPropertyNodeFromSymbol(
 							property,
 							propertySignature,
@@ -373,6 +386,7 @@ function buildObjectNodeFromType(
 							resolveValueType,
 							mappedNode?.type,
 							mappedSubstitutions,
+							propertyTypeNode,
 						);
 					}),
 					undefined,
@@ -400,6 +414,7 @@ function buildPropertyNodeFromSymbol(
 	resolvePropertyType: ResolveTypeInContext,
 	mappedTemplateTypeNode?: ts.TypeNode,
 	mappedSubstitutions?: Map<ts.Symbol, ts.Type>,
+	authoredPropertyTypeNode?: ts.TypeNode,
 ): PropertyNode {
 	const { checker } = context;
 
@@ -407,7 +422,7 @@ function buildPropertyNodeFromSymbol(
 		try {
 			let type: ts.Type;
 			const sourceNode =
-				propertySignature?.type ?? propertySignature ?? propertySymbol.declarations?.[0];
+				authoredPropertyTypeNode ?? propertySignature ?? propertySymbol.declarations?.[0];
 
 			return context.runWithSourceNodeScope(sourceNode, () => {
 				if (propertySignature) {
@@ -420,19 +435,19 @@ function buildPropertyNodeFromSymbol(
 					type = checker.getTypeOfSymbol(propertySymbol);
 				}
 
-				const propertyTypeNode = isTypeParameterLike(type)
+				const resolvedPropertyTypeNode = isTypeParameterLike(type)
 					? undefined
-					: (propertySignature?.type ?? mappedTemplateTypeNode);
+					: (authoredPropertyTypeNode ?? mappedTemplateTypeNode);
 				const parsedType =
 					mappedTemplateTypeNode && mappedSubstitutions
 						? resolveTemplateValueType(
 								type,
-								propertyTypeNode,
+								resolvedPropertyTypeNode,
 								context,
 								resolvePropertyType,
 								mappedSubstitutions,
 							)
-						: resolvePropertyType(type, propertyTypeNode, context);
+						: resolvePropertyType(type, resolvedPropertyTypeNode, context);
 
 				// Typechecker only gives the type "any" if it's present in a union.
 				// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.

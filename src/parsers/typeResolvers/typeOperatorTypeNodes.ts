@@ -249,7 +249,7 @@ export function getIndexedAccessKeyofSourceTypeNode(
 	return sourceTypeNode ? followTypeAliasToKeyofSource(sourceTypeNode, checker) : undefined;
 }
 
-function getPropertyTypeNode(
+export function getPropertyTypeNode(
 	property: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
@@ -258,6 +258,7 @@ function getPropertyTypeNode(
 		if (
 			(ts.isPropertySignature(declaration) ||
 				ts.isPropertyDeclaration(declaration) ||
+				ts.isParameter(declaration) ||
 				ts.isGetAccessorDeclaration(declaration)) &&
 			declaration.type
 		) {

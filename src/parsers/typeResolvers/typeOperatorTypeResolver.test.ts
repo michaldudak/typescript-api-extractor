@@ -2090,3 +2090,51 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 		operator: 'keyof',
 	});
 });
+
+it('preserves class member keyof syntax when the instance is reached through an alias', () => {
+	const filePath = '/virtual/keyof-class-instance-alias.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+class Example {
+  field!: keyof Params;
+
+  constructor(public parameter: keyof Params) {}
+
+  get accessor(): keyof Params {
+    return this.field;
+  }
+
+  set accessor(value: keyof Params) {
+    this.field = value;
+  }
+}
+
+export type Instance = Example;`,
+		),
+	);
+	const properties = moduleDefinition.exports[0]?.type.properties;
+
+	expect(properties).toHaveLength(3);
+	for (const property of properties) {
+		expect(property.type).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+			resolvedType: {
+				kind: 'union',
+				types: [
+					{ kind: 'literal', value: '"a"' },
+					{ kind: 'literal', value: '"b"' },
+				],
+			},
+			resolutionKind: 'exact',
+		});
+	}
+});
