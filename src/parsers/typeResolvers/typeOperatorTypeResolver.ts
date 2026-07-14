@@ -42,8 +42,10 @@ export function resolveTypeOperatorType(
 	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
 	const undefinedMember = getUndefinedUnionMember(type);
 	const collapsedToUndefined = isUndefinedType(type);
+	const shouldRecomputeInstantiatedResult =
+		session.context.typeParameterSubstitutions?.size && !isConcreteKeyofResultType(type);
 	const resultType =
-		collapsedToUndefined || session.context.typeParameterSubstitutions?.size
+		collapsedToUndefined || shouldRecomputeInstantiatedResult
 			? getKeyofResultTypeFromSyntax(operatorNode, session.context)
 			: type;
 	const resolvedResult = resolveTypeOperatorResult(resultType, session, {
@@ -142,15 +144,29 @@ function resolveCollapsedConditional(
 	session: TypeResolutionSession,
 ): AnyType {
 	const { checker } = session.context;
-	const trueType = checker.getTypeFromTypeNode(typeNode.trueType);
-	const falseType = checker.getTypeFromTypeNode(typeNode.falseType);
+	const trueType = getAuthoredTypeNodeType(typeNode.trueType, session);
+	const falseType = getAuthoredTypeNodeType(typeNode.falseType, session);
 	const trueMatches = typesAreEquivalent(type, trueType, checker);
 	const falseMatches = typesAreEquivalent(type, falseType, checker);
 	if (trueMatches && !falseMatches) {
-		return resolveAuthoredTypeNode(typeNode.trueType, session);
+		return resolveAuthoredTypeNode(typeNode.trueType, session, type);
 	}
 	if (falseMatches && !trueMatches) {
-		return resolveAuthoredTypeNode(typeNode.falseType, session);
+		return resolveAuthoredTypeNode(typeNode.falseType, session, type);
+	}
+	if (isNeverType(falseType) && !isNeverType(type)) {
+		return resolveAuthoredTypeNode(typeNode.trueType, session, type);
+	}
+	if (isNeverType(trueType) && !isNeverType(type)) {
+		return resolveAuthoredTypeNode(typeNode.falseType, session, type);
+	}
+	if (isNeverType(type)) {
+		if (isNeverType(falseType)) {
+			return resolveAuthoredTypeNode(typeNode.falseType, session, type);
+		}
+		if (isNeverType(trueType)) {
+			return resolveAuthoredTypeNode(typeNode.trueType, session, type);
+		}
 	}
 
 	return new UnionNode(typeName, [
@@ -159,15 +175,23 @@ function resolveCollapsedConditional(
 	]);
 }
 
-function resolveAuthoredTypeNode(typeNode: ts.TypeNode, session: TypeResolutionSession): AnyType {
-	const operatorNode = getKeyofTypeOperatorNode(typeNode);
-	const type = operatorNode
-		? getKeyofResultTypeFromSyntax(operatorNode, session.context)
-		: session.context.checker.getTypeFromTypeNode(typeNode);
+function resolveAuthoredTypeNode(
+	typeNode: ts.TypeNode,
+	session: TypeResolutionSession,
+	typeOverride?: ts.Type,
+): AnyType {
+	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
 	return (
 		resolveTypeOperatorType({ type, typeName: undefined, typeNode }, session) ??
 		session.resolve(type, typeNode)
 	);
+}
+
+function getAuthoredTypeNodeType(typeNode: ts.TypeNode, session: TypeResolutionSession): ts.Type {
+	const operatorNode = getKeyofTypeOperatorNode(typeNode);
+	return operatorNode
+		? getKeyofResultTypeFromSyntax(operatorNode, session.context)
+		: session.context.checker.getTypeFromTypeNode(typeNode);
 }
 
 function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
@@ -318,4 +342,27 @@ function getUndefinedUnionMember(type: ts.Type): ts.Type | undefined {
 
 function isUndefinedType(type: ts.Type): boolean {
 	return (type.flags & ts.TypeFlags.Undefined) !== 0;
+}
+
+function isNeverType(type: ts.Type): boolean {
+	return (type.flags & ts.TypeFlags.Never) !== 0;
+}
+
+function isConcreteKeyofResultType(type: ts.Type): boolean {
+	if (type.isUnion()) {
+		return type.types.every(
+			(memberType) => isUndefinedType(memberType) || isConcreteKeyofResultType(memberType),
+		);
+	}
+
+	return (
+		(type.flags &
+			(ts.TypeFlags.String |
+				ts.TypeFlags.Number |
+				ts.TypeFlags.ESSymbol |
+				ts.TypeFlags.UniqueESSymbol |
+				ts.TypeFlags.Literal |
+				ts.TypeFlags.Never)) !==
+		0
+	);
 }

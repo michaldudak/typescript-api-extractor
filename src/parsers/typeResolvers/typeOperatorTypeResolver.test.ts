@@ -416,6 +416,71 @@ export type IndexedKeys = Box['keys'];`,
 	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
 });
 
+it('preserves keyof through generic container aliases and declaration defaults', () => {
+	const filePath = '/virtual/keyof-generic-container-aliases.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type KeyArray<T> = (keyof T)[];
+type KeyTuple<T> = [keyof T];
+type KeyConditional<T> = T extends object ? keyof T : never;
+type KeyIntersection<T> = keyof T & string;
+type MaybeKeys<T = Params, U = T> = keyof U | undefined;
+
+export type ArrayAlias = KeyArray<Params>;
+export type TupleAlias = KeyTuple<Params>;
+export type ConditionalAlias = KeyConditional<Params>;
+export type IntersectionAlias = KeyIntersection<Params>;
+export type OmittedDefaults = MaybeKeys;
+export type DependentDefault = MaybeKeys<Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('ArrayAlias')?.type).toMatchObject({
+		kind: 'array',
+		typeName: { name: 'ArrayAlias' },
+		elementType: expectedOperator,
+	});
+	expect(exportByName('ArrayAlias')?.type.typeName).not.toHaveProperty('typeArguments');
+	expect(exportByName('TupleAlias')?.type).toMatchObject({
+		kind: 'tuple',
+		types: [expectedOperator],
+	});
+	expect(exportByName('ConditionalAlias')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('IntersectionAlias')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }],
+	});
+	for (const name of ['OmittedDefaults', 'DependentDefault']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'union',
+			typeName: { name },
+			types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
+		});
+	}
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(
@@ -966,6 +1031,34 @@ export type Keys = keyof Params;`,
 			type: { kind: 'typeOperator', operator: 'keyof' },
 		},
 	]);
+});
+
+it('preserves keyof through concrete alias chains on re-export', () => {
+	const sourcePath = '/virtual/keyof-chained-reexport-source.ts';
+	const entryPath = '/virtual/keyof-chained-reexport-entry.ts';
+	const program = createInMemoryProgram({
+		[sourcePath]: `export interface Params {
+  a: string;
+  b: number;
+}
+
+type MaybeKeys<T> = keyof T | undefined;
+export type Concrete = MaybeKeys<Params>;`,
+		[entryPath]: `export { type Concrete } from './keyof-chained-reexport-source';`,
+	});
+
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'Concrete',
+		type: {
+			kind: 'union',
+			typeName: { name: 'Concrete' },
+			types: [
+				{ kind: 'typeOperator', operator: 'keyof' },
+				{ kind: 'intrinsic', intrinsic: 'undefined' },
+			],
+		},
+	});
 });
 
 it('preserves keyof aliases through local import-then-export specifiers', () => {

@@ -65,6 +65,16 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		return result;
 	}
 
+	resolveWithSyntax(request: TypeResolutionRequest): AnyType | undefined {
+		for (const resolver of typeResolvers) {
+			const resolvedType = resolver.resolve(request, this);
+			if (resolvedType) {
+				return resolvedType;
+			}
+		}
+		return undefined;
+	}
+
 	/**
 	 * A single type id can resolve to different model nodes depending on context,
 	 * so memoizing is only safe when none of those influences are in play: an

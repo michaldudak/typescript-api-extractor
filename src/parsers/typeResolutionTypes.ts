@@ -30,6 +30,8 @@ export interface TypeResolutionSession {
 	readonly context: ScopedParserContext;
 	readonly resolveWithContext: ResolveTypeInContext;
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType;
+	/** Re-dispatches an active type against recovered syntax without pushing a second cycle frame. */
+	resolveWithSyntax(request: TypeResolutionRequest): AnyType | undefined;
 }
 
 export interface TypeResolver {

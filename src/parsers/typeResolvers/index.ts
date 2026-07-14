@@ -1,5 +1,6 @@
 import { type TypeResolver } from '../typeResolutionTypes';
 import { resolveArrayType } from './arrayTypeResolver';
+import { resolveAuthoredKeyofAlias } from './authoredTypeAlias';
 import { resolveClassType } from './classTypeResolver';
 import { resolveEnumLikeType } from './enumTypeResolver';
 import { resolveCallableType } from './functionTypeResolver';
@@ -22,6 +23,7 @@ import { resolveUnionTypeNode } from './unionTypeResolver';
 // shape does not require editing one long branch chain, and so resolver
 // precedence is visible.
 export const typeResolvers: TypeResolver[] = [
+	{ name: 'authored-keyof-alias', resolve: resolveAuthoredKeyofAlias },
 	{ name: 'type-operator', resolve: resolveTypeOperatorType },
 	{ name: 'type-parameter', resolve: resolveTypeParameterType },
 	{ name: 'array', resolve: resolveArrayType },
