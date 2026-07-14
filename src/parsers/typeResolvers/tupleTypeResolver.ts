@@ -27,11 +27,14 @@ export function resolveTupleType(
 		(type as ts.TupleType).typeArguments?.map((elementType, index) =>
 			session.resolve(elementType, getTupleElementTypeNode(typeNode, index, checker)),
 		) ?? [],
-		isReadonlyTupleTypeNode(typeNode) ? true : undefined,
+		isReadonlyTupleType(type, typeNode) ? true : undefined,
 	);
 }
 
-function isReadonlyTupleTypeNode(typeNode: ts.TypeNode | undefined): boolean {
+function isReadonlyTupleType(type: ts.Type, typeNode: ts.TypeNode | undefined): boolean {
+	if ('target' in type && (type as ts.TupleTypeReference).target.readonly) {
+		return true;
+	}
 	if (!typeNode) {
 		return false;
 	}

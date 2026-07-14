@@ -29,14 +29,28 @@ export function resolveArrayType(
 			? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 			: undefined,
 		session.resolve(arrayType, getArrayElementTypeNode(typeNode, checker)),
-		isReadonlyArrayTypeNode(typeNode, checker) ? true : undefined,
+		isReadonlyArrayType(type, typeNode, checker) ? true : undefined,
 	);
 }
 
-function isReadonlyArrayTypeNode(
+function isReadonlyArrayType(
+	type: ts.Type,
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): boolean {
+	const targetSymbol =
+		type.flags & ts.TypeFlags.Object && 'target' in type
+			? (type as ts.TypeReference).target.symbol
+			: undefined;
+	if (
+		targetSymbol?.name === 'ReadonlyArray' &&
+		targetSymbol.declarations?.some((declaration) =>
+			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		)
+	) {
+		return true;
+	}
+
 	if (!typeNode) {
 		return false;
 	}

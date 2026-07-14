@@ -142,8 +142,17 @@ it('preserves readonly array and tuple operands', () => {
 		filePath,
 		createInMemoryProgram(
 			filePath,
-			`export type ReadonlyArrayKeys = keyof readonly string[];
-export type ReadonlyTupleKeys = keyof readonly [string, number];`,
+			`type ReadonlyStrings = readonly string[];
+type ReadonlyPair = readonly [string, number];
+
+export type ReadonlyArrayKeys = keyof readonly string[];
+export type ReadonlyTupleKeys = keyof readonly [string, number];
+export type UtilityArrayKeys = keyof Readonly<string[]>;
+export type UtilityTupleKeys = keyof Readonly<[string, number]>;
+export interface Box {
+  values: ReadonlyStrings;
+  pair: ReadonlyPair;
+}`,
 		),
 	);
 	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
@@ -169,6 +178,14 @@ export type ReadonlyTupleKeys = keyof readonly [string, number];`,
 	expect(parsedExportByName('ReadonlyTupleKeys')?.type.toString()).toBe(
 		'keyof readonly [string, number]',
 	);
+	for (const name of ['UtilityArrayKeys', 'UtilityTupleKeys']) {
+		expect(exportByName(name)?.type.type).toMatchObject({ isReadonly: true });
+		expect(parsedExportByName(name)?.type.toString()).toMatch(/^keyof readonly /);
+	}
+	expect(exportByName('Box')?.type.properties).toMatchObject([
+		{ name: 'values', type: { kind: 'array', isReadonly: true } },
+		{ name: 'pair', type: { kind: 'tuple', isReadonly: true } },
+	]);
 	const arrayKeyValues = exportByName('ReadonlyArrayKeys')
 		?.type.resolvedType.types.filter((type: { kind: string }) => type.kind === 'literal')
 		.map((type: { value: string }) => type.value);
