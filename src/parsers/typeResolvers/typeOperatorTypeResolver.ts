@@ -6,6 +6,7 @@ import {
 	TypeOperatorNode,
 	UnionNode,
 	type AnyType,
+	type TypeOperatorResolutionKind,
 } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
@@ -30,14 +31,16 @@ export function resolveTypeOperatorType(
 	const resultType = collapsedToUndefined
 		? session.context.checker.getTypeFromTypeNode(operatorNode)
 		: type;
+	const resolvedResult = resolveTypeOperatorResult(resultType, session, {
+		excludeUndefined: Boolean(undefinedMember),
+		typeName,
+	});
 	const typeOperatorNode = new TypeOperatorNode(
 		undefined,
 		'keyof',
 		compactTypeOperatorOperand(session.resolve(operandType, operatorNode.type)),
-		resolveTypeOperatorResult(resultType, session, {
-			excludeUndefined: Boolean(undefinedMember),
-			typeName,
-		}),
+		resolvedResult.type,
+		resolvedResult.resolutionKind,
 	);
 
 	if (!undefinedMember && !collapsedToUndefined) {
@@ -88,7 +91,7 @@ function resolveTypeOperatorResult(
 	type: ts.Type,
 	session: TypeResolutionSession,
 	options: { excludeUndefined?: boolean; typeName?: TypeResolutionRequest['typeName'] } = {},
-): AnyType {
+): { type: AnyType; resolutionKind: TypeOperatorResolutionKind } {
 	if (type.isUnion()) {
 		const memberTypes = options.excludeUndefined
 			? type.types.filter((memberType) => !isUndefinedType(memberType))
@@ -98,23 +101,33 @@ function resolveTypeOperatorResult(
 			return resolveTypeOperatorResult(memberTypes[0], session, { typeName: options.typeName });
 		}
 
-		return new UnionNode(
-			options.typeName,
-			memberTypes.map((memberType) => session.resolve(memberType, undefined)),
-		);
+		return {
+			type: new UnionNode(
+				options.typeName,
+				memberTypes.map((memberType) => session.resolve(memberType, undefined)),
+			),
+			resolutionKind: 'exact',
+		};
 	}
 
 	const concreteResult = resolveConcreteTypeOperatorResult(type, session, options.typeName);
 	if (concreteResult) {
-		return concreteResult;
+		return { type: concreteResult, resolutionKind: 'exact' };
 	}
 
 	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);
 	if (baseConstraint && baseConstraint !== type) {
-		return resolveTypeOperatorResult(baseConstraint, session, { typeName: options.typeName });
+		const resolvedConstraint = resolveTypeOperatorResult(baseConstraint, session, {
+			typeName: options.typeName,
+		});
+		return {
+			type: resolvedConstraint.type,
+			resolutionKind:
+				resolvedConstraint.resolutionKind === 'fallback' ? 'fallback' : 'baseConstraint',
+		};
 	}
 
-	return new IntrinsicNode('any');
+	return { type: new IntrinsicNode('any'), resolutionKind: 'fallback' };
 }
 
 function resolveConcreteTypeOperatorResult(

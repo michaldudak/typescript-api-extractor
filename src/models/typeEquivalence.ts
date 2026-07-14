@@ -106,6 +106,7 @@ class TypeEquivalence {
 		if (type1 instanceof TypeOperatorNode && type2 instanceof TypeOperatorNode) {
 			return (
 				type1.operator === type2.operator &&
+				type1.resolutionKind === type2.resolutionKind &&
 				this.areEquivalentIgnoringAny(type1.type, type2.type, typeParamRenames) &&
 				this.areEquivalentIgnoringAny(type1.resolvedType, type2.resolvedType, typeParamRenames)
 			);

@@ -51,6 +51,7 @@
 														}
 													]
 												},
+												"resolutionKind": "baseConstraint",
 												"kind": "typeOperator"
 											},
 											"kind": "typeParameter"
@@ -114,6 +115,7 @@
 													}
 												]
 											},
+											"resolutionKind": "baseConstraint",
 											"kind": "typeOperator"
 										},
 										"kind": "typeParameter"

@@ -116,12 +116,14 @@ it('canonicalizes type operator members without stringifying resolved results', 
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
 		resolvedType,
+		'exact',
 	);
 	const secondOperator = new TypeOperatorNode(
 		undefined,
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
 		resolvedType,
+		'exact',
 	);
 
 	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);

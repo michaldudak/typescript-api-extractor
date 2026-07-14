@@ -2,6 +2,7 @@ import { type AnyType, type TypeNode } from '../node';
 import { type TypeName } from '../typeName';
 
 export type TypeOperator = 'keyof';
+export type TypeOperatorResolutionKind = 'exact' | 'baseConstraint' | 'fallback';
 
 export class TypeOperatorNode implements TypeNode {
 	readonly kind = 'typeOperator';
@@ -12,6 +13,7 @@ export class TypeOperatorNode implements TypeNode {
 		readonly operator: TypeOperator,
 		readonly type: AnyType,
 		readonly resolvedType: AnyType,
+		readonly resolutionKind: TypeOperatorResolutionKind,
 	) {
 		this.typeName = typeName?.name ? typeName : undefined;
 	}

@@ -2,6 +2,7 @@ import path from 'node:path';
 import ts from 'typescript';
 import { expect, it } from 'vitest';
 import { parseFromProgram } from '../../index';
+import { TypeOperatorNode } from '../../models';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
 function parseSerializedModule(filePath: string, program: ts.Program) {
@@ -39,6 +40,7 @@ export interface Parameters {
 						{
 							kind: 'typeOperator',
 							operator: 'keyof',
+							resolutionKind: 'exact',
 							type: {
 								kind: 'external',
 								typeName: {
@@ -170,6 +172,7 @@ it('preserves keyof constraints on signature type parameters', () => {
 							constraint: {
 								kind: 'typeOperator',
 								operator: 'keyof',
+								resolutionKind: 'baseConstraint',
 								type: {
 									kind: 'typeParameter',
 									name: 'T',
@@ -428,7 +431,7 @@ export type UniqueKey = keyof { [tag]: string };`,
 			typeName: { name: 'Key' },
 		},
 	});
-	expect(parsedExportByName('Keys')?.type.typeName).toBeUndefined();
+	expect((parsedExportByName('Keys')?.type as TypeOperatorNode).typeName).toBeUndefined();
 	expect(parsedExportByName('Keys')?.type.toString()).toBe('keyof Params');
 
 	expect(exportByName('UniqueKey')?.type).toMatchObject({
@@ -440,7 +443,7 @@ export type UniqueKey = keyof { [tag]: string };`,
 			typeName: { name: 'tag' },
 		},
 	});
-	expect(parsedExportByName('UniqueKey')?.type.typeName).toBeUndefined();
+	expect((parsedExportByName('UniqueKey')?.type as TypeOperatorNode).typeName).toBeUndefined();
 });
 
 it('preserves keyof aliases through named and renamed re-exports', () => {

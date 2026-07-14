@@ -210,6 +210,7 @@ class TypeCanonicalizer {
 			'typeoperator',
 			type.typeName?.toString() ?? '',
 			type.operator,
+			type.resolutionKind,
 			this.getTypeOperatorChildKey(type.type),
 			this.getTypeOperatorChildKey(type.resolvedType),
 		].join(':');

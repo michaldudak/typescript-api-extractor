@@ -522,6 +522,7 @@
 											}
 										]
 									},
+									"resolutionKind": "exact",
 									"kind": "typeOperator"
 								},
 								"name": "prop",
