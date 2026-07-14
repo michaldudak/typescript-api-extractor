@@ -402,6 +402,47 @@ export type SymbolKeys = keyof { [iterator]: string };`,
 	});
 });
 
+it('keeps semantic result names off the operator and preserves unique-symbol identity', () => {
+	const filePath = '/virtual/keyof-result-identity.ts';
+	const program = createInMemoryProgram(
+		filePath,
+		`type Key = 'a' | 'b';
+type Params = Record<Key, string>;
+export type Keys = keyof Params;
+
+declare const tag: unique symbol;
+export type UniqueKey = keyof { [tag]: string };`,
+	);
+	const parsedModule = parseFromProgram(filePath, program);
+	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const parsedExportByName = (name: string) =>
+		parsedModule.exports.find((exportNode) => exportNode.name === name);
+
+	expect(exportByName('Keys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'union',
+			typeName: { name: 'Key' },
+		},
+	});
+	expect(parsedExportByName('Keys')?.type.typeName).toBeUndefined();
+	expect(parsedExportByName('Keys')?.type.toString()).toBe('keyof Params');
+
+	expect(exportByName('UniqueKey')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'intrinsic',
+			intrinsic: 'symbol',
+			typeName: { name: 'tag' },
+		},
+	});
+	expect(parsedExportByName('UniqueKey')?.type.typeName).toBeUndefined();
+});
+
 it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';

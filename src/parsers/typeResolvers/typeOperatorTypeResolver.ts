@@ -31,10 +31,13 @@ export function resolveTypeOperatorType(
 		? session.context.checker.getTypeFromTypeNode(operatorNode)
 		: type;
 	const typeOperatorNode = new TypeOperatorNode(
-		typeName,
+		undefined,
 		'keyof',
 		compactTypeOperatorOperand(session.resolve(operandType, operatorNode.type)),
-		resolveTypeOperatorResult(resultType, session, { excludeUndefined: Boolean(undefinedMember) }),
+		resolveTypeOperatorResult(resultType, session, {
+			excludeUndefined: Boolean(undefinedMember),
+			typeName,
+		}),
 	);
 
 	if (!undefinedMember && !collapsedToUndefined) {
@@ -84,7 +87,7 @@ function getKeyofOperatorSyntax(
 function resolveTypeOperatorResult(
 	type: ts.Type,
 	session: TypeResolutionSession,
-	options: { excludeUndefined?: boolean } = {},
+	options: { excludeUndefined?: boolean; typeName?: TypeResolutionRequest['typeName'] } = {},
 ): AnyType {
 	if (type.isUnion()) {
 		const memberTypes = options.excludeUndefined
@@ -92,50 +95,55 @@ function resolveTypeOperatorResult(
 			: type.types;
 
 		if (memberTypes.length === 1) {
-			return resolveTypeOperatorResult(memberTypes[0], session);
+			return resolveTypeOperatorResult(memberTypes[0], session, { typeName: options.typeName });
 		}
 
 		return new UnionNode(
-			undefined,
+			options.typeName,
 			memberTypes.map((memberType) => session.resolve(memberType, undefined)),
 		);
 	}
 
-	const concreteResult = resolveConcreteTypeOperatorResult(type);
+	const concreteResult = resolveConcreteTypeOperatorResult(type, session, options.typeName);
 	if (concreteResult) {
 		return concreteResult;
 	}
 
 	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);
 	if (baseConstraint && baseConstraint !== type) {
-		return resolveTypeOperatorResult(baseConstraint, session);
+		return resolveTypeOperatorResult(baseConstraint, session, { typeName: options.typeName });
 	}
 
 	return new IntrinsicNode('any');
 }
 
-function resolveConcreteTypeOperatorResult(type: ts.Type): AnyType | undefined {
+function resolveConcreteTypeOperatorResult(
+	type: ts.Type,
+	session: TypeResolutionSession,
+	typeName: TypeResolutionRequest['typeName'],
+): AnyType | undefined {
 	if ((type.flags & ts.TypeFlags.Never) !== 0) {
-		return new IntrinsicNode('never');
+		return new IntrinsicNode('never', typeName);
 	}
 
 	if ((type.flags & ts.TypeFlags.String) !== 0) {
-		return new IntrinsicNode('string');
+		return new IntrinsicNode('string', typeName);
 	}
 
 	if ((type.flags & ts.TypeFlags.Number) !== 0) {
-		return new IntrinsicNode('number');
+		return new IntrinsicNode('number', typeName);
 	}
 
-	if (
-		(type.flags & ts.TypeFlags.ESSymbol) !== 0 ||
-		(type.flags & ts.TypeFlags.UniqueESSymbol) !== 0
-	) {
-		return new IntrinsicNode('symbol');
+	if ((type.flags & ts.TypeFlags.UniqueESSymbol) !== 0) {
+		return session.resolve(type, undefined);
+	}
+
+	if ((type.flags & ts.TypeFlags.ESSymbol) !== 0) {
+		return new IntrinsicNode('symbol', typeName);
 	}
 
 	if (type.isLiteral()) {
-		return new LiteralNode(type.isStringLiteral() ? `"${type.value}"` : type.value);
+		return new LiteralNode(type.isStringLiteral() ? `"${type.value}"` : type.value, typeName);
 	}
 
 	return undefined;
