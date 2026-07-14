@@ -4,6 +4,7 @@ import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -28,7 +29,14 @@ export function resolveArrayType(
 		type.aliasSymbol?.name
 			? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 			: undefined,
-		session.resolve(arrayType, getArrayElementTypeNode(typeNode, checker)),
+		session.resolve(
+			arrayType,
+			getArrayElementTypeNode(
+				typeNode,
+				checker,
+				session.context.typeParameterTypeNodeSubstitutions,
+			),
+		),
 		isReadonlyArrayType(type, typeNode, checker) ? true : undefined,
 	);
 }
@@ -69,20 +77,32 @@ function isReadonlyArrayType(
 export function getArrayElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): ts.TypeNode | undefined {
-	if (!containsKeyofTypeOperatorOrAlias(typeNode, checker) || !typeNode) {
+	if (!typeNode) {
 		return undefined;
 	}
 
 	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	let elementType: ts.TypeNode | undefined;
 	if (ts.isArrayTypeNode(unwrapped)) {
-		return unwrapped.elementType;
+		elementType = unwrapped.elementType;
 	}
 	if (ts.isTypeReferenceNode(unwrapped) && isBuiltInArrayReference(unwrapped, checker)) {
-		return unwrapped.typeArguments?.[0];
+		elementType = unwrapped.typeArguments?.[0];
 	}
 
-	return undefined;
+	if (!elementType) {
+		return undefined;
+	}
+	const substitutedElementType = substituteTypeParameterTypeNode(
+		elementType,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	return containsKeyofTypeOperatorOrAlias(substitutedElementType, checker)
+		? substitutedElementType
+		: undefined;
 }
 
 function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.TypeChecker): boolean {

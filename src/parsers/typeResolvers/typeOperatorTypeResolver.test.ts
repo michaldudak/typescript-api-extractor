@@ -619,6 +619,60 @@ export type ExplicitCompositeDefault = MaybePartialKeys<Params>;`,
 	}
 });
 
+it('preserves authored keyof arguments through identity and container aliases', () => {
+	const filePath = '/virtual/keyof-generic-argument-syntax.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Identity<T> = T;
+type Vector<T> = T[];
+type Pair<T> = [T, T];
+type Rest<T> = [head: T, ...tail: T[]];
+
+export type Keys = Identity<keyof Params>;
+export type KeyVector = Vector<keyof Params>;
+export type KeyPair = Pair<keyof Params>;
+export type KeyRest = Rest<keyof Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('Keys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('KeyVector')?.type).toMatchObject({
+		kind: 'array',
+		elementType: expectedOperator,
+	});
+	expect(exportByName('KeyVector')?.type.typeName).not.toHaveProperty('typeArguments');
+	expect(exportByName('KeyPair')?.type).toMatchObject({
+		kind: 'tuple',
+		types: [expectedOperator, expectedOperator],
+	});
+	expect(exportByName('KeyRest')?.type).toMatchObject({
+		kind: 'tuple',
+		types: [expectedOperator, expectedOperator],
+	});
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(

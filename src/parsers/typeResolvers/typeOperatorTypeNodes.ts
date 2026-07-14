@@ -58,6 +58,34 @@ export function containsKeyofTypeOperator(typeNode: ts.TypeNode | undefined): bo
 	return found;
 }
 
+/** Replaces a root type-parameter reference with its active authored argument. */
+export function substituteTypeParameterTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): ts.TypeNode {
+	let substituted = typeNode;
+	const seen = new Set<ts.Symbol>();
+	while (substitutions) {
+		const unwrapped = unwrapParenthesizedTypeNode(substituted);
+		if (!ts.isTypeReferenceNode(unwrapped) || unwrapped.typeArguments?.length) {
+			break;
+		}
+		const symbol = checker.getSymbolAtLocation(unwrapped.typeName);
+		if (!symbol || seen.has(symbol)) {
+			break;
+		}
+		const replacement = substitutions.get(symbol);
+		if (!replacement) {
+			break;
+		}
+		seen.add(symbol);
+		substituted = replacement;
+	}
+
+	return substituted;
+}
+
 /** Checks authored syntax and any referenced type aliases for a `keyof` expression. */
 export function containsKeyofTypeOperatorOrAlias(
 	typeNode: ts.TypeNode | undefined,

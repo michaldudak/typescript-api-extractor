@@ -70,9 +70,17 @@ function createParserContext(
 
 			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
 		},
-		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
+		runWithTypeParameterSubstitutionScope: (
+			typeParameterSubstitutions,
+			callback,
+			typeParameterTypeNodeSubstitutions,
+		) => {
 			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
+			const previousTypeParameterTypeNodeSubstitutions = context.typeParameterTypeNodeSubstitutions;
 			context.typeParameterSubstitutions = typeParameterSubstitutions;
+			if (typeParameterTypeNodeSubstitutions) {
+				context.typeParameterTypeNodeSubstitutions = typeParameterTypeNodeSubstitutions;
+			}
 
 			try {
 				return callback();
@@ -81,6 +89,11 @@ function createParserContext(
 					context.typeParameterSubstitutions = previousTypeParameterSubstitutions;
 				} else {
 					delete context.typeParameterSubstitutions;
+				}
+				if (previousTypeParameterTypeNodeSubstitutions) {
+					context.typeParameterTypeNodeSubstitutions = previousTypeParameterTypeNodeSubstitutions;
+				} else {
+					delete context.typeParameterTypeNodeSubstitutions;
 				}
 			}
 		},

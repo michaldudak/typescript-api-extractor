@@ -4,6 +4,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -25,7 +26,15 @@ export function resolveTupleType(
 	return new TupleNode(
 		typeName,
 		(type as ts.TupleType).typeArguments?.map((elementType, index) =>
-			session.resolve(elementType, getTupleElementTypeNode(typeNode, index, checker)),
+			session.resolve(
+				elementType,
+				getTupleElementTypeNode(
+					typeNode,
+					index,
+					checker,
+					session.context.typeParameterTypeNodeSubstitutions,
+				),
+			),
 		) ?? [],
 		isReadonlyTupleType(type, typeNode) ? true : undefined,
 	);
@@ -51,6 +60,7 @@ function getTupleElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	index: number,
 	checker: ts.TypeChecker,
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): ts.TypeNode | undefined {
 	if (!typeNode) {
 		return undefined;
@@ -71,11 +81,25 @@ function getTupleElementTypeNode(
 		isRest ||= ts.isRestTypeNode(element);
 		element = element.type;
 	}
-	if (!element || !containsKeyofTypeOperatorOrAlias(element, checker)) {
+	if (!element) {
+		return undefined;
+	}
+	if (isRest) {
+		const restElementType = getArrayElementTypeNode(
+			element,
+			checker,
+			typeParameterTypeNodeSubstitutions,
+		);
+		if (restElementType) {
+			return restElementType;
+		}
+	}
+	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
+	if (!containsKeyofTypeOperatorOrAlias(element, checker)) {
 		return undefined;
 	}
 	if (element && isRest) {
-		return getArrayElementTypeNode(element, checker) ?? element;
+		return getArrayElementTypeNode(element, checker, typeParameterTypeNodeSubstitutions) ?? element;
 	}
 
 	return element;

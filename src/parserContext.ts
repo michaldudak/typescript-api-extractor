@@ -28,5 +28,8 @@ export interface ScopedParserContext extends ParserContext {
 	runWithTypeParameterSubstitutionScope<T>(
 		typeParameterSubstitutions: Map<ts.Symbol, ts.Type>,
 		callback: () => T,
+		typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	): T;
+	/** Authored type arguments paired with the active semantic substitutions. */
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
 }

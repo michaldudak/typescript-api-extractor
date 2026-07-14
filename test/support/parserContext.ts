@@ -48,9 +48,17 @@ export function createTestParserContext(program: ts.Program, filePath: string): 
 
 			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
 		},
-		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
+		runWithTypeParameterSubstitutionScope: (
+			typeParameterSubstitutions,
+			callback,
+			typeParameterTypeNodeSubstitutions,
+		) => {
 			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
+			const previousTypeParameterTypeNodeSubstitutions = context.typeParameterTypeNodeSubstitutions;
 			context.typeParameterSubstitutions = typeParameterSubstitutions;
+			if (typeParameterTypeNodeSubstitutions) {
+				context.typeParameterTypeNodeSubstitutions = typeParameterTypeNodeSubstitutions;
+			}
 
 			try {
 				return callback();
@@ -59,6 +67,11 @@ export function createTestParserContext(program: ts.Program, filePath: string): 
 					context.typeParameterSubstitutions = previousTypeParameterSubstitutions;
 				} else {
 					delete context.typeParameterSubstitutions;
+				}
+				if (previousTypeParameterTypeNodeSubstitutions) {
+					context.typeParameterTypeNodeSubstitutions = previousTypeParameterTypeNodeSubstitutions;
+				} else {
+					delete context.typeParameterTypeNodeSubstitutions;
 				}
 			}
 		},
