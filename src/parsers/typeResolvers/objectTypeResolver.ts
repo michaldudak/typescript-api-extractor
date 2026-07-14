@@ -21,6 +21,7 @@ import {
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
+import { containsKeyofTypeOperator } from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -176,9 +177,12 @@ function buildIndexSignatureNode(
 				}
 
 				if (keyType) {
+					const templateTypeNode = containsKeyofTypeOperator(mappedNode.type)
+						? mappedNode.type
+						: undefined;
 					let valueType = resolveTemplateValueType(
 						templateType,
-						mappedNode.type,
+						templateTypeNode,
 						context,
 						resolveValueType,
 						substitutions,
@@ -210,7 +214,11 @@ function buildIndexSignatureNode(
 
 function getIndexValueTypeNode(indexInfo: ts.IndexInfo): ts.TypeNode | undefined {
 	const declaration = indexInfo.declaration;
-	return declaration && ts.isIndexSignatureDeclaration(declaration) ? declaration.type : undefined;
+	return declaration &&
+		ts.isIndexSignatureDeclaration(declaration) &&
+		containsKeyofTypeOperator(declaration.type)
+		? declaration.type
+		: undefined;
 }
 
 function isObjectType(type: ts.Type): type is ts.ObjectType {
@@ -223,7 +231,7 @@ function isObjectType(type: ts.Type): type is ts.ObjectType {
  */
 function resolveTemplateValueType(
 	type: ts.Type,
-	typeNode: ts.TypeNode,
+	typeNode: ts.TypeNode | undefined,
 	context: ScopedParserContext,
 	resolve: (
 		type: ts.Type,
