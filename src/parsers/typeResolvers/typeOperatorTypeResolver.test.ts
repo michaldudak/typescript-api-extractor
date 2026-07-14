@@ -2009,6 +2009,34 @@ export type ReorderedArgument = Reordered<keyof Params, number>;`,
 	});
 });
 
+it('resolves keyof alias chains in their lexical namespace scope', () => {
+	const filePath = '/virtual/keyof-namespace-shadowing.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`type Keys = string;
+
+export namespace Nested {
+  export interface Params {
+    nested: string;
+  }
+  export type Keys = keyof Params;
+  export type PublicKeys = Keys;
+}`,
+		),
+	);
+	const publicKeys = moduleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'Nested.PublicKeys',
+	);
+
+	expect(publicKeys?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params', namespaces: ['Nested'] } },
+	});
+});
+
 it('does not treat locally shadowed Array names as built-in containers', () => {
 	const filePath = '/virtual/keyof-shadowed-array-names.ts';
 	const moduleDefinition = parseSerializedModule(

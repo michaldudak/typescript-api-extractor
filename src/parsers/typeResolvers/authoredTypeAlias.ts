@@ -317,12 +317,23 @@ function findLocalTypeAliasDeclaration(typeNode: ts.TypeNode): ts.TypeAliasDecla
 		return undefined;
 	}
 	const referencedName = unwrapped.typeName.text;
-	return unwrapped
-		.getSourceFile()
-		.statements.find(
+	let current: ts.Node | undefined = unwrapped.parent;
+	while (current) {
+		const statements =
+			ts.isSourceFile(current) || ts.isModuleBlock(current) || ts.isBlock(current)
+				? current.statements
+				: undefined;
+		const declaration = statements?.find(
 			(statement): statement is ts.TypeAliasDeclaration =>
 				ts.isTypeAliasDeclaration(statement) && statement.name.text === referencedName,
 		);
+		if (declaration) {
+			return declaration;
+		}
+		current = current.parent;
+	}
+
+	return undefined;
 }
 
 function canCollapseAuthoredKeyofAlias(type: ts.Type, checker: ts.TypeChecker): boolean {

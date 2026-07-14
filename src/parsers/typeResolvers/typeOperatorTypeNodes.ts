@@ -202,7 +202,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	}
 
 	const declaration =
-		findLocalTypeAliasDeclaration(unwrapped) ?? getTypeAliasDeclaration(unwrapped, checker);
+		getTypeAliasDeclaration(unwrapped, checker) ?? findLocalTypeAliasDeclaration(unwrapped);
 	if (
 		!declaration ||
 		(!includeExternalTypes && isExternalTypeAliasDeclaration(declaration)) ||
