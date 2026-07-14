@@ -299,7 +299,7 @@ function findLocalTypeAliasDeclaration(
 		);
 }
 
-function isRelativeImportedTypeReference(typeNode: ts.TypeReferenceNode): boolean {
+export function isRelativeImportedTypeReference(typeNode: ts.TypeReferenceNode): boolean {
 	let rootName = typeNode.typeName;
 	while (ts.isQualifiedName(rootName)) {
 		rootName = rootName.left;

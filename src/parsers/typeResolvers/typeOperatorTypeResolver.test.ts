@@ -1313,6 +1313,32 @@ export type Concrete = MaybeKeys<Params>;`,
 	});
 });
 
+it('preserves imported keyof alias chains through named barrel re-exports', () => {
+	const dependencyPath = '/virtual/keyof-barrel-dependency.ts';
+	const sourcePath = '/virtual/keyof-barrel-source.ts';
+	const barrelPath = '/virtual/keyof-barrel-entry.ts';
+	const program = createInMemoryProgram({
+		[dependencyPath]: `export interface Params {
+  alpha: string;
+}
+export type Keys = keyof Params;`,
+		[sourcePath]: `import type { Keys } from './keyof-barrel-dependency';
+export type PublicKeys = Keys;`,
+		[barrelPath]: `export { type PublicKeys } from './keyof-barrel-source';`,
+	});
+	const moduleDefinition = parseSerializedModule(barrelPath, program);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'PublicKeys',
+		type: {
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+			resolvedType: { kind: 'literal', value: '"alpha"' },
+		},
+	});
+});
+
 it('preserves keyof aliases through local import-then-export specifiers', () => {
 	const sourcePath = '/virtual/keyof-import-export-source.ts';
 	const entryPath = '/virtual/keyof-import-export-entry.ts';

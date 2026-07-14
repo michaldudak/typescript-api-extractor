@@ -6,6 +6,7 @@ import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
+	isRelativeImportedTypeReference,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -122,6 +123,29 @@ export function typeAliasContainsKeyofInSource(
 	return referencedDeclaration
 		? typeAliasContainsKeyofInSource(referencedDeclaration, seen, includeExternalTypes)
 		: false;
+}
+
+/** Identifies a source-only alias chain that ends at a relative project import. */
+export function typeAliasReferencesProjectImportInSource(
+	declaration: ts.TypeAliasDeclaration,
+	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+): boolean {
+	if (
+		seen.has(declaration) ||
+		/[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName)
+	) {
+		return false;
+	}
+	seen.add(declaration);
+
+	const typeNode = unwrapParenthesizedTypeNode(declaration.type);
+	if (!ts.isTypeReferenceNode(typeNode)) {
+		return false;
+	}
+	const localDeclaration = findLocalTypeAliasDeclaration(typeNode);
+	return localDeclaration
+		? typeAliasReferencesProjectImportInSource(localDeclaration, seen)
+		: isRelativeImportedTypeReference(typeNode);
 }
 
 function typeNodeContainsKeyofAliasInSource(typeNode: ts.TypeNode | undefined): boolean {

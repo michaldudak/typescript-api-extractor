@@ -3,7 +3,10 @@ import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
-import { typeAliasContainsKeyofInSource } from './typeResolvers/authoredTypeAlias';
+import {
+	typeAliasContainsKeyofInSource,
+	typeAliasReferencesProjectImportInSource,
+} from './typeResolvers/authoredTypeAlias';
 import { getKeyofTypeOperatorNode } from './typeResolvers/typeOperatorTypeNodes';
 
 interface ExportDescriptorResolutionState {
@@ -209,6 +212,7 @@ function resolveExportSpecifierDescriptors(
 			typeNode:
 				targetTypeAlias &&
 				(targetIsExternalKeyofAlias ||
+					typeAliasReferencesProjectImportInSource(targetTypeAlias) ||
 					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
 					? targetTypeNode
 					: undefined,
