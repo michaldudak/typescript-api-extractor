@@ -11,6 +11,7 @@ import {
 } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
+import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getKeyofTypeForOperand } from '../typeResolutionUtils';
 import { resolveExternalType } from './externalTypeResolver';
@@ -147,13 +148,18 @@ function resolveTypeOperatorResult(
 		if (memberTypes.length === 1) {
 			return resolveTypeOperatorResult(memberTypes[0], session, { typeName: options.typeName });
 		}
+		const resolvedMembers = memberTypes.map((memberType) =>
+			resolveTypeOperatorResult(memberType, session),
+		);
 
 		return {
 			type: new UnionNode(
 				options.typeName,
-				memberTypes.map((memberType) => session.resolve(memberType, undefined)),
+				resolvedMembers.map((member) => member.type),
 			),
-			resolutionKind: 'exact',
+			resolutionKind: aggregateResolutionKinds(
+				resolvedMembers.map((member) => member.resolutionKind),
+			),
 		};
 	}
 
@@ -174,7 +180,20 @@ function resolveTypeOperatorResult(
 		};
 	}
 
+	reportUnsupportedTypeFallback(type, undefined, session.context);
 	return { type: new IntrinsicNode('any'), resolutionKind: 'fallback' };
+}
+
+function aggregateResolutionKinds(
+	resolutionKinds: readonly TypeOperatorResolutionKind[],
+): TypeOperatorResolutionKind {
+	if (resolutionKinds.includes('fallback')) {
+		return 'fallback';
+	}
+	if (resolutionKinds.includes('baseConstraint')) {
+		return 'baseConstraint';
+	}
+	return 'exact';
 }
 
 function resolveConcreteTypeOperatorResult(

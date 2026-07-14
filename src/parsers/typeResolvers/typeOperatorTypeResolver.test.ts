@@ -512,6 +512,54 @@ export type UnknownKey = keyof unknown;`,
 	});
 });
 
+it('marks unsupported single and union result members as fallbacks', () => {
+	const filePath = '/virtual/keyof-result-fallback.ts';
+	const warnings: Array<{ code: string; typeFlags?: string[] }> = [];
+	const program = createInMemoryProgram(
+		filePath,
+		`type Pattern = \`pattern-\${string}\`;
+type MixedPattern = \`mixed-\${string}\`;
+
+export type PatternKeys = keyof { [K in Pattern]: unknown };
+export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };`,
+	);
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, program, {
+				onWarning: (warning) => warnings.push(warning),
+			}),
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('PatternKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		resolutionKind: 'fallback',
+		resolvedType: { kind: 'intrinsic', intrinsic: 'any' },
+	});
+	expect(exportByName('MixedPatternKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		resolutionKind: 'fallback',
+		resolvedType: {
+			kind: 'union',
+			types: expect.arrayContaining([
+				{ kind: 'intrinsic', intrinsic: 'any' },
+				{ kind: 'literal', value: '"fixed"' },
+			]),
+		},
+	});
+	expect(warnings).toHaveLength(2);
+	expect(warnings).toEqual(
+		expect.arrayContaining([
+			expect.objectContaining({
+				code: 'unsupported-type-fallback',
+				typeFlags: expect.arrayContaining(['TemplateLiteral']),
+			}),
+		]),
+	);
+});
+
 it('preserves undefined when an optional or explicit-union keyof result is never', () => {
 	const filePath = '/virtual/keyof-never-with-undefined.ts';
 	const moduleDefinition = parseSerializedModule(

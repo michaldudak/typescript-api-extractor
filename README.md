@@ -201,8 +201,10 @@ preserved operator cannot silently change its key set.
   `resolvedType` is the best available base constraint rather than its eventual
   instantiated result. For example, `keyof T` commonly resolves to
   `string | number | symbol` at extraction time.
-- `resolutionKind: 'fallback'` means the checker exposed neither a concrete
-  result nor a usable base constraint; `resolvedType` is `any`.
+- `resolutionKind: 'fallback'` means the checker exposed neither a usable
+  constraint nor a result the model can represent exactly; unsupported concrete
+  results are represented by `any` and emit an `unsupported-type-fallback`
+  warning.
 
 ### Example Output
 
