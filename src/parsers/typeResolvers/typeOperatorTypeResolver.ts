@@ -144,6 +144,20 @@ function resolveCollapsedConditional(
 	session: TypeResolutionSession,
 ): AnyType {
 	const { checker } = session.context;
+	if (isDistributiveConditionalInstantiation(typeNode, session)) {
+		return type.isUnion()
+			? new UnionNode(
+					typeName,
+					type.types.map((memberType) => session.resolve(memberType, undefined)),
+				)
+			: session.resolve(type, undefined);
+	}
+
+	const selectedBranch = getConcreteConditionalBranch(typeNode, session);
+	if (selectedBranch) {
+		return resolveAuthoredTypeNode(selectedBranch, session, type);
+	}
+
 	const trueType = getAuthoredTypeNodeType(typeNode.trueType, session);
 	const falseType = getAuthoredTypeNodeType(typeNode.falseType, session);
 	const trueMatches = typesAreEquivalent(type, trueType, checker);
@@ -195,7 +209,55 @@ function getAuthoredTypeNodeType(typeNode: ts.TypeNode, session: TypeResolutionS
 }
 
 function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
+	if (type1.flags & ts.TypeFlags.Any || type2.flags & ts.TypeFlags.Any) {
+		return Boolean(type1.flags & ts.TypeFlags.Any) && Boolean(type2.flags & ts.TypeFlags.Any);
+	}
 	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
+}
+
+function isDistributiveConditionalInstantiation(
+	typeNode: ts.ConditionalTypeNode,
+	session: TypeResolutionSession,
+): boolean {
+	const { checker, typeParameterSubstitutions } = session.context;
+	if (!typeParameterSubstitutions?.size) {
+		return false;
+	}
+
+	const checkType = checker.getTypeFromTypeNode(typeNode.checkType);
+	if (!(checkType.flags & ts.TypeFlags.TypeParameter)) {
+		return false;
+	}
+
+	return substituteTypeParameter(checkType, typeParameterSubstitutions).isUnion();
+}
+
+function getConcreteConditionalBranch(
+	typeNode: ts.ConditionalTypeNode,
+	session: TypeResolutionSession,
+): ts.TypeNode | undefined {
+	const { checker, typeParameterSubstitutions } = session.context;
+	const authoredCheckType = checker.getTypeFromTypeNode(typeNode.checkType);
+	const authoredExtendsType = checker.getTypeFromTypeNode(typeNode.extendsType);
+	const checkType = typeParameterSubstitutions
+		? substituteTypeParameter(authoredCheckType, typeParameterSubstitutions)
+		: authoredCheckType;
+	const extendsType = typeParameterSubstitutions
+		? substituteTypeParameter(authoredExtendsType, typeParameterSubstitutions)
+		: authoredExtendsType;
+	const unresolvedFlags =
+		ts.TypeFlags.Any |
+		ts.TypeFlags.Never |
+		ts.TypeFlags.TypeParameter |
+		ts.TypeFlags.Conditional |
+		ts.TypeFlags.Substitution;
+	if (checkType.flags & unresolvedFlags || extendsType.flags & unresolvedFlags) {
+		return undefined;
+	}
+
+	return checker.isTypeAssignableTo(checkType, extendsType)
+		? typeNode.trueType
+		: typeNode.falseType;
 }
 
 function resolveTypeOperatorOperand(

@@ -379,6 +379,8 @@ interface Box {
 export type ConcreteIntersection = keyof Params & string;
 export type OptionalIntersection = (keyof Params & string) | undefined;
 export type ConcreteConditional = true extends true ? keyof Params : never;
+export type TrueConditionalWithAny = true extends true ? keyof Params : any;
+export type FalseConditionalWithAny = false extends true ? any : keyof Params;
 export type IndexedKeys = Box['keys'];`,
 		),
 	);
@@ -413,7 +415,42 @@ export type IndexedKeys = Box['keys'];`,
 		],
 	});
 	expect(exportByName('ConcreteConditional')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('TrueConditionalWithAny')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('FalseConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
+});
+
+it('keeps the semantic result for distributed conditional keyof aliases', () => {
+	const filePath = '/virtual/keyof-distributed-conditional.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface A {
+  a: string;
+  common: boolean;
+}
+
+interface B {
+  b: number;
+  common: boolean;
+}
+
+type Distributed<T> = T extends unknown ? keyof T : never;
+export type Keys = Distributed<A | B>;`,
+		),
+	);
+	const keys = moduleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'Keys',
+	)?.type;
+
+	expect(keys).toMatchObject({ kind: 'union' });
+	expect(keys.types.map((member: { value: string }) => member.value).sort()).toEqual([
+		'"a"',
+		'"b"',
+		'"common"',
+	]);
+	expect(JSON.stringify(keys)).not.toContain('typeOperator');
 });
 
 it('preserves keyof through generic container aliases and declaration defaults', () => {
