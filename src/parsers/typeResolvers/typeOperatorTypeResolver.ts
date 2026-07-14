@@ -106,7 +106,7 @@ function resolveCollapsedTypeOperatorSyntax(
 		return undefined;
 	}
 	if (ts.isUnionTypeNode(unwrapped)) {
-		return resolveAuthoredUnion(unwrapped, typeName, session);
+		return resolveAuthoredUnion(type, unwrapped, typeName, session);
 	}
 	if (ts.isIntersectionTypeNode(unwrapped) && !type.isIntersection()) {
 		return resolveAuthoredIntersection(unwrapped, typeName, session);
@@ -146,14 +146,45 @@ function getIndexedAccessTypeParameterSubstitutions(
 }
 
 function resolveAuthoredUnion(
+	type: ts.Type,
 	typeNode: ts.UnionTypeNode,
 	typeName: TypeResolutionRequest['typeName'],
 	session: TypeResolutionSession,
 ): UnionNode {
 	return new UnionNode(
 		typeName,
-		typeNode.types.map((memberTypeNode) => resolveAuthoredTypeNode(memberTypeNode, session)),
+		typeNode.types.map((memberTypeNode) =>
+			resolveAuthoredTypeNode(
+				memberTypeNode,
+				session,
+				getCollapsedUnionOperatorResult(type, memberTypeNode, typeNode, session),
+			),
+		),
 	);
+}
+
+function getCollapsedUnionOperatorResult(
+	type: ts.Type,
+	memberTypeNode: ts.TypeNode,
+	unionTypeNode: ts.UnionTypeNode,
+	session: TypeResolutionSession,
+): ts.Type | undefined {
+	if (
+		!session.context.typeParameterSubstitutions?.size ||
+		!getKeyofTypeOperatorNode(memberTypeNode) ||
+		unionTypeNode.types.filter((member) => getKeyofTypeOperatorNode(member)).length !== 1
+	) {
+		return undefined;
+	}
+
+	const origin = (type as ts.Type & { origin?: ts.Type }).origin;
+	if (!origin?.isUnion()) {
+		return undefined;
+	}
+	const concreteMembers = origin.types.filter(
+		(memberType) => !isUndefinedType(memberType) && isConcreteKeyofResultType(memberType),
+	);
+	return concreteMembers.length === 1 ? concreteMembers[0] : undefined;
 }
 
 function resolveAuthoredIntersection(

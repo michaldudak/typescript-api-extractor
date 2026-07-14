@@ -500,13 +500,16 @@ type KeyTuple<T> = [keyof T];
 type KeyConditional<T> = T extends object ? keyof T : never;
 type KeyIntersection<T> = keyof T & string;
 type MaybeKeys<T = Params, U = T> = keyof U | undefined;
+type MaybePartialKeys<T = Params, U = Partial<T>> = keyof U | undefined;
 
 export type ArrayAlias = KeyArray<Params>;
 export type TupleAlias = KeyTuple<Params>;
 export type ConditionalAlias = KeyConditional<Params>;
 export type IntersectionAlias = KeyIntersection<Params>;
 export type OmittedDefaults = MaybeKeys;
-export type DependentDefault = MaybeKeys<Params>;`,
+export type DependentDefault = MaybeKeys<Params>;
+export type OmittedCompositeDefault = MaybePartialKeys;
+export type ExplicitCompositeDefault = MaybePartialKeys<Params>;`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -545,6 +548,23 @@ export type DependentDefault = MaybeKeys<Params>;`,
 			kind: 'union',
 			typeName: { name },
 			types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
+		});
+	}
+	const expectedPartialOperator = {
+		...expectedOperator,
+		type: {
+			kind: 'object',
+			typeName: {
+				name: 'Partial',
+				typeArguments: [{ type: { typeName: { name: 'Params' } } }],
+			},
+		},
+	};
+	for (const name of ['OmittedCompositeDefault', 'ExplicitCompositeDefault']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'union',
+			typeName: { name },
+			types: [expectedPartialOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
 		});
 	}
 });
