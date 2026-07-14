@@ -681,3 +681,50 @@ export function findOrFallback<T, K extends keyof T | 'fallback'>(key: K): void 
 		],
 	});
 });
+
+it('preserves keyof syntax in class properties, intersections, conditionals, and defaults', () => {
+	const filePath = '/virtual/keyof-additional-contexts.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export class Example {
+  instance!: keyof Params;
+  static value: keyof Params;
+}
+
+export type Intersection<T> = keyof T & string;
+export type Conditional<T> = T extends unknown ? keyof T : never;
+export function withDefault<T = keyof Params>(value: T): void {}`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('Example')?.type.properties).toMatchObject([
+		{ name: 'instance', type: { kind: 'typeOperator', operator: 'keyof' } },
+		{ name: 'value', type: { kind: 'typeOperator', operator: 'keyof' } },
+	]);
+	expect(exportByName('Intersection')?.type.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('Conditional')?.type.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+
+	const signature = exportByName('withDefault')?.type.callSignatures[0];
+	expect(signature.parameters[0].type.defaultValue).toEqual(
+		signature.typeParameters[0].defaultValue,
+	);
+	expect(signature.typeParameters[0].defaultValue).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+});

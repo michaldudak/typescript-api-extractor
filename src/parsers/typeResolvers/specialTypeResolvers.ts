@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { IntrinsicNode, TypeParameterNode, UnionNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
-import { containsKeyofTypeOperator } from './typeOperatorTypeNodes';
+import { containsKeyofTypeOperator, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
 
 // Special resolvers cover TypeScript-internal or context-sensitive
 // shapes that do not map directly to one public model node. They either
@@ -66,7 +66,10 @@ export function resolveTypeParameterType(
 		type.symbol.name,
 		constraint,
 		declaration?.default
-			? session.resolve(checker.getTypeAtLocation(declaration.default), undefined)
+			? session.resolve(
+					checker.getTypeAtLocation(declaration.default),
+					containsKeyofTypeOperator(declaration.default) ? declaration.default : undefined,
+				)
 			: undefined,
 	);
 }
@@ -77,7 +80,7 @@ export function resolveTypeParameterType(
  * a union (or the single branch TypeScript managed to resolve).
  */
 export function resolveConditionalType(
-	{ type }: TypeResolutionRequest,
+	{ type, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	if (!hasExactFlag(type, ts.TypeFlags.Conditional)) {
@@ -85,19 +88,44 @@ export function resolveConditionalType(
 	}
 
 	const conditionalType = type as ts.ConditionalType;
+	const conditionalTypeNode = getConditionalTypeNode(typeNode);
+	const trueTypeNode = conditionalTypeNode?.trueType;
+	const falseTypeNode = conditionalTypeNode?.falseType;
 	if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
 		return new UnionNode(undefined, [
-			// TODO: Pass TypeNode here to resolve aliases correctly.
-			session.resolve(conditionalType.resolvedTrueType, undefined),
-			session.resolve(conditionalType.resolvedFalseType, undefined),
+			session.resolve(
+				conditionalType.resolvedTrueType,
+				containsKeyofTypeOperator(trueTypeNode) ? trueTypeNode : undefined,
+			),
+			session.resolve(
+				conditionalType.resolvedFalseType,
+				containsKeyofTypeOperator(falseTypeNode) ? falseTypeNode : undefined,
+			),
 		]);
 	} else if (conditionalType.resolvedTrueType) {
-		return session.resolve(conditionalType.resolvedTrueType, undefined);
+		return session.resolve(
+			conditionalType.resolvedTrueType,
+			containsKeyofTypeOperator(trueTypeNode) ? trueTypeNode : undefined,
+		);
 	} else if (conditionalType.resolvedFalseType) {
-		return session.resolve(conditionalType.resolvedFalseType, undefined);
+		return session.resolve(
+			conditionalType.resolvedFalseType,
+			containsKeyofTypeOperator(falseTypeNode) ? falseTypeNode : undefined,
+		);
 	}
 
 	return undefined;
+}
+
+function getConditionalTypeNode(
+	typeNode: ts.TypeNode | undefined,
+): ts.ConditionalTypeNode | undefined {
+	if (!typeNode) {
+		return undefined;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	return ts.isConditionalTypeNode(unwrapped) ? unwrapped : undefined;
 }
 
 /**
