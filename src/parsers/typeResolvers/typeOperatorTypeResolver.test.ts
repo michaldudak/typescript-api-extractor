@@ -483,6 +483,25 @@ export type UniqueKey = keyof { [tag]: string };`,
 	expect((parsedExportByName('UniqueKey')?.type as TypeOperatorNode).typeName).toBeUndefined();
 });
 
+it('parenthesizes function operands when rendering keyof syntax', () => {
+	const filePath = '/virtual/keyof-function-rendering.ts';
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export type FunctionKeys = keyof ((value: string) => number);`,
+		),
+	);
+	const renderedType = parsedModule.exports[0]?.type.toString();
+
+	expect(renderedType).toBe('keyof ((value: string) => number)');
+	const renderedProgram = createInMemoryProgram(
+		'/virtual/rendered-type.ts',
+		`type Rendered = ${renderedType};`,
+	);
+	expect(renderedProgram.getSyntacticDiagnostics()).toEqual([]);
+});
+
 it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';

@@ -23,6 +23,8 @@ export class TypeOperatorNode implements TypeNode {
 			return this.typeName.toString();
 		}
 
-		return `${this.operator} ${this.type.toString()}`;
+		const renderedType = this.type.toString();
+		const operand = this.type.kind === 'function' ? `(${renderedType})` : renderedType;
+		return `${this.operator} ${operand}`;
 	}
 }
