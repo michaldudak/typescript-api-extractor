@@ -188,8 +188,28 @@ interface TypeQueryNode {
 For example, the `type` of `keyof typeof value` is a `TypeQueryNode` whose
 `expressionName` is `value`.
 
-Readonly array and tuple operands retain `isReadonly: true`, so rendering a
-preserved operator cannot silently change its key set.
+Readonly arrays and tuples expose `isReadonly: true` in their public output,
+including when they are nested inside a preserved operator:
+
+```typescript
+interface ArrayNode {
+	kind: 'array';
+	typeName?: TypeName;
+	elementType: TypeNode;
+	isReadonly?: true;
+}
+
+interface TupleNode {
+	kind: 'tuple';
+	typeName?: TypeName;
+	types: TypeNode[];
+	isReadonly?: true;
+}
+```
+
+The optional field is omitted for mutable containers and serialized as `true`
+for readonly containers. This keeps rendered operands and their resolved key
+sets consistent.
 
 - `type` is the authored operand. Named object operands are intentionally shallow
   references because expanding their properties does not change the operator or
