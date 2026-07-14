@@ -168,7 +168,7 @@ export function resolveAuthoredKeyofAlias(
 }
 
 function aliasBodyUsesKeyofTypeNodeSubstitution(
-	typeNode: ts.TypeNode,
+	typeNode: ts.Node,
 	substitutions: Map<ts.Symbol, ts.TypeNode>,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
@@ -474,10 +474,9 @@ function concreteAliasReplaysKeyofObjectArgument(
 	if (!ts.isTypeReferenceNode(reference) || !reference.typeArguments?.length) {
 		return false;
 	}
-	const target = getTypeAliasDeclaration(reference, checker);
+	const target = getGenericObjectDeclaration(reference, checker);
 	if (
 		!target ||
-		!ts.isTypeLiteralNode(unwrapParenthesizedTypeNode(target.type)) ||
 		(!includeExternalTypes && /[\\/]node_modules[\\/]/.test(target.getSourceFile().fileName))
 	) {
 		return false;
@@ -503,14 +502,25 @@ function concreteAliasReplaysKeyofObjectArgument(
 		}
 	}
 
+	const targetNode = ts.isTypeAliasDeclaration(target) ? target.type : target;
 	return (
 		substitutions.size > 0 &&
-		aliasBodyUsesKeyofTypeNodeSubstitution(
-			target.type,
-			substitutions,
-			checker,
-			includeExternalTypes,
-		)
+		aliasBodyUsesKeyofTypeNodeSubstitution(targetNode, substitutions, checker, includeExternalTypes)
+	);
+}
+
+function getGenericObjectDeclaration(
+	typeNode: ts.TypeReferenceNode,
+	checker: ts.TypeChecker,
+): ts.TypeAliasDeclaration | ts.InterfaceDeclaration | undefined {
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return targetSymbol?.declarations?.find(
+		(declaration): declaration is ts.TypeAliasDeclaration | ts.InterfaceDeclaration =>
+			(ts.isTypeAliasDeclaration(declaration) &&
+				ts.isTypeLiteralNode(unwrapParenthesizedTypeNode(declaration.type))) ||
+			ts.isInterfaceDeclaration(declaration),
 	);
 }
 

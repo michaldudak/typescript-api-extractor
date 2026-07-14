@@ -959,8 +959,14 @@ it('preserves keyof arguments through concrete aliases and named re-exports', ()
 		[keysPath]: `export interface ImportedParams {
   imported: string;
 }
-export type ImportedKeys = keyof ImportedParams;`,
-		[sourcePath]: `import type { ImportedKeys } from './keyof-generic-argument-keys';
+export type ImportedKeys = keyof ImportedParams;
+export interface ImportedBox<T> {
+  value: T;
+}`,
+		[sourcePath]: `import type {
+  ImportedBox,
+  ImportedKeys,
+} from './keyof-generic-argument-keys';
 
 interface Params {
   a: string;
@@ -969,17 +975,29 @@ interface Params {
 
 type Keys = keyof Params;
 type Box<T> = { value: T };
+interface InterfaceBox<T> {
+  value: T;
+}
 type Wrapped = Box<keyof Params>;
 type AliasWrapped = Box<Keys>;
 type ImportedWrapped = Box<ImportedKeys>;
+type InterfaceWrapped = InterfaceBox<keyof Params>;
+type InterfaceAliasWrapped = InterfaceBox<Keys>;
+type ImportedInterfaceWrapped = ImportedBox<ImportedKeys>;
 
 export type Public = Wrapped;
 export type AliasPublic = AliasWrapped;
-export type ImportedPublic = ImportedWrapped;`,
+export type ImportedPublic = ImportedWrapped;
+export type InterfacePublic = InterfaceWrapped;
+export type InterfaceAliasPublic = InterfaceAliasWrapped;
+export type ImportedInterfacePublic = ImportedInterfaceWrapped;`,
 		[entryPath]: `export {
   type Public,
   type AliasPublic,
   type ImportedPublic,
+  type InterfacePublic,
+  type InterfaceAliasPublic,
+  type ImportedInterfacePublic,
 } from './keyof-generic-argument-source';`,
 	});
 
@@ -987,7 +1005,14 @@ export type ImportedPublic = ImportedWrapped;`,
 		parseSerializedModule(sourcePath, program),
 		parseSerializedModule(entryPath, program),
 	]) {
-		for (const name of ['Public', 'AliasPublic', 'ImportedPublic']) {
+		for (const name of [
+			'Public',
+			'AliasPublic',
+			'ImportedPublic',
+			'InterfacePublic',
+			'InterfaceAliasPublic',
+			'ImportedInterfacePublic',
+		]) {
 			const exported = moduleDefinition.exports.find(
 				(exportNode: { name: string }) => exportNode.name === name,
 			);

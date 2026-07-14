@@ -25,6 +25,7 @@ import {
 	containsKeyofTypeOperatorOrAlias,
 	getPropertyTypeNode,
 	substituteTypeParameterTypeNode,
+	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
@@ -33,28 +34,102 @@ import {
 // details with the active resolution session.
 
 export function resolveObjectLikeType(
-	{ type, typeName }: TypeResolutionRequest,
+	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
-	const objectType = buildObjectNodeFromType(
-		type,
-		typeName,
-		session.context,
-		session.resolveWithContext,
-	);
-	if (objectType) {
-		return objectType;
-	}
+	const resolveObject = () => {
+		const objectType = buildObjectNodeFromType(
+			type,
+			typeName,
+			session.context,
+			session.resolveWithContext,
+		);
+		if (objectType) {
+			return objectType;
+		}
 
-	const { checker } = session.context;
+		const { checker } = session.context;
+		if (
+			hasExactFlag(type, ts.TypeFlags.Object) ||
+			(hasExactFlag(type, ts.TypeFlags.NonPrimitive) && checker.typeToString(type) === 'object')
+		) {
+			return new ObjectNode(typeName, [], undefined);
+		}
+
+		return undefined;
+	};
+	const substitutions = getObjectTypeReferenceSubstitutions(type, typeNode, session.context);
+	return substitutions
+		? session.context.runWithTypeParameterSubstitutionScope(
+				substitutions.types,
+				resolveObject,
+				substitutions.typeNodes,
+			)
+		: resolveObject();
+}
+
+function getObjectTypeReferenceSubstitutions(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ScopedParserContext,
+): { types: Map<ts.Symbol, ts.Type>; typeNodes: Map<ts.Symbol, ts.TypeNode> } | undefined {
+	if (!typeNode || !(type.flags & ts.TypeFlags.Object) || !('target' in type)) {
+		return undefined;
+	}
+	const referenceNode = unwrapParenthesizedTypeNode(typeNode);
 	if (
-		hasExactFlag(type, ts.TypeFlags.Object) ||
-		(hasExactFlag(type, ts.TypeFlags.NonPrimitive) && checker.typeToString(type) === 'object')
+		!ts.isTypeReferenceNode(referenceNode) ||
+		!referenceNode.typeArguments?.some((argument) =>
+			containsKeyofTypeOperatorOrAlias(
+				argument,
+				context.checker,
+				new Set(),
+				context.includeExternalTypes,
+			),
+		)
 	) {
-		return new ObjectNode(typeName, [], undefined);
+		return undefined;
 	}
 
-	return undefined;
+	const reference = type as ts.TypeReference;
+	const semanticParameters = (reference.target as ts.GenericType).typeParameters;
+	const semanticArguments = context.checker.getTypeArguments(reference);
+	const declaration = reference.target.symbol?.declarations?.find(
+		(node): node is ts.TypeAliasDeclaration | ts.InterfaceDeclaration =>
+			ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node),
+	);
+	if (!semanticParameters?.length || !semanticArguments.length || !declaration) {
+		return undefined;
+	}
+
+	const types = new Map(context.typeParameterSubstitutions);
+	const typeNodes = new Map(context.typeParameterTypeNodeSubstitutions);
+	let added = false;
+	for (let index = 0; index < semanticParameters.length; index += 1) {
+		const semanticParameter = semanticParameters[index];
+		const semanticArgument = semanticArguments[index];
+		const authoredArgument = referenceNode.typeArguments[index];
+		const parameterDeclaration = declaration.typeParameters?.[index];
+		if (!semanticArgument || !authoredArgument) {
+			continue;
+		}
+		const symbols = [
+			semanticParameter.symbol,
+			parameterDeclaration
+				? context.checker.getTypeAtLocation(parameterDeclaration).symbol
+				: undefined,
+			parameterDeclaration
+				? context.checker.getSymbolAtLocation(parameterDeclaration.name)
+				: undefined,
+		].filter((symbol): symbol is ts.Symbol => symbol != null);
+		for (const symbol of symbols) {
+			types.set(symbol, semanticArgument);
+			typeNodes.set(symbol, authoredArgument);
+			added = true;
+		}
+	}
+
+	return added ? { types, typeNodes } : undefined;
 }
 
 /**
