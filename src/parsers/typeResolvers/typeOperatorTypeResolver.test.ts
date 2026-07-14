@@ -673,6 +673,52 @@ export type KeyRest = Rest<keyof Params>;`,
 	});
 });
 
+it('matches fixed keyof syntax after an expanded variadic tuple element', () => {
+	const filePath = '/virtual/keyof-variadic-tuple.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type AppendKeys<T extends unknown[]> = [...T, keyof Params];
+
+export type Result = AppendKeys<[string, number]>;
+export type Middle = Result[1];
+export type Last = Result[2];`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('Result')?.type.types).toMatchObject([
+		{ kind: 'intrinsic', intrinsic: 'string' },
+		{ kind: 'intrinsic', intrinsic: 'number' },
+		expectedOperator,
+	]);
+	expect(exportByName('Middle')?.type).toEqual({
+		kind: 'intrinsic',
+		intrinsic: 'number',
+	});
+	expect(exportByName('Last')?.type).toMatchObject(expectedOperator);
+});
+
 it('does not substitute a nested type parameter that shadows an alias parameter', () => {
 	const filePath = '/virtual/keyof-generic-argument-shadowing.ts';
 	const moduleDefinition = parseSerializedModule(

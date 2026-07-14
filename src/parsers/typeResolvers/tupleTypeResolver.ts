@@ -4,6 +4,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	getTupleElementTypeNodeAtSemanticIndex,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
@@ -23,19 +24,21 @@ export function resolveTupleType(
 		return undefined;
 	}
 
+	const elementTypes = (type as ts.TupleType).typeArguments ?? [];
 	return new TupleNode(
 		typeName,
-		(type as ts.TupleType).typeArguments?.map((elementType, index) =>
+		elementTypes.map((elementType, index) =>
 			session.resolve(
 				elementType,
 				getTupleElementTypeNode(
 					typeNode,
 					index,
+					elementTypes.length,
 					checker,
 					session.context.typeParameterTypeNodeSubstitutions,
 				),
 			),
-		) ?? [],
+		),
 		isReadonlyTupleType(type, typeNode) ? true : undefined,
 	);
 }
@@ -59,6 +62,7 @@ function isReadonlyTupleType(type: ts.Type, typeNode: ts.TypeNode | undefined): 
 function getTupleElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	index: number,
+	semanticElementCount: number,
 	checker: ts.TypeChecker,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): ts.TypeNode | undefined {
@@ -71,7 +75,7 @@ function getTupleElementTypeNode(
 		return undefined;
 	}
 
-	let element = unwrapped.elements[index];
+	let element = getTupleElementTypeNodeAtSemanticIndex(unwrapped, index, semanticElementCount);
 	let isRest = false;
 	if (element && ts.isNamedTupleMember(element)) {
 		isRest = element.dotDotDotToken != null;

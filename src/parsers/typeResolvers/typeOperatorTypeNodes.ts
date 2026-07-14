@@ -185,7 +185,12 @@ export function getIndexedAccessSourceTypeNode(
 	const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
 	if (indexType.isNumberLiteral()) {
 		const tupleTypeNode = getTupleSourceTypeNode(unwrapped.objectType, checker);
-		const elementTypeNode = tupleTypeNode?.elements[indexType.value];
+		const tupleElementCount = checker.isTupleType(objectType)
+			? ((objectType as ts.TupleType).typeArguments?.length ?? tupleTypeNode?.elements.length ?? 0)
+			: (tupleTypeNode?.elements.length ?? 0);
+		const elementTypeNode = tupleTypeNode
+			? getTupleElementTypeNodeAtSemanticIndex(tupleTypeNode, indexType.value, tupleElementCount)
+			: undefined;
 		if (!elementTypeNode) {
 			return undefined;
 		}
@@ -204,6 +209,35 @@ export function getIndexedAccessSourceTypeNode(
 	}
 
 	return getIndexedAccessSourceTypeNode(propertyTypeNode, checker) ?? propertyTypeNode;
+}
+
+/** Maps an expanded semantic tuple index back to its authored tuple element. */
+export function getTupleElementTypeNodeAtSemanticIndex(
+	tupleTypeNode: ts.TupleTypeNode,
+	index: number,
+	semanticElementCount: number,
+): ts.TypeNode | undefined {
+	const restIndex = tupleTypeNode.elements.findIndex(isRestTupleElementNode);
+	if (restIndex === -1) {
+		return tupleTypeNode.elements[index];
+	}
+	if (index < restIndex) {
+		return tupleTypeNode.elements[index];
+	}
+
+	const suffixLength = tupleTypeNode.elements.length - restIndex - 1;
+	const semanticSuffixStart = semanticElementCount - suffixLength;
+	if (index >= semanticSuffixStart) {
+		return tupleTypeNode.elements[restIndex + 1 + index - semanticSuffixStart];
+	}
+
+	return tupleTypeNode.elements[restIndex];
+}
+
+function isRestTupleElementNode(typeNode: ts.TypeNode): boolean {
+	return ts.isNamedTupleMember(typeNode)
+		? typeNode.dotDotDotToken != null
+		: ts.isRestTypeNode(typeNode);
 }
 
 /** Locates the terminal authored source that actually contains an indexed-access `keyof`. */
