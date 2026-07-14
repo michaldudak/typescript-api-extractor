@@ -24,11 +24,14 @@ export function resolveArrayType(
 		type.aliasSymbol?.name
 			? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 			: undefined,
-		session.resolve(arrayType, getArrayElementTypeNode(typeNode)),
+		session.resolve(arrayType, getArrayElementTypeNode(typeNode, checker)),
 	);
 }
 
-function getArrayElementTypeNode(typeNode: ts.TypeNode | undefined): ts.TypeNode | undefined {
+function getArrayElementTypeNode(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): ts.TypeNode | undefined {
 	if (!containsKeyofTypeOperator(typeNode) || !typeNode) {
 		return undefined;
 	}
@@ -37,9 +40,28 @@ function getArrayElementTypeNode(typeNode: ts.TypeNode | undefined): ts.TypeNode
 	if (ts.isArrayTypeNode(unwrapped)) {
 		return unwrapped.elementType;
 	}
-	if (ts.isTypeReferenceNode(unwrapped)) {
+	if (ts.isTypeReferenceNode(unwrapped) && isBuiltInArrayReference(unwrapped, checker)) {
 		return unwrapped.typeArguments?.[0];
 	}
 
 	return undefined;
+}
+
+function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.TypeChecker): boolean {
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	if (
+		!targetSymbol ||
+		!['Array', 'ReadonlyArray'].includes(targetSymbol.getName()) ||
+		!(targetSymbol.flags & ts.SymbolFlags.Interface)
+	) {
+		return false;
+	}
+
+	return (
+		targetSymbol.declarations?.some((declaration) =>
+			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		) ?? false
+	);
 }

@@ -605,6 +605,37 @@ export type KeyTuple = [keyof Params];`,
 	});
 });
 
+it('does not treat unrelated generic array-alias arguments as element syntax', () => {
+	const filePath = '/virtual/keyof-array-alias-arguments.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type AsStrings<Ignored> = string[];
+type Reordered<First, Element> = Element[];
+
+export type IgnoredArgument = AsStrings<keyof Params>;
+export type ReorderedArgument = Reordered<keyof Params, number>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('IgnoredArgument')?.type.elementType).toEqual({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+	expect(exportByName('ReorderedArgument')?.type.elementType).toEqual({
+		kind: 'intrinsic',
+		intrinsic: 'number',
+	});
+});
+
 it('preserves parenthesized and union-nested keyof constraints consistently', () => {
 	const filePath = '/virtual/keyof-parenthesized.ts';
 	const moduleDefinition = parseSerializedModule(
