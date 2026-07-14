@@ -175,6 +175,19 @@ interface TypeOperatorNode {
 }
 ```
 
+Type-query operands retain their authored expression without expanding the
+queried value shape:
+
+```typescript
+interface TypeQueryNode {
+	kind: 'typeQuery';
+	expressionName: string;
+}
+```
+
+For example, the `type` of `keyof typeof value` is a `TypeQueryNode` whose
+`expressionName` is `value`.
+
 - `type` is the authored operand. Named object operands are intentionally shallow
   references because expanding their properties does not change the operator or
   its key result.

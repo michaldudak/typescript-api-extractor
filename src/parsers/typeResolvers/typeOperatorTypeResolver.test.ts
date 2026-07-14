@@ -80,6 +80,37 @@ export interface Parameters {
 	expect(typeOperatorNode.resolvedType.types.length).toBeGreaterThan(100);
 });
 
+it('preserves authored type-query operands without expanding their value shape', () => {
+	const filePath = '/virtual/keyof-type-query.ts';
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`const value = { a: 1, b: 2 };
+
+export type Keys = keyof typeof value;`,
+		),
+	);
+	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			kind: 'typeQuery',
+			expressionName: 'value',
+		},
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+	});
+	expect(parsedModule.exports[0]?.type.toString()).toBe('keyof typeof value');
+});
+
 it('preserves keyof operators inside explicit unions', () => {
 	const filePath = '/virtual/keyof-union.ts';
 	const moduleDefinition = JSON.parse(

@@ -4,6 +4,7 @@ import {
 	LiteralNode,
 	ObjectNode,
 	TypeOperatorNode,
+	TypeQueryNode,
 	UnionNode,
 	type AnyType,
 	type TypeOperatorResolutionKind,
@@ -105,6 +106,11 @@ function resolveTypeOperatorOperand(
 	typeNode: ts.TypeNode,
 	session: TypeResolutionSession,
 ): AnyType {
+	const unwrappedTypeNode = unwrapParenthesizedTypeNode(typeNode);
+	if (ts.isTypeQueryNode(unwrappedTypeNode)) {
+		return new TypeQueryNode(unwrappedTypeNode.exprName.getText());
+	}
+
 	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
 		const request: TypeResolutionRequest = {
 			type,

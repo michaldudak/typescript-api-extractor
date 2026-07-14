@@ -12,6 +12,7 @@ import { ObjectNode } from './types/object';
 import { TupleNode } from './types/tuple';
 import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
+import { TypeQueryNode } from './types/typeQuery';
 import { UnionNode } from './types/union';
 
 export interface TypeNode {
@@ -33,6 +34,7 @@ export type AnyType =
 	| TupleNode
 	| TypeOperatorNode
 	| TypeParameterNode
+	| TypeQueryNode
 	| UnionNode;
 
 /**
