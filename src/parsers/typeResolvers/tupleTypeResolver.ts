@@ -3,6 +3,7 @@ import { TupleNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
+	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeNodeSubstitution,
 	getTupleElementTypeNodeAtSemanticIndex,
@@ -133,6 +134,7 @@ function getTupleElementTypeNode(
 	}
 	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
 	if (
+		!containsKeyofTypeOperator(element) &&
 		!containsKeyofTypeOperatorOrAlias(element, checker, new Set(), includeExternalTypes) &&
 		!containsKeyofTypeNodeSubstitution(
 			element,

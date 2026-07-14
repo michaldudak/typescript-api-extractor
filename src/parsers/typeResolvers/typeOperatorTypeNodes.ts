@@ -196,12 +196,13 @@ export function containsKeyofTypeOperatorOrAlias(
 		return false;
 	}
 
-	if (
-		unwrapped.typeArguments?.some((argument) =>
-			containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
-		)
-	) {
-		return true;
+	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
+	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
+		return (
+			unwrapped.typeArguments?.some((argument) =>
+				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
+			) ?? false
+		);
 	}
 
 	const declaration =

@@ -3,6 +3,7 @@ import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
+	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeNodeSubstitution,
 	substituteTypeParameterTypeNode,
@@ -103,12 +104,13 @@ export function getArrayElementTypeNode(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	return containsKeyofTypeOperatorOrAlias(
-		substitutedElementType,
-		checker,
-		new Set(),
-		includeExternalTypes,
-	) ||
+	return containsKeyofTypeOperator(substitutedElementType) ||
+		containsKeyofTypeOperatorOrAlias(
+			substitutedElementType,
+			checker,
+			new Set(),
+			includeExternalTypes,
+		) ||
 		containsKeyofTypeNodeSubstitution(
 			substitutedElementType,
 			checker,
