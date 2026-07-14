@@ -423,13 +423,19 @@ it('preserves undefined when an optional or explicit-union keyof result is never
 		filePath,
 		createInMemoryProgram(
 			filePath,
-			`export interface Options {
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export interface Options {
   empty?: keyof {};
   unknown?: keyof unknown;
 }
 
 export type MaybeEmpty = keyof {} | undefined;
-export type MaybeUnknown = undefined | keyof unknown;`,
+export type MaybeUnknown = undefined | keyof unknown;
+export type MaybeKeys = keyof Params | undefined;`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -452,6 +458,25 @@ export type MaybeUnknown = undefined | keyof unknown;`,
 	]);
 	expect(exportByName('MaybeEmpty')?.type).toMatchObject(expectedMaybeNever);
 	expect(exportByName('MaybeUnknown')?.type).toMatchObject(expectedMaybeNever);
+	expect(exportByName('MaybeKeys')?.type).toMatchObject({
+		kind: 'union',
+		typeName: { name: 'MaybeKeys' },
+		types: [
+			{
+				kind: 'typeOperator',
+				operator: 'keyof',
+				resolvedType: {
+					kind: 'union',
+					types: [
+						{ kind: 'literal', value: '"a"' },
+						{ kind: 'literal', value: '"b"' },
+					],
+				},
+			},
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+	expect(exportByName('MaybeKeys')?.type.types[0].resolvedType).not.toHaveProperty('typeName');
 });
 
 it('uses the instantiated result type for generic keyof operators', () => {
