@@ -773,7 +773,11 @@ it('preserves keyof operators in return and container element types', () => {
 export type KeyFactory = () => keyof Params;
 export type KeyArray = (keyof Params)[];
 export type GenericKeyArray = Array<keyof Params>;
-export type KeyTuple = [keyof Params];`,
+export type KeyTuple = [keyof Params];
+export type ReadonlyKeyArray = readonly (keyof Params)[];
+export type ReadonlyKeyTuple = readonly [keyof Params];
+export type NamedKeyTuple = [key?: keyof Params];
+export type RestKeyTuple = [head: keyof Params, ...tail: (keyof Params)[]];`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -795,6 +799,25 @@ export type KeyTuple = [keyof Params];`,
 		kind: 'typeOperator',
 		operator: 'keyof',
 	});
+	expect(exportByName('ReadonlyKeyArray')?.type.elementType).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('ReadonlyKeyTuple')?.type.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('NamedKeyTuple')?.type.types[0]).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'typeOperator', operator: 'keyof' },
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+	expect(exportByName('RestKeyTuple')?.type.types).toMatchObject([
+		{ kind: 'typeOperator', operator: 'keyof' },
+		{ kind: 'typeOperator', operator: 'keyof' },
+	]);
 });
 
 it('does not treat unrelated generic array-alias arguments as element syntax', () => {
@@ -891,6 +914,8 @@ export class Example {
 }
 
 export type Intersection<T> = keyof T & string;
+export type NestedIntersectionLeft<T, U> = (keyof T & U) & string;
+export type NestedIntersectionRight<T, U> = U & (keyof T & string);
 export type Conditional<T> = T extends unknown ? keyof T : never;
 export function withDefault<T = keyof Params>(value: T): void {}`,
 		),
@@ -906,6 +931,16 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 		kind: 'typeOperator',
 		operator: 'keyof',
 	});
+	expect(exportByName('NestedIntersectionLeft')?.type.types).toMatchObject([
+		{ kind: 'typeOperator', operator: 'keyof' },
+		{ kind: 'typeParameter', name: 'U' },
+		{ kind: 'intrinsic', intrinsic: 'string' },
+	]);
+	expect(exportByName('NestedIntersectionRight')?.type.types).toMatchObject([
+		{ kind: 'typeParameter', name: 'U' },
+		{ kind: 'typeOperator', operator: 'keyof' },
+		{ kind: 'intrinsic', intrinsic: 'string' },
+	]);
 	expect(exportByName('Conditional')?.type.types[0]).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',

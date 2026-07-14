@@ -1,7 +1,11 @@
 import ts from 'typescript';
 import { TupleNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import { containsKeyofTypeOperator, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import { getArrayElementTypeNode } from './arrayTypeResolver';
+import {
+	containsKeyofTypeOperator,
+	unwrapReadonlyContainerTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Tuple handling stays separate from arrays because TypeScript
 // exposes tuple element types through tuple-specific metadata and the output
@@ -20,7 +24,7 @@ export function resolveTupleType(
 	return new TupleNode(
 		typeName,
 		(type as ts.TupleType).typeArguments?.map((elementType, index) =>
-			session.resolve(elementType, getTupleElementTypeNode(typeNode, index)),
+			session.resolve(elementType, getTupleElementTypeNode(typeNode, index, checker)),
 		) ?? [],
 	);
 }
@@ -28,22 +32,29 @@ export function resolveTupleType(
 function getTupleElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	index: number,
+	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
 	if (!containsKeyofTypeOperator(typeNode) || !typeNode) {
 		return undefined;
 	}
 
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
 	if (!ts.isTupleTypeNode(unwrapped)) {
 		return undefined;
 	}
 
 	let element = unwrapped.elements[index];
+	let isRest = false;
 	if (element && ts.isNamedTupleMember(element)) {
+		isRest = element.dotDotDotToken != null;
 		element = element.type;
 	}
 	while (element && (ts.isOptionalTypeNode(element) || ts.isRestTypeNode(element))) {
+		isRest ||= ts.isRestTypeNode(element);
 		element = element.type;
+	}
+	if (element && isRest) {
+		return getArrayElementTypeNode(element, checker) ?? element;
 	}
 
 	return element;

@@ -10,6 +10,16 @@ export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode 
 	return unwrapped;
 }
 
+/** Unwraps syntax that is transparent when locating an array or tuple container. */
+export function unwrapReadonlyContainerTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
+	let unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	while (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
+		unwrapped = unwrapParenthesizedTypeNode(unwrapped.type);
+	}
+
+	return unwrapped;
+}
+
 /** Returns an authored `keyof` node after removing transparent parentheses. */
 export function getKeyofTypeOperatorNode(
 	typeNode: ts.TypeNode | undefined,

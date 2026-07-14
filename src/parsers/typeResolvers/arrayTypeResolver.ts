@@ -2,7 +2,10 @@ import ts from 'typescript';
 import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import { containsKeyofTypeOperator, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperator,
+	unwrapReadonlyContainerTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Array handling is small but still owns a distinct TypeScript
 // shape. Keeping it separate makes resolver precedence and element recursion
@@ -28,7 +31,7 @@ export function resolveArrayType(
 	);
 }
 
-function getArrayElementTypeNode(
+export function getArrayElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
@@ -36,7 +39,7 @@ function getArrayElementTypeNode(
 		return undefined;
 	}
 
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
 	if (ts.isArrayTypeNode(unwrapped)) {
 		return unwrapped.elementType;
 	}
