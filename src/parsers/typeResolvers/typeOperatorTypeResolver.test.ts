@@ -278,19 +278,27 @@ export type Reverse = keyof Narrow | keyof Wide;`,
 	);
 	const exportByName = (name: string) =>
 		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const operatorFor = (operandName: string) => ({
+	const operatorFor = (operandName: string, keys: string[]) => ({
 		kind: 'typeOperator',
 		operator: 'keyof',
 		type: { typeName: { name: operandName } },
+		resolvedType:
+			keys.length === 1
+				? { kind: 'literal', value: `"${keys[0]}"` }
+				: {
+						kind: 'union',
+						types: keys.map((key) => ({ kind: 'literal', value: `"${key}"` })),
+					},
+		resolutionKind: 'exact',
 	});
 
 	expect(exportByName('Forward')?.type).toMatchObject({
 		kind: 'union',
-		types: [operatorFor('Wide'), operatorFor('Narrow')],
+		types: [operatorFor('Wide', ['a', 'b']), operatorFor('Narrow', ['a'])],
 	});
 	expect(exportByName('Reverse')?.type).toMatchObject({
 		kind: 'union',
-		types: [operatorFor('Narrow'), operatorFor('Wide')],
+		types: [operatorFor('Narrow', ['a']), operatorFor('Wide', ['a', 'b'])],
 	});
 });
 
