@@ -21,7 +21,7 @@ import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './o
 import {
 	containsKeyofTypeOperator,
 	flattenIntersectionTypeNodes,
-	getIndexedAccessSourceTypeNode,
+	getIndexedAccessKeyofSourceTypeNode,
 	getKeyofTypeOperatorNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
@@ -93,9 +93,13 @@ function resolveCollapsedTypeOperatorSyntax(
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
-		const sourceTypeNode = getIndexedAccessSourceTypeNode(unwrapped, session.context.checker);
-		if (sourceTypeNode && containsKeyofTypeOperator(sourceTypeNode)) {
-			return resolveAuthoredTypeNode(sourceTypeNode, session);
+		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(unwrapped, session.context.checker);
+		if (sourceTypeNode) {
+			const substitutions = getIndexedAccessTypeParameterSubstitutions(unwrapped, session);
+			const resolveSource = () => resolveAuthoredTypeNode(sourceTypeNode, session, type);
+			return substitutions
+				? session.context.runWithTypeParameterSubstitutionScope(substitutions, resolveSource)
+				: resolveSource();
 		}
 	}
 	if (!containsKeyofTypeOperator(unwrapped)) {
@@ -111,6 +115,34 @@ function resolveCollapsedTypeOperatorSyntax(
 		return resolveCollapsedConditional(type, unwrapped, typeName, session);
 	}
 	return undefined;
+}
+
+function getIndexedAccessTypeParameterSubstitutions(
+	typeNode: ts.IndexedAccessTypeNode,
+	session: TypeResolutionSession,
+): Map<ts.Symbol, ts.Type> | undefined {
+	const { checker, typeParameterSubstitutions } = session.context;
+	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
+	if (!(objectType.flags & ts.TypeFlags.Object) || !('target' in objectType)) {
+		return undefined;
+	}
+
+	const reference = objectType as ts.TypeReference;
+	const typeParameters = (reference.target as ts.GenericType).typeParameters;
+	const typeArguments = checker.getTypeArguments(reference);
+	if (!typeParameters?.length || !typeArguments.length) {
+		return undefined;
+	}
+
+	const substitutions = new Map(typeParameterSubstitutions);
+	for (let index = 0; index < typeParameters.length; index += 1) {
+		const parameter = typeParameters[index];
+		const argument = typeArguments[index];
+		if (parameter.symbol && argument) {
+			substitutions.set(parameter.symbol, argument);
+		}
+	}
+	return substitutions.size > 0 ? substitutions : undefined;
 }
 
 function resolveAuthoredUnion(

@@ -376,12 +376,38 @@ interface Box {
   keys: keyof Params;
 }
 
+interface NestedBox {
+  keys: Box['keys'];
+}
+
+interface GenericBox<T> {
+  keys: keyof T;
+}
+
+type KeyAlias = keyof Params;
+interface AliasBox {
+  keys: KeyAlias;
+}
+
+class AccessorBox {
+  get keys(): keyof Params {
+    return 'a';
+  }
+}
+
+type KeyTuple = [keyof Params];
+
 export type ConcreteIntersection = keyof Params & string;
 export type OptionalIntersection = (keyof Params & string) | undefined;
 export type ConcreteConditional = true extends true ? keyof Params : never;
 export type TrueConditionalWithAny = true extends true ? keyof Params : any;
 export type FalseConditionalWithAny = false extends true ? any : keyof Params;
-export type IndexedKeys = Box['keys'];`,
+export type IndexedKeys = Box['keys'];
+export type NestedIndexedKeys = NestedBox['keys'];
+export type GenericIndexedKeys = GenericBox<Params>['keys'];
+export type AliasIndexedKeys = AliasBox['keys'];
+export type AccessorIndexedKeys = AccessorBox['keys'];
+export type TupleIndexedKeys = KeyTuple[0];`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -418,6 +444,11 @@ export type IndexedKeys = Box['keys'];`,
 	expect(exportByName('TrueConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('FalseConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('NestedIndexedKeys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('GenericIndexedKeys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('AliasIndexedKeys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('AccessorIndexedKeys')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('TupleIndexedKeys')?.type).toMatchObject(expectedOperator);
 });
 
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
