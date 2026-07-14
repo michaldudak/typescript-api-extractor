@@ -809,11 +809,13 @@ export type List = MaybeList<keyof Params>;`,
 
 it('matches fixed keyof syntax after an expanded variadic tuple element', () => {
 	const filePath = '/virtual/keyof-variadic-tuple.ts';
+	const pairPath = '/virtual/keyof-variadic-pair.ts';
 	const moduleDefinition = parseSerializedModule(
 		filePath,
-		createInMemoryProgram(
-			filePath,
-			`interface Params {
+		createInMemoryProgram({
+			[filePath]: `import type { ImportedPair } from './keyof-variadic-pair';
+
+interface Params {
   a: string;
   b: number;
 }
@@ -826,16 +828,24 @@ interface OtherParams {
 type AppendKeys<T extends unknown[]> = [...T, keyof Params];
 type Spread<T extends unknown[]> = [...T];
 type DoubleSpread<T extends unknown[], U extends unknown[]> = [...T, ...U];
+type Pair = [keyof Params, string];
+type PairAlias = Pair;
+type GenericPair<T> = [keyof T, string];
 
 export type Result = AppendKeys<[string, number]>;
 export type SpreadResult = Spread<[keyof Params, string]>;
+export type NamedSpreadResult = Spread<Pair>;
+export type AliasedNamedSpreadResult = Spread<PairAlias>;
+export type GenericNamedSpreadResult = Spread<GenericPair<Params>>;
+export type ImportedNamedSpreadResult = Spread<ImportedPair<Params>>;
 export type DoubleSpreadResult = DoubleSpread<
   [keyof Params, number],
   [string, keyof OtherParams]
 >;
 export type Middle = Result[1];
 export type Last = Result[2];`,
-		),
+			[pairPath]: `export type ImportedPair<T> = [keyof T, string];`,
+		}),
 	);
 	const exportByName = (name: string) =>
 		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
@@ -862,6 +872,17 @@ export type Last = Result[2];`,
 		expectedOperator,
 		{ kind: 'intrinsic', intrinsic: 'string' },
 	]);
+	for (const name of [
+		'NamedSpreadResult',
+		'AliasedNamedSpreadResult',
+		'GenericNamedSpreadResult',
+		'ImportedNamedSpreadResult',
+	]) {
+		const elements = exportByName(name)?.type.types;
+		expect(elements).toMatchObject([expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }]);
+		expect(elements[0]).not.toHaveProperty('typeName');
+		expect(elements[1]).not.toHaveProperty('typeName');
+	}
 	expect(exportByName('DoubleSpreadResult')?.type.types).toMatchObject([
 		expectedOperator,
 		{ kind: 'intrinsic', intrinsic: 'number' },

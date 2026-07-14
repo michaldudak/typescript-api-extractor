@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { TupleNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
+import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
@@ -29,19 +30,25 @@ export function resolveTupleType(
 	const elementTypes = (type as ts.TupleType).typeArguments ?? [];
 	return new TupleNode(
 		typeName,
-		elementTypes.map((elementType, index) =>
-			session.resolve(
-				elementType,
-				getTupleElementTypeNode(
-					typeNode,
-					index,
-					elementTypes.length,
-					checker,
-					session.context.typeParameterTypeNodeSubstitutions,
-					session.context.includeExternalTypes,
-				),
-			),
-		),
+		elementTypes.map((elementType, index) => {
+			const syntax = getTupleElementTypeNode(
+				typeNode,
+				index,
+				elementTypes.length,
+				checker,
+				session.context.typeParameterSubstitutions,
+				session.context.typeParameterTypeNodeSubstitutions,
+				session.context.includeExternalTypes,
+			);
+			const resolveElement = () => session.resolve(elementType, syntax?.typeNode);
+			return syntax?.typeParameterSubstitutions
+				? session.context.runWithTypeParameterSubstitutionScope(
+						syntax.typeParameterSubstitutions,
+						resolveElement,
+						syntax.typeParameterTypeNodeSubstitutions,
+					)
+				: resolveElement();
+		}),
 		isReadonlyTupleType(type, typeNode) ? true : undefined,
 	);
 }
@@ -67,9 +74,10 @@ function getTupleElementTypeNode(
 	index: number,
 	semanticElementCount: number,
 	checker: ts.TypeChecker,
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
-): ts.TypeNode | undefined {
+): TupleElementSyntax | undefined {
 	if (!typeNode) {
 		return undefined;
 	}
@@ -84,7 +92,9 @@ function getTupleElementTypeNode(
 		index,
 		semanticElementCount,
 		checker,
+		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
 	);
 	let element = selection?.typeNode;
 	let isRest = false;
@@ -105,10 +115,18 @@ function getTupleElementTypeNode(
 			checker,
 			typeParameterTypeNodeSubstitutions,
 		);
-		const substitutedRestTuple = unwrapReadonlyContainerTypeNode(substitutedRestType);
-		if (ts.isTupleTypeNode(substitutedRestTuple) && selection?.restSemanticIndex != null) {
+		const tupleSource = getTupleTypeNodeSource(
+			substitutedRestType,
+			checker,
+			typeParameterSubstitutions,
+			typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
+		);
+		if (tupleSource && selection?.restSemanticIndex != null) {
+			typeParameterSubstitutions = tupleSource.typeParameterSubstitutions;
+			typeParameterTypeNodeSubstitutions = tupleSource.typeParameterTypeNodeSubstitutions;
 			element = getTupleElementTypeNodeAtSemanticIndex(
-				substitutedRestTuple,
+				tupleSource.typeNode,
 				selection.restSemanticIndex,
 				selection.restSemanticElementCount,
 			);
@@ -134,7 +152,11 @@ function getTupleElementTypeNode(
 			includeExternalTypes,
 		);
 		if (restElementType) {
-			return restElementType;
+			return {
+				typeNode: restElementType,
+				typeParameterSubstitutions,
+				typeParameterTypeNodeSubstitutions,
+			};
 		}
 	}
 	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
@@ -151,17 +173,31 @@ function getTupleElementTypeNode(
 		return undefined;
 	}
 	if (element && isRest) {
-		return (
+		const restTypeNode =
 			getArrayElementTypeNode(
 				element,
 				checker,
 				typeParameterTypeNodeSubstitutions,
 				includeExternalTypes,
-			) ?? element
-		);
+			) ?? element;
+		return {
+			typeNode: restTypeNode,
+			typeParameterSubstitutions,
+			typeParameterTypeNodeSubstitutions,
+		};
 	}
 
-	return element;
+	return {
+		typeNode: element,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+	};
+}
+
+interface TupleElementSyntax {
+	typeNode: ts.TypeNode;
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
 }
 
 interface TupleElementSelection {
@@ -175,10 +211,19 @@ function getTupleElementSelection(
 	semanticIndex: number,
 	semanticElementCount: number,
 	checker: ts.TypeChecker,
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
+	includeExternalTypes = false,
 ): TupleElementSelection | undefined {
 	const widths = tupleTypeNode.elements.map((element) =>
-		getKnownTupleElementWidth(element, checker, typeParameterTypeNodeSubstitutions, new Set()),
+		getKnownTupleElementWidth(
+			element,
+			checker,
+			typeParameterSubstitutions,
+			typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
+			new Set(),
+		),
 	);
 	if (
 		widths.every((width): width is number => width != null) &&
@@ -220,7 +265,9 @@ function getTupleElementSelection(
 function getKnownTupleElementWidth(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
+	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
 	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes: boolean,
 	seen: Set<ts.TypeNode>,
 ): number | undefined {
 	if (!isRestTupleElementNode(typeNode)) {
@@ -236,23 +283,124 @@ function getKnownTupleElementWidth(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	const tuple = unwrapReadonlyContainerTypeNode(substituted);
-	if (!ts.isTupleTypeNode(tuple) || seen.has(tuple)) {
+	const tupleSource = getTupleTypeNodeSource(
+		substituted,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
+	);
+	if (!tupleSource || seen.has(tupleSource.typeNode)) {
 		return undefined;
 	}
 	const nestedSeen = new Set(seen);
-	nestedSeen.add(tuple);
-	const widths = tuple.elements.map((element) =>
+	nestedSeen.add(tupleSource.typeNode);
+	const widths = tupleSource.typeNode.elements.map((element) =>
 		getKnownTupleElementWidth(
 			element,
 			checker,
-			typeParameterTypeNodeSubstitutions,
+			tupleSource.typeParameterSubstitutions,
+			tupleSource.typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
 			new Set(nestedSeen),
 		),
 	);
 	return widths.every((width): width is number => width != null)
 		? widths.reduce((total, width) => total + width, 0)
 		: undefined;
+}
+
+interface TupleTypeNodeSource {
+	typeNode: ts.TupleTypeNode;
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
+}
+
+function getTupleTypeNodeSource(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes: boolean,
+	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
+): TupleTypeNodeSource | undefined {
+	const substituted = substituteTypeParameterTypeNode(
+		typeNode,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	if (ts.isTupleTypeNode(unwrapped)) {
+		return {
+			typeNode: unwrapped,
+			typeParameterSubstitutions,
+			typeParameterTypeNodeSubstitutions,
+		};
+	}
+	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
+	if (
+		!declaration ||
+		seenAliases.has(declaration) ||
+		(!includeExternalTypes && /[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName))
+	) {
+		return undefined;
+	}
+
+	const nextAliases = new Set(seenAliases);
+	nextAliases.add(declaration);
+	const semanticSubstitutions = new Map(typeParameterSubstitutions);
+	const typeNodeSubstitutions = new Map(typeParameterTypeNodeSubstitutions);
+	const typeArguments = ts.isTypeReferenceNode(unwrapped)
+		? unwrapped.typeArguments
+		: ts.isImportTypeNode(unwrapped)
+			? unwrapped.typeArguments
+			: undefined;
+	for (let index = 0; index < (declaration.typeParameters?.length ?? 0); index += 1) {
+		const parameter = declaration.typeParameters![index]!;
+		const argumentNode = typeArguments?.[index] ?? parameter.default;
+		if (!argumentNode) {
+			continue;
+		}
+		const argumentType = substituteTypeParameter(
+			checker.getTypeFromTypeNode(argumentNode),
+			semanticSubstitutions,
+		);
+		const symbols = [
+			checker.getTypeAtLocation(parameter).symbol,
+			checker.getSymbolAtLocation(parameter.name),
+		].filter((symbol): symbol is ts.Symbol => symbol != null);
+		for (const symbol of symbols) {
+			semanticSubstitutions.set(symbol, argumentType);
+			typeNodeSubstitutions.set(symbol, argumentNode);
+		}
+	}
+
+	return getTupleTypeNodeSource(
+		declaration.type,
+		checker,
+		semanticSubstitutions,
+		typeNodeSubstitutions,
+		includeExternalTypes,
+		nextAliases,
+	);
+}
+
+function getReferencedTypeAliasDeclaration(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): ts.TypeAliasDeclaration | undefined {
+	const location = ts.isTypeReferenceNode(typeNode)
+		? typeNode.typeName
+		: ts.isImportTypeNode(typeNode)
+			? typeNode.qualifier
+			: undefined;
+	if (!location) {
+		return undefined;
+	}
+	const symbol = checker.getSymbolAtLocation(location);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
 }
 
 function isRestTupleElementNode(typeNode: ts.TypeNode): boolean {
