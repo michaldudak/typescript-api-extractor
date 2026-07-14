@@ -377,6 +377,31 @@ export type Concrete = Wrapper<{ a: string; b: number }>;`,
 	});
 });
 
+it('preserves keyof syntax before type-parameter and external semantic fallbacks', () => {
+	const filePath = '/virtual/keyof-resolver-precedence.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export type MappedKeys<T extends PropertyKey> = keyof { [P in T]: unknown };
+
+declare const iterator: unique symbol;
+export type SymbolKeys = keyof { [iterator]: string };`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('MappedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('SymbolKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+});
+
 it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';
