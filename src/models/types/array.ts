@@ -16,6 +16,9 @@ export class ArrayNode implements TypeNode {
 			return this.typeName?.toString();
 		}
 
-		return `${this.elementType.toString()}[]`;
+		const renderedElement = this.elementType.toString();
+		const element =
+			this.elementType.kind === 'typeOperator' ? `(${renderedElement})` : renderedElement;
+		return `${element}[]`;
 	}
 }

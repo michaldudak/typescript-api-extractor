@@ -2,7 +2,7 @@ import path from 'node:path';
 import ts from 'typescript';
 import { expect, it } from 'vitest';
 import { parseFromProgram } from '../../index';
-import { TypeOperatorNode } from '../../models';
+import { FunctionNode, TypeOperatorNode } from '../../models';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
 function parseSerializedModule(filePath: string, program: ts.Program) {
@@ -606,6 +606,31 @@ it('parenthesizes function operands when rendering keyof syntax', () => {
 	expect(renderedType).toBe('keyof ((value: string) => number)');
 	const renderedProgram = createInMemoryProgram(
 		'/virtual/rendered-type.ts',
+		`type Rendered = ${renderedType};`,
+	);
+	expect(renderedProgram.getSyntacticDiagnostics()).toEqual([]);
+});
+
+it('parenthesizes keyof operators when rendering array element types', () => {
+	const filePath = '/virtual/keyof-array-rendering.ts';
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export function acceptsKeys(keys: (keyof Params)[]): void {}`,
+		),
+	);
+	const functionType = parsedModule.exports[0]?.type as FunctionNode;
+	const renderedType = functionType.callSignatures[0].parameters[0].type.toString();
+
+	expect(renderedType).toBe('(keyof Params)[]');
+	const renderedProgram = createInMemoryProgram(
+		'/virtual/rendered-array-type.ts',
 		`type Rendered = ${renderedType};`,
 	);
 	expect(renderedProgram.getSyntacticDiagnostics()).toEqual([]);
