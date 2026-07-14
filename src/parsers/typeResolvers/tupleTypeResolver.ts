@@ -4,6 +4,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	containsKeyofTypeNodeSubstitution,
 	getTupleElementTypeNodeAtSemanticIndex,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -131,7 +132,15 @@ function getTupleElementTypeNode(
 		}
 	}
 	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
-	if (!containsKeyofTypeOperatorOrAlias(element, checker, new Set(), includeExternalTypes)) {
+	if (
+		!containsKeyofTypeOperatorOrAlias(element, checker, new Set(), includeExternalTypes) &&
+		!containsKeyofTypeNodeSubstitution(
+			element,
+			checker,
+			typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
+		)
+	) {
 		return undefined;
 	}
 	if (element && isRest) {

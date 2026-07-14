@@ -113,6 +113,7 @@ export function getArrayElementTypeNode(
 			substitutedElementType,
 			checker,
 			typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
 		)
 		? substitutedElementType
 		: undefined;

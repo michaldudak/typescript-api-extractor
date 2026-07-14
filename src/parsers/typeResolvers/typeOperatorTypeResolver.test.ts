@@ -816,6 +816,51 @@ export type Last = Result[2];`,
 	expect(exportByName('Last')?.type).toMatchObject(expectedOperator);
 });
 
+it('preserves keyof through nested generic wrapper arguments', () => {
+	const filePath = '/virtual/keyof-nested-generic-wrappers.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Box<T> = { value: T };
+type Wrap<T> = [Box<T>];
+type NestedPromise<T> = Array<Promise<T>>;
+
+export type Direct = [Promise<keyof Params>];
+export type Wrapped = Wrap<keyof Params>;
+export type Promised = NestedPromise<keyof Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('Direct')?.type.types[0].typeName.typeArguments[0].type).toMatchObject(
+		expectedOperator,
+	);
+	expect(exportByName('Wrapped')?.type.types[0].properties[0].type).toMatchObject(expectedOperator);
+	expect(exportByName('Promised')?.type.elementType.typeName.typeArguments[0].type).toMatchObject(
+		expectedOperator,
+	);
+});
+
 it('replays keyof aliases that semantically collapse to any or unknown', () => {
 	const filePath = '/virtual/keyof-top-type-aliases.ts';
 	const warnings: ParserWarning[] = [];

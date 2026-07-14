@@ -91,6 +91,7 @@ export function containsKeyofTypeNodeSubstitution(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes = false,
 ): boolean {
 	if (!typeNode || !substitutions?.size) {
 		return false;
@@ -103,7 +104,10 @@ export function containsKeyofTypeNodeSubstitution(
 		}
 		if (ts.isTypeReferenceNode(node)) {
 			const substituted = substituteTypeParameterTypeNode(node, checker, substitutions);
-			if (substituted !== node && containsKeyofTypeOperatorOrAlias(substituted, checker)) {
+			if (
+				substituted !== node &&
+				containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes)
+			) {
 				found = true;
 				return;
 			}
@@ -192,13 +196,12 @@ export function containsKeyofTypeOperatorOrAlias(
 		return false;
 	}
 
-	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
-	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
-		return (
-			unwrapped.typeArguments?.some((argument) =>
-				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
-			) ?? false
-		);
+	if (
+		unwrapped.typeArguments?.some((argument) =>
+			containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
+		)
+	) {
+		return true;
 	}
 
 	const declaration =
