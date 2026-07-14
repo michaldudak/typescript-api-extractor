@@ -8,6 +8,7 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
 
 // Union resolution owns its own resolver adapter because preserving
 // authored member order requires TypeNode reconstruction that is specific to
@@ -116,6 +117,7 @@ function resolveUnionType(
 	typeNode: ts.TypeNode | undefined,
 	context: ScopedParserContext,
 	resolve: ResolveTypeInContext,
+	aliasSubstitutionsApplied = false,
 ): AnyType {
 	const { checker } = context;
 	if (typeNode) {
@@ -150,14 +152,20 @@ function resolveUnionType(
 	//
 	// In this case `typeNode` will be set to the type reference of the function parameter,
 	// so we extract the needed union definition.
-	const typeAliasDeclaration = type.aliasSymbol?.declarations?.[0];
-	if (
-		(!typeNode || !ts.isUnionTypeNode(typeNode)) &&
-		typeAliasDeclaration &&
-		ts.isTypeAliasDeclaration(typeAliasDeclaration) &&
-		ts.isUnionTypeNode(typeAliasDeclaration.type)
-	) {
-		typeNode = typeAliasDeclaration.type;
+	const unionAlias = getAuthoredUnionAlias(type, typeNode, checker);
+	if ((!typeNode || !ts.isUnionTypeNode(typeNode)) && unionAlias) {
+		typeNode = unionAlias.declaration.type;
+	}
+
+	const aliasSubstitutions = getAliasTypeParameterSubstitutions(
+		unionAlias?.declaration,
+		unionAlias?.typeArguments,
+		context,
+	);
+	if (!aliasSubstitutionsApplied && aliasSubstitutions) {
+		return context.runWithTypeParameterSubstitutionScope(aliasSubstitutions, () =>
+			resolveUnionType(type, typeName, typeNode, context, resolve, true),
+		);
 	}
 
 	if (typeNode && ts.isUnionTypeNode(typeNode)) {
@@ -177,7 +185,10 @@ function resolveUnionType(
 		const usedMemberTypes = new Set<ts.Type>();
 
 		for (const node of flattenedTypeNodes) {
-			const nodeType = checker.getTypeFromTypeNode(node);
+			const operatorNode = getKeyofTypeOperatorNode(node);
+			const nodeType = operatorNode
+				? getKeyofResultTypeFromSyntax(operatorNode, context)
+				: checker.getTypeFromTypeNode(node);
 			const preservedCompositeMember = resolvePreservedCompositeMember(
 				node,
 				nodeType,
@@ -268,6 +279,55 @@ function resolveUnionType(
 	const typeNameToUse = typeName?.name ? typeName : undefined;
 
 	return result.length === 1 ? result[0] : new UnionNode(typeNameToUse, result);
+}
+
+function getAliasTypeParameterSubstitutions(
+	declaration: ts.TypeAliasDeclaration | undefined,
+	typeArguments: readonly ts.Type[] | undefined,
+	context: ScopedParserContext,
+): Map<ts.Symbol, ts.Type> | undefined {
+	if (!declaration || !declaration.typeParameters?.length || !typeArguments?.length) {
+		return undefined;
+	}
+
+	const substitutions = new Map(context.typeParameterSubstitutions);
+	for (let index = 0; index < declaration.typeParameters.length; index += 1) {
+		const parameterType = context.checker.getTypeAtLocation(declaration.typeParameters[index]);
+		const argumentType = typeArguments[index];
+		if (parameterType.symbol && argumentType) {
+			substitutions.set(parameterType.symbol, argumentType);
+		}
+	}
+
+	return substitutions.size > 0 ? substitutions : undefined;
+}
+
+function getAuthoredUnionAlias(
+	type: ts.UnionType,
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): { declaration: ts.TypeAliasDeclaration; typeArguments?: readonly ts.Type[] } | undefined {
+	const semanticDeclaration = type.aliasSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+	if (semanticDeclaration && ts.isUnionTypeNode(semanticDeclaration.type)) {
+		return { declaration: semanticDeclaration, typeArguments: type.aliasTypeArguments };
+	}
+
+	if (!typeNode || !ts.isTypeReferenceNode(typeNode)) {
+		return undefined;
+	}
+
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	const declaration = targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+	if (!declaration || !ts.isUnionTypeNode(declaration.type)) {
+		return undefined;
+	}
+
+	return {
+		declaration,
+		typeArguments: typeNode.typeArguments?.map((argument) => checker.getTypeFromTypeNode(argument)),
+	};
 }
 
 function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {

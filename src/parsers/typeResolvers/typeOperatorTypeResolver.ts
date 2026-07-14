@@ -8,11 +8,18 @@ import {
 	type AnyType,
 	type TypeOperatorResolutionKind,
 } from '../../models';
+import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
+import { getKeyofTypeForOperand } from '../typeResolutionUtils';
 import { resolveExternalType } from './externalTypeResolver';
+import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
-import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperator,
+	getKeyofTypeOperatorNode,
+	unwrapParenthesizedTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Type operators are syntax-first: concrete `keyof Foo` may already be exposed
 // by TypeScript as a literal, intrinsic, or literal union, so this resolver must
@@ -22,18 +29,18 @@ export function resolveTypeOperatorType(
 	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
-	const operatorSyntax = getKeyofOperatorSyntax(typeNode);
-	if (!operatorSyntax) {
-		return undefined;
+	const operatorNode = getKeyofTypeOperatorNode(typeNode);
+	if (!operatorNode) {
+		return resolveCollapsedTypeOperatorUnion(typeNode, typeName, session);
 	}
 
-	const { operatorNode } = operatorSyntax;
 	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
 	const undefinedMember = getUndefinedUnionMember(type);
 	const collapsedToUndefined = isUndefinedType(type);
-	const resultType = collapsedToUndefined
-		? session.context.checker.getTypeFromTypeNode(operatorNode)
-		: type;
+	const resultType =
+		collapsedToUndefined || session.context.typeParameterSubstitutions?.size
+			? getKeyofResultTypeFromSyntax(operatorNode, session.context)
+			: type;
 	const resolvedResult = resolveTypeOperatorResult(resultType, session, {
 		excludeUndefined: Boolean(undefinedMember),
 		typeName,
@@ -51,6 +58,46 @@ export function resolveTypeOperatorType(
 	}
 
 	return new UnionNode(undefined, [typeOperatorNode, new IntrinsicNode('undefined')]);
+}
+
+export function getKeyofResultTypeFromSyntax(
+	operatorNode: ts.TypeOperatorNode,
+	context: ScopedParserContext,
+): ts.Type {
+	const { checker, typeParameterSubstitutions } = context;
+	const operandType = checker.getTypeFromTypeNode(operatorNode.type);
+	const substitutedOperand = typeParameterSubstitutions
+		? substituteTypeParameter(operandType, typeParameterSubstitutions)
+		: operandType;
+	return (
+		getKeyofTypeForOperand(checker, substitutedOperand) ?? checker.getTypeFromTypeNode(operatorNode)
+	);
+}
+
+function resolveCollapsedTypeOperatorUnion(
+	typeNode: ts.TypeNode | undefined,
+	typeName: TypeResolutionRequest['typeName'],
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (!typeNode) {
+		return undefined;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (!ts.isUnionTypeNode(unwrapped) || !containsKeyofTypeOperator(unwrapped)) {
+		return undefined;
+	}
+
+	return new UnionNode(
+		typeName,
+		unwrapped.types.map((memberTypeNode) => {
+			const operatorNode = getKeyofTypeOperatorNode(memberTypeNode);
+			const memberType = operatorNode
+				? getKeyofResultTypeFromSyntax(operatorNode, session.context)
+				: session.context.checker.getTypeFromTypeNode(memberTypeNode);
+			return session.resolve(memberType, memberTypeNode);
+		}),
+	);
 }
 
 function resolveTypeOperatorOperand(
@@ -76,43 +123,6 @@ function resolveTypeOperatorOperand(
 	}
 
 	return compactTypeOperatorOperand(session.resolve(type, typeNode));
-}
-
-function getKeyofOperatorSyntax(
-	typeNode: ts.TypeNode | undefined,
-): { operatorNode: ts.TypeOperatorNode } | undefined {
-	const directOperator = getKeyofTypeOperatorNode(typeNode);
-	if (directOperator) {
-		return { operatorNode: directOperator };
-	}
-	if (!typeNode) {
-		return undefined;
-	}
-
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (!ts.isUnionTypeNode(unwrapped)) {
-		return undefined;
-	}
-
-	let operatorNode: ts.TypeOperatorNode | undefined;
-	let hasUndefined = false;
-	for (const member of unwrapped.types) {
-		const memberOperator = getKeyofTypeOperatorNode(member);
-		if (memberOperator && !operatorNode) {
-			operatorNode = memberOperator;
-			continue;
-		}
-
-		const unwrappedMember = unwrapParenthesizedTypeNode(member);
-		if (unwrappedMember.kind === ts.SyntaxKind.UndefinedKeyword && !hasUndefined) {
-			hasUndefined = true;
-			continue;
-		}
-
-		return undefined;
-	}
-
-	return operatorNode && hasUndefined ? { operatorNode } : undefined;
 }
 
 function resolveTypeOperatorResult(

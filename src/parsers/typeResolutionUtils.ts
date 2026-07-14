@@ -36,6 +36,20 @@ export function getTypeId(type: ts.Type): number | undefined {
 }
 
 /**
+ * Returns the checker result of applying `keyof` to an operand. TypeScript uses
+ * this method internally but does not expose it in the public TypeChecker type.
+ */
+export function getKeyofTypeForOperand(
+	checker: ts.TypeChecker,
+	operandType: ts.Type,
+): ts.Type | undefined {
+	const checkerWithIndexType = checker as ts.TypeChecker & {
+		getIndexType?: (type: ts.Type) => ts.Type;
+	};
+	return checkerWithIndexType.getIndexType?.(operandType);
+}
+
+/**
  * Creates a shallow type node for cycle detection. The result keeps the outer
  * type identity but does not resolve nested members, preventing recursive
  * object/array/function types from expanding forever.

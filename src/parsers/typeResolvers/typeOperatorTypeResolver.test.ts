@@ -182,6 +182,52 @@ export type Reverse = keyof Narrow | keyof Wide;`,
 	});
 });
 
+it('preserves keyof members after union simplification and generic alias instantiation', () => {
+	const filePath = '/virtual/keyof-simplified-unions.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export type Collapsed = keyof {} | 'fallback';
+type MaybeKeys<T> = keyof T | undefined;
+export type Concrete = MaybeKeys<Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('Collapsed')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'typeOperator', operator: 'keyof' },
+			{ kind: 'literal', value: '"fallback"' },
+		],
+	});
+	expect(exportByName('Concrete')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeOperator',
+				operator: 'keyof',
+				type: { typeName: { name: 'Params' } },
+				resolvedType: {
+					kind: 'union',
+					types: [
+						{ kind: 'literal', value: '"a"' },
+						{ kind: 'literal', value: '"b"' },
+					],
+				},
+			},
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(

@@ -100,6 +100,7 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 					ts.TypeFlags.Unknown |
 					ts.TypeFlags.String |
 					ts.TypeFlags.Number |
+					ts.TypeFlags.Literal |
 					ts.TypeFlags.Boolean |
 					ts.TypeFlags.ESSymbol |
 					ts.TypeFlags.UniqueESSymbol |
