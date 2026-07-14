@@ -355,6 +355,10 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 - `index.ts` is the ordered resolver registry. Resolver order is meaningful:
   syntax-first operators and specific shapes should appear before semantic
   fallbacks that would discard authored syntax.
+- `authoredTypeAlias.ts` replays alias bodies whose supported syntax contains
+  `keyof`, carries generic substitutions across local and relative-import alias
+  chains, and preserves source-only preflight checks where export normalization
+  must not perturb TypeScript's lazy caches.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
 - `classTypeResolver.ts` handles class detection, constructor model assembly,
   constructor documentation, class members, static members, and class type
