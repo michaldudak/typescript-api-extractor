@@ -1311,6 +1311,7 @@ it('keeps third-party keyof re-exports external unless expansion is enabled', ()
   type WrappedArray,
   type WrappedTuple,
   type WrappedUnion,
+  type Keys as RenamedKeys,
 } from 'keyof-package';`,
 		[packagePath]: `export interface Params {
   external: string;
@@ -1334,6 +1335,15 @@ export type WrappedUnion = OuterKeys | null;`,
 				type: { kind: 'external', typeName: { name } },
 			});
 		}
+		expect(
+			moduleDefinition.exports.find(
+				(exportNode: { name: string }) => exportNode.name === 'RenamedKeys',
+			),
+		).toMatchObject({
+			name: 'RenamedKeys',
+			reexportedFrom: 'Keys',
+			type: { kind: 'external', typeName: { name: 'Keys' } },
+		});
 	}
 	const expandedModule = JSON.parse(
 		JSON.stringify(
@@ -1344,6 +1354,10 @@ export type WrappedUnion = OuterKeys | null;`,
 		expandedModule.exports.find((exportNode: { name: string }) => exportNode.name === name);
 	const operator = { kind: 'typeOperator', operator: 'keyof' };
 	expect(expandedExportByName('Keys')?.type).toMatchObject(operator);
+	expect(expandedExportByName('RenamedKeys')).toMatchObject({
+		reexportedFrom: 'Keys',
+		type: operator,
+	});
 	expect(expandedExportByName('OuterKeys')?.type).toMatchObject(operator);
 	expect(expandedExportByName('WrappedArray')?.type).toMatchObject({
 		kind: 'array',

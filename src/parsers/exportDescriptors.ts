@@ -207,7 +207,7 @@ function resolveExportSpecifierDescriptors(
 			reexportedFrom,
 			typeNode:
 				targetTypeAlias &&
-				((targetTypeAliasIsExternal && !reexportedFrom) ||
+				(targetTypeAliasIsExternal ||
 					typeAliasReferencesProjectImportInSource(targetTypeAlias) ||
 					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
 					? targetTypeNode
