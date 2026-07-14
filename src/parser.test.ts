@@ -49,6 +49,31 @@ const sourceNodeRestorationSource = `export function withReturn():
 }
 
 export type AfterReturn = \`alias-\${string}\`;`;
+const aliasWithExtraResolvedTypeArgumentsSource = `interface Extras<T> {
+  pending: T;
+}
+
+type Result<T> = [T, (next: T) => void, Extras<T>];
+
+interface Options<T, P> {
+  causesLayoutShift: (t: T) => boolean;
+  preload?: (t: T) => P | Promise<P>;
+}
+
+type FixedOptions<P> = Options<string | null, P>;
+
+export function useThing<T, P = void>(
+  initial: T,
+  options: Options<T, P>,
+): Result<T> {
+  return [initial, () => {}, { pending: initial }] as Result<T>;
+}
+
+export function useFixed<P = void>(
+  options: FixedOptions<P>,
+): Result<string | null> {
+  return useThing<string | null, P>(null, options);
+}`;
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
 	return `Type extraction warning: Unable to handle type "\`prefix-\${string}\`" with flag "TemplateLiteral" at "${filePath}:1:17". Using any instead.`;
@@ -243,6 +268,60 @@ it('reports precise type locations in function and class signatures', () => {
 		expect(warning.line).not.toBe(1);
 		expect(warning.column).not.toBe(1);
 	}
+});
+
+it('parses generic aliases whose resolved types expose extra type arguments', () => {
+	const filePath = '/virtual/alias-extra-resolved-type-arguments.ts';
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, aliasWithExtraResolvedTypeArgumentsSource),
+	);
+
+	expect(moduleDefinition.exports).toMatchObject([
+		{
+			name: 'useThing',
+			type: {
+				callSignatures: [
+					{
+						returnValueType: {
+							kind: 'tuple',
+							typeName: {
+								name: 'Result',
+								typeArguments: [
+									expect.objectContaining({ equalToDefault: false }),
+									expect.objectContaining({ equalToDefault: false }),
+									expect.objectContaining({ equalToDefault: false }),
+								],
+							},
+						},
+					},
+				],
+			},
+		},
+		{
+			name: 'useFixed',
+			type: {
+				callSignatures: [
+					{
+						parameters: [
+							{
+								type: {
+									typeName: {
+										name: 'FixedOptions',
+										typeArguments: [
+											expect.objectContaining({ equalToDefault: false }),
+											expect.objectContaining({ equalToDefault: false }),
+										],
+									},
+								},
+							},
+						],
+					},
+				],
+			},
+		},
+	]);
 });
 
 it('reports missing enum declarations through onWarning', () => {
