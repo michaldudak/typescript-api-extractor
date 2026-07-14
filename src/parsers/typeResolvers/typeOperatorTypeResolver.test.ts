@@ -551,6 +551,7 @@ type KeyConditional<T> = T extends object ? keyof T : never;
 type KeyIntersection<T> = keyof T & string;
 type MaybeKeys<T = Params, U = T> = keyof U | undefined;
 type MaybePartialKeys<T = Params, U = Partial<T>> = keyof U | undefined;
+type CompositeKeyDefault<T, U = Record<keyof T, string>> = keyof U;
 
 export type ArrayAlias = KeyArray<Params>;
 export type TupleAlias = KeyTuple<Params>;
@@ -559,7 +560,8 @@ export type IntersectionAlias = KeyIntersection<Params>;
 export type OmittedDefaults = MaybeKeys;
 export type DependentDefault = MaybeKeys<Params>;
 export type OmittedCompositeDefault = MaybePartialKeys;
-export type ExplicitCompositeDefault = MaybePartialKeys<Params>;`,
+export type ExplicitCompositeDefault = MaybePartialKeys<Params>;
+export type NestedCompositeDefault = CompositeKeyDefault<Params>;`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -617,6 +619,19 @@ export type ExplicitCompositeDefault = MaybePartialKeys<Params>;`,
 			types: [expectedPartialOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
 		});
 	}
+	expect(exportByName('NestedCompositeDefault')?.type).toMatchObject({
+		...expectedOperator,
+		type: {
+			kind: 'external',
+			typeName: {
+				name: 'Record',
+				typeArguments: [
+					{ type: expectedOperator },
+					{ type: { kind: 'intrinsic', intrinsic: 'string' } },
+				],
+			},
+		},
+	});
 });
 
 it('preserves keyof mapped-value syntax after mapped type instantiation', () => {

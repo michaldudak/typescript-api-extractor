@@ -4,6 +4,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { hasExactFlag } from '../typeResolutionUtils';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
@@ -33,7 +34,20 @@ export function resolveTypeParameterType(
 		substitution !== type &&
 		(!(substitution.flags & ts.TypeFlags.TypeParameter) || substitution.symbol !== type.symbol)
 	) {
-		return session.resolve(substitution, undefined);
+		const directTypeNodeSubstitution = session.context.typeParameterTypeNodeSubstitutions?.get(
+			type.symbol,
+		);
+		const substitutedTypeNode = typeNode
+			? substituteTypeParameterTypeNode(
+					typeNode,
+					checker,
+					session.context.typeParameterTypeNodeSubstitutions,
+				)
+			: directTypeNodeSubstitution;
+		return session.resolve(
+			substitution,
+			substitutedTypeNode !== typeNode ? substitutedTypeNode : directTypeNodeSubstitution,
+		);
 	}
 
 	// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
