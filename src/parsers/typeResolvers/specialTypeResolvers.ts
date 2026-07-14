@@ -3,6 +3,7 @@ import { IntrinsicNode, TypeParameterNode, UnionNode, type AnyType } from '../..
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
 import {
+	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -44,9 +45,16 @@ export function resolveTypeParameterType(
 					session.context.typeParameterTypeNodeSubstitutions,
 				)
 			: directTypeNodeSubstitution;
+		const shouldCarrySubstitutionSyntax =
+			substitutedTypeNode != null &&
+			(containsKeyofTypeOperator(substitutedTypeNode) || isKeyofOperandTypeNode(typeNode));
 		return session.resolve(
 			substitution,
-			substitutedTypeNode !== typeNode ? substitutedTypeNode : directTypeNodeSubstitution,
+			shouldCarrySubstitutionSyntax
+				? substitutedTypeNode !== typeNode
+					? substitutedTypeNode
+					: directTypeNodeSubstitution
+				: undefined,
 		);
 	}
 
@@ -93,6 +101,18 @@ export function resolveTypeParameterType(
 						: undefined,
 				)
 			: undefined,
+	);
+}
+
+function isKeyofOperandTypeNode(typeNode: ts.TypeNode | undefined): boolean {
+	let current = typeNode;
+	while (current?.parent && ts.isParenthesizedTypeNode(current.parent)) {
+		current = current.parent;
+	}
+	return Boolean(
+		current?.parent &&
+		ts.isTypeOperatorNode(current.parent) &&
+		current.parent.operator === ts.SyntaxKind.KeyOfKeyword,
 	);
 }
 
