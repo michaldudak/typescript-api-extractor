@@ -102,11 +102,13 @@ export function resolveAuthoredKeyofAlias(
 				checker,
 				substitutions?.typeNodes,
 			);
-			const resolvedType = session.resolveWithSyntax({
-				...request,
-				typeName,
-				typeNode: replayTypeNode,
-			});
+			const resolvedType = session.context.runWithSourceNodeScope(reference.declaration.type, () =>
+				session.resolveWithSyntax({
+					...request,
+					typeName,
+					typeNode: replayTypeNode,
+				}),
+			);
 			return resolvedType && typeName ? withTypeName(resolvedType, typeName) : resolvedType;
 		} finally {
 			activeAliases.delete(reference.declaration);
@@ -231,9 +233,12 @@ function canCollapseAuthoredKeyofAlias(type: ts.Type, checker: ts.TypeChecker): 
 		type.isUnion() ||
 		type.isIntersection() ||
 		(type.flags &
-			(ts.TypeFlags.Conditional |
+			(ts.TypeFlags.Any |
+				ts.TypeFlags.Unknown |
+				ts.TypeFlags.Conditional |
 				ts.TypeFlags.Index |
 				ts.TypeFlags.IndexedAccess |
+				ts.TypeFlags.TemplateLiteral |
 				ts.TypeFlags.Literal |
 				ts.TypeFlags.String |
 				ts.TypeFlags.Number |

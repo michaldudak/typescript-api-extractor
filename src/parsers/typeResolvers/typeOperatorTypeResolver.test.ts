@@ -719,6 +719,71 @@ export type Last = Result[2];`,
 	expect(exportByName('Last')?.type).toMatchObject(expectedOperator);
 });
 
+it('replays keyof aliases that semantically collapse to any or unknown', () => {
+	const filePath = '/virtual/keyof-top-type-aliases.ts';
+	const warnings: ParserWarning[] = [];
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram(
+					filePath,
+					`interface Params {
+  a: string;
+}
+
+interface Pattern {
+  [key: \`data-\${string}\`]: number;
+}
+
+type UnknownKeys = keyof Params | unknown;
+type AnyKeys = keyof Params | any;
+type PatternKeys = keyof Pattern;
+
+export type UnknownResult = UnknownKeys;
+export type AnyResult = AnyKeys;
+export type PatternResult = PatternKeys;`,
+				),
+				{
+					onWarning: (warning) => {
+						warnings.push(warning);
+					},
+				},
+			),
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: { kind: 'literal', value: '"a"' },
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('UnknownResult')?.type).toMatchObject({
+		kind: 'union',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'unknown' }],
+	});
+	expect(exportByName('AnyResult')?.type).toMatchObject({
+		kind: 'union',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'any' }],
+	});
+	expect(exportByName('PatternResult')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Pattern' } },
+		resolvedType: { kind: 'intrinsic', intrinsic: 'any' },
+		resolutionKind: 'fallback',
+	});
+	expect(warnings).toHaveLength(1);
+	expect(warnings[0]).toMatchObject({
+		code: 'unsupported-type-fallback',
+		sourceText: 'keyof Pattern',
+	});
+});
+
 it('does not substitute a nested type parameter that shadows an alias parameter', () => {
 	const filePath = '/virtual/keyof-generic-argument-shadowing.ts';
 	const moduleDefinition = parseSerializedModule(
