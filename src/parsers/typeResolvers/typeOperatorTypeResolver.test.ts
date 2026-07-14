@@ -978,8 +978,29 @@ it('preserves keyof syntax in class properties, intersections, conditionals, and
 }
 
 export class Example {
+  private accessorValue!: keyof Params;
+
+  constructor(
+    public parameterKey: keyof Params,
+    public readonly optionalKey?: keyof Params,
+  ) {}
+
   instance!: keyof Params;
   static value: keyof Params;
+
+  get accessorKey(): keyof Params {
+    return 'a';
+  }
+
+  get pairedKey(): keyof Params {
+    return this.accessorValue;
+  }
+
+  set pairedKey(value: keyof Params) {
+    this.accessorValue = value;
+  }
+
+  set setterKey(value: keyof Params) {}
 }
 
 export type Intersection<T> = keyof T & string;
@@ -992,10 +1013,28 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 	const exportByName = (name: string) =>
 		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
 
-	expect(exportByName('Example')?.type.properties).toMatchObject([
-		{ name: 'instance', type: { kind: 'typeOperator', operator: 'keyof' } },
-		{ name: 'value', type: { kind: 'typeOperator', operator: 'keyof' } },
-	]);
+	const exampleProperties = exportByName('Example')?.type.properties;
+	const propertyByName = (name: string) =>
+		exampleProperties.find((property: { name: string }) => property.name === name);
+	expect(propertyByName('parameterKey')).toMatchObject({
+		type: { kind: 'typeOperator', operator: 'keyof' },
+	});
+	expect(propertyByName('optionalKey')).toMatchObject({
+		readonly: true,
+		optional: true,
+		type: {
+			kind: 'union',
+			types: [
+				{ kind: 'typeOperator', operator: 'keyof' },
+				{ kind: 'intrinsic', intrinsic: 'undefined' },
+			],
+		},
+	});
+	for (const propertyName of ['instance', 'value', 'accessorKey', 'pairedKey', 'setterKey']) {
+		expect(propertyByName(propertyName)).toMatchObject({
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		});
+	}
 	expect(exportByName('Intersection')?.type.types[0]).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',

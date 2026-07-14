@@ -183,12 +183,7 @@ function extractMembers(
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
 			// It's a property
-			const propertyTypeNode =
-				(ts.isPropertyDeclaration(memberDeclaration) ||
-					ts.isPropertySignature(memberDeclaration)) &&
-				memberDeclaration.type
-					? memberDeclaration.type
-					: undefined;
+			const propertyTypeNode = getClassPropertyTypeNode(member, memberDeclaration);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
 				resolveTypeReference(
 					memberType,
@@ -229,6 +224,36 @@ function extractMembers(
 			);
 		}
 	}
+}
+
+function getClassPropertyTypeNode(
+	member: ts.Symbol,
+	memberDeclaration: ts.Declaration,
+): ts.TypeNode | undefined {
+	const declarations = [
+		memberDeclaration,
+		...(member.declarations?.filter((declaration) => declaration !== memberDeclaration) ?? []),
+	];
+
+	for (const declaration of declarations) {
+		if (
+			(ts.isPropertyDeclaration(declaration) ||
+				ts.isPropertySignature(declaration) ||
+				ts.isParameter(declaration) ||
+				ts.isGetAccessorDeclaration(declaration)) &&
+			declaration.type
+		) {
+			return declaration.type;
+		}
+	}
+
+	for (const declaration of declarations) {
+		if (ts.isSetAccessorDeclaration(declaration)) {
+			return declaration.parameters[0]?.type;
+		}
+	}
+
+	return undefined;
 }
 
 function buildConstructSignature(
