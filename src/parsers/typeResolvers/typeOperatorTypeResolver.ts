@@ -110,6 +110,9 @@ function resolveTypeOperatorOperand(
 	if (ts.isTypeQueryNode(unwrappedTypeNode)) {
 		return new TypeQueryNode(unwrappedTypeNode.exprName.getText());
 	}
+	if (ts.isImportTypeNode(unwrappedTypeNode) && unwrappedTypeNode.isTypeOf) {
+		return new TypeQueryNode(unwrappedTypeNode.getText().replace(/^typeof\s+/, ''));
+	}
 
 	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
 		const request: TypeResolutionRequest = {

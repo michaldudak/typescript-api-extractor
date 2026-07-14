@@ -6,7 +6,11 @@ export class TupleNode implements TypeNode {
 	public typeName: TypeName | undefined;
 	public types: AnyType[];
 
-	constructor(typeName: TypeName | undefined, types: AnyType[]) {
+	constructor(
+		typeName: TypeName | undefined,
+		types: AnyType[],
+		public readonly isReadonly?: true,
+	) {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.types = types;
 	}
@@ -16,6 +20,8 @@ export class TupleNode implements TypeNode {
 			return this.typeName.toString();
 		}
 
-		return `[${this.types.map((type) => type.toString()).join(', ')}]`;
+		return `${this.isReadonly ? 'readonly ' : ''}[${this.types
+			.map((type) => type.toString())
+			.join(', ')}]`;
 	}
 }

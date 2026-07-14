@@ -6,7 +6,11 @@ export class ArrayNode implements TypeNode {
 	public typeName: TypeName | undefined;
 	public elementType: AnyType;
 
-	constructor(typeName: TypeName | undefined, elementType: AnyType) {
+	constructor(
+		typeName: TypeName | undefined,
+		elementType: AnyType,
+		public readonly isReadonly?: true,
+	) {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.elementType = elementType;
 	}
@@ -19,6 +23,6 @@ export class ArrayNode implements TypeNode {
 		const renderedElement = this.elementType.toString();
 		const element =
 			this.elementType.kind === 'typeOperator' ? `(${renderedElement})` : renderedElement;
-		return `${element}[]`;
+		return `${this.isReadonly ? 'readonly ' : ''}${element}[]`;
 	}
 }

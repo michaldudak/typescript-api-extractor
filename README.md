@@ -188,6 +188,9 @@ interface TypeQueryNode {
 For example, the `type` of `keyof typeof value` is a `TypeQueryNode` whose
 `expressionName` is `value`.
 
+Readonly array and tuple operands retain `isReadonly: true`, so rendering a
+preserved operator cannot silently change its key set.
+
 - `type` is the authored operand. Named object operands are intentionally shallow
   references because expanding their properties does not change the operator or
   its key result.

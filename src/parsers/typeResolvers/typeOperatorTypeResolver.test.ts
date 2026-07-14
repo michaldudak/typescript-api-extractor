@@ -82,18 +82,25 @@ export interface Parameters {
 
 it('preserves authored type-query operands without expanding their value shape', () => {
 	const filePath = '/virtual/keyof-type-query.ts';
+	const dependencyPath = '/virtual/keyof-type-query-dependency.ts';
 	const parsedModule = parseFromProgram(
 		filePath,
-		createInMemoryProgram(
-			filePath,
-			`const value = { a: 1, b: 2 };
+		createInMemoryProgram({
+			[filePath]: `const value = { a: 1, b: 2 };
 
-export type Keys = keyof typeof value;`,
-		),
+export type Keys = keyof typeof value;
+export type ImportedKeys = keyof typeof import("./keyof-type-query-dependency");`,
+			[dependencyPath]: `export const importedValue = 1;
+export const importedText = 'text';`,
+		}),
 	);
 	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const parsedExportByName = (name: string) =>
+		parsedModule.exports.find((exportNode) => exportNode.name === name);
 
-	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+	expect(exportByName('Keys')?.type).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',
 		type: {
@@ -108,7 +115,64 @@ export type Keys = keyof typeof value;`,
 			],
 		},
 	});
-	expect(parsedModule.exports[0]?.type.toString()).toBe('keyof typeof value');
+	expect(exportByName('ImportedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			kind: 'typeQuery',
+			expressionName: 'import("./keyof-type-query-dependency")',
+		},
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"importedValue"' },
+				{ kind: 'literal', value: '"importedText"' },
+			],
+		},
+	});
+	expect(parsedExportByName('Keys')?.type.toString()).toBe('keyof typeof value');
+	expect(parsedExportByName('ImportedKeys')?.type.toString()).toBe(
+		'keyof typeof import("./keyof-type-query-dependency")',
+	);
+});
+
+it('preserves readonly array and tuple operands', () => {
+	const filePath = '/virtual/keyof-readonly-operands.ts';
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export type ReadonlyArrayKeys = keyof readonly string[];
+export type ReadonlyTupleKeys = keyof readonly [string, number];`,
+		),
+	);
+	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const parsedExportByName = (name: string) =>
+		parsedModule.exports.find((exportNode) => exportNode.name === name);
+
+	expect(exportByName('ReadonlyArrayKeys')?.type.type).toMatchObject({
+		kind: 'array',
+		isReadonly: true,
+		elementType: { kind: 'intrinsic', intrinsic: 'string' },
+	});
+	expect(exportByName('ReadonlyTupleKeys')?.type.type).toMatchObject({
+		kind: 'tuple',
+		isReadonly: true,
+		types: [
+			{ kind: 'intrinsic', intrinsic: 'string' },
+			{ kind: 'intrinsic', intrinsic: 'number' },
+		],
+	});
+	expect(parsedExportByName('ReadonlyArrayKeys')?.type.toString()).toBe('keyof readonly string[]');
+	expect(parsedExportByName('ReadonlyTupleKeys')?.type.toString()).toBe(
+		'keyof readonly [string, number]',
+	);
+	const arrayKeyValues = exportByName('ReadonlyArrayKeys')
+		?.type.resolvedType.types.filter((type: { kind: string }) => type.kind === 'literal')
+		.map((type: { value: string }) => type.value);
+	expect(arrayKeyValues).not.toContain('"push"');
 });
 
 it('preserves keyof operators inside explicit unions', () => {

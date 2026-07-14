@@ -4,6 +4,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
 	containsKeyofTypeOperator,
+	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
 
@@ -26,6 +27,20 @@ export function resolveTupleType(
 		(type as ts.TupleType).typeArguments?.map((elementType, index) =>
 			session.resolve(elementType, getTupleElementTypeNode(typeNode, index, checker)),
 		) ?? [],
+		isReadonlyTupleTypeNode(typeNode) ? true : undefined,
+	);
+}
+
+function isReadonlyTupleTypeNode(typeNode: ts.TypeNode | undefined): boolean {
+	if (!typeNode) {
+		return false;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	return (
+		ts.isTypeOperatorNode(unwrapped) &&
+		unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword &&
+		ts.isTupleTypeNode(unwrapParenthesizedTypeNode(unwrapped.type))
 	);
 }
 

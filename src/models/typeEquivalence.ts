@@ -122,16 +122,14 @@ class TypeEquivalence {
 		}
 
 		if (type1 instanceof ArrayNode && type2 instanceof ArrayNode) {
-			return this.areEquivalent(
-				type1.elementType,
-				type2.elementType,
-				anyIsWildcard,
-				typeParamRenames,
+			return (
+				this.areEquivalent(type1.elementType, type2.elementType, anyIsWildcard, typeParamRenames) &&
+				type1.isReadonly === type2.isReadonly
 			);
 		}
 
 		if (type1 instanceof TupleNode && type2 instanceof TupleNode) {
-			if (type1.types.length !== type2.types.length) {
+			if (type1.types.length !== type2.types.length || type1.isReadonly !== type2.isReadonly) {
 				return false;
 			}
 			return type1.types.every((t1, index) =>

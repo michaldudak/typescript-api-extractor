@@ -4,6 +4,7 @@ import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	containsKeyofTypeOperator,
+	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
 
@@ -28,6 +29,26 @@ export function resolveArrayType(
 			? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 			: undefined,
 		session.resolve(arrayType, getArrayElementTypeNode(typeNode, checker)),
+		isReadonlyArrayTypeNode(typeNode, checker) ? true : undefined,
+	);
+}
+
+function isReadonlyArrayTypeNode(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): boolean {
+	if (!typeNode) {
+		return false;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
+		return true;
+	}
+
+	return (
+		ts.isTypeReferenceNode(unwrapped) &&
+		getBuiltInArrayReferenceName(unwrapped, checker) === 'ReadonlyArray'
 	);
 }
 
@@ -51,6 +72,13 @@ export function getArrayElementTypeNode(
 }
 
 function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.TypeChecker): boolean {
+	return getBuiltInArrayReferenceName(typeNode, checker) !== undefined;
+}
+
+function getBuiltInArrayReferenceName(
+	typeNode: ts.TypeReferenceNode,
+	checker: ts.TypeChecker,
+): 'Array' | 'ReadonlyArray' | undefined {
 	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
 	const targetSymbol =
 		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
@@ -59,12 +87,12 @@ function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.Typ
 		!['Array', 'ReadonlyArray'].includes(targetSymbol.getName()) ||
 		!(targetSymbol.flags & ts.SymbolFlags.Interface)
 	) {
-		return false;
+		return undefined;
 	}
 
-	return (
+	const isBuiltIn =
 		targetSymbol.declarations?.some((declaration) =>
 			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-		) ?? false
-	);
+		) ?? false;
+	return isBuiltIn ? (targetSymbol.getName() as 'Array' | 'ReadonlyArray') : undefined;
 }

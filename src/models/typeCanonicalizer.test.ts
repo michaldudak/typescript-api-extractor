@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import {
+	ArrayNode,
 	CallSignature,
 	FunctionNode,
 	IntrinsicNode,
@@ -136,4 +137,30 @@ it('canonicalizes structurally equivalent type operator members', () => {
 	);
 
 	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);
+});
+
+it('keeps type operators whose container operands differ by readonly', () => {
+	const resolvedType = new LiteralNode('"length"');
+	const mutableOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new ArrayNode(undefined, new IntrinsicNode('string')),
+		resolvedType,
+		'exact',
+	);
+	const readonlyOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new ArrayNode(undefined, new IntrinsicNode('string'), true),
+		resolvedType,
+		'exact',
+	);
+
+	expect(typeEquivalenceChecker.areEquivalentStrictly(mutableOperator, readonlyOperator)).toBe(
+		false,
+	);
+	expect(new UnionNode(undefined, [mutableOperator, readonlyOperator]).types).toEqual([
+		mutableOperator,
+		readonlyOperator,
+	]);
 });
