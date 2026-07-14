@@ -182,6 +182,44 @@ export type Reverse = keyof Narrow | keyof Wide;`,
 	});
 });
 
+it('keeps keyof operators with different generic operands in either union order', () => {
+	const filePath = '/virtual/keyof-generic-operand-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Box<T> {
+  a: T;
+  b: T;
+}
+
+export type Forward = keyof Box<any> | keyof Box<string>;
+export type Reverse = keyof Box<string> | keyof Box<any>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const operatorFor = (intrinsic: 'any' | 'string') => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			typeName: {
+				name: 'Box',
+				typeArguments: [{ type: { kind: 'intrinsic', intrinsic } }],
+			},
+		},
+	});
+
+	expect(exportByName('Forward')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('any'), operatorFor('string')],
+	});
+	expect(exportByName('Reverse')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('string'), operatorFor('any')],
+	});
+});
+
 it('preserves keyof members after union simplification and generic alias instantiation', () => {
 	const filePath = '/virtual/keyof-simplified-unions.ts';
 	const moduleDefinition = parseSerializedModule(

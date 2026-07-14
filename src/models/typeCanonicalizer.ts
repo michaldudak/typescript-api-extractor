@@ -74,7 +74,7 @@ class TypeCanonicalizer {
 		const deduplicatedTypeOperators: { index: number; typeOperator: TypeOperatorNode }[] = [];
 		for (const { index, typeOperator } of typeOperatorTypes) {
 			const alreadyIncluded = deduplicatedTypeOperators.some((existing) =>
-				typeEquivalenceChecker.areEquivalentIgnoringAny(existing.typeOperator, typeOperator),
+				typeEquivalenceChecker.areEquivalentStrictly(existing.typeOperator, typeOperator),
 			);
 			if (!alreadyIncluded) {
 				deduplicatedTypeOperators.push({ index, typeOperator });
