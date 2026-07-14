@@ -12,12 +12,10 @@ export type AlphaEquivAlias = (<T>(x: T) => Callback<T>) | (<U>(x: U) => Callbac
  * Same scenario but with constrained type parameters.
  */
 export type AlphaEquivAliasConstrained =
-	| (<T extends string>(x: T) => Callback<T>)
-	| (<U extends string>(x: U) => Callback<U>);
+	(<T extends string>(x: T) => Callback<T>) | (<U extends string>(x: U) => Callback<U>);
 
 /**
  * Non-equivalent: different constraints mean the branches should NOT deduplicate.
  */
 export type NonEquivAliasDifferentConstraints =
-	| (<T extends string>(x: T) => Callback<T>)
-	| (<U extends number>(x: U) => Callback<U>);
+	(<T extends string>(x: T) => Callback<T>) | (<U extends number>(x: U) => Callback<U>);

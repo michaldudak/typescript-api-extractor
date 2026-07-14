@@ -3,5 +3,4 @@
  * index signatures. These should NOT be deduplicated.
  */
 export type Fn =
-	| (<T extends { [k: string]: number }>() => T)
-	| (<U extends { [k: string]: string }>() => U);
+	(<T extends { [k: string]: number }>() => T) | (<U extends { [k: string]: string }>() => U);
