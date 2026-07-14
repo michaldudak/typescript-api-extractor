@@ -13,5 +13,4 @@ export type Fn = (<T>(x: T) => void) | (<T extends string>(x: T) => void);
 // Nested as parameters of an outer function — the inner generic callbacks
 // have different constraints but identical toString() representations.
 export type Outer =
-	| ((cb: <T>(x: T) => void) => void)
-	| ((cb: <T extends string>(x: T) => void) => void);
+	((cb: <T>(x: T) => void) => void) | ((cb: <T extends string>(x: T) => void) => void);

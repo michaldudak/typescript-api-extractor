@@ -20,8 +20,7 @@
 
 // Should collapse: any wildcard matches the concrete union parameter
 export type CollapseViaAny =
-	| ((x: any) => void)
-	| ((x: ((y: string) => void) | ((y: number) => void)) => void);
+	((x: any) => void) | ((x: ((y: string) => void) | ((y: number) => void)) => void);
 
 // Should collapse: same inner union, different member order
 export type NestedUnionReorder =
