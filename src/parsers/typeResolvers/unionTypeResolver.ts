@@ -342,7 +342,14 @@ function resolvePreservedCompositeMember(
 	context: ScopedParserContext,
 	resolve: ResolveTypeInContext,
 ): AnyType | undefined {
-	if (!isPreservedCompositeMemberNode(typeNode)) {
+	if (
+		!containsKeyofTypeOperatorOrAlias(
+			typeNode,
+			context.checker,
+			new Set(),
+			context.includeExternalTypes,
+		)
+	) {
 		return undefined;
 	}
 	const unionMembers = nodeType.isUnion() ? new Set(nodeType.types) : undefined;
@@ -369,10 +376,6 @@ function resolvePreservedCompositeMember(
 	}
 
 	return resolve(nodeType, typeNode, context);
-}
-
-function isPreservedCompositeMemberNode(typeNode: ts.TypeNode): boolean {
-	return getKeyofTypeOperatorNode(typeNode) !== undefined;
 }
 
 function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {

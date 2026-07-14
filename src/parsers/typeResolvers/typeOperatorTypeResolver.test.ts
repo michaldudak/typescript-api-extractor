@@ -272,8 +272,13 @@ interface Narrow {
   a: string;
 }
 
+type WideKeys = keyof Wide;
+type NarrowKeys = keyof Narrow;
+
 export type Forward = keyof Wide | keyof Narrow;
-export type Reverse = keyof Narrow | keyof Wide;`,
+export type Reverse = keyof Narrow | keyof Wide;
+export type AliasedForward = WideKeys | NarrowKeys;
+export type AliasedReverse = NarrowKeys | WideKeys;`,
 		),
 	);
 	const exportByName = (name: string) =>
@@ -297,6 +302,14 @@ export type Reverse = keyof Narrow | keyof Wide;`,
 		types: [operatorFor('Wide', ['a', 'b']), operatorFor('Narrow', ['a'])],
 	});
 	expect(exportByName('Reverse')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('Narrow', ['a']), operatorFor('Wide', ['a', 'b'])],
+	});
+	expect(exportByName('AliasedForward')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('Wide', ['a', 'b']), operatorFor('Narrow', ['a'])],
+	});
+	expect(exportByName('AliasedReverse')?.type).toMatchObject({
 		kind: 'union',
 		types: [operatorFor('Narrow', ['a']), operatorFor('Wide', ['a', 'b'])],
 	});
