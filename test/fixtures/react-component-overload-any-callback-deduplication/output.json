@@ -193,6 +193,7 @@
 												{
 													"name": "items",
 													"type": {
+														"isReadonly": true,
 														"kind": "array",
 														"elementType": {
 															"kind": "intrinsic",

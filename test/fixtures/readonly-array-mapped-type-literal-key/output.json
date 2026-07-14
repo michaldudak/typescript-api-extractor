@@ -4,6 +4,7 @@
 		{
 			"name": "DirectData",
 			"type": {
+				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "DirectData",
@@ -60,6 +61,7 @@
 		{
 			"name": "ParametricData",
 			"type": {
+				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "ParametricData",

@@ -59,6 +59,7 @@
 		{
 			"name": "Wrapped",
 			"type": {
+				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "Wrapped",
