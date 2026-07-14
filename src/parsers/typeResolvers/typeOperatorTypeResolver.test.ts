@@ -1173,27 +1173,52 @@ it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';
 	const program = createInMemoryProgram({
-		[sourcePath]: `export interface Params {
-  a: string;
-  b: number;
+		[sourcePath]: `export interface AlphaParams {
+  alpha: string;
 }
 
-export type Keys = keyof Params;`,
-		[entryPath]: `export { type Keys, type Keys as RenamedKeys } from './keyof-reexport-source';`,
+export interface BetaParams {
+  beta: string;
+  shared: boolean;
+}
+
+export type AlphaKeys = keyof AlphaParams;
+export type BetaKeys = keyof BetaParams;`,
+		[entryPath]: `export { type AlphaKeys, type BetaKeys as RenamedBetaKeys } from './keyof-reexport-source';`,
 	});
 
 	const moduleDefinition = parseSerializedModule(entryPath, program);
 
 	expect(moduleDefinition.exports).toMatchObject([
 		{
-			name: 'Keys',
-			type: { kind: 'typeOperator', operator: 'keyof' },
+			name: 'AlphaKeys',
+			type: {
+				kind: 'typeOperator',
+				operator: 'keyof',
+				type: { typeName: { name: 'AlphaParams' } },
+				resolvedType: { kind: 'literal', value: '"alpha"' },
+				resolutionKind: 'exact',
+			},
 		},
 		{
-			name: 'RenamedKeys',
-			type: { kind: 'typeOperator', operator: 'keyof' },
+			name: 'RenamedBetaKeys',
+			reexportedFrom: 'BetaKeys',
+			type: {
+				kind: 'typeOperator',
+				operator: 'keyof',
+				type: { typeName: { name: 'BetaParams' } },
+				resolvedType: {
+					kind: 'union',
+					types: [
+						{ kind: 'literal', value: '"beta"' },
+						{ kind: 'literal', value: '"shared"' },
+					],
+				},
+				resolutionKind: 'exact',
+			},
 		},
 	]);
+	expect(moduleDefinition.exports[0]).not.toHaveProperty('reexportedFrom');
 });
 
 it('preserves keyof through concrete alias chains on re-export', () => {
