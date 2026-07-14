@@ -145,6 +145,43 @@ interface Params {
 	});
 });
 
+it('preserves overlapping keyof members in either explicit-union order', () => {
+	const filePath = '/virtual/keyof-overlapping-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Wide {
+  a: string;
+  b: number;
+}
+
+interface Narrow {
+  a: string;
+}
+
+export type Forward = keyof Wide | keyof Narrow;
+export type Reverse = keyof Narrow | keyof Wide;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const operatorFor = (operandName: string) => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: operandName } },
+	});
+
+	expect(exportByName('Forward')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('Wide'), operatorFor('Narrow')],
+	});
+	expect(exportByName('Reverse')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('Narrow'), operatorFor('Wide')],
+	});
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(
