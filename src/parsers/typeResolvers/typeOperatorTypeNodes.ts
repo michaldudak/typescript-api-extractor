@@ -162,7 +162,7 @@ export function getIndexedAccessSourceTypeNode(
 		return undefined;
 	}
 	const property = objectType.getProperty(indexType.value);
-	const propertyTypeNode = getPropertyTypeNode(property);
+	const propertyTypeNode = getPropertyTypeNode(property, checker);
 	if (!propertyTypeNode) {
 		return undefined;
 	}
@@ -179,7 +179,11 @@ export function getIndexedAccessKeyofSourceTypeNode(
 	return sourceTypeNode ? followTypeAliasToKeyofSource(sourceTypeNode, checker) : undefined;
 }
 
-function getPropertyTypeNode(property: ts.Symbol | undefined): ts.TypeNode | undefined {
+function getPropertyTypeNode(
+	property: ts.Symbol | undefined,
+	checker: ts.TypeChecker,
+): ts.TypeNode | undefined {
+	const candidates: ts.TypeNode[] = [];
 	for (const declaration of property?.declarations ?? []) {
 		if (
 			(ts.isPropertySignature(declaration) ||
@@ -187,17 +191,37 @@ function getPropertyTypeNode(property: ts.Symbol | undefined): ts.TypeNode | und
 				ts.isGetAccessorDeclaration(declaration)) &&
 			declaration.type
 		) {
-			return declaration.type;
+			candidates.push(declaration.type);
 		}
 	}
 
 	for (const declaration of property?.declarations ?? []) {
 		if (ts.isSetAccessorDeclaration(declaration)) {
-			return declaration.parameters[0]?.type;
+			const parameterType = declaration.parameters[0]?.type;
+			if (parameterType) {
+				candidates.push(parameterType);
+			}
 		}
 	}
 
-	return undefined;
+	const first = candidates[0];
+	if (!first) {
+		return undefined;
+	}
+	const firstType = checker.getTypeFromTypeNode(first);
+	return candidates.every((candidate) => {
+		if (candidate.getText() !== first.getText()) {
+			return false;
+		}
+		const candidateType = checker.getTypeFromTypeNode(candidate);
+		return (
+			candidateType === firstType ||
+			(checker.isTypeAssignableTo(candidateType, firstType) &&
+				checker.isTypeAssignableTo(firstType, candidateType))
+		);
+	})
+		? first
+		: undefined;
 }
 
 function getTupleSourceTypeNode(

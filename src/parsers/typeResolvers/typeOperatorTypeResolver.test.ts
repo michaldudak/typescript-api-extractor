@@ -409,6 +409,14 @@ interface GenericBox<T> {
   keys: keyof T;
 }
 
+interface AlphaBox {
+  keys: keyof Alpha;
+}
+
+interface BetaBox {
+  keys: keyof Beta;
+}
+
 type KeyAlias = keyof Params;
 interface AliasBox {
   keys: KeyAlias;
@@ -432,6 +440,7 @@ export type CompositeConditional = Select<{ kind: 'a' }>;
 export type IndexedKeys = Box['keys'];
 export type NestedIndexedKeys = NestedBox['keys'];
 export type GenericIndexedKeys = GenericBox<Params>['keys'];
+export type UnionIndexedKeys = (AlphaBox | BetaBox)['keys'];
 export type AliasIndexedKeys = AliasBox['keys'];
 export type AccessorIndexedKeys = AccessorBox['keys'];
 export type TupleIndexedKeys = KeyTuple[0];`,
@@ -480,6 +489,13 @@ export type TupleIndexedKeys = KeyTuple[0];`,
 	expect(exportByName('IndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('NestedIndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('GenericIndexedKeys')?.type).toMatchObject(expectedOperator);
+	const unionIndexedKeys = exportByName('UnionIndexedKeys')?.type;
+	expect(unionIndexedKeys).toMatchObject({ kind: 'union' });
+	expect(unionIndexedKeys.types.map((member: { value: string }) => member.value).sort()).toEqual([
+		'"alpha"',
+		'"beta"',
+	]);
+	expect(JSON.stringify(unionIndexedKeys)).not.toContain('typeOperator');
 	expect(exportByName('AliasIndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('AccessorIndexedKeys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('TupleIndexedKeys')?.type).toMatchObject(expectedOperator);
