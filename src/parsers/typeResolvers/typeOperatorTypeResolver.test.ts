@@ -1270,30 +1270,57 @@ it('keeps third-party keyof re-exports external unless expansion is enabled', ()
 	const filePath = '/virtual/keyof-external-reexport.ts';
 	const packagePath = '/virtual/node_modules/keyof-package/index.d.ts';
 	const files = {
-		[filePath]: `export { type Keys } from './node_modules/keyof-package/index';`,
+		[filePath]: `export {
+  type Keys,
+  type OuterKeys,
+  type WrappedArray,
+  type WrappedTuple,
+  type WrappedUnion,
+} from 'keyof-package';`,
 		[packagePath]: `export interface Params {
   external: string;
 }
-export type Keys = keyof Params;`,
+export type Keys = keyof Params;
+export type OuterKeys = Keys;
+export type WrappedArray = OuterKeys[];
+export type WrappedTuple = [OuterKeys];
+export type WrappedUnion = OuterKeys | null;`,
 	};
 
 	for (const options of [undefined, { includeExternalTypes: false }]) {
 		const moduleDefinition = JSON.parse(
 			JSON.stringify(parseFromProgram(filePath, createInMemoryProgram(files), options)),
 		);
-		expect(moduleDefinition.exports[0]).toMatchObject({
-			name: 'Keys',
-			type: { kind: 'external', typeName: { name: 'Keys' } },
-		});
+		for (const name of ['Keys', 'OuterKeys', 'WrappedArray', 'WrappedTuple', 'WrappedUnion']) {
+			expect(
+				moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name),
+			).toMatchObject({
+				name,
+				type: { kind: 'external', typeName: { name } },
+			});
+		}
 	}
 	const expandedModule = JSON.parse(
 		JSON.stringify(
 			parseFromProgram(filePath, createInMemoryProgram(files), { includeExternalTypes: true }),
 		),
 	);
-	expect(expandedModule.exports[0]).toMatchObject({
-		name: 'Keys',
-		type: { kind: 'typeOperator', operator: 'keyof' },
+	const expandedExportByName = (name: string) =>
+		expandedModule.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const operator = { kind: 'typeOperator', operator: 'keyof' };
+	expect(expandedExportByName('Keys')?.type).toMatchObject(operator);
+	expect(expandedExportByName('OuterKeys')?.type).toMatchObject(operator);
+	expect(expandedExportByName('WrappedArray')?.type).toMatchObject({
+		kind: 'array',
+		elementType: operator,
+	});
+	expect(expandedExportByName('WrappedTuple')?.type).toMatchObject({
+		kind: 'tuple',
+		types: [operator],
+	});
+	expect(expandedExportByName('WrappedUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: [operator, { kind: 'intrinsic', intrinsic: 'null' }],
 	});
 });
 

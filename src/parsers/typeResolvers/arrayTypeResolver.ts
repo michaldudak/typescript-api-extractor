@@ -36,6 +36,7 @@ export function resolveArrayType(
 				typeNode,
 				checker,
 				session.context.typeParameterTypeNodeSubstitutions,
+				session.context.includeExternalTypes,
 			),
 		),
 		isReadonlyArrayType(type, typeNode, checker) ? true : undefined,
@@ -79,6 +80,7 @@ export function getArrayElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
+	includeExternalTypes = false,
 ): ts.TypeNode | undefined {
 	if (!typeNode) {
 		return undefined;
@@ -101,7 +103,12 @@ export function getArrayElementTypeNode(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	return containsKeyofTypeOperatorOrAlias(substitutedElementType, checker) ||
+	return containsKeyofTypeOperatorOrAlias(
+		substitutedElementType,
+		checker,
+		new Set(),
+		includeExternalTypes,
+	) ||
 		containsKeyofTypeNodeSubstitution(
 			substitutedElementType,
 			checker,

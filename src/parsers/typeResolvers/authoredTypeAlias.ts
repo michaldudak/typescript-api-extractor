@@ -59,15 +59,30 @@ export function resolveAuthoredKeyofAlias(
 			reference.declaration.type,
 			substitutions.typeNodes,
 			checker,
+			session.context.includeExternalTypes,
 		),
 	);
 	const semanticAliasContainsKeyof =
 		semanticDeclaration &&
-		(typeAliasContainsKeyofInSource(semanticDeclaration) ||
-			typeAliasContainsKeyof(semanticDeclaration, checker));
+		(typeAliasContainsKeyofInSource(
+			semanticDeclaration,
+			new Set(),
+			session.context.includeExternalTypes,
+		) ||
+			typeAliasContainsKeyof(
+				semanticDeclaration,
+				checker,
+				new Set(),
+				session.context.includeExternalTypes,
+			));
 	const authoredNodeContainsKeyof =
-		typeNodeContainsKeyofAliasInSource(request.typeNode) ||
-		containsKeyofTypeOperatorOrAlias(request.typeNode, checker);
+		typeNodeContainsKeyofAliasInSource(request.typeNode, session.context.includeExternalTypes) ||
+		containsKeyofTypeOperatorOrAlias(
+			request.typeNode,
+			checker,
+			new Set(),
+			session.context.includeExternalTypes,
+		);
 	if (!semanticAliasContainsKeyof && !authoredNodeContainsKeyof && !replaysAuthoredArgument) {
 		return undefined;
 	}
@@ -78,8 +93,18 @@ export function resolveAuthoredKeyofAlias(
 	if (
 		!reference ||
 		(!replaysAuthoredArgument &&
-			(!typeAliasContainsKeyof(reference.declaration, checker) ||
-				!aliasNeedsSyntaxReplay(reference.declaration, checker)))
+			(!typeAliasContainsKeyof(
+				reference.declaration,
+				checker,
+				new Set(),
+				session.context.includeExternalTypes,
+			) ||
+				!aliasNeedsSyntaxReplay(
+					reference.declaration,
+					checker,
+					new Set(),
+					session.context.includeExternalTypes,
+				)))
 	) {
 		return undefined;
 	}
@@ -128,6 +153,7 @@ function aliasBodyUsesKeyofTypeNodeSubstitution(
 	typeNode: ts.TypeNode,
 	substitutions: Map<ts.Symbol, ts.TypeNode>,
 	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
 ): boolean {
 	let found = false;
 	const visit = (node: ts.Node): void => {
@@ -136,7 +162,10 @@ function aliasBodyUsesKeyofTypeNodeSubstitution(
 		}
 		if (ts.isTypeReferenceNode(node)) {
 			const substituted = substituteTypeParameterTypeNode(node, checker, substitutions);
-			if (substituted !== node && containsKeyofTypeOperatorOrAlias(substituted, checker)) {
+			if (
+				substituted !== node &&
+				containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes)
+			) {
 				found = true;
 				return;
 			}
@@ -167,11 +196,34 @@ export function typeAliasContainsKeyofInSource(
 	) {
 		return false;
 	}
-	if (containsKeyofTypeOperator(declaration.type)) {
+	return typeNodeContainsKeyofInSource(declaration.type, seen, includeExternalTypes);
+}
+
+function typeNodeContainsKeyofInSource(
+	typeNode: ts.TypeNode,
+	seen: Set<ts.TypeAliasDeclaration>,
+	includeExternalTypes: boolean,
+): boolean {
+	if (containsKeyofTypeOperator(typeNode)) {
 		return true;
 	}
 
-	const referencedDeclaration = findLocalTypeAliasDeclaration(declaration.type);
+	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	if (ts.isArrayTypeNode(unwrapped)) {
+		return typeNodeContainsKeyofInSource(unwrapped.elementType, seen, includeExternalTypes);
+	}
+	if (ts.isTupleTypeNode(unwrapped)) {
+		return unwrapped.elements.some((element) =>
+			typeNodeContainsKeyofInSource(element, seen, includeExternalTypes),
+		);
+	}
+	if (ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) {
+		return unwrapped.types.some((member) =>
+			typeNodeContainsKeyofInSource(member, seen, includeExternalTypes),
+		);
+	}
+
+	const referencedDeclaration = findLocalTypeAliasDeclaration(unwrapped);
 	return referencedDeclaration
 		? typeAliasContainsKeyofInSource(referencedDeclaration, seen, includeExternalTypes)
 		: false;
@@ -242,7 +294,10 @@ function isProjectReferenceCandidateInSource(typeNode: ts.TypeReferenceNode): bo
 	});
 }
 
-function typeNodeContainsKeyofAliasInSource(typeNode: ts.TypeNode | undefined): boolean {
+function typeNodeContainsKeyofAliasInSource(
+	typeNode: ts.TypeNode | undefined,
+	includeExternalTypes: boolean,
+): boolean {
 	if (!typeNode) {
 		return false;
 	}
@@ -251,7 +306,9 @@ function typeNodeContainsKeyofAliasInSource(typeNode: ts.TypeNode | undefined): 
 	}
 
 	const declaration = findLocalTypeAliasDeclaration(typeNode);
-	return declaration ? typeAliasContainsKeyofInSource(declaration) : false;
+	return declaration
+		? typeAliasContainsKeyofInSource(declaration, new Set(), includeExternalTypes)
+		: false;
 }
 
 function findLocalTypeAliasDeclaration(typeNode: ts.TypeNode): ts.TypeAliasDeclaration | undefined {
@@ -297,6 +354,7 @@ function aliasNeedsSyntaxReplay(
 	declaration: ts.TypeAliasDeclaration,
 	checker: ts.TypeChecker,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+	includeExternalTypes = false,
 ): boolean {
 	if (seen.has(declaration)) {
 		return false;
@@ -304,7 +362,7 @@ function aliasNeedsSyntaxReplay(
 	seen.add(declaration);
 	if (
 		containsKeyofTypeOperator(declaration.type) &&
-		containsKeyofTypeOperatorOrAlias(declaration.type, checker)
+		containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes)
 	) {
 		return true;
 	}
@@ -313,7 +371,7 @@ function aliasNeedsSyntaxReplay(
 	if (ts.isTypeReferenceNode(typeNode)) {
 		const referencedDeclaration = getTypeAliasDeclaration(typeNode, checker);
 		return referencedDeclaration
-			? aliasNeedsSyntaxReplay(referencedDeclaration, checker, seen)
+			? aliasNeedsSyntaxReplay(referencedDeclaration, checker, seen, includeExternalTypes)
 			: false;
 	}
 
@@ -463,13 +521,14 @@ export function typeAliasContainsKeyof(
 	declaration: ts.TypeAliasDeclaration,
 	checker: ts.TypeChecker,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+	includeExternalTypes = false,
 ): boolean {
 	if (seen.has(declaration)) {
 		return false;
 	}
 	seen.add(declaration);
 
-	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seen);
+	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seen, includeExternalTypes);
 }
 
 function getAuthoredAliasReference(

@@ -24,10 +24,10 @@ import { resolveUnionTypeNode } from './unionTypeResolver';
 // precedence is visible.
 export const typeResolvers: TypeResolver[] = [
 	{ name: 'authored-keyof-alias', resolve: resolveAuthoredKeyofAlias },
+	{ name: 'external', resolve: resolveExternalType },
 	{ name: 'type-operator', resolve: resolveTypeOperatorType },
 	{ name: 'type-parameter', resolve: resolveTypeParameterType },
 	{ name: 'array', resolve: resolveArrayType },
-	{ name: 'external', resolve: resolveExternalType },
 	{ name: 'intrinsic', resolve: resolveIntrinsicType },
 	{ name: 'enum', resolve: resolveEnumLikeType },
 	{ name: 'union', resolve: resolveUnionTypeNode },

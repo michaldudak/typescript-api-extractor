@@ -7,7 +7,6 @@ import {
 	typeAliasContainsKeyofInSource,
 	typeAliasReferencesProjectImportInSource,
 } from './typeResolvers/authoredTypeAlias';
-import { getKeyofTypeOperatorNode } from './typeResolvers/typeOperatorTypeNodes';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
@@ -197,9 +196,6 @@ function resolveExportSpecifierDescriptors(
 	const targetTypeAliasIsExternal =
 		targetTypeAlias != null &&
 		/[\\/]node_modules[\\/]/.test(targetTypeAlias.getSourceFile().fileName);
-	const targetIsExternalKeyofAlias =
-		targetTypeAliasIsExternal && getKeyofTypeOperatorNode(targetTypeNode) != null;
-
 	return withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
@@ -211,7 +207,7 @@ function resolveExportSpecifierDescriptors(
 			reexportedFrom,
 			typeNode:
 				targetTypeAlias &&
-				(targetIsExternalKeyofAlias ||
+				((targetTypeAliasIsExternal && !reexportedFrom) ||
 					typeAliasReferencesProjectImportInSource(targetTypeAlias) ||
 					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
 					? targetTypeNode

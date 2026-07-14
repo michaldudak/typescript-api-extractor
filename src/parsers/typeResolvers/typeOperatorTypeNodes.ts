@@ -119,6 +119,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
+	includeExternalTypes = false,
 ): boolean {
 	if (!typeNode) {
 		return false;
@@ -129,22 +130,42 @@ export function containsKeyofTypeOperatorOrAlias(
 		return true;
 	}
 	if (ts.isArrayTypeNode(unwrapped)) {
-		return containsKeyofTypeOperatorOrAlias(unwrapped.elementType, checker, seenAliases);
+		return containsKeyofTypeOperatorOrAlias(
+			unwrapped.elementType,
+			checker,
+			seenAliases,
+			includeExternalTypes,
+		);
 	}
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return unwrapped.elements.some((element) =>
-			containsKeyofTypeOperatorOrAlias(unwrapTupleElementTypeNode(element), checker, seenAliases),
+			containsKeyofTypeOperatorOrAlias(
+				unwrapTupleElementTypeNode(element),
+				checker,
+				seenAliases,
+				includeExternalTypes,
+			),
 		);
 	}
 	if (ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) {
 		return unwrapped.types.some((member) =>
-			containsKeyofTypeOperatorOrAlias(member, checker, seenAliases),
+			containsKeyofTypeOperatorOrAlias(member, checker, seenAliases, includeExternalTypes),
 		);
 	}
 	if (ts.isConditionalTypeNode(unwrapped)) {
 		return (
-			containsKeyofTypeOperatorOrAlias(unwrapped.trueType, checker, seenAliases) ||
-			containsKeyofTypeOperatorOrAlias(unwrapped.falseType, checker, seenAliases)
+			containsKeyofTypeOperatorOrAlias(
+				unwrapped.trueType,
+				checker,
+				seenAliases,
+				includeExternalTypes,
+			) ||
+			containsKeyofTypeOperatorOrAlias(
+				unwrapped.falseType,
+				checker,
+				seenAliases,
+				includeExternalTypes,
+			)
 		);
 	}
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
@@ -154,13 +175,18 @@ export function containsKeyofTypeOperatorOrAlias(
 		const declaration = getImportTypeAliasDeclaration(unwrapped, checker);
 		if (
 			!declaration ||
-			isExternalTypeAliasDeclaration(declaration) ||
+			(!includeExternalTypes && isExternalTypeAliasDeclaration(declaration)) ||
 			seenAliases.has(declaration)
 		) {
 			return false;
 		}
 		seenAliases.add(declaration);
-		return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seenAliases);
+		return containsKeyofTypeOperatorOrAlias(
+			declaration.type,
+			checker,
+			seenAliases,
+			includeExternalTypes,
+		);
 	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
 		return false;
@@ -170,18 +196,27 @@ export function containsKeyofTypeOperatorOrAlias(
 	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
 		return (
 			unwrapped.typeArguments?.some((argument) =>
-				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases),
+				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
 			) ?? false
 		);
 	}
 
 	const declaration =
 		findLocalTypeAliasDeclaration(unwrapped) ?? getTypeAliasDeclaration(unwrapped, checker);
-	if (!declaration || isExternalTypeAliasDeclaration(declaration) || seenAliases.has(declaration)) {
+	if (
+		!declaration ||
+		(!includeExternalTypes && isExternalTypeAliasDeclaration(declaration)) ||
+		seenAliases.has(declaration)
+	) {
 		return false;
 	}
 	seenAliases.add(declaration);
-	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seenAliases);
+	return containsKeyofTypeOperatorOrAlias(
+		declaration.type,
+		checker,
+		seenAliases,
+		includeExternalTypes,
+	);
 }
 
 /** Flattens authored intersection syntax while preserving source order. */

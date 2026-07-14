@@ -15,6 +15,8 @@ const allowedBuiltInTsTypes = new Set([
 	'Readonly',
 	'Exclude',
 	'Extract',
+	'Array',
+	'ReadonlyArray',
 ]);
 
 const allowedBuiltInReactTypes = new Set([
@@ -67,8 +69,8 @@ export function resolveExternalType(
 		externalTypeName = resolvedSymbolName;
 	} else {
 		externalTypeName =
-			typeName?.name ||
 			authoredExternalAliasName ||
+			typeName?.name ||
 			type.aliasSymbol?.getName?.() ||
 			resolvedSymbolName;
 	}

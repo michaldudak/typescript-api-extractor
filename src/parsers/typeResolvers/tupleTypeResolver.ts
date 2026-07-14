@@ -36,6 +36,7 @@ export function resolveTupleType(
 					elementTypes.length,
 					checker,
 					session.context.typeParameterTypeNodeSubstitutions,
+					session.context.includeExternalTypes,
 				),
 			),
 		),
@@ -65,6 +66,7 @@ function getTupleElementTypeNode(
 	semanticElementCount: number,
 	checker: ts.TypeChecker,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
+	includeExternalTypes = false,
 ): ts.TypeNode | undefined {
 	if (!typeNode) {
 		return undefined;
@@ -93,17 +95,25 @@ function getTupleElementTypeNode(
 			element,
 			checker,
 			typeParameterTypeNodeSubstitutions,
+			includeExternalTypes,
 		);
 		if (restElementType) {
 			return restElementType;
 		}
 	}
 	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
-	if (!containsKeyofTypeOperatorOrAlias(element, checker)) {
+	if (!containsKeyofTypeOperatorOrAlias(element, checker, new Set(), includeExternalTypes)) {
 		return undefined;
 	}
 	if (element && isRest) {
-		return getArrayElementTypeNode(element, checker, typeParameterTypeNodeSubstitutions) ?? element;
+		return (
+			getArrayElementTypeNode(
+				element,
+				checker,
+				typeParameterTypeNodeSubstitutions,
+				includeExternalTypes,
+			) ?? element
+		);
 	}
 
 	return element;
