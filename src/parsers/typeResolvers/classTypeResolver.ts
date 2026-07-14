@@ -17,7 +17,11 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { parseCallSignature, parseParameter } from './signatureParser';
-import { containsKeyofTypeOperatorOrAlias, getPropertyTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
+	getPropertyTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Class type handling lives in one resolver module. The exported
 // resolver owns class-shape selection, while private helpers build the ClassNode
@@ -187,7 +191,8 @@ function extractMembers(
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
 				resolveTypeReference(
 					memberType,
-					containsKeyofTypeOperatorOrAlias(propertyTypeNode, context.checker)
+					containsKeyofTypeOperator(propertyTypeNode) ||
+						containsKeyofTypeOperatorOrAlias(propertyTypeNode, context.checker)
 						? propertyTypeNode
 						: undefined,
 					context,

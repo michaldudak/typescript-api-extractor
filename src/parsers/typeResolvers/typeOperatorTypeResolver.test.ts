@@ -884,6 +884,66 @@ export type Promised = NestedPromise<keyof Params>;`,
 	);
 });
 
+it('preserves nested generic keyof arguments in returns and class properties', () => {
+	const filePath = '/virtual/keyof-generic-boundaries.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+interface Box<T> {
+  value: T;
+}
+
+export function getBox(): Box<keyof Params> {
+  throw new Error();
+}
+
+export class Example {
+  value!: Box<keyof Params>;
+
+  getBox(): Box<keyof Params> {
+    throw new Error();
+  }
+}`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+	const boxArgument = (type: { typeName: { typeArguments: Array<{ type: unknown }> } }) =>
+		type.typeName.typeArguments[0]?.type;
+
+	const functionReturn = exportByName('getBox')?.type.callSignatures[0].returnValueType;
+	expect(boxArgument(functionReturn)).toMatchObject(expectedOperator);
+
+	const exampleType = exportByName('Example')?.type;
+	const propertyType = exampleType.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	)?.type;
+	expect(boxArgument(propertyType)).toMatchObject(expectedOperator);
+	const methodReturn = exampleType.methods.find(
+		(method: { name: string }) => method.name === 'getBox',
+	)?.callSignatures[0].returnValueType;
+	expect(boxArgument(methodReturn)).toMatchObject(expectedOperator);
+});
+
 it('replays keyof aliases that semantically collapse to any or unknown', () => {
 	const filePath = '/virtual/keyof-top-type-aliases.ts';
 	const warnings: ParserWarning[] = [];
