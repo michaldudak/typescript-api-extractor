@@ -62,6 +62,14 @@ export function resolveAuthoredKeyofAlias(
 			session.context.includeExternalTypes,
 		),
 	);
+	const replaysConcreteKeyofObjectArgument = Boolean(
+		reference &&
+		concreteAliasReplaysKeyofObjectArgument(
+			reference.declaration,
+			checker,
+			session.context.includeExternalTypes,
+		),
+	);
 	const semanticAliasContainsKeyof =
 		semanticDeclaration &&
 		(typeAliasContainsKeyofInSource(
@@ -83,20 +91,17 @@ export function resolveAuthoredKeyofAlias(
 			new Set(),
 			session.context.includeExternalTypes,
 		);
-	if (!semanticAliasContainsKeyof && !authoredNodeContainsKeyof && !replaysAuthoredArgument) {
+	if (
+		!semanticAliasContainsKeyof &&
+		!authoredNodeContainsKeyof &&
+		!replaysAuthoredArgument &&
+		!replaysConcreteKeyofObjectArgument
+	) {
 		return undefined;
 	}
 	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
 		return undefined;
 	}
-	const replaysConcreteKeyofObjectArgument = Boolean(
-		reference &&
-		concreteAliasReplaysKeyofObjectArgument(
-			reference.declaration,
-			checker,
-			session.context.includeExternalTypes,
-		),
-	);
 	const referenceContainsKeyof = Boolean(
 		reference &&
 		(replaysConcreteKeyofObjectArgument ||
@@ -482,7 +487,10 @@ function concreteAliasReplaysKeyofObjectArgument(
 	for (let index = 0; index < (target.typeParameters?.length ?? 0); index += 1) {
 		const parameter = target.typeParameters![index]!;
 		const argument = reference.typeArguments[index] ?? parameter.default;
-		if (!argument || !containsKeyofTypeOperator(argument)) {
+		if (
+			!argument ||
+			!containsKeyofTypeOperatorOrAlias(argument, checker, new Set(), includeExternalTypes)
+		) {
 			continue;
 		}
 		for (const symbol of [

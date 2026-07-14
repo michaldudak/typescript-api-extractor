@@ -952,32 +952,50 @@ export type Promised = NestedPromise<keyof Params>;`,
 });
 
 it('preserves keyof arguments through concrete aliases and named re-exports', () => {
+	const keysPath = '/virtual/keyof-generic-argument-keys.ts';
 	const sourcePath = '/virtual/keyof-generic-argument-source.ts';
 	const entryPath = '/virtual/keyof-generic-argument-entry.ts';
 	const program = createInMemoryProgram({
-		[sourcePath]: `interface Params {
+		[keysPath]: `export interface ImportedParams {
+  imported: string;
+}
+export type ImportedKeys = keyof ImportedParams;`,
+		[sourcePath]: `import type { ImportedKeys } from './keyof-generic-argument-keys';
+
+interface Params {
   a: string;
   b: number;
 }
 
+type Keys = keyof Params;
 type Box<T> = { value: T };
 type Wrapped = Box<keyof Params>;
+type AliasWrapped = Box<Keys>;
+type ImportedWrapped = Box<ImportedKeys>;
 
-export type Public = Wrapped;`,
-		[entryPath]: `export { type Public } from './keyof-generic-argument-source';`,
+export type Public = Wrapped;
+export type AliasPublic = AliasWrapped;
+export type ImportedPublic = ImportedWrapped;`,
+		[entryPath]: `export {
+  type Public,
+  type AliasPublic,
+  type ImportedPublic,
+} from './keyof-generic-argument-source';`,
 	});
 
 	for (const moduleDefinition of [
 		parseSerializedModule(sourcePath, program),
 		parseSerializedModule(entryPath, program),
 	]) {
-		const exported = moduleDefinition.exports.find(
-			(exportNode: { name: string }) => exportNode.name === 'Public',
-		);
-		expect(exported?.type.properties[0]).toMatchObject({
-			name: 'value',
-			type: { kind: 'typeOperator', operator: 'keyof' },
-		});
+		for (const name of ['Public', 'AliasPublic', 'ImportedPublic']) {
+			const exported = moduleDefinition.exports.find(
+				(exportNode: { name: string }) => exportNode.name === name,
+			);
+			expect(exported?.type.properties[0], name).toMatchObject({
+				name: 'value',
+				type: { kind: 'typeOperator', operator: 'keyof' },
+			});
+		}
 	}
 });
 
