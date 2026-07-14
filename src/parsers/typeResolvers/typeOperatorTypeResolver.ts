@@ -14,7 +14,7 @@ import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import { getKeyofTypeForOperand } from '../typeResolutionUtils';
+import { getKeyofTypeForOperand, getTypeId } from '../typeResolutionUtils';
 import { resolveExternalType } from './externalTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
@@ -212,6 +212,11 @@ function resolveTypeOperatorOperand(
 	}
 
 	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
+		const typeId = getTypeId(type);
+		if (typeId !== undefined && session.context.typeStack.includes(typeId)) {
+			return compactTypeOperatorOperand(session.resolve(type, typeNode));
+		}
+
 		const request: TypeResolutionRequest = {
 			type,
 			typeNode,
@@ -222,9 +227,18 @@ function resolveTypeOperatorOperand(
 			return externalType;
 		}
 
-		const shallowObject = resolveShallowObjectLikeType(request, session);
-		if (shallowObject) {
-			return shallowObject;
+		if (typeId !== undefined) {
+			session.context.typeStack.push(typeId);
+		}
+		try {
+			const shallowObject = resolveShallowObjectLikeType(request, session);
+			if (shallowObject) {
+				return shallowObject;
+			}
+		} finally {
+			if (typeId !== undefined) {
+				session.context.typeStack.pop();
+			}
 		}
 	}
 

@@ -937,6 +937,34 @@ export type Keys = keyof Params;`,
 	expect(includedProperties).toEqual([]);
 });
 
+it('terminates recursive keyof index-signature operands', () => {
+	const filePath = '/virtual/keyof-recursive-index-signature.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`export interface Recursive {
+  [key: string]: keyof Recursive;
+}
+
+export type Keys = keyof Recursive;`,
+		),
+	);
+	const keys = moduleDefinition.exports.find(
+		(exportNode: { name: string }) => exportNode.name === 'Keys',
+	);
+
+	expect(keys?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			kind: 'object',
+			typeName: { name: 'Recursive' },
+			properties: [],
+		},
+	});
+});
+
 it('preserves keyof syntax in index-signature and mapped-template values', () => {
 	const filePath = '/virtual/keyof-index-signatures.ts';
 	const moduleDefinition = parseSerializedModule(
