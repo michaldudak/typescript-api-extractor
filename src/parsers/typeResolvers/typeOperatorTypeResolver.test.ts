@@ -673,6 +673,51 @@ export type KeyRest = Rest<keyof Params>;`,
 	});
 });
 
+it('does not substitute a nested type parameter that shadows an alias parameter', () => {
+	const filePath = '/virtual/keyof-generic-argument-shadowing.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  outer: string;
+}
+
+type Shadowed<T> = [T, <T extends { inner: string }>() => T];
+
+export type Result = Shadowed<keyof Params>;`,
+		),
+	);
+	const result = moduleDefinition.exports[0]?.type;
+
+	expect(result.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: { kind: 'literal', value: '"outer"' },
+	});
+	expect(result.types[1].callSignatures[0]).toMatchObject({
+		returnValueType: {
+			kind: 'typeParameter',
+			name: 'T',
+			constraint: {
+				kind: 'object',
+				properties: [{ name: 'inner' }],
+			},
+		},
+		typeParameters: [
+			{
+				kind: 'typeParameter',
+				name: 'T',
+				constraint: {
+					kind: 'object',
+					properties: [{ name: 'inner' }],
+				},
+			},
+		],
+	});
+});
+
 it('preserves keyof constraints on signature type parameters', () => {
 	const filePath = '/virtual/keyof-constraint.ts';
 	const moduleDefinition = JSON.parse(
