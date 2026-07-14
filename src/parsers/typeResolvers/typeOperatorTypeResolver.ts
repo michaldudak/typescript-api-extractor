@@ -8,6 +8,7 @@ import {
 	type AnyType,
 } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
+import { getKeyofTypeOperatorNode } from './typeOperatorTypeNodes';
 
 // Type operators are syntax-first: concrete `keyof Foo` may already be exposed
 // by TypeScript as a literal, intrinsic, or literal union, so this resolver must
@@ -17,20 +18,17 @@ export function resolveTypeOperatorType(
 	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
-	if (
-		!typeNode ||
-		!ts.isTypeOperatorNode(typeNode) ||
-		typeNode.operator !== ts.SyntaxKind.KeyOfKeyword
-	) {
+	const operatorNode = getKeyofTypeOperatorNode(typeNode);
+	if (!operatorNode) {
 		return undefined;
 	}
 
-	const operandType = session.context.checker.getTypeFromTypeNode(typeNode.type);
+	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
 	const undefinedMember = getUndefinedUnionMember(type);
 	const typeOperatorNode = new TypeOperatorNode(
 		typeName,
 		'keyof',
-		compactTypeOperatorOperand(session.resolve(operandType, typeNode.type)),
+		compactTypeOperatorOperand(session.resolve(operandType, operatorNode.type)),
 		resolveTypeOperatorResult(type, session, { excludeUndefined: Boolean(undefinedMember) }),
 	);
 

@@ -3,6 +3,7 @@ import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
+import { containsKeyofTypeOperator } from './typeResolvers/typeOperatorTypeNodes';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
@@ -187,6 +188,8 @@ function resolveExportSpecifierDescriptors(
 	const isReExport = isModuleReExportSpecifier(exportDeclaration);
 	const reexportedFrom =
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
+	const targetTypeAlias = targetSymbol.declarations?.find(ts.isTypeAliasDeclaration);
+	const targetTypeNode = targetTypeAlias?.type;
 
 	return withNamespaceDescriptors(
 		{
@@ -197,6 +200,8 @@ function resolveExportSpecifierDescriptors(
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
+			typeNode:
+				targetTypeNode && containsKeyofTypeOperator(targetTypeNode) ? targetTypeNode : undefined,
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);

@@ -4,6 +4,10 @@ import { expect, it } from 'vitest';
 import { parseFromProgram } from '../../index';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
+function parseSerializedModule(filePath: string, program: ts.Program) {
+	return JSON.parse(JSON.stringify(parseFromProgram(filePath, program)));
+}
+
 it('preserves concrete keyof operators instead of expanding them to literal unions', () => {
 	const filePath = path.resolve(process.cwd(), 'virtual-keyof-react.tsx');
 	const moduleDefinition = JSON.parse(
@@ -332,6 +336,117 @@ export type Concrete = Wrapper<{ a: string; b: number }>;`,
 					},
 				},
 			},
+		],
+	});
+});
+
+it('preserves keyof aliases through named and renamed re-exports', () => {
+	const sourcePath = '/virtual/keyof-reexport-source.ts';
+	const entryPath = '/virtual/keyof-reexport-entry.ts';
+	const program = createInMemoryProgram({
+		[sourcePath]: `export interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+		[entryPath]: `export { type Keys, type Keys as RenamedKeys } from './keyof-reexport-source';`,
+	});
+
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+
+	expect(moduleDefinition.exports).toMatchObject([
+		{
+			name: 'Keys',
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		},
+		{
+			name: 'RenamedKeys',
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		},
+	]);
+});
+
+it('preserves keyof operators in return and container element types', () => {
+	const filePath = '/virtual/keyof-nested-positions.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export type KeyFactory = () => keyof Params;
+export type KeyArray = (keyof Params)[];
+export type GenericKeyArray = Array<keyof Params>;
+export type KeyTuple = [keyof Params];`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('KeyFactory')?.type.callSignatures[0].returnValueType).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('KeyArray')?.type.elementType).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('GenericKeyArray')?.type.elementType).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(exportByName('KeyTuple')?.type.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+});
+
+it('preserves parenthesized and union-nested keyof constraints consistently', () => {
+	const filePath = '/virtual/keyof-parenthesized.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export type ParenthesizedKeys = (keyof Params);
+export function find<T, K extends (keyof T)>(key: K): void {}
+export function findOrFallback<T, K extends keyof T | 'fallback'>(key: K): void {}`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('ParenthesizedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+
+	const parenthesizedSignature = exportByName('find')?.type.callSignatures[0];
+	expect(parenthesizedSignature.parameters[0].type.constraint).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(parenthesizedSignature.parameters[0].type.constraint).toEqual(
+		parenthesizedSignature.typeParameters[1].constraint,
+	);
+
+	const unionSignature = exportByName('findOrFallback')?.type.callSignatures[0];
+	expect(unionSignature.parameters[0].type.constraint).toEqual(
+		unionSignature.typeParameters[1].constraint,
+	);
+	expect(unionSignature.typeParameters[1].constraint).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'typeOperator', operator: 'keyof' },
+			{ kind: 'literal', value: '"fallback"' },
 		],
 	});
 });

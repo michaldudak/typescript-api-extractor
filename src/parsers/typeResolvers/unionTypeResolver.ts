@@ -7,6 +7,7 @@ import {
 	type TypeResolutionRequest,
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
+import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
 
 // Union resolution owns its own resolver adapter because preserving
 // authored member order requires TypeNode reconstruction that is specific to
@@ -117,6 +118,9 @@ function resolveUnionType(
 	resolve: ResolveTypeInContext,
 ): AnyType {
 	const { checker } = context;
+	if (typeNode) {
+		typeNode = unwrapParenthesizedTypeNode(typeNode);
+	}
 
 	let memberTypes: ts.Type[] = type.types;
 	const result: AnyType[] = [];
@@ -302,7 +306,7 @@ function resolvePreservedCompositeMember(
 }
 
 function isPreservedCompositeMemberNode(typeNode: ts.TypeNode): boolean {
-	return ts.isTypeOperatorNode(typeNode) && typeNode.operator === ts.SyntaxKind.KeyOfKeyword;
+	return getKeyofTypeOperatorNode(typeNode) !== undefined;
 }
 
 function unionContainsMember(unionType: ts.UnionType, memberType: ts.Type): boolean {

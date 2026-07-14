@@ -2,13 +2,14 @@ import ts from 'typescript';
 import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
+import { containsKeyofTypeOperator, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
 
 // Array handling is small but still owns a distinct TypeScript
 // shape. Keeping it separate makes resolver precedence and element recursion
 // easy to inspect from the registry.
 
 export function resolveArrayType(
-	{ type, typeName }: TypeResolutionRequest,
+	{ type, typeName, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	const { checker } = session.context;
@@ -23,6 +24,22 @@ export function resolveArrayType(
 		type.aliasSymbol?.name
 			? new TypeName(type.aliasSymbol?.name, typeName?.namespaces, typeName?.typeArguments)
 			: undefined,
-		session.resolve(arrayType, undefined),
+		session.resolve(arrayType, getArrayElementTypeNode(typeNode)),
 	);
+}
+
+function getArrayElementTypeNode(typeNode: ts.TypeNode | undefined): ts.TypeNode | undefined {
+	if (!containsKeyofTypeOperator(typeNode) || !typeNode) {
+		return undefined;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (ts.isArrayTypeNode(unwrapped)) {
+		return unwrapped.elementType;
+	}
+	if (ts.isTypeReferenceNode(unwrapped)) {
+		return unwrapped.typeArguments?.[0];
+	}
+
+	return undefined;
 }

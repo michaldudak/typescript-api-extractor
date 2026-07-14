@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { IntrinsicNode, TypeParameterNode, UnionNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
+import { containsKeyofTypeOperator } from './typeOperatorTypeNodes';
 
 // Special resolvers cover TypeScript-internal or context-sensitive
 // shapes that do not map directly to one public model node. They either
@@ -48,9 +49,7 @@ export function resolveTypeParameterType(
 	const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
 	let constraint: AnyType | undefined;
 	if (declaration?.constraint) {
-		const shouldPreserveConstraintSyntax =
-			ts.isTypeOperatorNode(declaration.constraint) &&
-			declaration.constraint.operator === ts.SyntaxKind.KeyOfKeyword;
+		const shouldPreserveConstraintSyntax = containsKeyofTypeOperator(declaration.constraint);
 		const constraintType = shouldPreserveConstraintSyntax
 			? checker.getTypeAtLocation(declaration.constraint)
 			: checker.getBaseConstraintOfType(type);
