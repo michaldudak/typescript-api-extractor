@@ -78,6 +78,7 @@ function getTupleElementTypeNode(
 	}
 
 	let element = getTupleElementTypeNodeAtSemanticIndex(unwrapped, index, semanticElementCount);
+	const authoredElementIndex = element ? unwrapped.elements.indexOf(element) : -1;
 	let isRest = false;
 	if (element && ts.isNamedTupleMember(element)) {
 		isRest = element.dotDotDotToken != null;
@@ -91,6 +92,34 @@ function getTupleElementTypeNode(
 		return undefined;
 	}
 	if (isRest) {
+		const substitutedRestType = substituteTypeParameterTypeNode(
+			element,
+			checker,
+			typeParameterTypeNodeSubstitutions,
+		);
+		const substitutedRestTuple = unwrapReadonlyContainerTypeNode(substitutedRestType);
+		if (ts.isTupleTypeNode(substitutedRestTuple) && authoredElementIndex >= 0) {
+			const semanticRestElementCount = semanticElementCount - (unwrapped.elements.length - 1);
+			element = getTupleElementTypeNodeAtSemanticIndex(
+				substitutedRestTuple,
+				index - authoredElementIndex,
+				semanticRestElementCount,
+			);
+			isRest = false;
+			if (element && ts.isNamedTupleMember(element)) {
+				isRest = element.dotDotDotToken != null;
+				element = element.type;
+			}
+			while (element && (ts.isOptionalTypeNode(element) || ts.isRestTypeNode(element))) {
+				isRest ||= ts.isRestTypeNode(element);
+				element = element.type;
+			}
+			if (!element) {
+				return undefined;
+			}
+		} else {
+			element = substitutedRestType;
+		}
 		const restElementType = getArrayElementTypeNode(
 			element,
 			checker,

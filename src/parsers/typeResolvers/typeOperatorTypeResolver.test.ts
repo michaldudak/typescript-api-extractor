@@ -776,8 +776,10 @@ it('matches fixed keyof syntax after an expanded variadic tuple element', () => 
 }
 
 type AppendKeys<T extends unknown[]> = [...T, keyof Params];
+type Spread<T extends unknown[]> = [...T];
 
 export type Result = AppendKeys<[string, number]>;
+export type SpreadResult = Spread<[keyof Params, string]>;
 export type Middle = Result[1];
 export type Last = Result[2];`,
 		),
@@ -802,6 +804,10 @@ export type Last = Result[2];`,
 		{ kind: 'intrinsic', intrinsic: 'string' },
 		{ kind: 'intrinsic', intrinsic: 'number' },
 		expectedOperator,
+	]);
+	expect(exportByName('SpreadResult')?.type.types).toMatchObject([
+		expectedOperator,
+		{ kind: 'intrinsic', intrinsic: 'string' },
 	]);
 	expect(exportByName('Middle')?.type).toEqual({
 		kind: 'intrinsic',
