@@ -5,6 +5,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -38,13 +39,18 @@ export function resolveAuthoredKeyofAlias(
 	) {
 		return undefined;
 	}
-	if (
-		!(semanticDeclaration && typeAliasContainsKeyofInSource(semanticDeclaration)) &&
-		!typeNodeContainsKeyofAliasInSource(request.typeNode)
-	) {
+	const checker = session.context.checker;
+	const semanticAliasContainsKeyof =
+		semanticDeclaration &&
+		(typeAliasContainsKeyofInSource(semanticDeclaration) ||
+			typeAliasContainsKeyof(semanticDeclaration, checker));
+	const authoredNodeContainsKeyof =
+		typeNodeContainsKeyofAliasInSource(request.typeNode) ||
+		containsKeyofTypeOperatorOrAlias(request.typeNode, checker);
+	if (!semanticAliasContainsKeyof && !authoredNodeContainsKeyof) {
 		return undefined;
 	}
-	if (!canCollapseAuthoredKeyofAlias(request.type, session.context.checker)) {
+	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
 		return undefined;
 	}
 
@@ -67,9 +73,6 @@ export function resolveAuthoredKeyofAlias(
 	}
 
 	const substitutions = getTypeAliasParameterSubstitutions(reference, session.context);
-	if (!hasConcreteTypeParameterBindings(reference.declaration, substitutions, session.context)) {
-		return undefined;
-	}
 	const typeName = getOuterAliasTypeName(request, reference.declaration);
 	const resolveAliasBody = () => {
 		activeAliases.add(reference.declaration);
@@ -88,28 +91,6 @@ export function resolveAuthoredKeyofAlias(
 	return substitutions
 		? session.context.runWithTypeParameterSubstitutionScope(substitutions, resolveAliasBody)
 		: resolveAliasBody();
-}
-
-function hasConcreteTypeParameterBindings(
-	declaration: ts.TypeAliasDeclaration,
-	substitutions: Map<ts.Symbol, ts.Type> | undefined,
-	context: ScopedParserContext,
-): boolean {
-	if (!declaration.typeParameters?.length) {
-		return true;
-	}
-	if (!substitutions) {
-		return false;
-	}
-
-	return declaration.typeParameters.every((parameter) => {
-		const parameterType = context.checker.getTypeAtLocation(parameter);
-		const substitution = parameterType.symbol ? substitutions.get(parameterType.symbol) : undefined;
-		return (
-			substitution &&
-			!(substituteTypeParameter(substitution, substitutions).flags & ts.TypeFlags.TypeParameter)
-		);
-	});
 }
 
 /**
@@ -194,6 +175,12 @@ function aliasNeedsSyntaxReplay(
 		return false;
 	}
 	seen.add(declaration);
+	if (
+		containsKeyofTypeOperator(declaration.type) &&
+		containsKeyofTypeOperatorOrAlias(declaration.type, checker)
+	) {
+		return true;
+	}
 
 	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
 	if (ts.isTypeReferenceNode(typeNode)) {
@@ -329,19 +316,7 @@ export function typeAliasContainsKeyof(
 	}
 	seen.add(declaration);
 
-	if (containsKeyofTypeOperator(declaration.type)) {
-		return true;
-	}
-
-	const typeNode = unwrapParenthesizedTypeNode(declaration.type);
-	if (!ts.isTypeReferenceNode(typeNode)) {
-		return false;
-	}
-
-	const referencedDeclaration = getTypeAliasDeclaration(typeNode, checker);
-	return referencedDeclaration
-		? typeAliasContainsKeyof(referencedDeclaration, checker, seen)
-		: false;
+	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seen);
 }
 
 function getAuthoredAliasReference(

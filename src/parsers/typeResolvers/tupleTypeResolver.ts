@@ -3,7 +3,7 @@ import { TupleNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import {
-	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -49,7 +49,7 @@ function getTupleElementTypeNode(
 	index: number,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
-	if (!containsKeyofTypeOperator(typeNode) || !typeNode) {
+	if (!containsKeyofTypeOperatorOrAlias(typeNode, checker) || !typeNode) {
 		return undefined;
 	}
 

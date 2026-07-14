@@ -5,7 +5,7 @@ import { ParserError } from '../../ParserError';
 import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
-import { containsKeyofTypeOperator } from './typeOperatorTypeNodes';
+import { containsKeyofTypeOperatorOrAlias } from './typeOperatorTypeNodes';
 
 // Function-like signature parsing lives here so free functions, constructors,
 // and class methods do not drift on parameter docs, defaults, or return types.
@@ -94,7 +94,9 @@ export function parseReturnType(
 	return context.runWithSourceNodeScope(returnTypeNode, () =>
 		resolveTypeReference(
 			signature.getReturnType(),
-			containsKeyofTypeOperator(returnTypeNode) ? returnTypeNode : undefined,
+			containsKeyofTypeOperatorOrAlias(returnTypeNode, context.checker)
+				? returnTypeNode
+				: undefined,
 			context,
 		),
 	);

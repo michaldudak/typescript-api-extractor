@@ -2,7 +2,10 @@ import ts from 'typescript';
 import { IntrinsicNode, TypeParameterNode, UnionNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
-import { containsKeyofTypeOperator, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperatorOrAlias,
+	unwrapParenthesizedTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Special resolvers cover TypeScript-internal or context-sensitive
 // shapes that do not map directly to one public model node. They either
@@ -49,7 +52,10 @@ export function resolveTypeParameterType(
 	const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
 	let constraint: AnyType | undefined;
 	if (declaration?.constraint) {
-		const shouldPreserveConstraintSyntax = containsKeyofTypeOperator(declaration.constraint);
+		const shouldPreserveConstraintSyntax = containsKeyofTypeOperatorOrAlias(
+			declaration.constraint,
+			checker,
+		);
 		const constraintType = shouldPreserveConstraintSyntax
 			? checker.getTypeAtLocation(declaration.constraint)
 			: checker.getBaseConstraintOfType(type);
@@ -68,7 +74,9 @@ export function resolveTypeParameterType(
 		declaration?.default
 			? session.resolve(
 					checker.getTypeAtLocation(declaration.default),
-					containsKeyofTypeOperator(declaration.default) ? declaration.default : undefined,
+					containsKeyofTypeOperatorOrAlias(declaration.default, checker)
+						? declaration.default
+						: undefined,
 				)
 			: undefined,
 	);
@@ -95,22 +103,30 @@ export function resolveConditionalType(
 		return new UnionNode(undefined, [
 			session.resolve(
 				conditionalType.resolvedTrueType,
-				containsKeyofTypeOperator(trueTypeNode) ? trueTypeNode : undefined,
+				containsKeyofTypeOperatorOrAlias(trueTypeNode, session.context.checker)
+					? trueTypeNode
+					: undefined,
 			),
 			session.resolve(
 				conditionalType.resolvedFalseType,
-				containsKeyofTypeOperator(falseTypeNode) ? falseTypeNode : undefined,
+				containsKeyofTypeOperatorOrAlias(falseTypeNode, session.context.checker)
+					? falseTypeNode
+					: undefined,
 			),
 		]);
 	} else if (conditionalType.resolvedTrueType) {
 		return session.resolve(
 			conditionalType.resolvedTrueType,
-			containsKeyofTypeOperator(trueTypeNode) ? trueTypeNode : undefined,
+			containsKeyofTypeOperatorOrAlias(trueTypeNode, session.context.checker)
+				? trueTypeNode
+				: undefined,
 		);
 	} else if (conditionalType.resolvedFalseType) {
 		return session.resolve(
 			conditionalType.resolvedFalseType,
-			containsKeyofTypeOperator(falseTypeNode) ? falseTypeNode : undefined,
+			containsKeyofTypeOperatorOrAlias(falseTypeNode, session.context.checker)
+				? falseTypeNode
+				: undefined,
 		);
 	}
 

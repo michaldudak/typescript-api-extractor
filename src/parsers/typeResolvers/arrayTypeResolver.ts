@@ -3,7 +3,7 @@ import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
-	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -56,7 +56,7 @@ export function getArrayElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): ts.TypeNode | undefined {
-	if (!containsKeyofTypeOperator(typeNode) || !typeNode) {
+	if (!containsKeyofTypeOperatorOrAlias(typeNode, checker) || !typeNode) {
 		return undefined;
 	}
 

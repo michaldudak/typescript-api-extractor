@@ -21,7 +21,10 @@ import {
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
-import { containsKeyofTypeOperator } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
+} from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -123,7 +126,7 @@ function buildIndexSignatureNode(
 			keyType: 'string',
 			valueType: resolveValueType(
 				stringIndexInfo.type,
-				getIndexValueTypeNode(stringIndexInfo),
+				getIndexValueTypeNode(stringIndexInfo, checker),
 				context,
 			),
 		};
@@ -137,7 +140,7 @@ function buildIndexSignatureNode(
 			keyType: 'number',
 			valueType: resolveValueType(
 				numberIndexInfo.type,
-				getIndexValueTypeNode(numberIndexInfo),
+				getIndexValueTypeNode(numberIndexInfo, checker),
 				context,
 			),
 		};
@@ -212,11 +215,14 @@ function buildIndexSignatureNode(
 	return undefined;
 }
 
-function getIndexValueTypeNode(indexInfo: ts.IndexInfo): ts.TypeNode | undefined {
+function getIndexValueTypeNode(
+	indexInfo: ts.IndexInfo,
+	checker: ts.TypeChecker,
+): ts.TypeNode | undefined {
 	const declaration = indexInfo.declaration;
 	return declaration &&
 		ts.isIndexSignatureDeclaration(declaration) &&
-		containsKeyofTypeOperator(declaration.type)
+		containsKeyofTypeOperatorOrAlias(declaration.type, checker)
 		? declaration.type
 		: undefined;
 }

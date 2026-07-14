@@ -58,6 +58,68 @@ export function containsKeyofTypeOperator(typeNode: ts.TypeNode | undefined): bo
 	return found;
 }
 
+/** Checks authored syntax and any referenced type aliases for a `keyof` expression. */
+export function containsKeyofTypeOperatorOrAlias(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
+): boolean {
+	if (!typeNode) {
+		return false;
+	}
+
+	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	if (getKeyofTypeOperatorNode(unwrapped)) {
+		return true;
+	}
+	if (ts.isArrayTypeNode(unwrapped)) {
+		return containsKeyofTypeOperatorOrAlias(unwrapped.elementType, checker, seenAliases);
+	}
+	if (ts.isTupleTypeNode(unwrapped)) {
+		return unwrapped.elements.some((element) =>
+			containsKeyofTypeOperatorOrAlias(unwrapTupleElementTypeNode(element), checker, seenAliases),
+		);
+	}
+	if (ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) {
+		return unwrapped.types.some((member) =>
+			containsKeyofTypeOperatorOrAlias(member, checker, seenAliases),
+		);
+	}
+	if (ts.isConditionalTypeNode(unwrapped)) {
+		return (
+			containsKeyofTypeOperatorOrAlias(unwrapped.trueType, checker, seenAliases) ||
+			containsKeyofTypeOperatorOrAlias(unwrapped.falseType, checker, seenAliases)
+		);
+	}
+	if (ts.isIndexedAccessTypeNode(unwrapped)) {
+		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker));
+	}
+	if (!ts.isTypeReferenceNode(unwrapped)) {
+		return false;
+	}
+
+	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
+	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
+		return (
+			unwrapped.typeArguments?.some((argument) =>
+				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases),
+			) ?? false
+		);
+	}
+
+	const localDeclaration = findLocalTypeAliasDeclaration(unwrapped);
+	const declaration =
+		localDeclaration ??
+		(isRelativeImportedTypeReference(unwrapped)
+			? getTypeAliasDeclaration(unwrapped, checker)
+			: undefined);
+	if (!declaration || seenAliases.has(declaration)) {
+		return false;
+	}
+	seenAliases.add(declaration);
+	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seenAliases);
+}
+
 /** Flattens authored intersection syntax while preserving source order. */
 export function flattenIntersectionTypeNodes(
 	typeNode: ts.TypeNode,
@@ -196,4 +258,56 @@ function getTypeAliasDeclaration(
 	const targetSymbol =
 		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+}
+
+function findLocalTypeAliasDeclaration(
+	typeNode: ts.TypeReferenceNode,
+): ts.TypeAliasDeclaration | undefined {
+	if (!ts.isIdentifier(typeNode.typeName)) {
+		return undefined;
+	}
+	const referencedName = typeNode.typeName.text;
+	return typeNode
+		.getSourceFile()
+		.statements.find(
+			(statement): statement is ts.TypeAliasDeclaration =>
+				ts.isTypeAliasDeclaration(statement) && statement.name.text === referencedName,
+		);
+}
+
+function isRelativeImportedTypeReference(typeNode: ts.TypeReferenceNode): boolean {
+	let rootName = typeNode.typeName;
+	while (ts.isQualifiedName(rootName)) {
+		rootName = rootName.left;
+	}
+	if (!ts.isIdentifier(rootName)) {
+		return false;
+	}
+
+	for (const statement of typeNode.getSourceFile().statements) {
+		if (
+			!ts.isImportDeclaration(statement) ||
+			!ts.isStringLiteral(statement.moduleSpecifier) ||
+			!statement.moduleSpecifier.text.startsWith('.') ||
+			!statement.importClause
+		) {
+			continue;
+		}
+		const { importClause } = statement;
+		if (importClause.name?.text === rootName.text) {
+			return true;
+		}
+		const bindings = importClause.namedBindings;
+		if (bindings && ts.isNamespaceImport(bindings) && bindings.name.text === rootName.text) {
+			return true;
+		}
+		if (
+			bindings &&
+			ts.isNamedImports(bindings) &&
+			bindings.elements.some((element) => element.name.text === rootName.text)
+		) {
+			return true;
+		}
+	}
+	return false;
 }

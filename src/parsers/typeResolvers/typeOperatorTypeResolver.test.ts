@@ -1265,6 +1265,79 @@ export type RestKeyTuple = [head: keyof Params, ...tail: (keyof Params)[]];`,
 	]);
 });
 
+it('preserves keyof through referenced aliases at nested and generic boundaries', () => {
+	const filePath = '/virtual/keyof-referenced-alias-boundaries.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Keys = keyof Params;
+type GenericKeys<T> = keyof T;
+type GenericArray<T> = Array<keyof T>;
+
+export function returns(): Keys {
+  return 'a';
+}
+export type KeyArray = Keys[];
+export type GenericAlias<T> = GenericKeys<T>;
+export type ConcreteArray = GenericArray<Params>;
+export class Example {
+  field!: Keys;
+}
+export interface Dictionary {
+  [name: string]: Keys;
+}`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const operator = { kind: 'typeOperator', operator: 'keyof' };
+
+	expect(exportByName('returns')?.type.callSignatures[0].returnValueType).toMatchObject(operator);
+	expect(exportByName('KeyArray')?.type.elementType).toMatchObject(operator);
+	expect(exportByName('GenericAlias')?.type).toMatchObject({
+		...operator,
+		type: { kind: 'typeParameter', name: 'T' },
+		resolutionKind: 'baseConstraint',
+	});
+	expect(exportByName('ConcreteArray')?.type.elementType).toMatchObject({
+		...operator,
+		type: { typeName: { name: 'Params' } },
+		resolutionKind: 'exact',
+	});
+	expect(exportByName('Example')?.type.properties[0].type).toMatchObject(operator);
+	expect(exportByName('Dictionary')?.type.indexSignature.valueType).toMatchObject(operator);
+});
+
+it('preserves local imported keyof aliases behind a public alias', () => {
+	const sourcePath = '/virtual/keyof-imported-alias-source.ts';
+	const entryPath = '/virtual/keyof-imported-alias-entry.ts';
+	const program = createInMemoryProgram({
+		[sourcePath]: `export interface Params {
+  a: string;
+  b: number;
+}
+export type Keys = keyof Params;`,
+		[entryPath]: `import type { Keys } from './keyof-imported-alias-source';
+export type PublicKeys = Keys;`,
+	});
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'PublicKeys',
+		type: {
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+		},
+	});
+});
+
 it('does not treat unrelated generic array-alias arguments as element syntax', () => {
 	const filePath = '/virtual/keyof-array-alias-arguments.ts';
 	const moduleDefinition = parseSerializedModule(

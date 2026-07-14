@@ -5,7 +5,7 @@ import { resolveCallableType } from './functionTypeResolver';
 import { resolveObjectLikeType } from './objectTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
-	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
 	getKeyofTypeOperatorNode,
 } from './typeOperatorTypeNodes';
@@ -33,7 +33,9 @@ export function resolveIntersectionType(
 		const memberTypeNode = matchedMemberTypeNodes?.[index];
 		return session.resolve(
 			memberType,
-			containsKeyofTypeOperator(memberTypeNode) ? memberTypeNode : undefined,
+			containsKeyofTypeOperatorOrAlias(memberTypeNode, session.context.checker)
+				? memberTypeNode
+				: undefined,
 		);
 	});
 
