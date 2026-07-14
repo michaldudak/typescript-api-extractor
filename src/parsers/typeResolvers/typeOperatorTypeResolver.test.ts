@@ -1750,6 +1750,34 @@ export type Keys = keyof Recursive;`,
 	});
 });
 
+it('preserves readonly metadata in recursive array and tuple operands', () => {
+	const filePath = '/virtual/keyof-recursive-readonly-containers.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`type RecursiveArray = readonly RecursiveArray[];
+type RecursiveTuple = readonly [RecursiveTuple];
+
+export type ArrayKeys = keyof RecursiveArray;
+export type TupleKeys = keyof RecursiveTuple;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('ArrayKeys')?.type.type).toMatchObject({
+		kind: 'array',
+		isReadonly: true,
+		elementType: { kind: 'array', isReadonly: true },
+	});
+	expect(exportByName('TupleKeys')?.type.type).toMatchObject({
+		kind: 'tuple',
+		isReadonly: true,
+		types: [{ kind: 'tuple', isReadonly: true }],
+	});
+});
+
 it('preserves keyof syntax in index-signature and mapped-template values', () => {
 	const filePath = '/virtual/keyof-index-signatures.ts';
 	const moduleDefinition = parseSerializedModule(
