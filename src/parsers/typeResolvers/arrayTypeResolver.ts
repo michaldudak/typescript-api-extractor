@@ -4,6 +4,7 @@ import { TypeName } from '../../models/typeName';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	containsKeyofTypeNodeSubstitution,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
@@ -100,7 +101,12 @@ export function getArrayElementTypeNode(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	return containsKeyofTypeOperatorOrAlias(substitutedElementType, checker)
+	return containsKeyofTypeOperatorOrAlias(substitutedElementType, checker) ||
+		containsKeyofTypeNodeSubstitution(
+			substitutedElementType,
+			checker,
+			typeParameterTypeNodeSubstitutions,
+		)
 		? substitutedElementType
 		: undefined;
 }

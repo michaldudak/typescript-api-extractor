@@ -10,6 +10,7 @@ import {
 import {
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
+	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
@@ -165,7 +166,12 @@ function resolveUnionType(
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();
 
-		for (const node of flattenedTypeNodes) {
+		for (const authoredNode of flattenedTypeNodes) {
+			const node = substituteTypeParameterTypeNode(
+				authoredNode,
+				checker,
+				context.typeParameterTypeNodeSubstitutions,
+			);
 			const operatorNode = getKeyofTypeOperatorNode(node);
 			const nodeType = operatorNode
 				? getKeyofResultTypeFromSyntax(operatorNode, context)

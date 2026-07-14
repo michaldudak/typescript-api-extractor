@@ -86,6 +86,34 @@ export function substituteTypeParameterTypeNode(
 	return substituted;
 }
 
+/** Checks whether an authored subtree receives `keyof` through an active type argument. */
+export function containsKeyofTypeNodeSubstitution(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): boolean {
+	if (!typeNode || !substitutions?.size) {
+		return false;
+	}
+
+	let found = false;
+	const visit = (node: ts.Node): void => {
+		if (found) {
+			return;
+		}
+		if (ts.isTypeReferenceNode(node)) {
+			const substituted = substituteTypeParameterTypeNode(node, checker, substitutions);
+			if (substituted !== node && containsKeyofTypeOperatorOrAlias(substituted, checker)) {
+				found = true;
+				return;
+			}
+		}
+		ts.forEachChild(node, visit);
+	};
+	visit(typeNode);
+	return found;
+}
+
 /** Checks authored syntax and any referenced type aliases for a `keyof` expression. */
 export function containsKeyofTypeOperatorOrAlias(
 	typeNode: ts.TypeNode | undefined,

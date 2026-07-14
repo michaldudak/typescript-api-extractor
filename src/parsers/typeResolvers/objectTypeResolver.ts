@@ -21,7 +21,11 @@ import {
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
-import { containsKeyofTypeOperatorOrAlias, getPropertyTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperatorOrAlias,
+	getPropertyTypeNode,
+	substituteTypeParameterTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Object-like type handling lives in one resolver module. The
 // exported resolver owns object-shape selection and object-keyword fallback,
@@ -435,9 +439,15 @@ function buildPropertyNodeFromSymbol(
 					type = checker.getTypeOfSymbol(propertySymbol);
 				}
 
-				const resolvedPropertyTypeNode = isTypeParameterLike(type)
-					? undefined
-					: (authoredPropertyTypeNode ?? mappedTemplateTypeNode);
+				const candidatePropertyTypeNode = authoredPropertyTypeNode ?? mappedTemplateTypeNode;
+				const resolvedPropertyTypeNode =
+					!isTypeParameterLike(type) && candidatePropertyTypeNode
+						? substituteTypeParameterTypeNode(
+								candidatePropertyTypeNode,
+								checker,
+								context.typeParameterTypeNodeSubstitutions,
+							)
+						: undefined;
 				const parsedType =
 					mappedTemplateTypeNode && mappedSubstitutions
 						? resolveTemplateValueType(

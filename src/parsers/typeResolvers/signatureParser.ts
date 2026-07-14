@@ -5,7 +5,10 @@ import { ParserError } from '../../ParserError';
 import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
-import { containsKeyofTypeOperatorOrAlias } from './typeOperatorTypeNodes';
+import {
+	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Function-like signature parsing lives here so free functions, constructors,
 // and class methods do not drift on parameter docs, defaults, or return types.
@@ -44,15 +47,22 @@ export function parseParameter(
 	return context.runWithSymbolScope(`parameter: ${parameterSymbol.name}`, () => {
 		try {
 			const parameterDeclaration = getParameterDeclaration(parameterSymbol);
+			const parameterTypeNode = parameterDeclaration?.type
+				? substituteTypeParameterTypeNode(
+						parameterDeclaration.type,
+						checker,
+						context.typeParameterTypeNodeSubstitutions,
+					)
+				: undefined;
 			const parameterSourceNode =
-				parameterDeclaration?.type ?? parameterDeclaration ?? parameterSymbol.valueDeclaration;
+				parameterTypeNode ?? parameterDeclaration ?? parameterSymbol.valueDeclaration;
 			const typeLocation =
 				parameterSymbol.valueDeclaration ?? parameterSymbol.declarations?.[0] ?? context.sourceFile;
 
 			return context.runWithSourceNodeScope(parameterSourceNode, () => {
 				const parameterType = resolveTypeReference(
 					checker.getTypeOfSymbolAtLocation(parameterSymbol, typeLocation),
-					parameterDeclaration?.type,
+					parameterTypeNode,
 					context,
 				);
 				const documentation = getParameterDocumentationFromSymbol(parameterSymbol, checker);
@@ -89,7 +99,14 @@ export function parseReturnType(
 	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): AnyType {
-	const returnTypeNode = getReturnTypeNode(signature);
+	const authoredReturnTypeNode = getReturnTypeNode(signature);
+	const returnTypeNode = authoredReturnTypeNode
+		? substituteTypeParameterTypeNode(
+				authoredReturnTypeNode,
+				context.checker,
+				context.typeParameterTypeNodeSubstitutions,
+			)
+		: undefined;
 
 	return context.runWithSourceNodeScope(returnTypeNode, () =>
 		resolveTypeReference(

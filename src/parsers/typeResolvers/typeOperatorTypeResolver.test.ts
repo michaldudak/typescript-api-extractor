@@ -718,6 +718,52 @@ export type KeyRest = Rest<keyof Params>;`,
 	});
 });
 
+it('preserves authored keyof arguments in object, callable, and compound members', () => {
+	const filePath = '/virtual/keyof-generic-member-syntax.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Box<T> = { value: T };
+type Callback<T> = (value: T) => T;
+type MaybeList<T> = (T | undefined)[];
+
+export type Boxed = Box<keyof Params>;
+export type Callable = Callback<keyof Params>;
+export type List = MaybeList<keyof Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expectedOperator = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+	};
+
+	expect(exportByName('Boxed')?.type.properties[0].type).toMatchObject(expectedOperator);
+	const signature = exportByName('Callable')?.type.callSignatures[0];
+	expect(signature.parameters[0].type).toMatchObject(expectedOperator);
+	expect(signature.returnValueType).toMatchObject(expectedOperator);
+	expect(exportByName('List')?.type.elementType).toMatchObject({
+		kind: 'union',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
+	});
+});
+
 it('matches fixed keyof syntax after an expanded variadic tuple element', () => {
 	const filePath = '/virtual/keyof-variadic-tuple.ts';
 	const moduleDefinition = parseSerializedModule(

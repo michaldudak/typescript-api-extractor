@@ -272,6 +272,7 @@ function canCollapseAuthoredKeyofAlias(type: ts.Type, checker: ts.TypeChecker): 
 	return (
 		checker.isArrayType(type) ||
 		checker.isTupleType(type) ||
+		Boolean(type.flags & ts.TypeFlags.Object) ||
 		type.isUnion() ||
 		type.isIntersection() ||
 		(type.flags &
