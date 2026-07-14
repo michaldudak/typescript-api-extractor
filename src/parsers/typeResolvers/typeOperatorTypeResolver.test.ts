@@ -613,6 +613,33 @@ export type Keys = keyof Params;`,
 	]);
 });
 
+it('preserves keyof aliases through local import-then-export specifiers', () => {
+	const sourcePath = '/virtual/keyof-import-export-source.ts';
+	const entryPath = '/virtual/keyof-import-export-entry.ts';
+	const program = createInMemoryProgram({
+		[sourcePath]: `export interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+		[entryPath]: `import type { Keys, Keys as ImportedKeys } from './keyof-import-export-source';
+export type { Keys, ImportedKeys as RenamedKeys };`,
+	});
+	const moduleDefinition = parseSerializedModule(entryPath, program);
+
+	expect(moduleDefinition.exports).toMatchObject([
+		{
+			name: 'Keys',
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		},
+		{
+			name: 'RenamedKeys',
+			type: { kind: 'typeOperator', operator: 'keyof' },
+		},
+	]);
+});
+
 it('preserves keyof operators in return and container element types', () => {
 	const filePath = '/virtual/keyof-nested-positions.ts';
 	const moduleDefinition = parseSerializedModule(

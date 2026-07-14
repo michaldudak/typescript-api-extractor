@@ -188,7 +188,7 @@ function resolveExportSpecifierDescriptors(
 	const isReExport = isModuleReExportSpecifier(exportDeclaration);
 	const reexportedFrom =
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
-	const targetTypeAlias = targetSymbol.declarations?.find(ts.isTypeAliasDeclaration);
+	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
 
 	return withNamespaceDescriptors(
@@ -205,6 +205,31 @@ function resolveExportSpecifierDescriptors(
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);
+}
+
+function findAliasedTypeAliasDeclaration(
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+	seen: Set<ts.Symbol> = new Set(),
+): ts.TypeAliasDeclaration | undefined {
+	if (seen.has(symbol)) {
+		return undefined;
+	}
+	seen.add(symbol);
+
+	const declaration = symbol.declarations?.find(ts.isTypeAliasDeclaration);
+	if (declaration) {
+		return declaration;
+	}
+
+	if (!(symbol.flags & ts.SymbolFlags.Alias)) {
+		return undefined;
+	}
+
+	const aliasedSymbol = checker.getAliasedSymbol(symbol);
+	return aliasedSymbol && aliasedSymbol !== symbol
+		? findAliasedTypeAliasDeclaration(aliasedSymbol, checker, seen)
+		: undefined;
 }
 
 /**
