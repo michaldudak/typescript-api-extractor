@@ -452,8 +452,10 @@ class AccessorBox {
 type KeyTuple = [keyof Params];
 
 export type ConcreteIntersection = keyof Params & string;
+export type AliasedIntersection = KeyAlias & string;
 export type OptionalIntersection = (keyof Params & string) | undefined;
 export type ConcreteConditional = true extends true ? keyof Params : never;
+export type AliasedConditional = true extends true ? KeyAlias : never;
 export type TrueConditionalWithAny = true extends true ? keyof Params : any;
 export type FalseConditionalWithAny = false extends true ? any : keyof Params;
 type Select<T extends { kind: string }> = T['kind'] extends 'a' ? keyof Alpha : keyof Beta;
@@ -487,6 +489,10 @@ export type TupleIndexedKeys = KeyTuple[0];`,
 		kind: 'intersection',
 		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }],
 	});
+	expect(exportByName('AliasedIntersection')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'string' }],
+	});
 	expect(exportByName('OptionalIntersection')?.type).toMatchObject({
 		kind: 'union',
 		types: [
@@ -498,6 +504,7 @@ export type TupleIndexedKeys = KeyTuple[0];`,
 		],
 	});
 	expect(exportByName('ConcreteConditional')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('AliasedConditional')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('TrueConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('FalseConditionalWithAny')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('CompositeConditional')?.type).toMatchObject({

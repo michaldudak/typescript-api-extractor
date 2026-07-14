@@ -16,10 +16,11 @@ import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getKeyofTypeForOperand, getTypeId } from '../typeResolutionUtils';
 import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
+import { resolveAuthoredKeyofAlias } from './authoredTypeAlias';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import {
-	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
 	getIndexedAccessKeyofSourceTypeNode,
 	getKeyofTypeOperatorNode,
@@ -108,7 +109,14 @@ function resolveCollapsedTypeOperatorSyntax(
 				: resolveSource();
 		}
 	}
-	if (!containsKeyofTypeOperator(unwrapped)) {
+	if (
+		!containsKeyofTypeOperatorOrAlias(
+			unwrapped,
+			session.context.checker,
+			new Set(),
+			session.context.includeExternalTypes,
+		)
+	) {
 		return undefined;
 	}
 	if (ts.isUnionTypeNode(unwrapped)) {
@@ -265,6 +273,7 @@ function resolveAuthoredTypeNode(
 ): AnyType {
 	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
 	return (
+		resolveAuthoredKeyofAlias({ type, typeName: undefined, typeNode }, session) ??
 		resolveTypeOperatorType({ type, typeName: undefined, typeNode }, session) ??
 		session.resolve(type, typeNode)
 	);
