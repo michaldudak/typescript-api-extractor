@@ -2127,12 +2127,12 @@ export type Readonly = ReadonlyArray<keyof Params>;`,
 		kind: 'array',
 		elementType: { kind: 'intrinsic', intrinsic: 'string' },
 	});
-	expect(exportByName('Mutable')?.type).not.toHaveProperty('readonly');
+	expect(exportByName('Mutable')?.type).not.toHaveProperty('isReadonly');
 	expect(exportByName('Readonly')?.type).toMatchObject({
 		kind: 'array',
 		elementType: { kind: 'intrinsic', intrinsic: 'number' },
 	});
-	expect(exportByName('Readonly')?.type).not.toHaveProperty('readonly');
+	expect(exportByName('Readonly')?.type).not.toHaveProperty('isReadonly');
 });
 
 it('does not change unrelated tuple member aliases when a sibling uses keyof', () => {
