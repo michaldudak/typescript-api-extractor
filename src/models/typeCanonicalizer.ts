@@ -18,9 +18,6 @@ import { TypeParameterNode } from './types/typeParameter';
  * overload signatures that differ only by `any` fallback members.
  */
 class TypeCanonicalizer {
-	private nextObjectKey = 0;
-	private readonly objectKeys = new WeakMap<object, number>();
-
 	canonicalizeUnionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'union');
 		this.sanitizeBooleanLiterals(flatTypes);
@@ -54,20 +51,33 @@ class TypeCanonicalizer {
 
 	/**
 	 * Removes structurally duplicate members while preserving original order.
-	 * Function members use the equivalence checker so concrete overload
-	 * signatures win over otherwise identical signatures containing `any`
-	 * fallbacks.
+	 * Function and type-operator members use the equivalence checker; concrete
+	 * overload signatures win over otherwise identical signatures containing
+	 * `any` fallbacks.
 	 */
 	deduplicateMemberTypes(types: readonly AnyType[]): AnyType[] {
 		const functionTypes: { index: number; func: FunctionNode }[] = [];
+		const typeOperatorTypes: { index: number; typeOperator: TypeOperatorNode }[] = [];
 		const nonFunctionTypes: { index: number; type: AnyType }[] = [];
 
 		for (let i = 0; i < types.length; i++) {
 			const type = types[i];
 			if (type instanceof FunctionNode) {
 				functionTypes.push({ index: i, func: type });
+			} else if (type instanceof TypeOperatorNode) {
+				typeOperatorTypes.push({ index: i, typeOperator: type });
 			} else {
 				nonFunctionTypes.push({ index: i, type });
+			}
+		}
+
+		const deduplicatedTypeOperators: { index: number; typeOperator: TypeOperatorNode }[] = [];
+		for (const { index, typeOperator } of typeOperatorTypes) {
+			const alreadyIncluded = deduplicatedTypeOperators.some((existing) =>
+				typeEquivalenceChecker.areEquivalentIgnoringAny(existing.typeOperator, typeOperator),
+			);
+			if (!alreadyIncluded) {
+				deduplicatedTypeOperators.push({ index, typeOperator });
 			}
 		}
 
@@ -105,6 +115,10 @@ class TypeCanonicalizer {
 			...deduplicatedFunctions.map((entry) => ({
 				index: entry.index,
 				type: entry.func as AnyType,
+			})),
+			...deduplicatedTypeOperators.map((entry) => ({
+				index: entry.index,
+				type: entry.typeOperator as AnyType,
 			})),
 			...deduplicatedNonFunctions,
 		];
@@ -181,10 +195,6 @@ class TypeCanonicalizer {
 			return scalarKey;
 		}
 
-		if (type instanceof TypeOperatorNode) {
-			return this.getTypeOperatorMemberKey(type);
-		}
-
 		return type;
 	}
 
@@ -203,43 +213,6 @@ class TypeCanonicalizer {
 		}
 
 		return undefined;
-	}
-
-	private getTypeOperatorMemberKey(type: TypeOperatorNode): string {
-		return [
-			'typeoperator',
-			type.typeName?.toString() ?? '',
-			type.operator,
-			type.resolutionKind,
-			this.getTypeOperatorChildKey(type.type),
-			this.getTypeOperatorChildKey(type.resolvedType),
-		].join(':');
-	}
-
-	private getTypeOperatorChildKey(type: AnyType): string {
-		const scalarKey = this.getScalarMemberKey(type);
-		if (scalarKey !== undefined) {
-			return scalarKey;
-		}
-
-		if (type instanceof TypeOperatorNode) {
-			return this.getTypeOperatorMemberKey(type);
-		}
-
-		// Use identity for compound children to avoid rendering very large
-		// resolved unions just to build a canonicalization Set key.
-		return `${type.kind}:${this.getObjectKey(type)}`;
-	}
-
-	private getObjectKey(type: object): number {
-		let key = this.objectKeys.get(type);
-		if (key === undefined) {
-			key = this.nextObjectKey;
-			this.nextObjectKey += 1;
-			this.objectKeys.set(type, key);
-		}
-
-		return key;
 	}
 }
 

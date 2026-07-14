@@ -61,6 +61,10 @@ class TypeEquivalence {
 				!(type2 instanceof FunctionNode) &&
 				!(type1 instanceof TypeOperatorNode) &&
 				!(type2 instanceof TypeOperatorNode) &&
+				type1.kind !== 'union' &&
+				type2.kind !== 'union' &&
+				type1.kind !== 'intersection' &&
+				type2.kind !== 'intersection' &&
 				type1.toString() === type2.toString()
 			) {
 				return true;

@@ -103,26 +103,35 @@ it('keeps generic function members with different constraints or defaults', () =
 	]);
 });
 
-it('canonicalizes type operator members without stringifying resolved results', () => {
-	const resolvedType = new UnionNode(undefined, [new LiteralNode('"a"'), new LiteralNode('"b"')]);
-	Object.defineProperty(resolvedType, 'toString', {
-		value: () => {
-			throw new Error('resolvedType should not be stringified for canonicalization');
-		},
-	});
+it('canonicalizes structurally equivalent type operator members', () => {
+	const firstResolvedType = new UnionNode(undefined, [
+		new LiteralNode('"a"'),
+		new LiteralNode('"b"'),
+	]);
+	const secondResolvedType = new UnionNode(undefined, [
+		new LiteralNode('"b"'),
+		new LiteralNode('"a"'),
+	]);
+	for (const resolvedType of [firstResolvedType, secondResolvedType]) {
+		Object.defineProperty(resolvedType, 'toString', {
+			value: () => {
+				throw new Error('resolvedType should not be stringified for canonicalization');
+			},
+		});
+	}
 
 	const firstOperator = new TypeOperatorNode(
 		undefined,
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
-		resolvedType,
+		firstResolvedType,
 		'exact',
 	);
 	const secondOperator = new TypeOperatorNode(
 		undefined,
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
-		resolvedType,
+		secondResolvedType,
 		'exact',
 	);
 
