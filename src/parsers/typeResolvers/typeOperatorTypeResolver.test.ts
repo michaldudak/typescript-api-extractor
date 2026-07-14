@@ -1677,6 +1677,38 @@ export type ReorderedArgument = Reordered<keyof Params, number>;`,
 	});
 });
 
+it('does not treat locally shadowed Array names as built-in containers', () => {
+	const filePath = '/virtual/keyof-shadowed-array-names.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+}
+
+type Array<Ignored> = string[];
+type ReadonlyArray<Ignored> = number[];
+
+export type Mutable = Array<keyof Params>;
+export type Readonly = ReadonlyArray<keyof Params>;`,
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('Mutable')?.type).toMatchObject({
+		kind: 'array',
+		elementType: { kind: 'intrinsic', intrinsic: 'string' },
+	});
+	expect(exportByName('Mutable')?.type).not.toHaveProperty('readonly');
+	expect(exportByName('Readonly')?.type).toMatchObject({
+		kind: 'array',
+		elementType: { kind: 'intrinsic', intrinsic: 'number' },
+	});
+	expect(exportByName('Readonly')?.type).not.toHaveProperty('readonly');
+});
+
 it('does not change unrelated tuple member aliases when a sibling uses keyof', () => {
 	const filePath = '/virtual/keyof-tuple-sibling.ts';
 	const moduleDefinition = parseSerializedModule(
