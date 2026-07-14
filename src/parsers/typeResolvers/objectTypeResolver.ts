@@ -53,6 +53,37 @@ export function resolveObjectLikeType(
 }
 
 /**
+ * Returns whether a plain object can skip the earlier array, tuple, callable,
+ * and constructable resolver paths without changing which shape owns it.
+ */
+export function canResolveObjectTypeShallowly(type: ts.Type, checker: ts.TypeChecker): boolean {
+	return (
+		isObjectType(type) &&
+		!checker.isArrayType(type) &&
+		!checker.isTupleType(type) &&
+		type.getCallSignatures().length === 0 &&
+		type.getConstructSignatures().length === 0
+	);
+}
+
+/** Builds the named portion of an object while retaining observable index-signature output. */
+export function resolveShallowObjectLikeType(
+	{ type, typeName }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): ObjectNode | undefined {
+	if (!typeName || !canResolveObjectTypeShallowly(type, session.context.checker)) {
+		return undefined;
+	}
+
+	return new ObjectNode(
+		typeName,
+		[],
+		undefined,
+		buildIndexSignatureNode(type, session.context, session.resolveWithContext),
+	);
+}
+
+/**
  * Builds the index signature of an object type if it has one. This only works
  * for actual object types; conditional and other non-object shapes are selected
  * by resolver adapters before this builder is called.

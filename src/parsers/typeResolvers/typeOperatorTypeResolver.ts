@@ -8,7 +8,10 @@ import {
 	type AnyType,
 	type TypeOperatorResolutionKind,
 } from '../../models';
+import { getFullName } from '../common';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
+import { resolveExternalType } from './externalTypeResolver';
+import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import { getKeyofTypeOperatorNode, unwrapParenthesizedTypeNode } from './typeOperatorTypeNodes';
 
 // Type operators are syntax-first: concrete `keyof Foo` may already be exposed
@@ -38,7 +41,7 @@ export function resolveTypeOperatorType(
 	const typeOperatorNode = new TypeOperatorNode(
 		undefined,
 		'keyof',
-		compactTypeOperatorOperand(session.resolve(operandType, operatorNode.type)),
+		resolveTypeOperatorOperand(operandType, operatorNode.type, session),
 		resolvedResult.type,
 		resolvedResult.resolutionKind,
 	);
@@ -48,6 +51,31 @@ export function resolveTypeOperatorType(
 	}
 
 	return new UnionNode(undefined, [typeOperatorNode, new IntrinsicNode('undefined')]);
+}
+
+function resolveTypeOperatorOperand(
+	type: ts.Type,
+	typeNode: ts.TypeNode,
+	session: TypeResolutionSession,
+): AnyType {
+	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
+		const request: TypeResolutionRequest = {
+			type,
+			typeNode,
+			typeName: getFullName(type, typeNode, session.context),
+		};
+		const externalType = resolveExternalType(request, session);
+		if (externalType) {
+			return externalType;
+		}
+
+		const shallowObject = resolveShallowObjectLikeType(request, session);
+		if (shallowObject) {
+			return shallowObject;
+		}
+	}
+
+	return compactTypeOperatorOperand(session.resolve(type, typeNode));
 }
 
 function getKeyofOperatorSyntax(

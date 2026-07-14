@@ -502,6 +502,44 @@ it('parenthesizes function operands when rendering keyof syntax', () => {
 	expect(renderedProgram.getSyntacticDiagnostics()).toEqual([]);
 });
 
+it('does not expand properties that are discarded from named object operands', () => {
+	const filePath = '/virtual/keyof-shallow-operand.ts';
+	const objectResolutions: string[] = [];
+	const includedProperties: string[] = [];
+	const parsedModule = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+		),
+		{
+			shouldResolveObject: ({ name }) => {
+				objectResolutions.push(name);
+				return true;
+			},
+			shouldInclude: ({ name }) => {
+				includedProperties.push(name);
+				return true;
+			},
+		},
+	);
+	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+
+	expect(moduleDefinition.exports[0]?.type.type).toMatchObject({
+		kind: 'object',
+		typeName: { name: 'Params' },
+		properties: [],
+	});
+	expect(parsedModule.exports[0]?.type.toString()).toBe('keyof Params');
+	expect(objectResolutions).toEqual([]);
+	expect(includedProperties).toEqual([]);
+});
+
 it('preserves keyof aliases through named and renamed re-exports', () => {
 	const sourcePath = '/virtual/keyof-reexport-source.ts';
 	const entryPath = '/virtual/keyof-reexport-entry.ts';
