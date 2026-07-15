@@ -249,6 +249,8 @@ it('requires explicit provenance for resolved type operator construction', () =>
 	expect(operator.resolutionKind).toBe('exact');
 	expect(syntaxOnlyOperator.resolvedType).toBeUndefined();
 	expect(syntaxOnlyOperator.resolutionKind).toBeUndefined();
+	expect(syntaxOnlyOperator).not.toHaveProperty('resolvedType');
+	expect(syntaxOnlyOperator).not.toHaveProperty('resolutionKind');
 	expect(() => {
 		// Exercise the runtime invariant for untyped JavaScript consumers. The
 		// public TypeScript overloads reject this four-argument call statically.

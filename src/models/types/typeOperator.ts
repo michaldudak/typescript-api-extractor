@@ -18,9 +18,9 @@ export class TypeOperatorNode implements TypeNode {
 	/** Authored operand of the operator. */
 	readonly type: AnyType;
 	/** Checker-resolved result, omitted from syntax-only output. */
-	readonly resolvedType: AnyType | undefined;
+	declare readonly resolvedType?: AnyType;
 	/** Provenance of `resolvedType`, omitted from syntax-only output. */
-	readonly resolutionKind: TypeOperatorResolutionKind | undefined;
+	declare readonly resolutionKind?: TypeOperatorResolutionKind;
 
 	/**
 	 * Creates a preserved type operator.
@@ -53,8 +53,10 @@ export class TypeOperatorNode implements TypeNode {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.operator = operator;
 		this.type = type;
-		this.resolvedType = resolvedType;
-		this.resolutionKind = resolutionKind;
+		if (resolvedType && resolutionKind) {
+			this.resolvedType = resolvedType;
+			this.resolutionKind = resolutionKind;
+		}
 	}
 
 	/** @returns The authored operator expression or its public alias name. */

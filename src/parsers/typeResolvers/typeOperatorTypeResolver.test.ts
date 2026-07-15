@@ -175,13 +175,9 @@ it('can omit checker-resolved type-operator payloads', () => {
 
 export type Keys = keyof Params;`,
 	);
-	const moduleDefinition = JSON.parse(
-		JSON.stringify(
-			parseFromProgram(filePath, program, {
-				typeOperatorOutput: 'syntaxOnly',
-			}),
-		),
-	);
+	const moduleDefinition = parseFromProgram(filePath, program, {
+		typeOperatorOutput: 'syntaxOnly',
+	});
 	const typeOperator = moduleDefinition.exports[0]?.type;
 
 	expect(typeOperator).toMatchObject({
