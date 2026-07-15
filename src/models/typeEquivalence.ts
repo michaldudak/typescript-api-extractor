@@ -25,6 +25,14 @@ type EquivalentTypeName = {
  * concrete signature over a duplicate fallback signature containing `any`.
  */
 class TypeEquivalence {
+	/**
+	 * Compares model types while treating an unaliased `any` as a wildcard.
+	 *
+	 * @param type1 - First model type to compare.
+	 * @param type2 - Second model type to compare.
+	 * @param typeParamRenames - Optional right-to-left generic parameter renames.
+	 * @returns Whether the types are equivalent under wildcard-`any` semantics.
+	 */
 	areEquivalentIgnoringAny(
 		type1: AnyType,
 		type2: AnyType,
@@ -33,6 +41,14 @@ class TypeEquivalence {
 		return this.areEquivalent(type1, type2, true, typeParamRenames);
 	}
 
+	/**
+	 * Compares model types without wildcard matching.
+	 *
+	 * @param type1 - First model type to compare.
+	 * @param type2 - Second model type to compare.
+	 * @param typeParamRenames - Optional right-to-left generic parameter renames.
+	 * @returns Whether the types are structurally equivalent.
+	 */
 	areEquivalentStrictly(
 		type1: AnyType,
 		type2: AnyType,
@@ -177,6 +193,11 @@ class TypeEquivalence {
 	 * Compares function signatures, including generic constraints/defaults.
 	 * Handles examples like `<T>(value: T) => T` and `<U>(value: U) => U` as
 	 * equivalent while rejecting different aliases or parameter optionality.
+	 *
+	 * @param func1 - First function model to compare.
+	 * @param func2 - Second function model to compare.
+	 * @param outerTypeParamRenames - Generic parameter renames inherited from an outer scope.
+	 * @returns Whether the signatures are equivalent under wildcard-`any` semantics.
 	 */
 	areFunctionsEquivalentIgnoringAny(
 		func1: FunctionNode,
@@ -281,6 +302,9 @@ class TypeEquivalence {
 	/**
 	 * Detects whether a type contains `any` directly or in nested signatures,
 	 * members, properties, constraints, or default type parameters.
+	 *
+	 * @param type - Model type to inspect recursively.
+	 * @returns Whether an intrinsic `any` occurs in the model.
 	 */
 	containsAny(type: AnyType): boolean {
 		if (type instanceof IntrinsicNode && type.intrinsic === 'any') {
@@ -536,4 +560,5 @@ class TypeEquivalence {
 	}
 }
 
+/** Shared structural-equivalence service used by compound canonicalization. */
 export const typeEquivalenceChecker = new TypeEquivalence();

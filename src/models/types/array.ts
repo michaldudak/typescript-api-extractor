@@ -1,20 +1,31 @@
 import { AnyType, TypeNode } from '../node';
 import { TypeName } from '../typeName';
 
+/** Array model that preserves element type, public alias, and readonly syntax. */
 export class ArrayNode implements TypeNode {
+	/** Stable model discriminator. */
 	readonly kind = 'array';
+	/** Optional public alias name for the complete array type. */
 	public typeName: TypeName | undefined;
+	/** Extracted element type. */
 	public elementType: AnyType;
+	/** `true` for readonly arrays; omitted for mutable arrays. */
+	public readonly isReadonly: true | undefined;
 
-	constructor(
-		typeName: TypeName | undefined,
-		elementType: AnyType,
-		public readonly isReadonly?: true,
-	) {
+	/**
+	 * Creates an extracted array type.
+	 *
+	 * @param typeName - Optional public alias name for the complete array.
+	 * @param elementType - Extracted array element type.
+	 * @param isReadonly - `true` when the source or semantic array is readonly.
+	 */
+	constructor(typeName: TypeName | undefined, elementType: AnyType, isReadonly?: true) {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.elementType = elementType;
+		this.isReadonly = isReadonly;
 	}
 
+	/** @returns The public alias or rendered mutable/readonly array syntax. */
 	toString(): string {
 		if (this.typeName) {
 			return this.typeName?.toString();
