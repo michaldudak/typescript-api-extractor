@@ -595,6 +595,7 @@ function getConcreteConditionalBranch(
 		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
+		compilerOptions,
 	} = session.context;
 	const compositeDecision = getFixedTupleConditionalDecision(
 		typeNode.checkType,
@@ -603,6 +604,7 @@ function getConcreteConditionalBranch(
 		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
+		compilerOptions.strictFunctionTypes ?? compilerOptions.strict ?? false,
 	);
 	if (compositeDecision != null) {
 		return compositeDecision ? typeNode.trueType : typeNode.falseType;
@@ -661,6 +663,7 @@ function getFixedTupleConditionalDecision(
 	substitutions: Map<ts.Symbol, ts.Type> | undefined,
 	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	includeExternalTypes: boolean,
+	strictFunctionTypes: boolean,
 ): boolean | undefined {
 	if (!substitutions?.size) {
 		return undefined;
@@ -708,6 +711,7 @@ function getFixedTupleConditionalDecision(
 			checkTupleSyntax.typeParameterTypeNodeSubstitutions,
 			extendsTupleSyntax.typeParameterSubstitutions,
 			extendsTupleSyntax.typeParameterTypeNodeSubstitutions,
+			strictFunctionTypes,
 		);
 		if (functionDecision != null) {
 			if (!functionDecision) {
@@ -756,6 +760,7 @@ function getFixedTupleConditionalDecision(
  * @param checkTypeNodeSubstitutions - Authored bindings for the check tuple.
  * @param extendsSubstitutions - Semantic bindings for the extends tuple.
  * @param extendsTypeNodeSubstitutions - Authored bindings for the extends tuple.
+ * @param strictFunctionTypes - Whether parameters use contravariant rather than bivariant checking.
  * @returns A definite relation, or `undefined` for non-functions and unsupported signatures.
  */
 function getFunctionConditionalElementDecision(
@@ -766,6 +771,7 @@ function getFunctionConditionalElementDecision(
 	checkTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	extendsSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
 	extendsTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	strictFunctionTypes: boolean,
 ): boolean | undefined {
 	const checkFunction = unwrapParenthesizedTypeNode(checkTypeNode);
 	const extendsFunction = unwrapParenthesizedTypeNode(extendsTypeNode);
@@ -775,20 +781,20 @@ function getFunctionConditionalElementDecision(
 	if (
 		checkFunction.typeParameters?.length ||
 		extendsFunction.typeParameters?.length ||
-		checkFunction.parameters.length !== extendsFunction.parameters.length
+		[...checkFunction.parameters, ...extendsFunction.parameters].some(
+			(parameter) => parameter.questionToken || parameter.dotDotDotToken,
+		)
 	) {
 		return undefined;
+	}
+	if (checkFunction.parameters.length > extendsFunction.parameters.length) {
+		return false;
 	}
 
 	for (let index = 0; index < checkFunction.parameters.length; index += 1) {
 		const checkParameter = checkFunction.parameters[index]!;
 		const extendsParameter = extendsFunction.parameters[index]!;
-		if (
-			Boolean(checkParameter.questionToken) !== Boolean(extendsParameter.questionToken) ||
-			Boolean(checkParameter.dotDotDotToken) !== Boolean(extendsParameter.dotDotDotToken) ||
-			!checkParameter.type ||
-			!extendsParameter.type
-		) {
+		if (!checkParameter.type || !extendsParameter.type) {
 			return undefined;
 		}
 		const checkParameterType = getInstantiatedConditionalElementType(
@@ -806,9 +812,17 @@ function getFunctionConditionalElementDecision(
 		if (!checkParameterType || !extendsParameterType) {
 			return undefined;
 		}
-		if (
-			!getConditionalElementAssignableDecision(extendsParameterType, checkParameterType, checker)
-		) {
+		const contravariant = getConditionalElementAssignableDecision(
+			extendsParameterType,
+			checkParameterType,
+			checker,
+		);
+		const covariant = getConditionalElementAssignableDecision(
+			checkParameterType,
+			extendsParameterType,
+			checker,
+		);
+		if (strictFunctionTypes ? !contravariant : !contravariant && !covariant) {
 			return false;
 		}
 	}

@@ -1082,6 +1082,9 @@ type SelectPhantom<T> = [Phantom<T>] extends [Phantom<string>]
 type SelectFunction<T> = [(value: T) => void] extends [(value: string) => void]
   ? keyof ConcreteTrueTarget
   : keyof ConcreteFalseTarget;
+type SelectShortFunction<T> = [() => T] extends [(value: string) => T]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
 
 export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
@@ -1109,7 +1112,8 @@ export type ContravariantTrueKeyof = SelectContravariant<unknown>;
 export type ContravariantFalseKeyof = SelectContravariant<number>;
 export type PhantomTrueKeyof = SelectPhantom<number>;
 export type FunctionTrueKeyof = SelectFunction<unknown>;
-export type FunctionFalseKeyof = SelectFunction<number>;`,
+export type FunctionFalseKeyof = SelectFunction<number>;
+export type ShortFunctionTrueKeyof = SelectShortFunction<string>;`,
 		),
 	);
 
@@ -1176,6 +1180,7 @@ export type FunctionFalseKeyof = SelectFunction<number>;`,
 		'ContravariantTrueKeyof',
 		'PhantomTrueKeyof',
 		'FunctionTrueKeyof',
+		'ShortFunctionTrueKeyof',
 	]) {
 		expect(exportByName(name)?.type, name).toMatchObject({
 			kind: 'typeOperator',
@@ -1201,6 +1206,31 @@ export type FunctionFalseKeyof = SelectFunction<number>;`,
 			resolvedType: { kind: 'literal', value: '"same"' },
 		});
 	}
+});
+
+it('honors non-strict parameter bivariance in callable tuple conditionals', () => {
+	const filePath = '/virtual/keyof-non-strict-function-conditional.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface TrueTarget { a: string }
+interface FalseTarget { b: number }
+type Select<T> = [(value: T) => void] extends [(value: number) => void]
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+
+export type Result = Select<1>;`,
+			{ strict: true, strictFunctionTypes: false },
+		),
+	);
+
+	expect(createExportLookup(moduleDefinition)('Result')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'TrueTarget' } },
+		resolvedType: { kind: 'literal', value: '"a"' },
+	});
 });
 
 it('preserves keyof through generic container aliases and declaration defaults', () => {
