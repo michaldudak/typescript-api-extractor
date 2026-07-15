@@ -295,15 +295,61 @@ function resolveTemplateValueType(
 		context: ScopedParserContext,
 	) => AnyType,
 	substitutions: Map<ts.Symbol, ts.Type>,
+	propertyKeyBinding?: MappedPropertyKeyBinding,
 ): AnyType {
 	const typeParameterSubstitutions = new Map(context.typeParameterSubstitutions);
 	for (const [symbol, substitution] of substitutions) {
 		typeParameterSubstitutions.set(symbol, substitution);
 	}
+	const typeParameterTypeNodeSubstitutions = new Map(context.typeParameterTypeNodeSubstitutions);
+	if (propertyKeyBinding) {
+		typeParameterSubstitutions.set(propertyKeyBinding.symbol, propertyKeyBinding.type);
+		typeParameterTypeNodeSubstitutions.set(propertyKeyBinding.symbol, propertyKeyBinding.typeNode);
+	}
 
-	return context.runWithTypeParameterSubstitutionScope(typeParameterSubstitutions, () =>
-		resolve(type, typeNode, context),
+	return context.runWithTypeParameterSubstitutionScope(
+		typeParameterSubstitutions,
+		() => resolve(type, typeNode, context),
+		typeParameterTypeNodeSubstitutions.size ? typeParameterTypeNodeSubstitutions : undefined,
 	);
+}
+
+interface MappedPropertyKeyBinding {
+	symbol: ts.Symbol;
+	type: ts.Type;
+	typeNode: ts.LiteralTypeNode;
+}
+
+/**
+ * Reconstructs the per-property binding of a non-remapped mapped key. The
+ * checker exposes the outer mapped-type mapper but not the concrete `K` used
+ * for each generated property, so the emitted property name supplies that
+ * final binding while its template is replayed.
+ *
+ * @param mappedNode - Authored mapped type that generated the property.
+ * @param propertySymbol - Concrete generated property being resolved.
+ * @param checker - Checker used to resolve the mapped parameter symbol and key type.
+ * @returns The semantic and authored key binding, or `undefined` for remapped/symbol keys.
+ */
+function getMappedPropertyKeyBinding(
+	mappedNode: ts.MappedTypeNode,
+	propertySymbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): MappedPropertyKeyBinding | undefined {
+	if (mappedNode.nameType) {
+		return undefined;
+	}
+	const symbol = checker.getSymbolAtLocation(mappedNode.typeParameter.name);
+	const propertyName = propertySymbol.getName();
+	if (!symbol || propertyName.startsWith('__@')) {
+		return undefined;
+	}
+
+	return {
+		symbol,
+		type: checker.getStringLiteralType(propertyName),
+		typeNode: ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(propertyName)),
+	};
 }
 
 /**
@@ -412,7 +458,7 @@ function buildObjectNodeFromType(
 							propertySignature,
 							context,
 							resolveValueType,
-							mappedNode?.type,
+							mappedNode,
 							mappedSubstitutions,
 							propertyTypeNode,
 						);
@@ -436,7 +482,7 @@ function buildPropertyNodeFromSymbol(
 	propertySignature: ts.PropertySignature | undefined,
 	context: ScopedParserContext,
 	resolvePropertyType: ResolveTypeInContext,
-	mappedTemplateTypeNode?: ts.TypeNode,
+	mappedNode?: ts.MappedTypeNode,
 	mappedSubstitutions?: Map<ts.Symbol, ts.Type>,
 	authoredPropertyTypeNode?: ts.TypeNode,
 ): PropertyNode {
@@ -459,7 +505,18 @@ function buildPropertyNodeFromSymbol(
 					type = checker.getTypeOfSymbol(propertySymbol);
 				}
 
-				const candidatePropertyTypeNode = authoredPropertyTypeNode ?? mappedTemplateTypeNode;
+				const mappedTemplateTypeNode = mappedNode?.type;
+				// Instantiated mapped properties may point back to the source object's
+				// declaration (`T[K]`) rather than the mapped value template. When that
+				// template carries `keyof`, it must own syntax replay for the generated value.
+				const preservableMappedTemplateTypeNode = getPreservableKeyofTypeNode(
+					mappedTemplateTypeNode,
+					checker,
+					context.typeParameterTypeNodeSubstitutions,
+					context.includeExternalTypes,
+				);
+				const candidatePropertyTypeNode =
+					preservableMappedTemplateTypeNode ?? authoredPropertyTypeNode ?? mappedTemplateTypeNode;
 				const resolvedPropertyTypeNode =
 					!isTypeParameterLike(type) && candidatePropertyTypeNode
 						? substituteTypeParameterTypeNode(
@@ -469,13 +526,14 @@ function buildPropertyNodeFromSymbol(
 							)
 						: undefined;
 				const parsedType =
-					mappedTemplateTypeNode && mappedSubstitutions
+					mappedNode && mappedTemplateTypeNode && mappedSubstitutions
 						? resolveTemplateValueType(
 								type,
 								resolvedPropertyTypeNode,
 								context,
 								resolvePropertyType,
 								mappedSubstitutions,
+								getMappedPropertyKeyBinding(mappedNode, propertySymbol, checker),
 							)
 						: resolvePropertyType(type, resolvedPropertyTypeNode, context);
 

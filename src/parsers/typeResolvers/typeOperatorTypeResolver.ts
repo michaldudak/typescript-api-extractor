@@ -65,7 +65,10 @@ export function resolveTypeOperatorType(
 		return resolveCollapsedTypeOperatorSyntax(type, typeNode, typeName, session);
 	}
 
-	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
+	const authoredOperandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
+	const operandType =
+		getInstantiatedIndexedKeyofOperandType(operatorNode.type, session.context) ??
+		authoredOperandType;
 	const undefinedMember = getUndefinedUnionMember(type);
 	const collapsedToUndefined = isUndefinedType(type);
 	const operand = resolveTypeOperatorOperand(operandType, operatorNode.type, session);
@@ -112,12 +115,49 @@ export function getKeyofResultTypeFromSyntax(
 ): ts.Type {
 	const { checker, typeParameterSubstitutions } = context;
 	const operandType = checker.getTypeFromTypeNode(operatorNode.type);
-	const substitutedOperand = typeParameterSubstitutions
-		? substituteTypeParameter(operandType, typeParameterSubstitutions)
-		: operandType;
+	const substitutedOperand =
+		getInstantiatedIndexedKeyofOperandType(operatorNode.type, context) ??
+		(typeParameterSubstitutions
+			? substituteTypeParameter(operandType, typeParameterSubstitutions)
+			: operandType);
 	return (
 		getKeyofTypeForOperand(checker, substitutedOperand) ?? checker.getTypeFromTypeNode(operatorNode)
 	);
+}
+
+/**
+ * Selects a concrete property from an indexed `keyof` operand after substituting
+ * its root object and index parameters. The public checker has no general API
+ * for instantiating arbitrary indexed-access types, but mapped-property replay
+ * only needs a single literal key, which can be resolved without guessing.
+ *
+ * @param typeNode - Authored operand proposed as an indexed access.
+ * @param context - Active checker and semantic type-parameter bindings.
+ * @returns The selected property type, or `undefined` for unresolved/open indexes.
+ */
+function getInstantiatedIndexedKeyofOperandType(
+	typeNode: ts.TypeNode,
+	context: ScopedParserContext,
+): ts.Type | undefined {
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (!ts.isIndexedAccessTypeNode(unwrapped) || !context.typeParameterSubstitutions?.size) {
+		return undefined;
+	}
+
+	const { checker, typeParameterSubstitutions } = context;
+	const objectType = substituteTypeParameter(
+		checker.getTypeFromTypeNode(unwrapped.objectType),
+		typeParameterSubstitutions,
+	);
+	const indexType = substituteTypeParameter(
+		checker.getTypeFromTypeNode(unwrapped.indexType),
+		typeParameterSubstitutions,
+	);
+	if (!indexType.isStringLiteral() && !indexType.isNumberLiteral()) {
+		return undefined;
+	}
+	const property = checker.getPropertyOfType(objectType, String(indexType.value));
+	return property ? checker.getTypeOfSymbol(property) : undefined;
 }
 
 function resolveCollapsedTypeOperatorSyntax(

@@ -1551,9 +1551,17 @@ type ValueDictionary<Value> = {
   [name in string]: Value;
 };
 
+type KeysOfValues<T> = {
+  [K in keyof T]: keyof T[K];
+};
+
 export type Dictionary = Mapped<string>;
 export type Finite = Mapped<'value'>;
-export type GenericDictionary = ValueDictionary<keyof Params>;`,
+export type GenericDictionary = ValueDictionary<keyof Params>;
+export type KeyDependent = KeysOfValues<{
+  left: { x: string };
+  right: { y: number };
+}>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1570,6 +1578,26 @@ export type GenericDictionary = ValueDictionary<keyof Params>;`,
 	expect(exportByName('GenericDictionary')?.type.indexSignature.valueType).toMatchObject(
 		expectedOperator,
 	);
+	expect(exportByName('KeyDependent')?.type.properties).toMatchObject([
+		{
+			name: 'left',
+			type: {
+				kind: 'typeOperator',
+				operator: 'keyof',
+				type: { kind: 'object', properties: [{ name: 'x' }] },
+				resolvedType: { kind: 'literal', value: '"x"' },
+			},
+		},
+		{
+			name: 'right',
+			type: {
+				kind: 'typeOperator',
+				operator: 'keyof',
+				type: { kind: 'object', properties: [{ name: 'y' }] },
+				resolvedType: { kind: 'literal', value: '"y"' },
+			},
+		},
+	]);
 });
 
 it('preserves authored keyof arguments through identity and container aliases', () => {
