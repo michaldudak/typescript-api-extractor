@@ -201,8 +201,14 @@ function resolveUnionType(
 	// In this case `typeNode` will be set to the type reference of the function parameter,
 	// so we extract the needed union definition.
 	const unionAlias = getAuthoredUnionAlias(type, typeNode, checker);
+	let rootUnionSource: AuthoredUnionSource | undefined;
 	if ((!typeNode || !ts.isUnionTypeNode(typeNode)) && unionAlias) {
 		typeNode = unionAlias.declaration.type;
+	} else if (typeNode && !ts.isUnionTypeNode(typeNode)) {
+		rootUnionSource = resolveToUnionTypeNode(typeNode, session);
+		if (rootUnionSource) {
+			typeNode = rootUnionSource.typeNode;
+		}
 	}
 
 	const aliasSubstitutions = getAliasTypeParameterSubstitutions(
@@ -227,7 +233,12 @@ function resolveUnionType(
 		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
 
 		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
-		const flattenedTypeNodes = flattenUnionTypeNode(typeNode, session);
+		const flattenedTypeNodes = flattenUnionTypeNode(
+			typeNode,
+			session,
+			rootUnionSource?.bindings,
+			rootUnionSource?.orderOnly,
+		);
 
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();

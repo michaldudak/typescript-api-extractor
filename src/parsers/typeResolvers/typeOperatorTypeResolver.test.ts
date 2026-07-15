@@ -2210,6 +2210,30 @@ it('keeps external indexed-access union members in authored order after readonly
 	).toEqual(['string', 'array', 'number', 'undefined']);
 });
 
+it('keeps direct external indexed-access unions in authored order', () => {
+	const filePath = '/virtual/direct-external-indexed-union-order.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export interface ConsumerProps {
+  value: import('direct-external-union-package').Props['value'];
+}`,
+			'/virtual/node_modules/direct-external-union-package/index.d.ts': `export interface Props {
+  value: string | readonly string[] | number;
+}`,
+		}),
+	);
+	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	).type;
+
+	expect(
+		valueType.types.map(
+			(member: { intrinsic?: string; kind: string }) => member.intrinsic ?? member.kind,
+		),
+	).toEqual(['string', 'array', 'number']);
+});
+
 it('substitutes generic external indexed-access members before ordering them', () => {
 	const filePath = '/virtual/generic-external-indexed-union-order.ts';
 	const moduleDefinition = parseSerializedModule(
