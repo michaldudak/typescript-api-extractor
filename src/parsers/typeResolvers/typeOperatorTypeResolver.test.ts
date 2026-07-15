@@ -2248,7 +2248,7 @@ it('does not replay operators from external indexed-access unions without expans
 }
 
 export interface Props {
-  value?: keyof Shape | boolean | undefined;
+  value?: boolean | keyof Shape | number | undefined;
 }`,
 		}),
 	);
@@ -2257,6 +2257,12 @@ export interface Props {
 	).type;
 
 	expect(JSON.stringify(valueType)).not.toContain('typeOperator');
+	expect(
+		valueType.types.map(
+			(member: { intrinsic?: string; kind: string; value?: string }) =>
+				member.intrinsic ?? member.value ?? member.kind,
+		),
+	).toEqual(['boolean', '"first"', '"second"', 'number', 'undefined']);
 });
 
 it('keeps third-party keyof re-exports external unless expansion is enabled', () => {

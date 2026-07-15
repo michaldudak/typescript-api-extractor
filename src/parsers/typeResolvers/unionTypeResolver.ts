@@ -44,11 +44,13 @@ export function resolveUnionTypeNode(
 interface AuthoredUnionMember {
 	typeNode: ts.TypeNode;
 	bindings?: TypeParameterBindings;
+	orderOnly: boolean;
 }
 
 interface AuthoredUnionSource {
 	typeNode: ts.UnionTypeNode;
 	bindings?: TypeParameterBindings;
+	orderOnly: boolean;
 }
 
 /**
@@ -65,6 +67,7 @@ function flattenUnionTypeNode(
 	typeNode: ts.UnionTypeNode,
 	session: TypeResolutionSession,
 	bindings?: TypeParameterBindings,
+	orderOnly = false,
 ): AuthoredUnionMember[] {
 	const result: AuthoredUnionMember[] = [];
 
@@ -77,7 +80,7 @@ function flattenUnionTypeNode(
 
 		// If the unwrapped type is a union, recursively flatten it
 		if (ts.isUnionTypeNode(unwrapped)) {
-			result.push(...flattenUnionTypeNode(unwrapped, session, bindings));
+			result.push(...flattenUnionTypeNode(unwrapped, session, bindings, orderOnly));
 		} else {
 			// Check if this non-union TypeNode resolves to a union type.
 			// This currently handles indexed access types (e.g., `Foo['bar']`) whose
@@ -86,10 +89,15 @@ function flattenUnionTypeNode(
 			const underlyingUnion = resolveToUnionTypeNode(unwrapped, session, bindings);
 			if (underlyingUnion) {
 				result.push(
-					...flattenUnionTypeNode(underlyingUnion.typeNode, session, underlyingUnion.bindings),
+					...flattenUnionTypeNode(
+						underlyingUnion.typeNode,
+						session,
+						underlyingUnion.bindings,
+						underlyingUnion.orderOnly,
+					),
 				);
 			} else {
-				result.push({ typeNode: unwrapped, bindings });
+				result.push({ typeNode: unwrapped, bindings, orderOnly });
 			}
 		}
 	}
@@ -127,34 +135,26 @@ function resolveToUnionTypeNode(
 		includeExternalTypes,
 		bindings?.typeNodes,
 	);
+	let orderOnly = false;
 	if (!sourceTypeNode && !includeExternalTypes) {
 		// Plain external unions may supply order for members already present in the
-		// semantic result without exposing an external model. Operator syntax is
-		// different: replaying it would bypass the caller's external-expansion
-		// policy and could attach a large resolved payload, so leave those unions
-		// in checker order unless external expansion is explicitly enabled.
+		// semantic result without exposing an external model. The order-only marker
+		// also lets operator members consume their semantic keys at the authored
+		// position without replaying external syntax or attaching resolved payloads.
 		const externalSourceTypeNode = getIndexedAccessSourceTypeNode(
 			typeNode,
 			checker,
 			true,
 			bindings?.typeNodes,
 		);
-		if (
-			externalSourceTypeNode &&
-			!containsKeyofTypeOperatorOrAlias(
-				externalSourceTypeNode,
-				checker,
-				new Set(),
-				true,
-				bindings?.typeNodes,
-			)
-		) {
+		if (externalSourceTypeNode) {
 			sourceTypeNode = externalSourceTypeNode;
+			orderOnly = true;
 		}
 	}
 	const unwrappedSource = sourceTypeNode ? unwrapParenthesizedTypeNode(sourceTypeNode) : undefined;
 	return unwrappedSource && ts.isUnionTypeNode(unwrappedSource)
-		? { typeNode: unwrappedSource, bindings }
+		? { typeNode: unwrappedSource, bindings, orderOnly }
 		: undefined;
 }
 
@@ -232,7 +232,7 @@ function resolveUnionType(
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();
 
-		for (const { typeNode: authoredNode, bindings } of flattenedTypeNodes) {
+		for (const { typeNode: authoredNode, bindings, orderOnly } of flattenedTypeNodes) {
 			const node = substituteTypeParameterTypeNode(
 				authoredNode,
 				checker,
@@ -242,6 +242,23 @@ function resolveUnionType(
 			const nodeType = operatorNode
 				? getKeyofResultTypeFromSyntax(operatorNode, context)
 				: checker.getTypeFromTypeNode(node);
+			if (
+				orderOnly &&
+				containsKeyofTypeOperatorOrAlias(node, checker, new Set(), true, bindings?.typeNodes)
+			) {
+				const orderedMembers = resolveOrderOnlyCompositeMembers(
+					nodeType,
+					memberTypes,
+					type.types,
+					usedMemberTypes,
+					context,
+					resolve,
+				);
+				if (orderedMembers) {
+					result.push(...orderedMembers);
+					continue;
+				}
+			}
 			const preservedCompositeMember = resolvePreservedCompositeMember(
 				node,
 				nodeType,
@@ -393,6 +410,31 @@ function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {
 	return type1.target === type2 || ('target' in type2 && type1.target === type2.target);
 }
 
+function resolveOrderOnlyCompositeMembers(
+	nodeType: ts.Type,
+	memberTypes: readonly ts.Type[],
+	normalizedMemberTypes: readonly ts.Type[],
+	usedMemberTypes: Set<ts.Type>,
+	context: ScopedParserContext,
+	resolve: ResolveTypeInContext,
+): AnyType[] | undefined {
+	const selectedTypes = selectCompositeMemberTypes(
+		nodeType,
+		memberTypes,
+		normalizedMemberTypes,
+		usedMemberTypes,
+		context.checker,
+	);
+	if (!selectedTypes) {
+		return undefined;
+	}
+
+	// External syntax supplies placement only. Resolving the already-selected
+	// semantic members without that node keeps operator payloads opaque while
+	// retaining the authored composite's position in the surrounding union.
+	return selectedTypes.map((memberType) => resolve(memberType, undefined, context));
+}
+
 function resolvePreservedCompositeMember(
 	typeNode: ts.TypeNode,
 	nodeType: ts.Type,
@@ -412,11 +454,33 @@ function resolvePreservedCompositeMember(
 	) {
 		return undefined;
 	}
+	if (
+		!selectCompositeMemberTypes(
+			nodeType,
+			memberTypes,
+			normalizedMemberTypes,
+			usedMemberTypes,
+			context.checker,
+		)
+	) {
+		return undefined;
+	}
+
+	return resolve(nodeType, typeNode, context);
+}
+
+function selectCompositeMemberTypes(
+	nodeType: ts.Type,
+	memberTypes: readonly ts.Type[],
+	normalizedMemberTypes: readonly ts.Type[],
+	usedMemberTypes: Set<ts.Type>,
+	checker: ts.TypeChecker,
+): ts.Type[] | undefined {
 	const unionMembers = nodeType.isUnion() ? new Set(nodeType.types) : undefined;
 	const containsMember = (memberType: ts.Type) =>
 		unionMembers
 			? unionMembers.has(memberType)
-			: areSemanticTypesEquivalent(nodeType, memberType, context.checker);
+			: areSemanticTypesEquivalent(nodeType, memberType, checker);
 
 	// `memberTypes` may come from TypeScript's union origin and omit an authored
 	// subset such as `keyof Narrow`. Validate against the normalized union instead.
@@ -424,16 +488,18 @@ function resolvePreservedCompositeMember(
 		return undefined;
 	}
 
+	const selectedTypes: ts.Type[] = [];
 	for (const memberType of memberTypes) {
 		const covered = memberType.isUnion()
-			? areSemanticTypesEquivalent(nodeType, memberType, context.checker)
+			? areSemanticTypesEquivalent(nodeType, memberType, checker)
 			: containsMember(memberType);
 		if (!covered) {
 			continue;
 		}
 
 		usedMemberTypes.add(memberType);
+		selectedTypes.push(memberType);
 	}
 
-	return resolve(nodeType, typeNode, context);
+	return selectedTypes.length > 0 ? selectedTypes : undefined;
 }
