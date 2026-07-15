@@ -499,6 +499,53 @@ export type Reverse = keyof Box<string> | keyof Box<any>;`,
 	});
 });
 
+it('preserves equivalent array and tuple union members with distinct keyof syntax', () => {
+	const filePath = '/virtual/keyof-equivalent-container-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Left { same: string }
+interface Right { same: number }
+
+export type Arrays = (keyof Left)[] | (keyof Right)[];
+export type Tuples = [keyof Left] | [keyof Right];
+export type ArrayConditional = true extends true ? (keyof Left)[] : number[];
+export type TupleConditional = true extends true ? [keyof Left] : [number];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const operatorFor = (name: 'Left' | 'Right') => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+
+	expect(exportByName('Arrays')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'array', elementType: operatorFor('Left') },
+			{ kind: 'array', elementType: operatorFor('Right') },
+		],
+	});
+	expect(exportByName('Tuples')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'tuple', types: [operatorFor('Left')] },
+			{ kind: 'tuple', types: [operatorFor('Right')] },
+		],
+	});
+	expect(exportByName('ArrayConditional')?.type).toMatchObject({
+		kind: 'array',
+		elementType: operatorFor('Left'),
+	});
+	expect(exportByName('TupleConditional')?.type).toMatchObject({
+		kind: 'tuple',
+		types: [operatorFor('Left')],
+	});
+});
+
 it('preserves keyof members after union simplification and generic alias instantiation', () => {
 	const filePath = '/virtual/keyof-simplified-unions.ts';
 	const moduleDefinition = parseSerializedModule(
