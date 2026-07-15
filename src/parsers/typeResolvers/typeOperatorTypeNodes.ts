@@ -875,6 +875,20 @@ export function getTupleNumberIndexedTypeNodes(
 	);
 }
 
+/**
+ * Flattens every element that a tuple-wide `number` index can select. Finite
+ * tuple spreads recurse with binding-aware cycle detection, while open array
+ * rests contribute their element node. Optional wrappers are intentionally
+ * removed here; the resolver restores `undefined` from the indexed access's
+ * semantic result after replaying all authored sources.
+ *
+ * @param tupleTypeNode - Bound authored tuple whose selectable sources are needed.
+ * @param checker - Checker used to follow nested tuple and array rests.
+ * @param includeExternalTypes - Whether nested rest aliases may be external.
+ * @param substitutions - Authored generic bindings active for this tuple.
+ * @param seenTupleSources - Bound tuple frames already visited on this path.
+ * @returns Flat selectable element nodes, or `undefined` for an unresolved or cyclic rest.
+ */
 function getTupleNumberIndexedSourcesFromTuple(
 	tupleTypeNode: ts.TupleTypeNode,
 	checker: ts.TypeChecker,

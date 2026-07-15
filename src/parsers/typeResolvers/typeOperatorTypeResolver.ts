@@ -152,6 +152,8 @@ function resolveCollapsedTypeOperatorSyntax(
 							session,
 						),
 					),
+					// Property and tuple source nodes do not retain their optional
+					// wrapper. Restore it from the authoritative indexed result.
 					...(getUndefinedUnionMember(type) ? [new IntrinsicNode('undefined')] : []),
 				]);
 			return bindings
