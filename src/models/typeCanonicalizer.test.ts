@@ -160,6 +160,42 @@ it('canonicalizes structurally equivalent type operator members', () => {
 	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);
 });
 
+it('compares ordered type-operator key unions in linear work', () => {
+	const memberCount = 100;
+	let renderCount = 0;
+	const createResolvedType = () =>
+		new UnionNode(
+			undefined,
+			Array.from({ length: memberCount }, (_, index) => {
+				const member = new LiteralNode(`"key${index}"`);
+				Object.defineProperty(member, 'toString', {
+					value: () => {
+						renderCount += 1;
+						return member.value;
+					},
+				});
+				return member;
+			}),
+		);
+	const firstOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
+		createResolvedType(),
+		'exact',
+	);
+	const secondOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
+		createResolvedType(),
+		'exact',
+	);
+
+	expect(typeEquivalenceChecker.areEquivalentStrictly(firstOperator, secondOperator)).toBe(true);
+	expect(renderCount).toBeLessThanOrEqual(memberCount * 2);
+});
+
 it('requires explicit provenance for resolved type operator construction', () => {
 	const resolvedType = new LiteralNode('"value"');
 	const operator = new TypeOperatorNode(

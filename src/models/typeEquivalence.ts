@@ -378,6 +378,21 @@ class TypeEquivalence {
 			return true;
 		}
 
+		// Canonicalized unions and intersections normally retain the same stable
+		// member order on both sides. Prove that common case in O(n) before
+		// constructing the bipartite graph needed for genuinely reordered or
+		// wildcard-compatible members.
+		let matchesInOrder = true;
+		for (let index = 0; index < n; index += 1) {
+			if (!this.areEquivalent(types1[index], types2[index], anyIsWildcard, typeParamRenames)) {
+				matchesInOrder = false;
+				break;
+			}
+		}
+		if (matchesInOrder) {
+			return true;
+		}
+
 		// Use a cheap key multiset pre-check before the O(n^3) bipartite match,
 		// but skip it when wildcard `any` or rename maps would make keys unsafe.
 		const hasAnyWildcard =
