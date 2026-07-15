@@ -23,9 +23,13 @@ import { resolveUnionTypeNode } from './unionTypeResolver';
 // shape does not require editing one long branch chain, and so resolver
 // precedence is visible.
 export const typeResolvers: TypeResolver[] = [
-	{ name: 'authored-keyof-alias', resolve: resolveAuthoredKeyofAlias },
+	{
+		name: 'authored-keyof-alias',
+		replaysAuthoredSyntax: true,
+		resolve: resolveAuthoredKeyofAlias,
+	},
 	{ name: 'external', resolve: resolveExternalType },
-	{ name: 'type-operator', resolve: resolveTypeOperatorType },
+	{ name: 'type-operator', replaysAuthoredSyntax: true, resolve: resolveTypeOperatorType },
 	{ name: 'type-parameter', resolve: resolveTypeParameterType },
 	{ name: 'array', resolve: resolveArrayType },
 	{ name: 'intrinsic', resolve: resolveIntrinsicType },

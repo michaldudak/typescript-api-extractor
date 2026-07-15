@@ -15,13 +15,8 @@ import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import {
-	areSemanticTypesEquivalent,
-	getKeyofTypeForOperand,
-	getTypeId,
-} from '../typeResolutionUtils';
+import { areSemanticTypesEquivalent, getKeyofTypeForOperand } from '../typeResolutionUtils';
 import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
-import { resolveAuthoredKeyofAlias } from './authoredTypeAlias';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import {
@@ -274,11 +269,7 @@ function resolveAuthoredTypeNode(
 	typeOverride?: ts.Type,
 ): AnyType {
 	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
-	return (
-		resolveAuthoredKeyofAlias({ type, typeName: undefined, typeNode }, session) ??
-		resolveTypeOperatorType({ type, typeName: undefined, typeNode }, session) ??
-		session.resolve(type, typeNode)
-	);
+	return session.resolveAuthoredSyntax({ type, typeName: undefined, typeNode });
 }
 
 function getAuthoredTypeNodeType(typeNode: ts.TypeNode, session: TypeResolutionSession): ts.Type {
@@ -387,8 +378,7 @@ function resolveTypeOperatorOperand(
 	}
 
 	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
-		const typeId = getTypeId(type);
-		if (typeId !== undefined && session.context.typeStack.includes(typeId)) {
+		if (session.isTypeActive(type)) {
 			return compactTypeOperatorOperand(session.resolve(type, typeNode));
 		}
 
@@ -402,18 +392,11 @@ function resolveTypeOperatorOperand(
 			return externalType;
 		}
 
-		if (typeId !== undefined) {
-			session.context.typeStack.push(typeId);
-		}
-		try {
-			const shallowObject = resolveShallowObjectLikeType(request, session);
-			if (shallowObject) {
-				return shallowObject;
-			}
-		} finally {
-			if (typeId !== undefined) {
-				session.context.typeStack.pop();
-			}
+		const shallowObject = session.runWithTypeFrame(type, () =>
+			resolveShallowObjectLikeType(request, session),
+		);
+		if (shallowObject) {
+			return shallowObject;
 		}
 	}
 

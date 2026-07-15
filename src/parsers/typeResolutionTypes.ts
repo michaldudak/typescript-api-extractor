@@ -32,6 +32,12 @@ export interface TypeResolutionSession {
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType;
 	/** Re-dispatches an active type against recovered syntax without pushing a second cycle frame. */
 	resolveWithSyntax(request: TypeResolutionRequest): AnyType | undefined;
+	/** Tries the syntax-replay resolvers before entering the normal cached resolution path. */
+	resolveAuthoredSyntax(request: TypeResolutionRequest): AnyType;
+	/** Returns whether this semantic type already has an active cycle frame. */
+	isTypeActive(type: ts.Type): boolean;
+	/** Runs a nested resolution inside a balanced cycle frame when the type has an id. */
+	runWithTypeFrame<T>(type: ts.Type, callback: () => T): T;
 }
 
 export interface TypeResolver {
@@ -48,6 +54,8 @@ export interface TypeResolver {
 	 * and index-like fallbacks that resolve to a different underlying type.
 	 */
 	replayNameResolutionWarnings?: boolean;
+	/** Resolver participates in authored syntax replay before semantic fallback. */
+	replaysAuthoredSyntax?: boolean;
 	/**
 	 * Attempts to resolve the request's `ts.Type` into a model node. Returns
 	 * `undefined` to decline, which lets the pipeline fall through to the next

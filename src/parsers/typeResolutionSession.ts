@@ -7,6 +7,7 @@ import { reportUnsupportedTypeFallback } from './typeResolutionDiagnostics';
 import {
 	type NameResolutionWarning,
 	type ResolveTypeInContext,
+	type TypeResolver,
 	type TypeResolutionRequest,
 	type TypeResolutionSession as TypeResolutionSessionContract,
 } from './typeResolutionTypes';
@@ -66,13 +67,33 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 	}
 
 	resolveWithSyntax(request: TypeResolutionRequest): AnyType | undefined {
-		for (const resolver of typeResolvers) {
-			const resolvedType = resolver.resolve(request, this);
-			if (resolvedType) {
-				return resolvedType;
-			}
+		return this.dispatch(request)?.resolvedType;
+	}
+
+	resolveAuthoredSyntax(request: TypeResolutionRequest): AnyType {
+		return (
+			this.dispatch(request, (resolver) => resolver.replaysAuthoredSyntax === true)?.resolvedType ??
+			this.resolve(request.type, request.typeNode)
+		);
+	}
+
+	isTypeActive(type: ts.Type): boolean {
+		const typeId = getTypeId(type);
+		return typeId !== undefined && this.context.typeStack.includes(typeId);
+	}
+
+	runWithTypeFrame<T>(type: ts.Type, callback: () => T): T {
+		const typeId = getTypeId(type);
+		if (typeId === undefined || this.context.typeStack.includes(typeId)) {
+			return callback();
 		}
-		return undefined;
+
+		this.context.typeStack.push(typeId);
+		try {
+			return callback();
+		} finally {
+			this.context.typeStack.pop();
+		}
 	}
 
 	/**
@@ -96,7 +117,7 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 
 	private resolveUncached(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType {
 		const { context } = this;
-		const { checker, typeStack } = context;
+		const { checker } = context;
 
 		const typeId = getTypeId(type);
 
@@ -124,19 +145,13 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		// Check for cycles before pushing to stack.
 		// If we're already resolving this type, return a shallow version with type info but no properties.
 		const shouldDetectCycles = !isIntrinsicType && typeId !== undefined;
-		const isAlreadyOnStack = shouldDetectCycles && typeStack.includes(typeId);
+		const isAlreadyOnStack = shouldDetectCycles && this.isTypeActive(type);
 
-		// Push type to stack BEFORE calling getFullName to catch cycles that occur
+		// Enter the type frame BEFORE calling getFullName to catch cycles that occur
 		// when getFullName resolves generic type arguments that may reference back to this type.
-		// We track whether we pushed so we can correctly pop in the finally block.
-		const shouldPushToStack = shouldDetectCycles && !isAlreadyOnStack;
-		if (shouldPushToStack) {
-			typeStack.push(typeId);
-		}
+		const resolveInFrame = () => {
+			let typeName: TypeName | undefined;
 
-		let typeName: TypeName | undefined;
-
-		try {
 			// SubstitutionTypes are checker-internal placeholders created while TypeScript
 			// evaluates conditional/infer/mapped types. They represent "baseType, but
 			// under this constraint" rather than a syntax form we can emit directly.
@@ -184,17 +199,11 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 			}
 
 			const request: TypeResolutionRequest = { type, typeNode, typeName };
-			for (const resolver of typeResolvers) {
-				const resolvedType = resolver.resolve(request, this);
-				if (!resolvedType) {
-					continue;
-				}
-
-				if (resolver.replayNameResolutionWarnings === false) {
-					return resolvedType;
-				}
-
-				return withNameResolutionWarnings(resolvedType);
+			const resolution = this.dispatch(request);
+			if (resolution) {
+				return resolution.resolver.replayNameResolutionWarnings === false
+					? resolution.resolvedType
+					: withNameResolutionWarnings(resolution.resolvedType);
 			}
 
 			unsupportedFallbackTypes.add(type);
@@ -204,11 +213,28 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 			reportUnsupportedTypeFallback(type, typeNode, context);
 
 			return new IntrinsicNode('any', typeName);
-		} finally {
-			// Only pop if we actually pushed.
-			if (shouldPushToStack) {
-				typeStack.pop();
+		};
+
+		return shouldDetectCycles && !isAlreadyOnStack
+			? this.runWithTypeFrame(type, resolveInFrame)
+			: resolveInFrame();
+	}
+
+	private dispatch(
+		request: TypeResolutionRequest,
+		shouldAttempt: (resolver: TypeResolver) => boolean = () => true,
+	): { resolver: TypeResolver; resolvedType: AnyType } | undefined {
+		for (const resolver of typeResolvers) {
+			if (!shouldAttempt(resolver)) {
+				continue;
+			}
+
+			const resolvedType = resolver.resolve(request, this);
+			if (resolvedType) {
+				return { resolver, resolvedType };
 			}
 		}
+
+		return undefined;
 	}
 }
