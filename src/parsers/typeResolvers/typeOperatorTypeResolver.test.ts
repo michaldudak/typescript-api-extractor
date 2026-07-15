@@ -728,7 +728,7 @@ export type InterfaceWrappedAliasKey = InterfaceKeyAlias<Params>['keys'];`,
 	}
 });
 
-it('unwraps open tuple rest arrays selected by literal indexes', () => {
+it('maps literal tuple indexes across open and finite rests', () => {
 	const filePath = '/virtual/keyof-open-rest-literal-index.ts';
 	const moduleDefinition = parseSerializedModule(
 		filePath,
@@ -739,16 +739,25 @@ it('unwraps open tuple rest arrays selected by literal indexes', () => {
   b: number;
 }
 
+interface OtherParams {
+  c: string;
+  d: number;
+}
+
 type Values = [string, ...(keyof Params)[]];
 type NamedValues = [head: string, ...tail: (keyof Params)[]];
 type Pair = [keyof Params, string];
 type SpreadPair = [...Pair];
+type SlidingSuffix = [...(keyof Params)[], string];
+type DoubleFiniteSpread = [...[keyof Params, number], ...[string, keyof OtherParams]];
 
 export type FirstRest = Values[1];
 export type LaterRest = Values[123];
 export type NamedRest = NamedValues[1];
 export type PairKey = SpreadPair[0];
-export type PairValue = SpreadPair[1];`,
+export type PairValue = SpreadPair[1];
+export type SlidingFirst = SlidingSuffix[0];
+export type SecondSpreadKey = DoubleFiniteSpread[3];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -760,6 +769,21 @@ export type PairValue = SpreadPair[1];`,
 	expect(exportByName('PairValue')?.type).toMatchObject({
 		kind: 'intrinsic',
 		intrinsic: 'string',
+	});
+	expect(exportByName('SlidingFirst')?.type).toEqual({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+	expect(exportByName('SecondSpreadKey')?.type).toMatchObject({
+		...expectedOperator,
+		type: { typeName: { name: 'OtherParams' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"c"' },
+				{ kind: 'literal', value: '"d"' },
+			],
+		},
 	});
 });
 

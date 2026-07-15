@@ -545,26 +545,21 @@ export function getIndexedAccessSourceTypeNode(
 	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
 	const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
 	if (indexType.isNumberLiteral()) {
-		const tupleTypeNode = getTupleSourceTypeNode(
+		const tupleSource = getBoundTupleSourceTypeNode(
 			unwrapped.objectType,
 			checker,
 			includeExternalTypes,
 			substitutions,
 		);
-		const tupleElementCount = checker.isTupleType(objectType)
-			? ((objectType as ts.TupleType).typeArguments?.length ?? tupleTypeNode?.elements.length ?? 0)
-			: (tupleTypeNode?.elements.length ?? 0);
-		const tupleSelection = tupleTypeNode
-			? getTupleElementSelectionAtSemanticIndex(tupleTypeNode, indexType.value, tupleElementCount)
-			: undefined;
-		const elementTypeNode = tupleSelection
+		const elementTypeNode = tupleSource
 			? getTupleIndexedElementSourceTypeNode(
-					tupleSelection,
+					tupleSource.typeNode,
+					indexType.value,
 					checker,
 					includeExternalTypes,
-					substitutions,
+					tupleSource.substitutions,
 				)
-			: !tupleTypeNode
+			: !tupleSource
 				? getArrayIndexedElementTypeNode(
 						unwrapped.objectType,
 						checker,
@@ -752,125 +747,140 @@ function getArrayIndexedElementTypeNode(
 }
 
 /**
- * Maps an expanded semantic tuple index back to its authored tuple element.
+ * Maps a literal tuple index to the authored element that always occupies it.
  *
- * For `[Head, ...Middle, Tail]`, semantic elements between `Head` and the final
- * suffix all map to the rest node, while the suffix is aligned from the end.
+ * Finite tuple spreads are expanded recursively, which handles multiple and
+ * nested spreads without relying on TypeScript's compact rest placeholders. An
+ * open array rest is safe only when it is the final element: a following suffix
+ * can slide into any literal index as the rest length changes, so no single
+ * authored element can faithfully represent that access.
  *
- * @param tupleTypeNode - Authored tuple syntax containing fixed and optional rest elements.
- * @param index - Zero-based index in TypeScript's expanded semantic tuple.
- * @param semanticElementCount - Total number of expanded semantic elements.
- * @returns The authored element responsible for the semantic index.
+ * @param tupleTypeNode - Authored tuple whose element is being selected.
+ * @param index - Zero-based literal index to locate.
+ * @param checker - Checker used to resolve tuple aliases and array rests.
+ * @param includeExternalTypes - Whether finite tuple aliases may be external.
+ * @param substitutions - Authored substitutions active for this tuple source.
+ * @returns The unambiguous selected element, or `undefined` for out-of-range or sliding indexes.
  */
-export function getTupleElementTypeNodeAtSemanticIndex(
-	tupleTypeNode: ts.TupleTypeNode,
-	index: number,
-	semanticElementCount: number,
-): ts.TypeNode | undefined {
-	return getTupleElementSelectionAtSemanticIndex(tupleTypeNode, index, semanticElementCount)
-		?.typeNode;
-}
-
-interface TupleElementSelection {
-	typeNode: ts.TypeNode;
-	restSemanticIndex?: number;
-	restSemanticElementCount?: number;
-}
-
-// Rest selections retain their local checker index. A finite tuple spread uses
-// it to select the corresponding nested tuple member, while an open array rest
-// uses the same metadata for any literal index beyond the checker's placeholder.
-function getTupleElementSelectionAtSemanticIndex(
-	tupleTypeNode: ts.TupleTypeNode,
-	index: number,
-	semanticElementCount: number,
-): TupleElementSelection | undefined {
-	const restIndex = tupleTypeNode.elements.findIndex(isRestTupleElementNode);
-	if (restIndex === -1) {
-		const typeNode = tupleTypeNode.elements[index];
-		return typeNode ? { typeNode } : undefined;
-	}
-	if (index < restIndex) {
-		const typeNode = tupleTypeNode.elements[index];
-		return typeNode ? { typeNode } : undefined;
-	}
-
-	const suffixLength = tupleTypeNode.elements.length - restIndex - 1;
-	const semanticSuffixStart = semanticElementCount - suffixLength;
-	if (index >= semanticSuffixStart && index < semanticElementCount) {
-		const typeNode = tupleTypeNode.elements[restIndex + 1 + index - semanticSuffixStart];
-		return typeNode ? { typeNode } : undefined;
-	}
-
-	const typeNode = tupleTypeNode.elements[restIndex];
-	const restSemanticIndex = index - restIndex;
-	return {
-		typeNode,
-		restSemanticIndex,
-		restSemanticElementCount: Math.max(semanticSuffixStart - restIndex, restSemanticIndex + 1),
-	};
-}
-
-// Resolve rest selections recursively instead of replaying the authored spread
-// container. Alias bindings travel with finite tuple sources; open array rests
-// terminate at their element syntax.
 function getTupleIndexedElementSourceTypeNode(
-	selection: TupleElementSelection,
+	tupleTypeNode: ts.TupleTypeNode,
+	index: number,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seenTupleSources: Set<ts.TupleTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
-	const elementSyntax = unwrapTupleElementSyntax(selection.typeNode);
-	const elementTypeNode = substituteTypeParameterTypeNode(
-		elementSyntax.typeNode,
-		checker,
-		substitutions,
-	);
-	if (!elementSyntax.isRest) {
-		return elementTypeNode;
-	}
+	let remainingIndex = index;
+	for (const [elementIndex, element] of tupleTypeNode.elements.entries()) {
+		const elementSyntax = unwrapTupleElementSyntax(element);
+		const elementTypeNode = substituteTypeParameterTypeNode(
+			elementSyntax.typeNode,
+			checker,
+			substitutions,
+		);
+		if (!elementSyntax.isRest) {
+			if (remainingIndex === 0) {
+				return elementTypeNode;
+			}
+			remainingIndex -= 1;
+			continue;
+		}
 
-	const arrayElementTypeNode = getArrayIndexedElementTypeNode(
-		elementTypeNode,
-		checker,
-		includeExternalTypes,
-		substitutions,
-	);
-	if (arrayElementTypeNode) {
+		const tupleSource = getBoundTupleSourceTypeNode(
+			elementTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (tupleSource) {
+			if (seenTupleSources.has(tupleSource.typeNode)) {
+				return undefined;
+			}
+			const finiteElements = getFiniteTupleElementSourceTypeNodes(
+				tupleSource.typeNode,
+				checker,
+				includeExternalTypes,
+				tupleSource.substitutions,
+				new Set(seenTupleSources).add(tupleSource.typeNode),
+			);
+			if (!finiteElements) {
+				return undefined;
+			}
+			if (remainingIndex < finiteElements.length) {
+				return finiteElements[remainingIndex];
+			}
+			remainingIndex -= finiteElements.length;
+			continue;
+		}
+
+		const arrayElementTypeNode = getArrayIndexedElementTypeNode(
+			elementTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (!arrayElementTypeNode || elementIndex !== tupleTypeNode.elements.length - 1) {
+			return undefined;
+		}
 		return arrayElementTypeNode;
 	}
-	if (selection.restSemanticIndex == null || selection.restSemanticElementCount == null) {
-		return undefined;
+
+	return undefined;
+}
+
+/**
+ * Expands an authored tuple into its finite element sources.
+ *
+ * @param tupleTypeNode - Tuple source to flatten.
+ * @param checker - Checker used to follow finite tuple aliases.
+ * @param includeExternalTypes - Whether tuple aliases may be external.
+ * @param substitutions - Authored substitutions active for this tuple source.
+ * @param seenTupleSources - Tuple declarations already visited in the current expansion.
+ * @returns Substituted element nodes, or `undefined` when an open or recursive rest is encountered.
+ */
+function getFiniteTupleElementSourceTypeNodes(
+	tupleTypeNode: ts.TupleTypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenTupleSources: Set<ts.TupleTypeNode>,
+): readonly ts.TypeNode[] | undefined {
+	const elements: ts.TypeNode[] = [];
+	for (const element of tupleTypeNode.elements) {
+		const elementSyntax = unwrapTupleElementSyntax(element);
+		const elementTypeNode = substituteTypeParameterTypeNode(
+			elementSyntax.typeNode,
+			checker,
+			substitutions,
+		);
+		if (!elementSyntax.isRest) {
+			elements.push(elementTypeNode);
+			continue;
+		}
+
+		const tupleSource = getBoundTupleSourceTypeNode(
+			elementTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (!tupleSource || seenTupleSources.has(tupleSource.typeNode)) {
+			return undefined;
+		}
+		const nestedElements = getFiniteTupleElementSourceTypeNodes(
+			tupleSource.typeNode,
+			checker,
+			includeExternalTypes,
+			tupleSource.substitutions,
+			new Set(seenTupleSources).add(tupleSource.typeNode),
+		);
+		if (!nestedElements) {
+			return undefined;
+		}
+		elements.push(...nestedElements);
 	}
 
-	const tupleSource = getBoundTupleSourceTypeNode(
-		elementTypeNode,
-		checker,
-		includeExternalTypes,
-		substitutions,
-	);
-	if (!tupleSource || seenTupleSources.has(tupleSource.typeNode)) {
-		return undefined;
-	}
-	const nestedSelection = getTupleElementSelectionAtSemanticIndex(
-		tupleSource.typeNode,
-		selection.restSemanticIndex,
-		selection.restSemanticElementCount,
-	);
-	if (!nestedSelection) {
-		return undefined;
-	}
-
-	const nextSeenTupleSources = new Set(seenTupleSources);
-	nextSeenTupleSources.add(tupleSource.typeNode);
-	return getTupleIndexedElementSourceTypeNode(
-		nestedSelection,
-		checker,
-		includeExternalTypes,
-		tupleSource.substitutions,
-		nextSeenTupleSources,
-	);
+	return elements;
 }
 
 /**
