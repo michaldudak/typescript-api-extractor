@@ -77,6 +77,8 @@ export function resolveTypeParameterType(
 		const shouldPreserveConstraintSyntax = containsKeyofTypeOperatorOrAlias(
 			declaration.constraint,
 			checker,
+			new Set(),
+			session.context.includeExternalTypes,
 		);
 		const constraintType = shouldPreserveConstraintSyntax
 			? checker.getTypeAtLocation(declaration.constraint)
@@ -96,7 +98,12 @@ export function resolveTypeParameterType(
 		declaration?.default
 			? session.resolve(
 					checker.getTypeAtLocation(declaration.default),
-					containsKeyofTypeOperatorOrAlias(declaration.default, checker)
+					containsKeyofTypeOperatorOrAlias(
+						declaration.default,
+						checker,
+						new Set(),
+						session.context.includeExternalTypes,
+					)
 						? declaration.default
 						: undefined,
 				)

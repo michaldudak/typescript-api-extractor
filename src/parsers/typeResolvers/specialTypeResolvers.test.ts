@@ -101,3 +101,35 @@ it('reports conditional name warnings when the resolved type keeps the condition
 		]),
 	);
 });
+
+it('preserves expanded external keyof aliases in type parameter constraints and defaults', () => {
+	const filePath = '/virtual/external-keyof-type-parameter-consumer.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram({
+					[filePath]: `import type { Keys } from 'external-keyof-type-parameter-package';
+
+export type Generic<T extends Keys = Keys> = T;`,
+					'/virtual/node_modules/external-keyof-type-parameter-package/index.d.ts': `export interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+				}),
+				{ includeExternalTypes: true },
+			),
+		),
+	);
+	const typeParameter = moduleDefinition.exports[0]?.type;
+	const expectedOperator = { kind: 'typeOperator', operator: 'keyof' };
+
+	expect(typeParameter).toMatchObject({
+		kind: 'typeParameter',
+		name: 'T',
+		constraint: expectedOperator,
+		defaultValue: expectedOperator,
+	});
+});
