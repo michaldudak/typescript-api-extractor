@@ -2108,6 +2108,56 @@ export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };
 	]);
 });
 
+it('attributes nested fallback warnings to re-exported source syntax', () => {
+	const entryPath = '/virtual/keyof-warning-entry.ts';
+	const sourcePath = '/virtual/keyof-warning-source.ts';
+	const warnings: ParserWarning[] = [];
+	const program = createInMemoryProgram({
+		[entryPath]: `export { Holder, Box } from './keyof-warning-source';`,
+		[sourcePath]: `type Pattern = \`pattern-\${string}\`;
+
+export type PatternKeys = keyof {
+  [K in Pattern]: unknown;
+};
+
+export interface Holder {
+  value: PatternKeys;
+}
+
+export class Box {
+  value!: PatternKeys;
+}`,
+	});
+
+	parseFromProgram(entryPath, program, {
+		onWarning: (warning) => warnings.push(warning),
+	});
+
+	expect(warnings).toHaveLength(2);
+	expect(warnings).toMatchObject([
+		{
+			code: 'unsupported-type-fallback',
+			filePath: sourcePath,
+			line: 3,
+			column: 27,
+			parsedSymbolStack: [entryPath, 'Holder', 'property: value'],
+			typeFlags: ['TemplateLiteral'],
+			typeText: '`pattern-${string}`',
+			sourceText: 'keyof { [K in Pattern]: unknown; }',
+		},
+		{
+			code: 'unsupported-type-fallback',
+			filePath: sourcePath,
+			line: 3,
+			column: 27,
+			parsedSymbolStack: [entryPath, 'Box'],
+			typeFlags: ['TemplateLiteral'],
+			typeText: '`pattern-${string}`',
+			sourceText: 'keyof { [K in Pattern]: unknown; }',
+		},
+	]);
+});
+
 it('preserves undefined when an optional or explicit-union keyof result is never', () => {
 	const filePath = '/virtual/keyof-never-with-undefined.ts';
 	const moduleDefinition = parseSerializedModule(
