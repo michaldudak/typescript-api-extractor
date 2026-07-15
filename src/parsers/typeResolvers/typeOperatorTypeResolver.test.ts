@@ -2325,6 +2325,16 @@ export interface ConsumerProps {
 				member.intrinsic ?? member.value ?? member.kind,
 		),
 	).toEqual(['"first"', '"second"', 'array', 'number', 'undefined']);
+	const expectedReadonlyUnionArray = {
+		kind: 'array',
+		isReadonly: true,
+		elementType: {
+			kind: 'union',
+			types: [{ value: '"first"' }, { value: '"second"' }],
+		},
+	};
+	expect(unionValueType.types[2]).toMatchObject(expectedReadonlyUnionArray);
+	expect(indexedValueType.types[2]).toMatchObject(expectedReadonlyUnionArray);
 });
 
 it('preserves a local keyof argument substituted into an external indexed union', () => {
