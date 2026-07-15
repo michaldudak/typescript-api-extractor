@@ -1735,7 +1735,11 @@ export function select(value: Keys): Keys {
 
 export interface Values {
   [name: string]: Keys;
-}`,
+}
+
+export type MappedValues = {
+  [name in string]: Keys;
+};`,
 		'/virtual/node_modules/external-keyof-signatures/index.d.ts': `export interface Params {
   a: string;
   b: number;
@@ -1753,6 +1757,9 @@ export type Keys = keyof Params;`,
 	expect(signature.parameters[0].type).toMatchObject(expectedOperator);
 	expect(signature.returnValueType).toMatchObject(expectedOperator);
 	expect(exportByName('Values')?.type.indexSignature.valueType).toMatchObject(expectedOperator);
+	expect(exportByName('MappedValues')?.type.indexSignature.valueType).toMatchObject(
+		expectedOperator,
+	);
 });
 
 it('replays renamed keyof aliases from similarly named project directories', () => {

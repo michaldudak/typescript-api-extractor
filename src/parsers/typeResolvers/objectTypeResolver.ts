@@ -189,7 +189,13 @@ function buildIndexSignatureNode(
 	const stringIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.String);
 	const numberIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.Number);
 	const mappedTemplateContainsKeyof = Boolean(
-		mappedNode?.type && containsKeyofTypeOperatorOrAlias(mappedNode.type, checker),
+		mappedNode?.type &&
+		containsKeyofTypeOperatorOrAlias(
+			mappedNode.type,
+			checker,
+			new Set(),
+			context.includeExternalTypes,
+		),
 	);
 	const mappedIndexSignature =
 		mappedNode &&
