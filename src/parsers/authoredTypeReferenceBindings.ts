@@ -407,11 +407,20 @@ function referencedDeclarationMembersContainKeyof(
 			substituteArgumentTypes: true,
 			bodyForFreshSymbols: genericDeclaration,
 		}) ?? baseBindings;
-	return declarationMembersContainKeyof(
-		genericDeclaration,
-		checker,
-		includeExternalTypes,
-		bindings?.typeNodes,
+	return (
+		declarationMembersContainKeyof(
+			genericDeclaration,
+			checker,
+			includeExternalTypes,
+			bindings?.typeNodes,
+		) ||
+		followDeclarationHeritageBindings(
+			genericDeclaration,
+			checker,
+			includeExternalTypes,
+			bindings,
+			new Set(),
+		) != null
 	);
 }
 
