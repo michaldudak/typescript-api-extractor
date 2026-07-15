@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
-import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 
 /** Unwraps syntax that is transparent to type-operator resolution. */
 export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
@@ -201,7 +201,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		const declaration = getImportTypeAliasDeclaration(unwrapped, checker);
 		if (
 			!declaration ||
-			(!includeExternalTypes && isNodeModulesDeclaration(declaration)) ||
+			(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
 			seenAliases.has(declaration)
 		) {
 			return false;
@@ -231,7 +231,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		getTypeAliasDeclaration(unwrapped, checker) ?? findLocalTypeAliasDeclaration(unwrapped);
 	if (
 		!declaration ||
-		(!includeExternalTypes && isNodeModulesDeclaration(declaration)) ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
 		seenAliases.has(declaration)
 	) {
 		return false;

@@ -5,7 +5,7 @@ import {
 	isSemanticallyReadonlyTuple,
 	unwrapTupleElementSyntax,
 } from '../typeContainerUtils';
-import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
@@ -332,7 +332,7 @@ function getTupleTypeNodeSource(
 	if (
 		!declaration ||
 		seenAliases.has(declaration) ||
-		(!includeExternalTypes && isNodeModulesDeclaration(declaration))
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
 	) {
 		return undefined;
 	}

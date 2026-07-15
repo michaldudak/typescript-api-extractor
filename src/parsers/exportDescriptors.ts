@@ -3,7 +3,7 @@ import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
-import { isNodeModulesDeclaration } from './sourceFileUtils';
+import { declarationHasNodeModulesPathSegment } from './sourceFileUtils';
 import { analyzeTypeAliasSource } from './typeResolvers/authoredTypeAlias';
 
 interface ExportDescriptorResolutionState {
@@ -215,7 +215,7 @@ function shouldPreserveTypeAliasNode(
 	reexportedFrom: string | undefined,
 	includeExternalTypes: boolean,
 ): boolean {
-	const isExternal = isNodeModulesDeclaration(declaration);
+	const isExternal = declarationHasNodeModulesPathSegment(declaration);
 	if (isExternal && !reexportedFrom) {
 		return true;
 	}

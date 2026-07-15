@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { TypeName, withTypeName, type AnyType } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
-import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
@@ -184,7 +184,7 @@ function typeAliasContainsKeyofInSource(
 		return false;
 	}
 	seen.add(declaration);
-	if (!includeExternalTypes && isNodeModulesDeclaration(declaration)) {
+	if (!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) {
 		return false;
 	}
 	return typeNodeContainsKeyofInSource(declaration.type, seen, includeExternalTypes);
@@ -271,7 +271,7 @@ function typeAliasReferencesProjectImportInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): boolean {
-	if (seen.has(declaration) || isNodeModulesDeclaration(declaration)) {
+	if (seen.has(declaration) || declarationHasNodeModulesPathSegment(declaration)) {
 		return false;
 	}
 	seen.add(declaration);
@@ -384,7 +384,10 @@ function analyzeCheckerAliasReplay(
 	includeExternalTypes = false,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): CheckerAliasReplayAnalysis {
-	if (seen.has(declaration) || (!includeExternalTypes && isNodeModulesDeclaration(declaration))) {
+	if (
+		seen.has(declaration) ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
+	) {
 		return { containsKeyof: false, replayable: false };
 	}
 	seen.add(declaration);
@@ -405,7 +408,7 @@ function analyzeCheckerAliasReplay(
 		const referencedDeclaration = getTypeAliasDeclaration(typeNode, checker);
 		if (
 			!referencedDeclaration ||
-			(!includeExternalTypes && isNodeModulesDeclaration(referencedDeclaration))
+			(!includeExternalTypes && declarationHasNodeModulesPathSegment(referencedDeclaration))
 		) {
 			return { containsKeyof, replayable: false };
 		}
@@ -445,7 +448,7 @@ function concreteAliasReplaysKeyofObjectArgument(
 		return false;
 	}
 	const target = getGenericObjectDeclaration(reference, checker);
-	if (!target || (!includeExternalTypes && isNodeModulesDeclaration(target))) {
+	if (!target || (!includeExternalTypes && declarationHasNodeModulesPathSegment(target))) {
 		return false;
 	}
 

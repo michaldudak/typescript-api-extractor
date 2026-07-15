@@ -1,6 +1,11 @@
 import ts from 'typescript';
 import { expect, it } from 'vitest';
-import { isNodeModulesDeclaration, isNodeModulesSourceFile } from './sourceFileUtils';
+import {
+	declarationHasNodeModulesPathSegment,
+	hasNodeModulesPathSegment,
+	isNodeModulesDeclaration,
+	isNodeModulesSourceFile,
+} from './sourceFileUtils';
 
 function createTypeAliasSourceFile(fileName: string) {
 	const sourceFile = ts.createSourceFile(
@@ -27,3 +32,23 @@ it.each([
 	expect(isNodeModulesSourceFile(sourceFile)).toBe(true);
 	expect(isNodeModulesDeclaration(declaration)).toBe(true);
 });
+
+it.each(['/project/node_modules/pkg/index.d.ts', 'C:\\project\\node_modules\\pkg\\index.d.ts'])(
+	'recognizes actual node_modules path segments: %s',
+	(fileName) => {
+		const { sourceFile, declaration } = createTypeAliasSourceFile(fileName);
+
+		expect(hasNodeModulesPathSegment(sourceFile)).toBe(true);
+		expect(declarationHasNodeModulesPathSegment(declaration)).toBe(true);
+	},
+);
+
+it.each(['/project/node_modules_backup/pkg/index.d.ts', '/project/my_node_modules/pkg/index.d.ts'])(
+	'ignores similarly named directories when matching path segments: %s',
+	(fileName) => {
+		const { sourceFile, declaration } = createTypeAliasSourceFile(fileName);
+
+		expect(hasNodeModulesPathSegment(sourceFile)).toBe(false);
+		expect(declarationHasNodeModulesPathSegment(declaration)).toBe(false);
+	},
+);

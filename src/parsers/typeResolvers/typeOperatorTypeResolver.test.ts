@@ -1647,6 +1647,36 @@ export type WrappedUnion = OuterKeys | null;`,
 	});
 });
 
+it('replays renamed keyof aliases from similarly named project directories', () => {
+	const filePath = '/virtual/similar-node-modules-entry.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram({
+					[filePath]: "export { type Keys as RenamedKeys } from './my_node_modules/pkg';",
+					'/virtual/my_node_modules/pkg.ts': `interface Params {
+  a: string;
+  b: number;
+}
+export type Keys = keyof Params;`,
+				}),
+				{ includeExternalTypes: true },
+			),
+		),
+	);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'RenamedKeys',
+		reexportedFrom: 'Keys',
+		type: {
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+		},
+	});
+});
+
 it('keeps semantic result names off the operator and preserves unique-symbol identity', () => {
 	const filePath = '/virtual/keyof-result-identity.ts';
 	const program = createInMemoryProgram(
