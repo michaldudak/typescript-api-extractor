@@ -2210,6 +2210,31 @@ it('keeps external indexed-access union members in authored order after readonly
 	).toEqual(['string', 'array', 'number', 'undefined']);
 });
 
+it('does not replay operators from external indexed-access unions without expansion', () => {
+	const filePath = '/virtual/external-indexed-operator-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export interface ConsumerProps {
+  value?: import('external-operator-union-package').Props['value'] | undefined;
+}`,
+			'/virtual/node_modules/external-operator-union-package/index.d.ts': `interface Shape {
+  first: string;
+  second: number;
+}
+
+export interface Props {
+  value?: keyof Shape | boolean | undefined;
+}`,
+		}),
+	);
+	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	).type;
+
+	expect(JSON.stringify(valueType)).not.toContain('typeOperator');
+});
+
 it('keeps third-party keyof re-exports external unless expansion is enabled', () => {
 	const filePath = '/virtual/keyof-external-reexport.ts';
 	const packagePath = '/virtual/node_modules/keyof-package/index.d.ts';
