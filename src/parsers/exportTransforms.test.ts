@@ -21,7 +21,7 @@ const parserContext = {
 } as ParserContext;
 
 it('keeps typeOperatorOutput optional on the public parser context', () => {
-	expectTypeOf<{}>().toMatchTypeOf<Pick<ParserContext, 'typeOperatorOutput'>>();
+	expectTypeOf({}).toMatchTypeOf<Pick<ParserContext, 'typeOperatorOutput'>>();
 });
 
 function createFunctionNode(
