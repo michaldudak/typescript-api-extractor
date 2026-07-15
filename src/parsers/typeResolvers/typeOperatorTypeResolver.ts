@@ -12,6 +12,7 @@ import {
 } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
+import { unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
@@ -612,7 +613,7 @@ function getConcreteConditionalBranch(
  * Decides non-distributive fixed-tuple checks after substituting their element
  * parameters. TypeScript exposes `[T]` as an object type, so the root-only
  * semantic substitution used by ordinary conditionals cannot instantiate it.
- * Restricting this fallback to plain fixed tuples keeps the element-wise
+ * Restricting this fallback to fixed tuples keeps the element-wise
  * assignability test equivalent to the authored tuple relation.
  */
 function getFixedTupleConditionalDecision(
@@ -646,8 +647,8 @@ function getFixedTupleConditionalDecision(
 		ts.TypeFlags.Conditional |
 		ts.TypeFlags.Substitution;
 	for (let index = 0; index < checkTuple.elements.length; index += 1) {
-		const checkElementNode = checkTuple.elements[index]!;
-		const extendsElementNode = extendsTuple.elements[index]!;
+		const checkElementNode = unwrapTupleElementSyntax(checkTuple.elements[index]!).typeNode;
+		const extendsElementNode = unwrapTupleElementSyntax(extendsTuple.elements[index]!).typeNode;
 		const authoredCheckType = checker.getTypeFromTypeNode(checkElementNode);
 		const authoredExtendsType = checker.getTypeFromTypeNode(extendsElementNode);
 		if (
@@ -672,7 +673,8 @@ function getFixedTupleConditionalDecision(
 
 function isNonFixedTupleElement(typeNode: ts.TypeNode): boolean {
 	return (
-		ts.isNamedTupleMember(typeNode) ||
+		(ts.isNamedTupleMember(typeNode) &&
+			(typeNode.dotDotDotToken != null || typeNode.questionToken != null)) ||
 		ts.isOptionalTypeNode(typeNode) ||
 		ts.isRestTypeNode(typeNode)
 	);

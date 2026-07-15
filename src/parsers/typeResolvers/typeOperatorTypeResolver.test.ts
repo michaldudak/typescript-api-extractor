@@ -980,6 +980,11 @@ it('matches conditional branches after substituting ordinary branch parameters',
 			`type Select<T, U> = [T] extends [string] ? U : keyof { n: 1 };
 type SelectTrueKeyof<T, U> = [T] extends [string] ? keyof { n: 1 } : U;
 type SelectFalseKeyof<T, U> = [T] extends [string] ? U : keyof { n: 1 };
+interface LabeledTrue { n: 1 }
+interface LabeledFalse { n: 2 }
+type SelectLabeled<T> = [value: T] extends [value: string]
+  ? keyof LabeledTrue
+  : keyof LabeledFalse;
 type SelectNested<T> = [Promise<T>] extends [Promise<string>]
   ? keyof { nestedTrue: 1 }
   : keyof { nestedFalse: 1 };
@@ -991,6 +996,7 @@ export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
 export type TrueKeyof = SelectTrueKeyof<string, 'n'>;
 export type FalseKeyof = SelectFalseKeyof<number, 'n'>;
+export type LabeledTrueKeyof = SelectLabeled<string>;
 export type NestedTrueKeyof = SelectNested<string>;
 export type ArrayTrueKeyof = SelectArray<string>;`,
 		),
@@ -1015,10 +1021,16 @@ export type ArrayTrueKeyof = SelectArray<string>;`,
 	expect(moduleDefinition.exports[4]?.type).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',
+		type: { typeName: { name: 'LabeledTrue' } },
+		resolvedType: { kind: 'literal', value: '"n"' },
+	});
+	expect(moduleDefinition.exports[5]?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
 		type: { kind: 'object', properties: [{ name: 'nestedTrue' }] },
 		resolvedType: { kind: 'literal', value: '"nestedTrue"' },
 	});
-	expect(moduleDefinition.exports[5]?.type).toMatchObject({
+	expect(moduleDefinition.exports[6]?.type).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',
 		type: { kind: 'object', properties: [{ name: 'arrayTrue' }] },
