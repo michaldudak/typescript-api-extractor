@@ -9,8 +9,18 @@ export type TypeOperatorResolutionKind = 'exact' | 'baseConstraint' | 'fallback'
 
 /** Authored type-operator syntax with an optional checker-resolved result. */
 export class TypeOperatorNode implements TypeNode {
+	/** Stable model discriminator. */
 	readonly kind = 'typeOperator';
+	/** Optional public alias name for the complete operator. */
 	readonly typeName: TypeName | undefined;
+	/** Authored TypeScript operator. */
+	readonly operator: TypeOperator;
+	/** Authored operand of the operator. */
+	readonly type: AnyType;
+	/** Checker-resolved result, omitted from syntax-only output. */
+	readonly resolvedType: AnyType | undefined;
+	/** Provenance of `resolvedType`, omitted from syntax-only output. */
+	readonly resolutionKind: TypeOperatorResolutionKind | undefined;
 
 	/**
 	 * Creates a preserved type operator.
@@ -21,16 +31,30 @@ export class TypeOperatorNode implements TypeNode {
 	 * @param resolvedType - Checker-resolved operator result, omitted in syntax-only output.
 	 * @param resolutionKind - Provenance of `resolvedType`, omitted with the resolved result.
 	 */
+	constructor(typeName: TypeName | undefined, operator: TypeOperator, type: AnyType);
 	constructor(
 		typeName: TypeName | undefined,
-		readonly operator: TypeOperator,
-		readonly type: AnyType,
-		readonly resolvedType?: AnyType,
-		readonly resolutionKind: TypeOperatorResolutionKind | undefined = resolvedType
-			? 'exact'
-			: undefined,
+		operator: TypeOperator,
+		type: AnyType,
+		resolvedType: AnyType,
+		resolutionKind: TypeOperatorResolutionKind,
+	);
+	constructor(
+		typeName: TypeName | undefined,
+		operator: TypeOperator,
+		type: AnyType,
+		resolvedType?: AnyType,
+		resolutionKind?: TypeOperatorResolutionKind,
 	) {
+		if ((resolvedType === undefined) !== (resolutionKind === undefined)) {
+			throw new TypeError('resolvedType and resolutionKind must be provided together');
+		}
+
 		this.typeName = typeName?.name ? typeName : undefined;
+		this.operator = operator;
+		this.type = type;
+		this.resolvedType = resolvedType;
+		this.resolutionKind = resolutionKind;
 	}
 
 	/** @returns The authored operator expression or its public alias name. */

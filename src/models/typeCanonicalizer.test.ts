@@ -159,15 +159,34 @@ it('canonicalizes structurally equivalent type operator members', () => {
 	expect(new UnionNode(undefined, [firstOperator, secondOperator]).types).toEqual([firstOperator]);
 });
 
-it('defaults legacy type operator construction to exact resolution', () => {
+it('requires explicit provenance for resolved type operator construction', () => {
+	const resolvedType = new LiteralNode('"value"');
 	const operator = new TypeOperatorNode(
 		undefined,
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
-		new LiteralNode('"value"'),
+		resolvedType,
+		'exact',
+	);
+	const syntaxOnlyOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('T', undefined, undefined),
 	);
 
 	expect(operator.resolutionKind).toBe('exact');
+	expect(syntaxOnlyOperator.resolvedType).toBeUndefined();
+	expect(syntaxOnlyOperator.resolutionKind).toBeUndefined();
+	expect(() => {
+		// Exercise the runtime invariant for untyped JavaScript consumers. The
+		// public TypeScript overloads reject this four-argument call statically.
+		Reflect.construct(TypeOperatorNode, [
+			undefined,
+			'keyof',
+			syntaxOnlyOperator.type,
+			resolvedType,
+		]);
+	}).toThrow('resolvedType and resolutionKind must be provided together');
 });
 
 it('keeps type operators whose container operands differ by readonly', () => {
