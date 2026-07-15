@@ -1,7 +1,10 @@
 import ts from 'typescript';
 import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
-import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
+import {
+	declarationHasNodeModulesPathSegment,
+	hasNodeModulesPathSegment,
+} from '../sourceFileUtils';
 import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
@@ -277,7 +280,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
-		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker));
+		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker, includeExternalTypes));
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
@@ -459,11 +462,13 @@ export function flattenIntersectionTypeNodes(
  *
  * @param typeNode - Authored indexed-access syntax to follow.
  * @param checker - Checker used to resolve the object, index, and property symbols.
+ * @param includeExternalTypes - Whether selected syntax may come from external declarations.
  * @returns The terminal selected type node, or `undefined` when the access is not statically known.
  */
 export function getIndexedAccessSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
+	includeExternalTypes = false,
 ): ts.TypeNode | undefined {
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
@@ -473,7 +478,11 @@ export function getIndexedAccessSourceTypeNode(
 	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
 	const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
 	if (indexType.isNumberLiteral()) {
-		const tupleTypeNode = getTupleSourceTypeNode(unwrapped.objectType, checker);
+		const tupleTypeNode = getTupleSourceTypeNode(
+			unwrapped.objectType,
+			checker,
+			includeExternalTypes,
+		);
 		const tupleElementCount = checker.isTupleType(objectType)
 			? ((objectType as ts.TupleType).typeArguments?.length ?? tupleTypeNode?.elements.length ?? 0)
 			: (tupleTypeNode?.elements.length ?? 0);
@@ -485,7 +494,9 @@ export function getIndexedAccessSourceTypeNode(
 		}
 
 		const elementType = unwrapTupleElementSyntax(elementTypeNode).typeNode;
-		return getIndexedAccessSourceTypeNode(elementType, checker) ?? elementType;
+		return (
+			getIndexedAccessSourceTypeNode(elementType, checker, includeExternalTypes) ?? elementType
+		);
 	}
 
 	if (!indexType.isStringLiteral()) {
@@ -493,11 +504,17 @@ export function getIndexedAccessSourceTypeNode(
 	}
 	const property = objectType.getProperty(indexType.value);
 	const propertyTypeNode = getPropertyTypeNode(property, checker);
-	if (!propertyTypeNode) {
+	if (
+		!propertyTypeNode ||
+		(!includeExternalTypes && hasNodeModulesPathSegment(propertyTypeNode.getSourceFile()))
+	) {
 		return undefined;
 	}
 
-	return getIndexedAccessSourceTypeNode(propertyTypeNode, checker) ?? propertyTypeNode;
+	return (
+		getIndexedAccessSourceTypeNode(propertyTypeNode, checker, includeExternalTypes) ??
+		propertyTypeNode
+	);
 }
 
 /**
@@ -538,14 +555,18 @@ export function getTupleElementTypeNodeAtSemanticIndex(
  *
  * @param typeNode - Indexed-access syntax whose selected property should be traced.
  * @param checker - Checker used for property and alias resolution.
+ * @param includeExternalTypes - Whether tracing may enter external declarations.
  * @returns The terminal syntax containing `keyof`, or `undefined` when none is reachable.
  */
 export function getIndexedAccessKeyofSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
+	includeExternalTypes = false,
 ): ts.TypeNode | undefined {
-	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker);
-	return sourceTypeNode ? followTypeAliasToKeyofSource(sourceTypeNode, checker) : undefined;
+	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, includeExternalTypes);
+	return sourceTypeNode
+		? followTypeAliasToKeyofSource(sourceTypeNode, checker, includeExternalTypes)
+		: undefined;
 }
 
 /**
@@ -618,6 +639,7 @@ export function getPropertyTypeNode(
 function getTupleSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TupleTypeNode | undefined {
 	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
@@ -625,29 +647,41 @@ function getTupleSourceTypeNode(
 		return unwrapped;
 	}
 	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
-	if (!declaration || seen.has(declaration)) {
+	if (
+		!declaration ||
+		seen.has(declaration) ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
+	) {
 		return undefined;
 	}
 	seen.add(declaration);
-	return getTupleSourceTypeNode(declaration.type, checker, seen);
+	return getTupleSourceTypeNode(declaration.type, checker, includeExternalTypes, seen);
 }
 
 function followTypeAliasToKeyofSource(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TypeNode | undefined {
+	if (!includeExternalTypes && hasNodeModulesPathSegment(typeNode.getSourceFile())) {
+		return undefined;
+	}
 	if (containsKeyofTypeOperator(typeNode)) {
 		return typeNode;
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
-	if (!declaration || seen.has(declaration)) {
+	if (
+		!declaration ||
+		seen.has(declaration) ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
+	) {
 		return undefined;
 	}
 	seen.add(declaration);
-	return followTypeAliasToKeyofSource(declaration.type, checker, seen);
+	return followTypeAliasToKeyofSource(declaration.type, checker, includeExternalTypes, seen);
 }
 
 function findLocalTypeAliasDeclaration(

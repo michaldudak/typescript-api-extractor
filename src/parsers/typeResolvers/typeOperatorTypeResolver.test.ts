@@ -1725,6 +1725,36 @@ export type SymbolKeys = keyof { [iterator]: string };`,
 	});
 });
 
+it('does not trace external indexed-access syntax unless expansion is enabled', () => {
+	const filePath = '/virtual/keyof-external-indexed-access.ts';
+	const files = {
+		[filePath]: `export type Result = import('external-indexed-package').Pair[0];`,
+		'/virtual/node_modules/external-indexed-package/index.d.ts': `interface Params {
+  a: string;
+  b: number;
+}
+
+export type Pair = [keyof Params];`,
+	};
+	const parseWithExternalPolicy = (includeExternalTypes: boolean) =>
+		JSON.parse(
+			JSON.stringify(
+				parseFromProgram(filePath, createInMemoryProgram(files), { includeExternalTypes }),
+			),
+		);
+
+	expect(createExportLookup(parseWithExternalPolicy(false))('Result')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'literal', value: '"a"' },
+			{ kind: 'literal', value: '"b"' },
+		],
+	});
+	expect(createExportLookup(parseWithExternalPolicy(true))('Result')?.type).toMatchObject(
+		expectedKeyofOperator(),
+	);
+});
+
 it('keeps third-party keyof re-exports external unless expansion is enabled', () => {
 	const filePath = '/virtual/keyof-external-reexport.ts';
 	const packagePath = '/virtual/node_modules/keyof-package/index.d.ts';

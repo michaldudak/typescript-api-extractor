@@ -124,7 +124,11 @@ function resolveCollapsedTypeOperatorSyntax(
 	// resolvers so the reduced semantic type is not mistaken for the whole API.
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
-		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(unwrapped, session.context.checker);
+		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(
+			unwrapped,
+			session.context.checker,
+			session.context.includeExternalTypes,
+		);
 		if (sourceTypeNode) {
 			const substitutions = getIndexedAccessTypeParameterSubstitutions(unwrapped, session);
 			const resolveSource = () => resolveAuthoredTypeNode(sourceTypeNode, session, type);
