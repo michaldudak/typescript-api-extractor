@@ -772,23 +772,39 @@ export function getIndexedAccessSourceTypeNode(
 						includeExternalTypes,
 						substitutions,
 					);
-		if (!elementTypeNode) {
-			return undefined;
+		if (elementTypeNode) {
+			return (
+				getIndexedAccessSourceTypeNode(
+					elementTypeNode,
+					checker,
+					includeExternalTypes,
+					substitutions,
+				) ?? elementTypeNode
+			);
 		}
-		return (
-			getIndexedAccessSourceTypeNode(
-				elementTypeNode,
-				checker,
-				includeExternalTypes,
-				substitutions,
-			) ?? elementTypeNode
+		return getIndexSignatureSourceTypeNode(
+			objectType,
+			ts.IndexKind.Number,
+			checker,
+			includeExternalTypes,
+			substitutions,
 		);
 	}
 
-	if (!indexType.isStringLiteral()) {
-		return undefined;
+	if (indexType.flags & ts.TypeFlags.String) {
+		return getIndexSignatureSourceTypeNode(
+			objectType,
+			ts.IndexKind.String,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
 	}
-	const property = objectType.getProperty(indexType.value);
+	const property = indexType.isStringLiteral()
+		? objectType.getProperty(indexType.value)
+		: indexType.flags & ts.TypeFlags.UniqueESSymbol
+			? getUniqueSymbolProperty(objectType, indexType, checker)
+			: undefined;
 	const propertyTypeNode = getPropertyTypeNode(property, checker);
 	if (
 		!propertyTypeNode ||
@@ -804,6 +820,70 @@ export function getIndexedAccessSourceTypeNode(
 			includeExternalTypes,
 			substitutions,
 		) ?? propertyTypeNode
+	);
+}
+
+/**
+ * Follows a broad string or number selector to its authored index-signature
+ * value. The checker owns which declaration supplies the effective index, and
+ * the declaration's annotation supplies the syntax needed for `keyof` replay.
+ *
+ * @param objectType - Semantic object being indexed.
+ * @param indexKind - Broad string or number index selected by the access.
+ * @param checker - Checker used to locate the effective index information.
+ * @param includeExternalTypes - Whether external index declarations may be followed.
+ * @param substitutions - Active authored generic substitutions.
+ * @returns The terminal authored value source, or `undefined` when unavailable.
+ */
+function getIndexSignatureSourceTypeNode(
+	objectType: ts.Type,
+	indexKind: ts.IndexKind,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): ts.TypeNode | undefined {
+	const declaration = checker.getIndexInfoOfType(objectType, indexKind)?.declaration;
+	const valueTypeNode =
+		declaration && ts.isIndexSignatureDeclaration(declaration) ? declaration.type : undefined;
+	if (
+		!valueTypeNode ||
+		(!includeExternalTypes && hasNodeModulesPathSegment(valueTypeNode.getSourceFile()))
+	) {
+		return undefined;
+	}
+	return (
+		getIndexedAccessSourceTypeNode(valueTypeNode, checker, includeExternalTypes, substitutions) ??
+		valueTypeNode
+	);
+}
+
+/**
+ * Matches a unique-symbol index to the computed property whose declaration
+ * evaluates to the same checker type. Generated escaped property names include
+ * internal symbol IDs and cannot be reconstructed from `symbol.name` alone.
+ *
+ * @param objectType - Semantic object whose symbol-keyed property is needed.
+ * @param indexType - Unique-symbol type used by the indexed access.
+ * @param checker - Checker used to evaluate computed property expressions.
+ * @returns The matching property symbol, or `undefined` when no exact match exists.
+ */
+function getUniqueSymbolProperty(
+	objectType: ts.Type,
+	indexType: ts.Type,
+	checker: ts.TypeChecker,
+): ts.Symbol | undefined {
+	return objectType.getProperties().find((property) =>
+		property.declarations?.some((declaration) => {
+			const name = (declaration as ts.NamedDeclaration).name;
+			if (!name || !ts.isComputedPropertyName(name)) {
+				return false;
+			}
+			const propertyNameType = checker.getTypeAtLocation(name.expression);
+			return (
+				propertyNameType === indexType ||
+				areSemanticTypesEquivalent(propertyNameType, indexType, checker, 'exact')
+			);
+		}),
 	);
 }
 

@@ -1162,6 +1162,32 @@ export type SelectedTupleGeneric = SelectTuple<[keyof Left, keyof Right], 0 | 1>
 	}
 });
 
+it('reconstructs broad and unique-symbol indexed sources', () => {
+	const filePath = '/virtual/keyof-broad-symbol-indexed-access.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`declare const token: unique symbol;
+interface Params { a: string; b: number }
+interface Indexed {
+  [token]: keyof Params;
+  [key: string]: keyof Params;
+  [index: number]: keyof Params;
+}
+
+export type SymbolIndex = Indexed[typeof token];
+export type StringIndex = Indexed[string];
+export type NumberIndex = Indexed[number];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+
+	for (const name of ['SymbolIndex', 'StringIndex', 'NumberIndex']) {
+		expect(exportByName(name)?.type, name).toMatchObject(expectedKeyofOperator());
+	}
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
