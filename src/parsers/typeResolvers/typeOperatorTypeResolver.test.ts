@@ -1007,6 +1007,31 @@ type SelectConcrete<T> = [T] extends [string]
 type SelectNever<T> = [T] extends [never]
   ? keyof ConcreteTrueTarget
   : keyof ConcreteFalseTarget;
+type TupleWrap<T> = [T];
+type SelectAliasTuple<T> = TupleWrap<T> extends TupleWrap<string>
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+type SelectReadonlyUtility<T> = Readonly<[T]> extends Readonly<[string]>
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+type SelectNestedSameKey<T> = [Promise<T>] extends [Promise<string>]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+type SelectArraySameKey<T> = [T[]] extends [string[]]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+interface Contravariant<in T> {
+  (value: T): void;
+}
+interface Phantom<T> {
+  fixed: string;
+}
+type SelectContravariant<T> = [Contravariant<T>] extends [Contravariant<string>]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+type SelectPhantom<T> = [Phantom<T>] extends [Phantom<string>]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
 
 export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
@@ -1021,7 +1046,18 @@ export type ReadonlyMutableMismatchKeyof = SelectReadonlyToMutable<string>;
 export type AnyTrueKeyof = SelectConcrete<any>;
 export type NeverTrueKeyof = SelectNever<never>;
 export type NeverFalseKeyof = SelectNever<string>;
-export type AnyNeverFalseKeyof = SelectNever<any>;`,
+export type AnyNeverFalseKeyof = SelectNever<any>;
+export type AliasTupleTrueKeyof = SelectAliasTuple<string>;
+export type AliasTupleFalseKeyof = SelectAliasTuple<number>;
+export type ReadonlyUtilityTrueKeyof = SelectReadonlyUtility<string>;
+export type ReadonlyUtilityFalseKeyof = SelectReadonlyUtility<number>;
+export type NestedSameTrueKeyof = SelectNestedSameKey<string>;
+export type NestedSameFalseKeyof = SelectNestedSameKey<number>;
+export type ArraySameTrueKeyof = SelectArraySameKey<string>;
+export type ArraySameFalseKeyof = SelectArraySameKey<number>;
+export type ContravariantTrueKeyof = SelectContravariant<unknown>;
+export type ContravariantFalseKeyof = SelectContravariant<number>;
+export type PhantomTrueKeyof = SelectPhantom<number>;`,
 		),
 	);
 
@@ -1078,7 +1114,16 @@ export type AnyNeverFalseKeyof = SelectNever<any>;`,
 		type: { typeName: { name: 'ReadonlyFalseTarget' } },
 		resolvedType: { kind: 'literal', value: '"same"' },
 	});
-	for (const name of ['AnyTrueKeyof', 'NeverTrueKeyof']) {
+	for (const name of [
+		'AnyTrueKeyof',
+		'NeverTrueKeyof',
+		'AliasTupleTrueKeyof',
+		'ReadonlyUtilityTrueKeyof',
+		'NestedSameTrueKeyof',
+		'ArraySameTrueKeyof',
+		'ContravariantTrueKeyof',
+		'PhantomTrueKeyof',
+	]) {
 		expect(exportByName(name)?.type, name).toMatchObject({
 			kind: 'typeOperator',
 			operator: 'keyof',
@@ -1086,7 +1131,15 @@ export type AnyNeverFalseKeyof = SelectNever<any>;`,
 			resolvedType: { kind: 'literal', value: '"same"' },
 		});
 	}
-	for (const name of ['NeverFalseKeyof', 'AnyNeverFalseKeyof']) {
+	for (const name of [
+		'NeverFalseKeyof',
+		'AnyNeverFalseKeyof',
+		'AliasTupleFalseKeyof',
+		'ReadonlyUtilityFalseKeyof',
+		'NestedSameFalseKeyof',
+		'ArraySameFalseKeyof',
+		'ContravariantFalseKeyof',
+	]) {
 		expect(exportByName(name)?.type, name).toMatchObject({
 			kind: 'typeOperator',
 			operator: 'keyof',

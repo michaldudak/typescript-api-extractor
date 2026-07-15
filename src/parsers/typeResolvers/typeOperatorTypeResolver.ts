@@ -24,6 +24,7 @@ import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
+	getBoundTupleTypeNode,
 	getIndexedAccessKeyofSourceTypeNode,
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
@@ -589,12 +590,19 @@ function getConcreteConditionalBranch(
 	typeNode: ts.ConditionalTypeNode,
 	session: TypeResolutionSession,
 ): ts.TypeNode | undefined {
-	const { checker, typeParameterSubstitutions } = session.context;
+	const {
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
+	} = session.context;
 	const compositeDecision = getFixedTupleConditionalDecision(
 		typeNode.checkType,
 		typeNode.extendsType,
 		checker,
 		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
 	);
 	if (compositeDecision != null) {
 		return compositeDecision ? typeNode.trueType : typeNode.falseType;
@@ -651,12 +659,26 @@ function getFixedTupleConditionalDecision(
 	extendsTypeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes: boolean,
 ): boolean | undefined {
 	if (!substitutions?.size) {
 		return undefined;
 	}
-	const checkTupleSyntax = getFixedTupleConditionalSyntax(checkTypeNode);
-	const extendsTupleSyntax = getFixedTupleConditionalSyntax(extendsTypeNode);
+	const checkTupleSyntax = getBoundTupleTypeNode(
+		checkTypeNode,
+		checker,
+		substitutions,
+		typeNodeSubstitutions,
+		includeExternalTypes,
+	);
+	const extendsTupleSyntax = getBoundTupleTypeNode(
+		extendsTypeNode,
+		checker,
+		substitutions,
+		typeNodeSubstitutions,
+		includeExternalTypes,
+	);
 	if (!checkTupleSyntax || !extendsTupleSyntax) {
 		return undefined;
 	}
@@ -675,56 +697,210 @@ function getFixedTupleConditionalDecision(
 		return false;
 	}
 
-	const unresolvedFlags =
-		ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional | ts.TypeFlags.Substitution;
 	for (let index = 0; index < checkTuple.elements.length; index += 1) {
 		const checkElementNode = unwrapTupleElementSyntax(checkTuple.elements[index]!).typeNode;
 		const extendsElementNode = unwrapTupleElementSyntax(extendsTuple.elements[index]!).typeNode;
-		const authoredCheckType = checker.getTypeFromTypeNode(checkElementNode);
-		const authoredExtendsType = checker.getTypeFromTypeNode(extendsElementNode);
-		if (
-			(!(authoredCheckType.flags & ts.TypeFlags.TypeParameter) &&
-				typeNodeReferencesSubstitutedParameter(checkElementNode, checker, substitutions)) ||
-			(!(authoredExtendsType.flags & ts.TypeFlags.TypeParameter) &&
-				typeNodeReferencesSubstitutedParameter(extendsElementNode, checker, substitutions))
-		) {
+		const checkType = getInstantiatedConditionalElementType(
+			checkElementNode,
+			checker,
+			checkTupleSyntax.typeParameterSubstitutions,
+			checkTupleSyntax.typeParameterTypeNodeSubstitutions,
+		);
+		const extendsType = getInstantiatedConditionalElementType(
+			extendsElementNode,
+			checker,
+			extendsTupleSyntax.typeParameterSubstitutions,
+			extendsTupleSyntax.typeParameterTypeNodeSubstitutions,
+		);
+		if (!checkType || !extendsType) {
 			return undefined;
 		}
-		const checkType = substituteTypeParameter(authoredCheckType, substitutions);
-		const extendsType = substituteTypeParameter(authoredExtendsType, substitutions);
-		if (checkType.flags & unresolvedFlags || extendsType.flags & unresolvedFlags) {
-			return undefined;
-		}
-		if (!checker.isTypeAssignableTo(checkType, extendsType)) {
+		const elementDecision = getConditionalElementAssignableDecision(
+			checkType,
+			extendsType,
+			checker,
+		);
+		if (!elementDecision) {
 			return false;
 		}
 	}
 	return true;
 }
 
-interface FixedTupleConditionalSyntax {
-	typeNode: ts.TupleTypeNode;
-	isReadonly: boolean;
+function getConditionalElementAssignableDecision(
+	checkType: ts.Type,
+	extendsType: ts.Type,
+	checker: ts.TypeChecker,
+): boolean {
+	if (
+		checkType.flags & ts.TypeFlags.Object &&
+		extendsType.flags & ts.TypeFlags.Object &&
+		(checkType as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference &&
+		(extendsType as ts.ObjectType).objectFlags & ts.ObjectFlags.Reference
+	) {
+		const checkReference = checkType as ts.TypeReference;
+		const extendsReference = extendsType as ts.TypeReference;
+		if (checkReference.target === extendsReference.target) {
+			const checkArguments = checker.getTypeArguments(checkReference);
+			const extendsArguments = checker.getTypeArguments(extendsReference);
+			if (
+				checkArguments.length === extendsArguments.length &&
+				checkArguments.every(
+					(argument, index) =>
+						argument === extendsArguments[index] ||
+						areSemanticTypesEquivalent(argument, extendsArguments[index]!, checker),
+				)
+			) {
+				return true;
+			}
+		}
+	}
+	return checker.isTypeAssignableTo(checkType, extendsType);
 }
 
 /**
- * Unwraps the transparent syntax around a fixed-tuple conditional operand.
- * Readonly is retained as assignability metadata instead of discarded: mutable
- * tuples extend readonly tuples, but readonly tuples do not extend mutable ones.
+ * Instantiates one fixed-tuple element using the active generic bindings.
+ * TypeScript's public checker substitutes bare type parameters but does not
+ * expose an API for instantiating a nested `Promise<T>` or `T[]` type. For type
+ * references, its assignability engine reads `resolvedTypeArguments`; cloning
+ * that internal shape lets the checker itself retain responsibility for
+ * variance and structural compatibility. Unsupported semantic shapes remain
+ * unresolved so branch selection never guesses.
  *
- * @param typeNode - Authored conditional check or extends operand.
- * @returns The tuple and readonly state, or `undefined` for non-tuple syntax.
+ * @param typeNode - Authored fixed-tuple element syntax.
+ * @param checker - Checker used to obtain and compare semantic types.
+ * @param substitutions - Active semantic generic bindings.
+ * @param typeNodeSubstitutions - Active authored generic bindings.
+ * @returns The instantiated semantic type, or `undefined` when safe instantiation is unavailable.
  */
-function getFixedTupleConditionalSyntax(
+function getInstantiatedConditionalElementType(
 	typeNode: ts.TypeNode,
-): FixedTupleConditionalSyntax | undefined {
-	let unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	let isReadonly = false;
-	if (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
-		isReadonly = true;
-		unwrapped = unwrapParenthesizedTypeNode(unwrapped.type);
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): ts.Type | undefined {
+	const substitutedTypeNode = substituteTypeParameterTypeNode(
+		typeNode,
+		checker,
+		typeNodeSubstitutions,
+	);
+	const authoredType = checker.getTypeFromTypeNode(substitutedTypeNode);
+	const referencesSubstitution =
+		substitutions?.size &&
+		typeNodeReferencesSubstitutedParameter(substitutedTypeNode, checker, substitutions);
+	const instantiated = instantiateConditionalSemanticType(authoredType, checker, substitutions);
+	if (referencesSubstitution && !instantiated.changed) {
+		return undefined;
 	}
-	return ts.isTupleTypeNode(unwrapped) ? { typeNode: unwrapped, isReadonly } : undefined;
+	return containsUnresolvedConditionalType(instantiated.type, checker)
+		? undefined
+		: instantiated.type;
+}
+
+interface InstantiatedConditionalType {
+	type: ts.Type;
+	changed: boolean;
+}
+
+function instantiateConditionalSemanticType(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	seen: Set<ts.Type> = new Set(),
+): InstantiatedConditionalType {
+	if (!substitutions?.size || seen.has(type)) {
+		return { type, changed: false };
+	}
+	const substituted = substituteTypeParameter(type, substitutions);
+	if (substituted !== type) {
+		const nested = instantiateConditionalSemanticType(substituted, checker, substitutions, seen);
+		return { type: nested.type, changed: true };
+	}
+
+	const nextSeen = new Set(seen);
+	nextSeen.add(type);
+	if (type.isUnionOrIntersection()) {
+		const members = type.types.map((member) =>
+			instantiateConditionalSemanticType(member, checker, substitutions, nextSeen),
+		);
+		if (members.some((member) => member.changed)) {
+			return {
+				type: cloneSemanticType(type, { types: members.map((member) => member.type) }),
+				changed: true,
+			};
+		}
+	}
+
+	if (type.flags & ts.TypeFlags.Object) {
+		const objectType = type as ts.ObjectType;
+		if (objectType.objectFlags & ts.ObjectFlags.Reference) {
+			const reference = objectType as ts.TypeReference;
+			const arguments_ = checker.getTypeArguments(reference);
+			const instantiatedArguments = arguments_.map((argument) =>
+				instantiateConditionalSemanticType(argument, checker, substitutions, nextSeen),
+			);
+			if (instantiatedArguments.some((argument) => argument.changed)) {
+				return {
+					type: cloneSemanticType(reference, {
+						resolvedTypeArguments: instantiatedArguments.map((argument) => argument.type),
+						// These caches were resolved against the original type arguments.
+						// Clearing them makes the checker rebuild members from the cloned
+						// reference target and its instantiated arguments.
+						members: undefined,
+						properties: undefined,
+						callSignatures: undefined,
+						constructSignatures: undefined,
+						indexInfos: undefined,
+					}),
+					changed: true,
+				};
+			}
+		}
+	}
+
+	return { type, changed: false };
+}
+
+let nextConditionalSemanticTypeId = -1;
+
+function cloneSemanticType<T extends ts.Type>(type: T, overrides: object): T {
+	// Relation caches are keyed by TypeScript's internal type ID. A clone must
+	// not share the uninstantiated source's ID or an earlier generic comparison
+	// can be reused for different resolved type arguments.
+	const id = nextConditionalSemanticTypeId;
+	nextConditionalSemanticTypeId -= 1;
+	return Object.assign(Object.create(Object.getPrototypeOf(type)), type, { id }, overrides) as T;
+}
+
+function containsUnresolvedConditionalType(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	seen: Set<ts.Type> = new Set(),
+): boolean {
+	if (seen.has(type)) {
+		return false;
+	}
+	const unresolvedFlags =
+		ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional | ts.TypeFlags.Substitution;
+	if (type.flags & unresolvedFlags) {
+		return true;
+	}
+	const nextSeen = new Set(seen);
+	nextSeen.add(type);
+	if (type.isUnionOrIntersection()) {
+		return type.types.some((member) =>
+			containsUnresolvedConditionalType(member, checker, nextSeen),
+		);
+	}
+	if (type.flags & ts.TypeFlags.Object) {
+		const objectType = type as ts.ObjectType;
+		if (objectType.objectFlags & ts.ObjectFlags.Reference) {
+			return checker
+				.getTypeArguments(objectType as ts.TypeReference)
+				.some((argument) => containsUnresolvedConditionalType(argument, checker, nextSeen));
+		}
+	}
+	return false;
 }
 
 function isNonFixedTupleElement(typeNode: ts.TypeNode): boolean {

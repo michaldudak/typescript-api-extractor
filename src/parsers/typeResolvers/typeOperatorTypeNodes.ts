@@ -1102,8 +1102,15 @@ function getTupleSourceTypeNode(
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TupleTypeNode | undefined {
-	return getBoundTupleSourceTypeNode(typeNode, checker, includeExternalTypes, substitutions, seen)
-		?.typeNode;
+	return followBoundTupleTypeNode(
+		typeNode,
+		checker,
+		undefined,
+		substitutions,
+		includeExternalTypes,
+		seen,
+		false,
+	)?.typeNode;
 }
 
 interface BoundTupleSourceTypeNode {
@@ -1111,9 +1118,48 @@ interface BoundTupleSourceTypeNode {
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined;
 }
 
-// Tuple-spread aliases need their authored generic bindings when a local rest
-// index is resolved. Returning the bindings with the tuple source prevents a
-// nested alias body from being interpreted in its uninstantiated declaration.
+/** Bound authored tuple syntax and the generic substitutions active at its declaration. */
+export interface BoundTupleTypeNode {
+	/** Terminal tuple syntax after following transparent local aliases. */
+	typeNode: ts.TupleTypeNode;
+	/** Semantic generic bindings accumulated while following aliases. */
+	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined;
+	/** Authored generic bindings accumulated while following aliases. */
+	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined;
+	/** Whether a direct or utility wrapper made the terminal tuple readonly. */
+	isReadonly: boolean;
+}
+
+/**
+ * Follows tuple aliases while preserving semantic and authored generic
+ * bindings. Readonly wrappers are reported as metadata because callers that
+ * perform assignability checks must distinguish readonly-to-mutable tuples.
+ *
+ * @param typeNode - Authored tuple syntax or alias reference to follow.
+ * @param checker - Checker used to resolve aliases and semantic arguments.
+ * @param typeParameterSubstitutions - Active semantic generic bindings.
+ * @param typeParameterTypeNodeSubstitutions - Active authored generic bindings.
+ * @param includeExternalTypes - Whether traversal may enter external aliases.
+ * @returns The terminal bound tuple syntax, or `undefined` for unsupported or cyclic sources.
+ */
+export function getBoundTupleTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
+	includeExternalTypes = false,
+): BoundTupleTypeNode | undefined {
+	return followBoundTupleTypeNode(
+		typeNode,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
+		new Set(),
+		false,
+	);
+}
+
 function getBoundTupleSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
@@ -1121,37 +1167,84 @@ function getBoundTupleSourceTypeNode(
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): BoundTupleSourceTypeNode | undefined {
-	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
-	const unwrapped = unwrapReadonlyContainerTypeNode(substituted, checker, substitutions);
+	const source = followBoundTupleTypeNode(
+		typeNode,
+		checker,
+		undefined,
+		substitutions,
+		includeExternalTypes,
+		seen,
+		false,
+	);
+	return source
+		? {
+				typeNode: source.typeNode,
+				substitutions: source.typeParameterTypeNodeSubstitutions,
+			}
+		: undefined;
+}
+
+function followBoundTupleTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes: boolean,
+	seenAliases: Set<ts.TypeAliasDeclaration>,
+	isReadonly: boolean,
+): BoundTupleTypeNode | undefined {
+	const substituted = substituteTypeParameterTypeNode(
+		typeNode,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	const parenthesized = unwrapParenthesizedTypeNode(substituted);
+	const unwrapped = unwrapReadonlyContainerTypeNode(
+		parenthesized,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
+	const terminalIsReadonly = isReadonly || unwrapped !== parenthesized;
 	if (ts.isTupleTypeNode(unwrapped)) {
-		return { typeNode: unwrapped, substitutions };
+		return {
+			typeNode: unwrapped,
+			typeParameterSubstitutions,
+			typeParameterTypeNodeSubstitutions,
+			isReadonly: terminalIsReadonly,
+		};
 	}
 	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 	if (
 		!declaration ||
-		seen.has(declaration) ||
+		seenAliases.has(declaration) ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
 	) {
 		return undefined;
 	}
-	const nextSeen = new Set(seen);
-	nextSeen.add(declaration);
+	const nextSeenAliases = new Set(seenAliases);
+	nextSeenAliases.add(declaration);
 	const typeArguments =
 		ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)
 			? unwrapped.typeArguments
 			: undefined;
-	const aliasSubstitutions = getAliasTypeNodeSubstitutions(
-		declaration,
-		typeArguments,
+	const bindings = deriveTypeParameterBindings({
 		checker,
-		substitutions,
-	);
-	return getBoundTupleSourceTypeNode(
+		declarations: declaration.typeParameters,
+		authoredArguments: typeArguments,
+		baseTypes: typeParameterSubstitutions,
+		baseTypeNodes: typeParameterTypeNodeSubstitutions,
+		useDeclarationDefaults: true,
+		substituteArgumentTypes: true,
+		bodyForFreshSymbols: declaration.type,
+	});
+	return followBoundTupleTypeNode(
 		declaration.type,
 		checker,
+		bindings?.types ?? typeParameterSubstitutions,
+		bindings?.typeNodes ?? typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
-		aliasSubstitutions,
-		nextSeen,
+		nextSeenAliases,
+		terminalIsReadonly,
 	);
 }
 

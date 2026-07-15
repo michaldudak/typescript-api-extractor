@@ -5,12 +5,10 @@ import {
 	isSemanticallyReadonlyTuple,
 	unwrapTupleElementSyntax,
 } from '../typeContainerUtils';
-import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
-import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
-import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
+	getBoundTupleTypeNode,
 	getPreservableKeyofTypeNode,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -112,7 +110,7 @@ function resolveTupleElementSyntax(
 			checker,
 			typeParameterTypeNodeSubstitutions,
 		);
-		const tupleSource = getTupleTypeNodeSource(
+		const tupleSource = getBoundTupleTypeNode(
 			substitutedRestType,
 			checker,
 			typeParameterSubstitutions,
@@ -441,7 +439,7 @@ function getKnownTupleElementWidth(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	const tupleSource = getTupleTypeNodeSource(
+	const tupleSource = getBoundTupleTypeNode(
 		substituted,
 		checker,
 		typeParameterSubstitutions,
@@ -478,77 +476,4 @@ function getKnownTupleElementWidth(
 	return widths.every((width): width is number => width != null)
 		? widths.reduce((total, width) => total + width, 0)
 		: undefined;
-}
-
-interface TupleTypeNodeSource {
-	typeNode: ts.TupleTypeNode;
-	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
-	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
-}
-
-/**
- * Follows a tuple alias chain while carrying both semantic and authored generic
- * bindings. Defaults and earlier bindings are applied before descending so a
- * nested rest alias is interpreted in the same instantiation as the checker
- * tuple whose elements are being mapped.
- */
-function getTupleTypeNodeSource(
-	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
-	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
-	includeExternalTypes: boolean,
-	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
-): TupleTypeNodeSource | undefined {
-	const substituted = substituteTypeParameterTypeNode(
-		typeNode,
-		checker,
-		typeParameterTypeNodeSubstitutions,
-	);
-	const unwrapped = unwrapReadonlyContainerTypeNode(
-		substituted,
-		checker,
-		typeParameterTypeNodeSubstitutions,
-	);
-	if (ts.isTupleTypeNode(unwrapped)) {
-		return {
-			typeNode: unwrapped,
-			typeParameterSubstitutions,
-			typeParameterTypeNodeSubstitutions,
-		};
-	}
-	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
-	if (
-		!declaration ||
-		seenAliases.has(declaration) ||
-		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
-	) {
-		return undefined;
-	}
-
-	const nextAliases = new Set(seenAliases);
-	nextAliases.add(declaration);
-	const typeArguments = ts.isTypeReferenceNode(unwrapped)
-		? unwrapped.typeArguments
-		: ts.isImportTypeNode(unwrapped)
-			? unwrapped.typeArguments
-			: undefined;
-	const bindings = deriveTypeParameterBindings({
-		checker,
-		declarations: declaration.typeParameters,
-		authoredArguments: typeArguments,
-		baseTypes: typeParameterSubstitutions,
-		baseTypeNodes: typeParameterTypeNodeSubstitutions,
-		useDeclarationDefaults: true,
-		substituteArgumentTypes: true,
-	});
-
-	return getTupleTypeNodeSource(
-		declaration.type,
-		checker,
-		bindings?.types ?? new Map(typeParameterSubstitutions),
-		bindings?.typeNodes ?? new Map(typeParameterTypeNodeSubstitutions),
-		includeExternalTypes,
-		nextAliases,
-	);
 }
