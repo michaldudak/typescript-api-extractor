@@ -196,6 +196,41 @@ it('compares ordered type-operator key unions in linear work', () => {
 	expect(renderCount).toBeLessThanOrEqual(memberCount * 2);
 });
 
+it('rejects distinct type-operator operands before comparing resolved keys', () => {
+	let resolvedRenderCount = 0;
+	const createResolvedType = () =>
+		new UnionNode(
+			undefined,
+			Array.from({ length: 100 }, (_, index) => {
+				const member = new LiteralNode(`"key${index}"`);
+				Object.defineProperty(member, 'toString', {
+					value: () => {
+						resolvedRenderCount += 1;
+						return member.value;
+					},
+				});
+				return member;
+			}),
+		);
+	const firstOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('First', undefined, undefined),
+		createResolvedType(),
+		'exact',
+	);
+	const secondOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TypeParameterNode('Second', undefined, undefined),
+		createResolvedType(),
+		'exact',
+	);
+
+	expect(typeEquivalenceChecker.areEquivalentStrictly(firstOperator, secondOperator)).toBe(false);
+	expect(resolvedRenderCount).toBe(0);
+});
+
 it('requires explicit provenance for resolved type operator construction', () => {
 	const resolvedType = new LiteralNode('"value"');
 	const operator = new TypeOperatorNode(

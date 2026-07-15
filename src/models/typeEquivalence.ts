@@ -154,6 +154,17 @@ class TypeEquivalence {
 		}
 
 		if (type1 instanceof TypeOperatorNode && type2 instanceof TypeOperatorNode) {
+			// Resolved operator payloads can contain hundreds of keys and this comparison
+			// runs pairwise during union canonicalization. Reject different authored
+			// operators and operands before traversing that potentially large result.
+			if (
+				type1.operator !== type2.operator ||
+				type1.resolutionKind !== type2.resolutionKind ||
+				!this.areEquivalent(type1.type, type2.type, anyIsWildcard, typeParamRenames)
+			) {
+				return false;
+			}
+
 			const resolvedTypesAreEquivalent =
 				type1.resolvedType && type2.resolvedType
 					? this.areEquivalent(
@@ -163,12 +174,7 @@ class TypeEquivalence {
 							typeParamRenames,
 						)
 					: type1.resolvedType === type2.resolvedType;
-			return (
-				type1.operator === type2.operator &&
-				type1.resolutionKind === type2.resolutionKind &&
-				this.areEquivalent(type1.type, type2.type, anyIsWildcard, typeParamRenames) &&
-				resolvedTypesAreEquivalent
-			);
+			return resolvedTypesAreEquivalent;
 		}
 
 		if (type1 instanceof ExternalTypeNode && type2 instanceof ExternalTypeNode) {
