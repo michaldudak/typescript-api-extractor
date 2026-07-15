@@ -449,6 +449,8 @@ function buildObjectNodeFromType(
 						containsKeyofTypeOperatorOrAlias(
 							getPropertyTypeNode(property, context.checker),
 							context.checker,
+							new Set(),
+							context.includeExternalTypes,
 						);
 					return (
 						(ts.isPropertySignature(declaration) ||
