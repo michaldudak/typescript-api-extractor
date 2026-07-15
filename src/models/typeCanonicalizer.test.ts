@@ -6,6 +6,7 @@ import {
 	IntrinsicNode,
 	LiteralNode,
 	Parameter,
+	TupleNode,
 	TypeOperatorNode,
 	TypeParameterNode,
 	UnionNode,
@@ -213,4 +214,52 @@ it('keeps type operators whose container operands differ by readonly', () => {
 		mutableOperator,
 		readonlyOperator,
 	]);
+});
+
+it('keeps type operators whose tuple operands differ by readonly', () => {
+	const resolvedType = new LiteralNode('"0"');
+	const mutableOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TupleNode(undefined, [new IntrinsicNode('string')]),
+		resolvedType,
+		'exact',
+	);
+	const readonlyOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		new TupleNode(undefined, [new IntrinsicNode('string')], true),
+		resolvedType,
+		'exact',
+	);
+
+	expect(typeEquivalenceChecker.areEquivalentStrictly(mutableOperator, readonlyOperator)).toBe(
+		false,
+	);
+	expect(new UnionNode(undefined, [mutableOperator, readonlyOperator]).types).toEqual([
+		mutableOperator,
+		readonlyOperator,
+	]);
+});
+
+it('keeps type operators whose resolved-result provenance differs', () => {
+	const operators = (['exact', 'baseConstraint', 'fallback'] as const).map(
+		(resolutionKind) =>
+			new TypeOperatorNode(
+				undefined,
+				'keyof',
+				new TypeParameterNode('T', undefined, undefined),
+				new LiteralNode('"value"'),
+				resolutionKind,
+			),
+	);
+
+	for (let leftIndex = 0; leftIndex < operators.length; leftIndex += 1) {
+		for (let rightIndex = leftIndex + 1; rightIndex < operators.length; rightIndex += 1) {
+			expect(
+				typeEquivalenceChecker.areEquivalentStrictly(operators[leftIndex], operators[rightIndex]),
+			).toBe(false);
+		}
+	}
+	expect(new UnionNode(undefined, operators).types).toEqual(operators);
 });
