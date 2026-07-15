@@ -751,6 +751,60 @@ export type WrappedGeneric = WrappedList<keyof Params>[number];`,
 	expect(wrappedGenericOperator?.resolvedType).not.toHaveProperty('typeName');
 });
 
+it('preserves keyof inside built-in Readonly array and tuple utilities', () => {
+	const filePath = '/virtual/keyof-readonly-utility-containers.ts';
+	const program = createInMemoryProgram(
+		filePath,
+		`interface Params {
+  a: string;
+  b: number;
+}
+
+type ReadonlyWrapper<T> = Readonly<T>;
+
+export type UtilityArray = Readonly<(keyof Params)[]>;
+export type UtilityArrayElement = Readonly<(keyof Params)[]>[number];
+export type UtilityTuple = Readonly<[keyof Params]>;
+export type UtilityTupleElement = Readonly<[keyof Params]>[number];
+export type WrappedArray = ReadonlyWrapper<(keyof Params)[]>;
+export type WrappedArrayElement = ReadonlyWrapper<(keyof Params)[]>[number];
+export type WrappedTuple = ReadonlyWrapper<[keyof Params]>;
+export type WrappedTupleElement = ReadonlyWrapper<[keyof Params]>[number];`,
+	);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const includeExternalTypes of [false, true]) {
+		const moduleDefinition = JSON.parse(
+			JSON.stringify(parseFromProgram(filePath, program, { includeExternalTypes })),
+		);
+		const exportByName = createExportLookup(moduleDefinition);
+		for (const name of ['UtilityArray', 'WrappedArray']) {
+			expect(exportByName(name)?.type, `${name}:${includeExternalTypes}`).toMatchObject({
+				kind: 'array',
+				isReadonly: true,
+				elementType: expectedOperator,
+			});
+		}
+		for (const name of ['UtilityArrayElement', 'WrappedArrayElement']) {
+			expect(exportByName(name)?.type, `${name}:${includeExternalTypes}`).toMatchObject(
+				expectedOperator,
+			);
+		}
+		for (const name of ['UtilityTuple', 'WrappedTuple']) {
+			expect(exportByName(name)?.type, `${name}:${includeExternalTypes}`).toMatchObject({
+				kind: 'tuple',
+				isReadonly: true,
+				types: [expectedOperator],
+			});
+		}
+		for (const name of ['UtilityTupleElement', 'WrappedTupleElement']) {
+			expect(exportByName(name)?.type, `${name}:${includeExternalTypes}`).toMatchObject(
+				expectedOperator,
+			);
+		}
+	}
+});
+
 it('reconstructs fixed tuple members selected by a number index', () => {
 	const filePath = '/virtual/keyof-tuple-number-indexed-access.ts';
 	const moduleDefinition = parseSerializedModule(
@@ -2926,9 +2980,11 @@ it('does not treat locally shadowed Array names as built-in containers', () => {
 
 type Array<Ignored> = string[];
 type ReadonlyArray<Ignored> = number[];
+type Readonly<Ignored> = boolean[];
 
 export type Mutable = Array<keyof Params>;
-export type Readonly = ReadonlyArray<keyof Params>;`,
+export type ReadonlyValues = ReadonlyArray<keyof Params>;
+export type ShadowedUtility = Readonly<keyof Params>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -2938,11 +2994,16 @@ export type Readonly = ReadonlyArray<keyof Params>;`,
 		elementType: { kind: 'intrinsic', intrinsic: 'string' },
 	});
 	expect(exportByName('Mutable')?.type).not.toHaveProperty('isReadonly');
-	expect(exportByName('Readonly')?.type).toMatchObject({
+	expect(exportByName('ReadonlyValues')?.type).toMatchObject({
 		kind: 'array',
 		elementType: { kind: 'intrinsic', intrinsic: 'number' },
 	});
-	expect(exportByName('Readonly')?.type).not.toHaveProperty('isReadonly');
+	expect(exportByName('ReadonlyValues')?.type).not.toHaveProperty('isReadonly');
+	expect(exportByName('ShadowedUtility')?.type).toMatchObject({
+		kind: 'array',
+		elementType: { kind: 'intrinsic', intrinsic: 'boolean' },
+	});
+	expect(exportByName('ShadowedUtility')?.type).not.toHaveProperty('isReadonly');
 });
 
 it('does not change unrelated tuple member aliases when a sibling uses keyof', () => {

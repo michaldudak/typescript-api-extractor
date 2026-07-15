@@ -92,7 +92,11 @@ export function getArrayElementTypeNode(
 		return undefined;
 	}
 
-	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	const unwrapped = unwrapReadonlyContainerTypeNode(
+		typeNode,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
 	let elementType: ts.TypeNode | undefined;
 	if (ts.isArrayTypeNode(unwrapped)) {
 		elementType = unwrapped.elementType;

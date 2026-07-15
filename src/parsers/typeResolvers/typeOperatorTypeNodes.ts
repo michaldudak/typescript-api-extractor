@@ -24,18 +24,76 @@ export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode 
 }
 
 /**
- * Removes parentheses and readonly operators while locating an array or tuple container.
+ * Removes parentheses, readonly operators, and TypeScript's built-in
+ * `Readonly<T>` utility while locating an array or tuple container. The
+ * checker-backed utility test prevents a user-defined alias with the same name
+ * from being treated as transparent.
  *
  * @param typeNode - Authored container syntax to unwrap.
+ * @param checker - Optional checker used to identify the built-in `Readonly` alias.
+ * @param substitutions - Active authored generic substitutions applied after each wrapper.
  * @returns The underlying non-readonly container node.
  */
-export function unwrapReadonlyContainerTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
+export function unwrapReadonlyContainerTypeNode(
+	typeNode: ts.TypeNode,
+	checker?: ts.TypeChecker,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+): ts.TypeNode {
 	let unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	while (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
-		unwrapped = unwrapParenthesizedTypeNode(unwrapped.type);
+	while (true) {
+		if (checker) {
+			const substituted = substituteTypeParameterTypeNode(unwrapped, checker, substitutions);
+			if (substituted !== unwrapped) {
+				unwrapped = unwrapParenthesizedTypeNode(substituted);
+				continue;
+			}
+		}
+		if (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
+			unwrapped = unwrapParenthesizedTypeNode(unwrapped.type);
+			continue;
+		}
+		if (checker && isBuiltInReadonlyUtilityReference(unwrapped, checker)) {
+			unwrapped = unwrapParenthesizedTypeNode(unwrapped.typeArguments![0]!);
+			continue;
+		}
+		break;
 	}
 
 	return unwrapped;
+}
+
+function isBuiltInReadonlyUtilityReference(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): typeNode is ts.TypeReferenceNode & { typeArguments: ts.NodeArray<ts.TypeNode> } {
+	if (!ts.isTypeReferenceNode(typeNode) || typeNode.typeArguments?.length !== 1) {
+		return false;
+	}
+
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return (
+		targetSymbol?.name === 'Readonly' &&
+		Boolean(targetSymbol.declarations?.some(isBuiltInReadonlyUtilityDeclaration))
+	);
+}
+
+/**
+ * Identifies TypeScript's built-in `Readonly<T>` alias declaration. A name
+ * check alone is insufficient because projects may shadow `Readonly` locally.
+ *
+ * @param declaration - Declaration proposed as the built-in utility alias.
+ * @returns Whether the declaration is `Readonly` from a TypeScript lib file.
+ */
+export function isBuiltInReadonlyUtilityDeclaration(
+	declaration: ts.Declaration,
+): declaration is ts.TypeAliasDeclaration {
+	return (
+		ts.isTypeAliasDeclaration(declaration) &&
+		declaration.name.text === 'Readonly' &&
+		/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName)
+	);
 }
 
 /**
@@ -221,7 +279,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	}
 
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
-	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted, checker, substitutions);
 	if (getKeyofTypeOperatorNode(unwrapped)) {
 		return true;
 	}
@@ -611,7 +669,7 @@ function getArrayIndexedElementTypeNode(
 	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TypeNode | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
-	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted, checker, substitutions);
 	if (ts.isArrayTypeNode(unwrapped)) {
 		return substituteTypeParameterTypeNode(unwrapped.elementType, checker, substitutions);
 	}
@@ -789,7 +847,7 @@ function getTupleSourceTypeNode(
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TupleTypeNode | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
-	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted, checker, substitutions);
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return unwrapped;
 	}

@@ -8,6 +8,7 @@ import {
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeNodeSubstitution,
+	isBuiltInReadonlyUtilityDeclaration,
 	isRelativeImportedTypeReference,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -77,6 +78,18 @@ export function resolveAuthoredKeyofAlias(
 	}
 	const plan = getAuthoredKeyofReplayPlan(request, session);
 	if (!plan) {
+		return undefined;
+	}
+	if (
+		isBuiltInReadonlyUtilityDeclaration(plan.reference.declaration) ||
+		(!session.context.includeExternalTypes &&
+			declarationHasNodeModulesPathSegment(plan.reference.declaration))
+	) {
+		// A local alias can semantically retain its own alias symbol while its
+		// authored syntax points at another alias. Check the declaration selected by
+		// the replay plan so external mapped bodies do not replace the invocation.
+		// Built-in `Readonly<T>` stays transparent in both expansion modes because
+		// its mapped body discards the original array or tuple element syntax.
 		return undefined;
 	}
 	const { reference, bindings, typeName, replayTypeNode } = plan;

@@ -350,7 +350,11 @@ function buildTupleElementSelectionPlan(
 		return undefined;
 	}
 
-	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	const unwrapped = unwrapReadonlyContainerTypeNode(
+		typeNode,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
 	if (!ts.isTupleTypeNode(unwrapped)) {
 		return undefined;
 	}
@@ -483,7 +487,11 @@ function getTupleTypeNodeSource(
 		checker,
 		typeParameterTypeNodeSubstitutions,
 	);
-	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	const unwrapped = unwrapReadonlyContainerTypeNode(
+		substituted,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+	);
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return {
 			typeNode: unwrapped,
