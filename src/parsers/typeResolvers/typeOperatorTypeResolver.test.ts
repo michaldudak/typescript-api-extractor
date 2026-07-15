@@ -1046,11 +1046,18 @@ interface Fields {
   b: keyof Right;
   c?: keyof Params;
 }
+type ParamsKeys = keyof Params;
+interface OptionalFields {
+  aliased?: ParamsKeys;
+  wrapped?: Promise<keyof Params>;
+}
 
 export type OpenResult = Open<Params>;
 export type OptionalResult = Optional<Params>;
 export type SelectedFields = Fields['a' | 'b'];
-export type SelectedOptionalField = Fields['a' | 'c'];`,
+export type SelectedOptionalField = Fields['a' | 'c'];
+export type SelectedAliasedOptional = OptionalFields['aliased'];
+export type SelectedWrappedOptional = OptionalFields['wrapped'];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1085,6 +1092,23 @@ export type SelectedOptionalField = Fields['a' | 'c'];`,
 		types: [
 			operatorFor('Left', ['left']),
 			paramsOperator,
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+	expect(exportByName('SelectedAliasedOptional')?.type).toMatchObject({
+		kind: 'union',
+		types: [paramsOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
+	});
+	expect(exportByName('SelectedWrappedOptional')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'external',
+				typeName: {
+					name: 'Promise',
+					typeArguments: [{ type: paramsOperator }],
+				},
+			},
 			{ kind: 'intrinsic', intrinsic: 'undefined' },
 		],
 	});

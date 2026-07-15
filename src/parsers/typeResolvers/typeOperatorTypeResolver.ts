@@ -242,6 +242,9 @@ function resolveCollapsedTypeOperatorSyntax(
 			authoredSubstitutions,
 		);
 		if (sourceTypeNode) {
+			if (getUndefinedUnionMember(type)) {
+				return resolveSourceMembers([sourceTypeNode]);
+			}
 			// A root `keyof` expression has the same semantic result as the indexed access,
 			// so its already-instantiated type is a useful override. A containing wrapper
 			// such as `Promise<T>` does not: passing the indexed result as its override would
