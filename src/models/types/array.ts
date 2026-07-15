@@ -34,8 +34,20 @@ export class ArrayNode implements TypeNode {
 		}
 
 		const renderedElement = this.elementType.toString();
+		// TypeScript's `readonly` modifier binds to the immediately following
+		// array or tuple. Parenthesize an unaliased readonly container when it is
+		// itself an array element so the modifier does not move to this array.
+		const isReadonlyContainer =
+			(this.elementType.kind === 'array' &&
+				!this.elementType.typeName &&
+				this.elementType.isReadonly) ||
+			(this.elementType.kind === 'tuple' &&
+				!this.elementType.typeName &&
+				this.elementType.isReadonly);
 		const element =
-			this.elementType.kind === 'typeOperator' || this.elementType.kind === 'function'
+			this.elementType.kind === 'typeOperator' ||
+			this.elementType.kind === 'function' ||
+			isReadonlyContainer
 				? `(${renderedElement})`
 				: renderedElement;
 		return `${this.isReadonly ? 'readonly ' : ''}${element}[]`;
