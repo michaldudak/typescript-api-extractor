@@ -17,6 +17,7 @@ import {
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
+import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
 /**
  * Resolves unions while preserving authored member order and source-only operator syntax.
@@ -309,21 +310,20 @@ function getAuthoredUnionAlias(
 		return { declaration: semanticDeclaration, typeArguments: type.aliasTypeArguments };
 	}
 
-	if (!typeNode || !ts.isTypeReferenceNode(typeNode)) {
-		return undefined;
-	}
-
-	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	const declaration = targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
+	const unwrappedTypeNode = typeNode ? unwrapParenthesizedTypeNode(typeNode) : undefined;
+	const declaration = getReferencedTypeAliasDeclaration(unwrappedTypeNode, checker);
 	if (!declaration || !ts.isUnionTypeNode(declaration.type)) {
 		return undefined;
 	}
+	const typeArguments =
+		unwrappedTypeNode &&
+		(ts.isTypeReferenceNode(unwrappedTypeNode) || ts.isImportTypeNode(unwrappedTypeNode))
+			? unwrappedTypeNode.typeArguments
+			: undefined;
 
 	return {
 		declaration,
-		typeArguments: typeNode.typeArguments?.map((argument) => checker.getTypeFromTypeNode(argument)),
+		typeArguments: typeArguments?.map((argument) => checker.getTypeFromTypeNode(argument)),
 	};
 }
 

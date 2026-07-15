@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
+import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
 /**
  * Removes parenthesized wrappers that are transparent to type-operator resolution.
@@ -258,7 +259,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker));
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
-		const declaration = getImportTypeAliasDeclaration(unwrapped, checker);
+		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 		if (
 			!declaration ||
 			(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
@@ -288,7 +289,8 @@ export function containsKeyofTypeOperatorOrAlias(
 	}
 
 	const declaration =
-		getTypeAliasDeclaration(unwrapped, checker) ?? findLocalTypeAliasDeclaration(unwrapped);
+		getReferencedTypeAliasDeclaration(unwrapped, checker) ??
+		findLocalTypeAliasDeclaration(unwrapped);
 	if (
 		!declaration ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
@@ -500,11 +502,7 @@ function getTupleSourceTypeNode(
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return unwrapped;
 	}
-	if (!ts.isTypeReferenceNode(unwrapped)) {
-		return undefined;
-	}
-
-	const declaration = getTypeAliasDeclaration(unwrapped, checker);
+	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 	if (!declaration || seen.has(declaration)) {
 		return undefined;
 	}
@@ -522,38 +520,12 @@ function followTypeAliasToKeyofSource(
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (!ts.isTypeReferenceNode(unwrapped)) {
-		return undefined;
-	}
-	const declaration = getTypeAliasDeclaration(unwrapped, checker);
+	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 	if (!declaration || seen.has(declaration)) {
 		return undefined;
 	}
 	seen.add(declaration);
 	return followTypeAliasToKeyofSource(declaration.type, checker, seen);
-}
-
-function getTypeAliasDeclaration(
-	typeNode: ts.TypeReferenceNode,
-	checker: ts.TypeChecker,
-): ts.TypeAliasDeclaration | undefined {
-	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
-}
-
-function getImportTypeAliasDeclaration(
-	typeNode: ts.ImportTypeNode,
-	checker: ts.TypeChecker,
-): ts.TypeAliasDeclaration | undefined {
-	if (!typeNode.qualifier) {
-		return undefined;
-	}
-	const symbol = checker.getSymbolAtLocation(typeNode.qualifier);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
 }
 
 function findLocalTypeAliasDeclaration(

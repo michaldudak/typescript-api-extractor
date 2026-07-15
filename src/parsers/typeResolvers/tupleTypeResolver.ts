@@ -9,6 +9,7 @@ import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
+import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
 	getPreservableKeyofTypeNode,
 	getTupleElementTypeNodeAtSemanticIndex,
@@ -392,22 +393,4 @@ function getTupleTypeNodeSource(
 		includeExternalTypes,
 		nextAliases,
 	);
-}
-
-function getReferencedTypeAliasDeclaration(
-	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-): ts.TypeAliasDeclaration | undefined {
-	const location = ts.isTypeReferenceNode(typeNode)
-		? typeNode.typeName
-		: ts.isImportTypeNode(typeNode)
-			? typeNode.qualifier
-			: undefined;
-	if (!location) {
-		return undefined;
-	}
-	const symbol = checker.getSymbolAtLocation(location);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
 }

@@ -13,6 +13,7 @@ import {
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
+import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
 interface AuthoredTypeAliasReference {
 	declaration: ts.TypeAliasDeclaration;
@@ -430,12 +431,9 @@ function analyzeCheckerAliasReplay(
 	}
 
 	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
-	if (ts.isTypeReferenceNode(typeNode)) {
-		const referencedDeclaration = getTypeAliasDeclaration(typeNode, checker);
-		if (
-			!referencedDeclaration ||
-			(!includeExternalTypes && declarationHasNodeModulesPathSegment(referencedDeclaration))
-		) {
+	const referencedDeclaration = getReferencedTypeAliasDeclaration(typeNode, checker);
+	if (referencedDeclaration) {
+		if (!includeExternalTypes && declarationHasNodeModulesPathSegment(referencedDeclaration)) {
 			return { containsKeyof, replayable: false };
 		}
 		const referencedAnalysis = analyzeCheckerAliasReplay(
@@ -530,19 +528,12 @@ function getTypeAliasReferenceFromTypeNode(
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (ts.isImportTypeNode(unwrapped) && unwrapped.qualifier) {
-		const symbol = checker.getSymbolAtLocation(unwrapped.qualifier);
-		const targetSymbol =
-			symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-		const declaration = targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
-		return declaration ? { declaration, typeArgumentNodes: unwrapped.typeArguments } : undefined;
-	}
-	if (!ts.isTypeReferenceNode(unwrapped)) {
-		return undefined;
-	}
-
-	const declaration = getTypeAliasDeclaration(unwrapped, checker);
-	return declaration ? { declaration, typeArgumentNodes: unwrapped.typeArguments } : undefined;
+	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
+	const typeArgumentNodes =
+		ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)
+			? unwrapped.typeArguments
+			: undefined;
+	return declaration ? { declaration, typeArgumentNodes } : undefined;
 }
 
 /** Returns TypeScript's retained alias identity when no authored reference is available. */
@@ -585,16 +576,6 @@ function getAuthoredAliasReference(
 	// A concrete body node must be resolved as written. Falling back to the
 	// semantic alias here would re-enter the alias while replaying its own body.
 	return typeNode ? undefined : getSemanticTypeAliasReference(type);
-}
-
-function getTypeAliasDeclaration(
-	typeNode: ts.TypeReferenceNode,
-	checker: ts.TypeChecker,
-): ts.TypeAliasDeclaration | undefined {
-	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
 }
 
 function getOuterAliasTypeName(
