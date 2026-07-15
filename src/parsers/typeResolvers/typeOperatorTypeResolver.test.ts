@@ -1188,6 +1188,51 @@ export type NumberIndex = Indexed[number];`,
 	}
 });
 
+it('instantiates finite and symbol generic indexed operands', () => {
+	const filePath = '/virtual/keyof-generic-indexed-operands.ts';
+	const program = createInMemoryProgram(
+		filePath,
+		`declare const token: unique symbol;
+interface Left { common: string; left: boolean }
+interface Right { common: number; right: boolean }
+interface Fields { a: Left; b: Right }
+interface SymbolFields { [token]: Left }
+type Keys<T, P extends keyof T = keyof T> = keyof T[P];
+
+export type All = Keys<Fields>;
+export type SymbolValue = Keys<SymbolFields, typeof token>;`,
+	);
+	const parseWithMode = (typeOperatorOutput: 'resolved' | 'syntaxOnly') =>
+		JSON.parse(JSON.stringify(parseFromProgram(filePath, program, { typeOperatorOutput })));
+
+	for (const mode of ['resolved', 'syntaxOnly'] as const) {
+		const exportByName = createExportLookup(parseWithMode(mode));
+		const all = exportByName('All')?.type;
+		const symbolValue = exportByName('SymbolValue')?.type;
+		expect(all).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: {
+				kind: 'union',
+				types: [{ typeName: { name: 'Left' } }, { typeName: { name: 'Right' } }],
+			},
+		});
+		expect(symbolValue).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Left' } },
+		});
+		expect(JSON.stringify(all)).not.toContain('"intrinsic":"any"');
+		expect(JSON.stringify(symbolValue)).not.toContain('"intrinsic":"any"');
+		if (mode === 'resolved') {
+			expect(all.resolvedType).toMatchObject({ kind: 'literal', value: '"common"' });
+		} else {
+			expect(all).not.toHaveProperty('resolvedType');
+			expect(symbolValue).not.toHaveProperty('resolvedType');
+		}
+	}
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(

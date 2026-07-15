@@ -867,7 +867,7 @@ function getIndexSignatureSourceTypeNode(
  * @param checker - Checker used to evaluate computed property expressions.
  * @returns The matching property symbol, or `undefined` when no exact match exists.
  */
-function getUniqueSymbolProperty(
+export function getUniqueSymbolProperty(
 	objectType: ts.Type,
 	indexType: ts.Type,
 	checker: ts.TypeChecker,
