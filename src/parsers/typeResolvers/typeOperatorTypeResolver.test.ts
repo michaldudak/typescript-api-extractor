@@ -1674,11 +1674,12 @@ export type WrappedArray = OuterKeys[];
 export type WrappedTuple = [OuterKeys];
 export type WrappedUnion = OuterKeys | null;`,
 	};
-
-	for (const options of [undefined, { includeExternalTypes: false }]) {
-		const moduleDefinition = JSON.parse(
-			JSON.stringify(parseFromProgram(filePath, createInMemoryProgram(files), options)),
-		);
+	const program = createInMemoryProgram(files);
+	const parseWithExternalPolicy = (includeExternalTypes?: boolean) =>
+		JSON.parse(JSON.stringify(parseFromProgram(filePath, program, { includeExternalTypes })));
+	const expectExternalAliases = (moduleDefinition: {
+		exports: { name: string; type: unknown; reexportedFrom?: string }[];
+	}) => {
 		for (const name of ['Keys', 'OuterKeys', 'WrappedArray', 'WrappedTuple', 'WrappedUnion']) {
 			expect(
 				moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name),
@@ -1696,12 +1697,10 @@ export type WrappedUnion = OuterKeys | null;`,
 			reexportedFrom: 'Keys',
 			type: { kind: 'external', typeName: { name: 'Keys' } },
 		});
-	}
-	const expandedModule = JSON.parse(
-		JSON.stringify(
-			parseFromProgram(filePath, createInMemoryProgram(files), { includeExternalTypes: true }),
-		),
-	);
+	};
+
+	expectExternalAliases(parseWithExternalPolicy(false));
+	const expandedModule = parseWithExternalPolicy(true);
 	const expandedExportByName = createExportLookup(expandedModule);
 	const operator = { kind: 'typeOperator', operator: 'keyof' };
 	expect(expandedExportByName('Keys')?.type).toMatchObject(operator);
@@ -1722,6 +1721,7 @@ export type WrappedUnion = OuterKeys | null;`,
 		kind: 'union',
 		types: [operator, { kind: 'intrinsic', intrinsic: 'null' }],
 	});
+	expectExternalAliases(parseWithExternalPolicy(false));
 });
 
 it('preserves expanded external keyof aliases in parameters, returns, and index values', () => {
