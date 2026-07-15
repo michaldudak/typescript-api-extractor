@@ -1593,6 +1593,47 @@ export type Result = Select<undefined>;`;
 	);
 });
 
+it('matches conditional branches for anonymous index-signature objects', () => {
+	const filePath = '/virtual/keyof-index-signature-conditional.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface TrueTarget { same: string }
+interface FalseTarget { same: number }
+type Select<T> = { [key: string]: T } extends { [key: string]: string }
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+type SelectNumberIndex<T> = { [key: string]: T } extends { [key: number]: string }
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+type SelectSpecificNumberIndex<T extends string | number> = {
+  [key: string]: string | number;
+  [key: number]: T;
+} extends { [key: number]: number }
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+
+export type True = Select<string>;
+export type False = Select<number>;
+export type CoveredNumberIndex = SelectNumberIndex<string>;
+export type SpecificNumberIndex = SelectSpecificNumberIndex<number>;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = (name: 'TrueTarget' | 'FalseTarget') => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+
+	expect(exportByName('True')?.type).toMatchObject(expectedOperator('TrueTarget'));
+	expect(exportByName('False')?.type).toMatchObject(expectedOperator('FalseTarget'));
+	expect(exportByName('CoveredNumberIndex')?.type).toMatchObject(expectedOperator('TrueTarget'));
+	expect(exportByName('SpecificNumberIndex')?.type).toMatchObject(expectedOperator('TrueTarget'));
+});
+
 it('honors non-strict parameter bivariance in callable tuple conditionals', () => {
 	const filePath = '/virtual/keyof-non-strict-function-conditional.ts';
 	const moduleDefinition = parseSerializedModule(

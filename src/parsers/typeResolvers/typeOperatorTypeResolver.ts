@@ -828,6 +828,16 @@ function getConcreteConditionalBranch(
 	if (rootFunctionDecision != null) {
 		return rootFunctionDecision ? typeNode.trueType : typeNode.falseType;
 	}
+	const rootIndexDecision = getIndexSignatureConditionalDecision(
+		typeNode.checkType,
+		typeNode.extendsType,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+	);
+	if (rootIndexDecision != null) {
+		return rootIndexDecision ? typeNode.trueType : typeNode.falseType;
+	}
 	const rootObjectDecision = getObjectConditionalDecision(
 		typeNode.checkType,
 		typeNode.extendsType,
@@ -868,6 +878,142 @@ function getConcreteConditionalBranch(
 	return getConditionalElementAssignableDecision(checkType, extendsType, checker)
 		? typeNode.trueType
 		: typeNode.falseType;
+}
+
+/**
+ * Decides conditional relations between anonymous objects composed entirely of
+ * index signatures. A string source covers number keys as TypeScript does;
+ * symbol indexes remain a separate key domain. Mixed members return
+ * `undefined` so this focused comparator never ignores property requirements.
+ *
+ * @param checkTypeNode - Authored index-signature object on the left side.
+ * @param extendsTypeNode - Authored index-signature object on the right side.
+ * @param checker - Checker used for key classification and value assignability.
+ * @param substitutions - Active semantic type-parameter bindings.
+ * @param typeNodeSubstitutions - Active authored type-parameter bindings.
+ * @returns A definite index relation, or `undefined` for other object shapes.
+ */
+function getIndexSignatureConditionalDecision(
+	checkTypeNode: ts.TypeNode,
+	extendsTypeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): boolean | undefined {
+	const checkObject = unwrapParenthesizedTypeNode(
+		substituteTypeParameterTypeNode(checkTypeNode, checker, typeNodeSubstitutions),
+	);
+	const extendsObject = unwrapParenthesizedTypeNode(
+		substituteTypeParameterTypeNode(extendsTypeNode, checker, typeNodeSubstitutions),
+	);
+	if (!ts.isTypeLiteralNode(checkObject) || !ts.isTypeLiteralNode(extendsObject)) {
+		return undefined;
+	}
+	if (
+		!checkObject.members.length ||
+		!extendsObject.members.length ||
+		!checkObject.members.every(ts.isIndexSignatureDeclaration) ||
+		!extendsObject.members.every(ts.isIndexSignatureDeclaration)
+	) {
+		return undefined;
+	}
+
+	const checkIndexes = getConditionalIndexSignatures(
+		checkObject.members,
+		checker,
+		substitutions,
+		typeNodeSubstitutions,
+	);
+	const extendsIndexes = getConditionalIndexSignatures(
+		extendsObject.members,
+		checker,
+		substitutions,
+		typeNodeSubstitutions,
+	);
+	if (!checkIndexes || !extendsIndexes) {
+		return undefined;
+	}
+	for (const target of extendsIndexes) {
+		// Prefer a number-specific declaration over the broader string index. A
+		// type may legally provide both with a narrower value for numeric keys.
+		const source =
+			checkIndexes.find((candidate) => candidate.keyKind === target.keyKind) ??
+			checkIndexes.find((candidate) => doesIndexKeyCover(candidate.keyKind, target.keyKind));
+		if (
+			!source ||
+			!getConditionalElementAssignableDecision(source.valueType, target.valueType, checker)
+		) {
+			return false;
+		}
+	}
+	return true;
+}
+
+type ConditionalIndexKeyKind = 'string' | 'number' | 'symbol';
+
+interface ConditionalIndexSignature {
+	keyKind: ConditionalIndexKeyKind;
+	valueType: ts.Type;
+}
+
+/**
+ * Instantiates authored index declarations into the key/value pairs needed by
+ * the structural conditional comparator.
+ *
+ * @param declarations - Authored index signatures to instantiate.
+ * @param checker - Checker used to resolve their key and value types.
+ * @param substitutions - Active semantic type-parameter bindings.
+ * @param typeNodeSubstitutions - Active authored type-parameter bindings.
+ * @returns Instantiated index signatures, or `undefined` for unsupported keys.
+ */
+function getConditionalIndexSignatures(
+	declarations: readonly ts.IndexSignatureDeclaration[],
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): readonly ConditionalIndexSignature[] | undefined {
+	const indexes: ConditionalIndexSignature[] = [];
+	for (const declaration of declarations) {
+		const keyTypeNode = declaration.parameters[0]?.type;
+		if (!keyTypeNode || !declaration.type) {
+			return undefined;
+		}
+		const keyType = getInstantiatedConditionalType(
+			keyTypeNode,
+			checker,
+			substitutions,
+			typeNodeSubstitutions,
+		);
+		const valueType = getInstantiatedConditionalType(
+			declaration.type,
+			checker,
+			substitutions,
+			typeNodeSubstitutions,
+		);
+		const keyKind = keyType ? getConditionalIndexKeyKind(keyType) : undefined;
+		if (!keyKind || !valueType) {
+			return undefined;
+		}
+		indexes.push({ keyKind, valueType });
+	}
+	return indexes;
+}
+
+function getConditionalIndexKeyKind(type: ts.Type): ConditionalIndexKeyKind | undefined {
+	if (type.flags & ts.TypeFlags.String) {
+		return 'string';
+	}
+	if (type.flags & ts.TypeFlags.Number) {
+		return 'number';
+	}
+	return type.flags & ts.TypeFlags.ESSymbol ? 'symbol' : undefined;
+}
+
+function doesIndexKeyCover(
+	source: ConditionalIndexKeyKind,
+	target: ConditionalIndexKeyKind,
+): boolean {
+	return source === target || (source === 'string' && target === 'number');
 }
 
 /**
