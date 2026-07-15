@@ -2286,6 +2286,7 @@ it('substitutes generic external indexed-access members before ordering them', (
 		createInMemoryProgram({
 			[filePath]: `export interface ConsumerProps {
   value?: import('generic-external-union-package').Props<string>['value'] | undefined;
+  unionValue?: import('generic-external-union-package').Props<'first' | 'second'>['value'] | undefined;
 }`,
 			'/virtual/node_modules/generic-external-union-package/index.d.ts': `export interface Props<T> {
   value?: T | readonly T[] | number | undefined;
@@ -2295,12 +2296,21 @@ it('substitutes generic external indexed-access members before ordering them', (
 	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
 		(property: { name: string }) => property.name === 'value',
 	).type;
+	const unionValueType = createExportLookup(moduleDefinition)(
+		'ConsumerProps',
+	)?.type.properties.find((property: { name: string }) => property.name === 'unionValue').type;
 
 	expect(
 		valueType.types.map(
 			(member: { intrinsic?: string; kind: string }) => member.intrinsic ?? member.kind,
 		),
 	).toEqual(['string', 'array', 'number', 'undefined']);
+	expect(
+		unionValueType.types.map(
+			(member: { intrinsic?: string; kind: string; value?: string }) =>
+				member.intrinsic ?? member.value ?? member.kind,
+		),
+	).toEqual(['"first"', '"second"', 'array', 'number', 'undefined']);
 });
 
 it('does not replay operators from external indexed-access unions without expansion', () => {

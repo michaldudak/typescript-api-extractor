@@ -270,6 +270,22 @@ function resolveUnionType(
 					continue;
 				}
 			}
+			const substitutedUnionMember =
+				node !== authoredNode
+					? resolveSubstitutedUnionMember(
+							node,
+							nodeType,
+							memberTypes,
+							type.types,
+							usedMemberTypes,
+							context,
+							resolve,
+						)
+					: undefined;
+			if (substitutedUnionMember) {
+				result.push(substitutedUnionMember);
+				continue;
+			}
 			const preservedCompositeMember = resolvePreservedCompositeMember(
 				node,
 				nodeType,
@@ -419,6 +435,34 @@ function isClosedGeneric(type1: ts.Type, type2: ts.Type): boolean {
 	}
 
 	return type1.target === type2 || ('target' in type2 && type1.target === type2.target);
+}
+
+function resolveSubstitutedUnionMember(
+	typeNode: ts.TypeNode,
+	nodeType: ts.Type,
+	memberTypes: readonly ts.Type[],
+	normalizedMemberTypes: readonly ts.Type[],
+	usedMemberTypes: Set<ts.Type>,
+	context: ScopedParserContext,
+	resolve: ResolveTypeInContext,
+): AnyType | undefined {
+	if (
+		!ts.isUnionTypeNode(unwrapParenthesizedTypeNode(typeNode)) ||
+		!selectCompositeMemberTypes(
+			nodeType,
+			memberTypes,
+			normalizedMemberTypes,
+			usedMemberTypes,
+			context.checker,
+		)
+	) {
+		return undefined;
+	}
+
+	// A generic argument can itself be a union. Resolve that authored argument as
+	// one composite at the parameter's position after claiming its flattened
+	// semantic members from the containing union.
+	return resolve(nodeType, typeNode, context);
 }
 
 function resolveOrderOnlyCompositeMembers(
