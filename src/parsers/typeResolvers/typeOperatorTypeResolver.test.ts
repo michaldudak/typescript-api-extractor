@@ -1041,6 +1041,10 @@ interface Left { left: string }
 interface Right { right: number }
 type Open<T> = [...number[], keyof T][number];
 type Optional<T> = [value?: keyof T][number];
+type FieldNames = 'a' | 'b';
+type Positions = 0 | 1;
+type Select<T, K extends keyof T> = T[K];
+type SelectTuple<T extends readonly unknown[], K extends keyof T> = T[K];
 interface Fields {
   a: keyof Left;
   b: keyof Right;
@@ -1057,7 +1061,12 @@ export type OptionalResult = Optional<Params>;
 export type SelectedFields = Fields['a' | 'b'];
 export type SelectedOptionalField = Fields['a' | 'c'];
 export type SelectedAliasedOptional = OptionalFields['aliased'];
-export type SelectedWrappedOptional = OptionalFields['wrapped'];`,
+export type SelectedWrappedOptional = OptionalFields['wrapped'];
+export type SelectedFieldsAlias = Fields[FieldNames];
+export type SelectedFieldsGeneric = Select<Fields, 'a' | 'b'>;
+export type SelectedAllFields = Fields[keyof Fields];
+export type SelectedTupleAlias = [keyof Left, keyof Right][Positions];
+export type SelectedTupleGeneric = SelectTuple<[keyof Left, keyof Right], 0 | 1>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1112,6 +1121,27 @@ export type SelectedWrappedOptional = OptionalFields['wrapped'];`,
 			{ kind: 'intrinsic', intrinsic: 'undefined' },
 		],
 	});
+	for (const name of ['SelectedFieldsAlias', 'SelectedFieldsGeneric']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'union',
+			types: [operatorFor('Left', ['left']), operatorFor('Right', ['right'])],
+		});
+	}
+	expect(exportByName('SelectedAllFields')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			operatorFor('Left', ['left']),
+			operatorFor('Right', ['right']),
+			paramsOperator,
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
+	});
+	for (const name of ['SelectedTupleAlias', 'SelectedTupleGeneric']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'union',
+			types: [operatorFor('Left', ['left']), operatorFor('Right', ['right'])],
+		});
+	}
 });
 
 it('keeps the semantic result for distributed conditional keyof aliases', () => {

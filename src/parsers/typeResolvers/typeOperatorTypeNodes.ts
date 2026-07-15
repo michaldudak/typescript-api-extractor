@@ -674,11 +674,21 @@ export function getIndexedAccessSourceTypeNode(
 		return undefined;
 	}
 
-	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
-	const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
+	const objectTypeNode = substituteTypeParameterTypeNode(
+		unwrapped.objectType,
+		checker,
+		substitutions,
+	);
+	const indexTypeNode = substituteTypeParameterTypeNode(
+		unwrapped.indexType,
+		checker,
+		substitutions,
+	);
+	const objectType = checker.getTypeFromTypeNode(objectTypeNode);
+	const indexType = checker.getTypeFromTypeNode(indexTypeNode);
 	if (indexType.isNumberLiteral()) {
 		const tupleSource = getBoundTupleSourceTypeNode(
-			unwrapped.objectType,
+			objectTypeNode,
 			checker,
 			includeExternalTypes,
 			substitutions,
@@ -697,7 +707,7 @@ export function getIndexedAccessSourceTypeNode(
 				? tupleElementTypeNodes[0]
 				: !tupleSource
 					? getArrayIndexedElementTypeNode(
-							unwrapped.objectType,
+							objectTypeNode,
 							checker,
 							includeExternalTypes,
 							substitutions,
@@ -718,7 +728,7 @@ export function getIndexedAccessSourceTypeNode(
 	}
 	if (indexType.flags & ts.TypeFlags.Number) {
 		const tupleElementTypeNodes = getTupleNumberIndexedTypeNodes(
-			unwrapped.objectType,
+			objectTypeNode,
 			checker,
 			includeExternalTypes,
 			substitutions,
@@ -727,7 +737,7 @@ export function getIndexedAccessSourceTypeNode(
 			tupleElementTypeNodes?.length === 1
 				? tupleElementTypeNodes[0]
 				: getArrayIndexedElementTypeNode(
-						unwrapped.objectType,
+						objectTypeNode,
 						checker,
 						includeExternalTypes,
 						substitutions,
@@ -768,9 +778,10 @@ export function getIndexedAccessSourceTypeNode(
 }
 
 /**
- * Returns the authored property sources selected by a union of string literals.
- * The index syntax, rather than the checker union, supplies the order so two
- * semantically reduced `keyof` properties remain distinguishable in output.
+ * Returns the authored sources selected by a finite string or numeric index.
+ * Direct unions retain their authored order. Alias, generic, and `keyof`
+ * selectors use the checker's finite literal members, allowing their selected
+ * properties or tuple elements to remain distinguishable after reduction.
  *
  * @param typeNode - Authored indexed access to inspect.
  * @param checker - Checker used to resolve its object, keys, and properties.
@@ -789,19 +800,38 @@ export function getIndexedAccessSourceTypeNodes(
 	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
 		return undefined;
 	}
-	const authoredIndex = unwrapParenthesizedTypeNode(unwrapped.indexType);
-	if (!ts.isUnionTypeNode(authoredIndex)) {
+	const objectTypeNode = substituteTypeParameterTypeNode(
+		unwrapped.objectType,
+		checker,
+		substitutions,
+	);
+	const indexTypeNode = substituteTypeParameterTypeNode(
+		unwrapped.indexType,
+		checker,
+		substitutions,
+	);
+	const selectors = getFiniteIndexedAccessSelectors(indexTypeNode, checker);
+	if (!selectors || selectors.length < 2) {
 		return undefined;
 	}
 
-	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
+	const objectType = checker.getTypeFromTypeNode(objectTypeNode);
 	const sources: ts.TypeNode[] = [];
-	for (const indexMember of authoredIndex.types) {
-		const indexType = checker.getTypeFromTypeNode(indexMember);
-		if (!indexType.isStringLiteral()) {
-			return undefined;
+	for (const selector of selectors) {
+		if (typeof selector === 'number') {
+			const tupleSources = getTupleLiteralIndexedSourceTypeNodes(
+				objectTypeNode,
+				selector,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			);
+			if (tupleSources) {
+				sources.push(...tupleSources);
+				continue;
+			}
 		}
-		const propertyTypeNode = getPropertyTypeNode(objectType.getProperty(indexType.value), checker);
+		const propertyTypeNode = getPropertyTypeNode(objectType.getProperty(String(selector)), checker);
 		if (
 			!propertyTypeNode ||
 			(!includeExternalTypes && hasNodeModulesPathSegment(propertyTypeNode.getSourceFile()))
@@ -818,6 +848,47 @@ export function getIndexedAccessSourceTypeNodes(
 		);
 	}
 	return sources.length > 1 ? sources : undefined;
+}
+
+/**
+ * Expands an indexed-access selector only when every semantic member is a
+ * finite string or number literal. Direct union syntax is inspected member by
+ * member to retain authored order; aliases and `keyof` fall back to the
+ * checker's reduced union.
+ *
+ * @param indexTypeNode - Authored selector after root generic substitution.
+ * @param checker - Checker used to evaluate selector members.
+ * @returns Ordered literal selector values, or `undefined` for open indexes.
+ */
+function getFiniteIndexedAccessSelectors(
+	indexTypeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): readonly (string | number)[] | undefined {
+	const authoredIndex = unwrapParenthesizedTypeNode(indexTypeNode);
+	const selectorTypes = ts.isUnionTypeNode(authoredIndex)
+		? authoredIndex.types.flatMap((member) => {
+				const semanticMember = checker.getTypeFromTypeNode(member);
+				return semanticMember.isUnion() ? semanticMember.types : [semanticMember];
+			})
+		: (() => {
+				const semanticIndex = checker.getTypeFromTypeNode(authoredIndex);
+				return semanticIndex.isUnion() ? semanticIndex.types : [semanticIndex];
+			})();
+	const selectors: Array<string | number> = [];
+	const seenSelectors = new Set<string>();
+	for (const selectorType of selectorTypes) {
+		if (selectorType.isStringLiteral() || selectorType.isNumberLiteral()) {
+			const selector = selectorType.value;
+			const selectorKey = `${typeof selector}:${selector}`;
+			if (!seenSelectors.has(selectorKey)) {
+				seenSelectors.add(selectorKey);
+				selectors.push(selector);
+			}
+			continue;
+		}
+		return undefined;
+	}
+	return selectors;
 }
 
 /**

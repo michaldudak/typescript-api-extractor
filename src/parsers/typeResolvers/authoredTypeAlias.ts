@@ -153,8 +153,27 @@ function getAuthoredKeyofReplayPlan(
 			includeExternalTypes,
 		),
 	);
+	// A bound `T[K]` body may contain no operator itself while selecting a
+	// property whose authored annotation does. Probe that source-aware path only
+	// for indexed roots so ordinary generic aliases keep their semantic output.
+	const replayBody = unwrapParenthesizedTypeNode(reference.declaration.type);
+	const replaysBoundIndexedSource = Boolean(
+		bindings?.typeNodes &&
+		ts.isIndexedAccessTypeNode(replayBody) &&
+		containsKeyofTypeOperatorOrAlias(
+			replayBody,
+			checker,
+			new Set(),
+			includeExternalTypes,
+			bindings.typeNodes,
+		),
+	);
 	const analysis = analyzeCheckerAliasReplay(reference.declaration, checker, includeExternalTypes);
-	if (!replaysAuthoredArgument && (!analysis.containsKeyof || !analysis.replayable)) {
+	if (
+		!replaysAuthoredArgument &&
+		!replaysBoundIndexedSource &&
+		(!analysis.containsKeyof || !analysis.replayable)
+	) {
 		return undefined;
 	}
 	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
