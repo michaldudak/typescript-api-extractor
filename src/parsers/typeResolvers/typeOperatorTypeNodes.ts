@@ -504,6 +504,25 @@ export function getIndexedAccessSourceTypeNode(
 			elementType
 		);
 	}
+	if (indexType.flags & ts.TypeFlags.Number) {
+		const elementTypeNode = getArrayIndexedElementTypeNode(
+			unwrapped.objectType,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (!elementTypeNode) {
+			return undefined;
+		}
+		return (
+			getIndexedAccessSourceTypeNode(
+				elementTypeNode,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			) ?? elementTypeNode
+		);
+	}
 
 	if (!indexType.isStringLiteral()) {
 		return undefined;
@@ -524,6 +543,63 @@ export function getIndexedAccessSourceTypeNode(
 			includeExternalTypes,
 			substitutions,
 		) ?? propertyTypeNode
+	);
+}
+
+/**
+ * Follows array and readonly-array aliases to their authored element syntax.
+ * Generic bindings are extended at each alias so `List<keyof T>[number]`
+ * reaches the concrete operator argument instead of the reduced key union.
+ */
+function getArrayIndexedElementTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
+): ts.TypeNode | undefined {
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
+	if (ts.isArrayTypeNode(unwrapped)) {
+		return substituteTypeParameterTypeNode(unwrapped.elementType, checker, substitutions);
+	}
+	if (
+		ts.isTypeReferenceNode(unwrapped) &&
+		ts.isIdentifier(unwrapped.typeName) &&
+		(unwrapped.typeName.text === 'Array' || unwrapped.typeName.text === 'ReadonlyArray')
+	) {
+		const elementTypeNode = unwrapped.typeArguments?.[0];
+		return elementTypeNode
+			? substituteTypeParameterTypeNode(elementTypeNode, checker, substitutions)
+			: undefined;
+	}
+
+	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
+	if (
+		!declaration ||
+		seenAliases.has(declaration) ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))
+	) {
+		return undefined;
+	}
+	const nextSeenAliases = new Set(seenAliases);
+	nextSeenAliases.add(declaration);
+	const typeArguments =
+		ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)
+			? unwrapped.typeArguments
+			: undefined;
+	const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+		declaration,
+		typeArguments,
+		checker,
+		substitutions,
+	);
+	return getArrayIndexedElementTypeNode(
+		declaration.type,
+		checker,
+		includeExternalTypes,
+		aliasSubstitutions,
+		nextSeenAliases,
 	);
 }
 

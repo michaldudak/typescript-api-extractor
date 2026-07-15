@@ -685,6 +685,33 @@ export type NestedObjectKey = NestedBox<keyof Params>['keys'];`,
 	}
 });
 
+it('traces keyof through numeric array indexed access', () => {
+	const filePath = '/virtual/keyof-array-indexed-access.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type List<T> = T[];
+type ReadonlyList<T> = readonly T[];
+
+export type Direct = (keyof Params)[][number];
+export type Generic = List<keyof Params>[number];
+export type ReadonlyGeneric = ReadonlyList<keyof Params>[number];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const name of ['Direct', 'Generic', 'ReadonlyGeneric']) {
+		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
+	}
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
