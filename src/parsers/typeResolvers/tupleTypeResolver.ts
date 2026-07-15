@@ -44,6 +44,7 @@ export function resolveTupleType(
 		session.context.typeParameterTypeNodeSubstitutions,
 		session.context.includeExternalTypes,
 	);
+	const nestedPlanCache = createTupleElementSelectionPlanCache();
 	return new TupleNode(
 		typeName,
 		elementTypes.map((elementType, index) => {
@@ -53,6 +54,8 @@ export function resolveTupleType(
 				session.context.typeParameterSubstitutions,
 				session.context.typeParameterTypeNodeSubstitutions,
 				session.context.includeExternalTypes,
+				new Map(),
+				nestedPlanCache,
 			);
 			const resolveElement = () => session.resolve(elementType, syntax?.typeNode);
 			return syntax?.typeParameterSubstitutions
@@ -90,6 +93,7 @@ function resolveTupleElementSyntax(
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
 	seenTupleSourceInstantiations: Map<ts.TupleTypeNode, Set<string>> = new Map(),
+	nestedPlanCache: TupleElementSelectionPlanCache = createTupleElementSelectionPlanCache(),
 ): TupleElementSyntax | undefined {
 	let element = selection?.typeNode;
 	let isRest = false;
@@ -122,13 +126,14 @@ function resolveTupleElementSyntax(
 			if (seenTupleSourceInstantiations.get(tupleSource.typeNode)?.has(instantiationKey)) {
 				return undefined;
 			}
-			const nestedPlan = buildTupleElementSelectionPlan(
+			const nestedPlan = getCachedTupleElementSelectionPlan(
 				tupleSource.typeNode,
 				selection.restSemanticElementCount,
 				checker,
 				tupleSource.typeParameterSubstitutions,
 				tupleSource.typeParameterTypeNodeSubstitutions,
 				includeExternalTypes,
+				nestedPlanCache,
 			);
 			const nestedSelection = nestedPlan?.[selection.restSemanticIndex];
 			if (!nestedSelection) {
@@ -151,6 +156,7 @@ function resolveTupleElementSyntax(
 				tupleSource.typeParameterTypeNodeSubstitutions,
 				includeExternalTypes,
 				nextSeenTupleSourceInstantiations,
+				nestedPlanCache,
 			);
 		} else {
 			element = substitutedRestType;
@@ -210,7 +216,15 @@ function getTupleSourceInstantiationKey(
 	selection: TupleElementSelection,
 	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 ): string {
-	const bindings = [...(typeNodeSubstitutions ?? [])]
+	return `${selection.restSemanticIndex}/${selection.restSemanticElementCount}:${getTupleSourceBindingsKey(
+		typeNodeSubstitutions,
+	)}`;
+}
+
+function getTupleSourceBindingsKey(
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): string {
+	return [...(typeNodeSubstitutions ?? [])]
 		.map(([symbol, typeNode]) => {
 			const declaration = symbol.declarations?.[0];
 			const declarationLocation = declaration
@@ -220,7 +234,6 @@ function getTupleSourceInstantiationKey(
 		})
 		.sort()
 		.join('|');
-	return `${selection.restSemanticIndex}/${selection.restSemanticElementCount}:${bindings}`;
 }
 
 interface TupleElementSyntax {
@@ -233,6 +246,83 @@ interface TupleElementSelection {
 	typeNode: ts.TypeNode;
 	restSemanticIndex?: number;
 	restSemanticElementCount: number;
+}
+
+type TupleElementSelectionPlan = (TupleElementSelection | undefined)[] | undefined;
+interface TupleElementSelectionPlanCache {
+	plans: Map<ts.TupleTypeNode, Map<string, TupleElementSelectionPlan>>;
+	semanticTypeIds: WeakMap<ts.Type, number>;
+	nextSemanticTypeId: number;
+}
+
+function createTupleElementSelectionPlanCache(): TupleElementSelectionPlanCache {
+	return {
+		plans: new Map(),
+		semanticTypeIds: new WeakMap(),
+		nextSemanticTypeId: 0,
+	};
+}
+
+/**
+ * Reuses a nested tuple plan across every semantic element attributed to the
+ * same finite spread. The cache lives for one `resolveTupleType` call so syntax
+ * nodes and checker substitutions cannot leak between independent exports.
+ */
+function getCachedTupleElementSelectionPlan(
+	tupleTypeNode: ts.TupleTypeNode,
+	semanticElementCount: number,
+	checker: ts.TypeChecker,
+	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	includeExternalTypes: boolean,
+	cache: TupleElementSelectionPlanCache,
+): TupleElementSelectionPlan {
+	let sourcePlans = cache.plans.get(tupleTypeNode);
+	if (!sourcePlans) {
+		sourcePlans = new Map();
+		cache.plans.set(tupleTypeNode, sourcePlans);
+	}
+	const cacheKey = [
+		semanticElementCount,
+		getTupleSourceBindingsKey(typeParameterTypeNodeSubstitutions),
+		getTupleSourceSemanticBindingsKey(typeParameterSubstitutions, cache),
+	].join(':');
+	if (sourcePlans.has(cacheKey)) {
+		return sourcePlans.get(cacheKey);
+	}
+
+	const plan = buildTupleElementSelectionPlan(
+		tupleTypeNode,
+		semanticElementCount,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
+	);
+	sourcePlans.set(cacheKey, plan);
+	return plan;
+}
+
+function getTupleSourceSemanticBindingsKey(
+	typeSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	cache: TupleElementSelectionPlanCache,
+): string {
+	return [...(typeSubstitutions ?? [])]
+		.map(([symbol, type]) => {
+			let typeId = cache.semanticTypeIds.get(type);
+			if (typeId == null) {
+				typeId = cache.nextSemanticTypeId;
+				cache.nextSemanticTypeId += 1;
+				cache.semanticTypeIds.set(type, typeId);
+			}
+			const declaration = symbol.declarations?.[0];
+			const symbolLocation = declaration
+				? `${declaration.getSourceFile().fileName}:${declaration.pos}:${declaration.end}`
+				: symbol.name;
+			return `${symbolLocation}=${typeId}`;
+		})
+		.sort()
+		.join('|');
 }
 
 /**
