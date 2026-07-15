@@ -1495,6 +1495,9 @@ type SelectCallable<T> = ((value: T) => void) extends ((value: string) => void)
 type SelectVoidReturn<T> = (() => T) extends (() => void)
   ? keyof TrueTarget
   : keyof FalseTarget;
+type SelectThis<T> = ((this: T, value: string) => void) extends ((value: string) => void)
+  ? keyof TrueTarget
+  : keyof FalseTarget;
 
 export type ArrayTrue = SelectArray<string>;
 export type ArrayFalse = SelectArray<number>;
@@ -1504,7 +1507,8 @@ export type ObjectTrue = SelectObject<string>;
 export type ObjectFalse = SelectObject<number>;
 export type CallableTrue = SelectCallable<unknown>;
 export type CallableFalse = SelectCallable<number>;
-export type VoidReturnTrue = SelectVoidReturn<number>;`,
+export type VoidReturnTrue = SelectVoidReturn<number>;
+export type ThisTrue = SelectThis<number>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1521,6 +1525,7 @@ export type VoidReturnTrue = SelectVoidReturn<number>;`,
 		'ObjectTrue',
 		'CallableTrue',
 		'VoidReturnTrue',
+		'ThisTrue',
 	]) {
 		expect(exportByName(name)?.type, name).toMatchObject(operatorFor('TrueTarget'));
 	}

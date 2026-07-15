@@ -1164,22 +1164,51 @@ function getFunctionConditionalElementDecision(
 	if (!ts.isFunctionTypeNode(checkFunction) || !ts.isFunctionTypeNode(extendsFunction)) {
 		return undefined;
 	}
+	const checkThisParameter = checkFunction.parameters.find(isThisParameter);
+	const extendsThisParameter = extendsFunction.parameters.find(isThisParameter);
+	const checkParameters = checkFunction.parameters.filter(
+		(parameter) => !isThisParameter(parameter),
+	);
+	const extendsParameters = extendsFunction.parameters.filter(
+		(parameter) => !isThisParameter(parameter),
+	);
 	if (
 		checkFunction.typeParameters?.length ||
 		extendsFunction.typeParameters?.length ||
-		[...checkFunction.parameters, ...extendsFunction.parameters].some(
+		[...checkParameters, ...extendsParameters].some(
 			(parameter) => parameter.questionToken || parameter.dotDotDotToken,
 		)
 	) {
 		return undefined;
 	}
-	if (checkFunction.parameters.length > extendsFunction.parameters.length) {
+	if (checkParameters.length > extendsParameters.length) {
 		return false;
 	}
+	if (checkThisParameter?.type && extendsThisParameter?.type) {
+		const checkThisType = getInstantiatedConditionalType(
+			checkThisParameter.type,
+			checker,
+			checkSubstitutions,
+			checkTypeNodeSubstitutions,
+		);
+		const extendsThisType = getInstantiatedConditionalType(
+			extendsThisParameter.type,
+			checker,
+			extendsSubstitutions,
+			extendsTypeNodeSubstitutions,
+		);
+		if (
+			!checkThisType ||
+			!extendsThisType ||
+			!getConditionalElementAssignableDecision(extendsThisType, checkThisType, checker)
+		) {
+			return false;
+		}
+	}
 
-	for (let index = 0; index < checkFunction.parameters.length; index += 1) {
-		const checkParameter = checkFunction.parameters[index]!;
-		const extendsParameter = extendsFunction.parameters[index]!;
+	for (let index = 0; index < checkParameters.length; index += 1) {
+		const checkParameter = checkParameters[index]!;
+		const extendsParameter = extendsParameters[index]!;
 		if (!checkParameter.type || !extendsParameter.type) {
 			return undefined;
 		}
@@ -1234,6 +1263,17 @@ function getFunctionConditionalElementDecision(
 	return checkReturnType && extendsReturnType
 		? getConditionalElementAssignableDecision(checkReturnType, extendsReturnType, checker)
 		: undefined;
+}
+
+/**
+ * Identifies TypeScript's explicit `this` pseudo-parameter, which participates
+ * in `this` compatibility but not ordinary function arity or parameter order.
+ *
+ * @param parameter - Authored function parameter to classify.
+ * @returns Whether the parameter is the special `this` declaration.
+ */
+function isThisParameter(parameter: ts.ParameterDeclaration): boolean {
+	return ts.isIdentifier(parameter.name) && parameter.name.text === 'this';
 }
 
 function getConditionalElementAssignableDecision(
