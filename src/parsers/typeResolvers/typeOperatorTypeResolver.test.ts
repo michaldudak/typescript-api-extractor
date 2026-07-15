@@ -701,13 +701,15 @@ type ReadonlyList<T> = readonly T[];
 
 export type Direct = (keyof Params)[][number];
 export type Generic = List<keyof Params>[number];
-export type ReadonlyGeneric = ReadonlyList<keyof Params>[number];`,
+export type ReadonlyGeneric = ReadonlyList<keyof Params>[number];
+export type DirectLiteral = (keyof Params)[][0];
+export type GenericLiteral = List<keyof Params>[123];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
 	const expectedOperator = expectedKeyofOperator();
 
-	for (const name of ['Direct', 'Generic', 'ReadonlyGeneric']) {
+	for (const name of ['Direct', 'Generic', 'ReadonlyGeneric', 'DirectLiteral', 'GenericLiteral']) {
 		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
 	}
 });

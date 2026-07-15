@@ -493,7 +493,12 @@ export function getIndexedAccessSourceTypeNode(
 			: (tupleTypeNode?.elements.length ?? 0);
 		const elementTypeNode = tupleTypeNode
 			? getTupleElementTypeNodeAtSemanticIndex(tupleTypeNode, indexType.value, tupleElementCount)
-			: undefined;
+			: getArrayIndexedElementTypeNode(
+					unwrapped.objectType,
+					checker,
+					includeExternalTypes,
+					substitutions,
+				);
 		if (!elementTypeNode) {
 			return undefined;
 		}
