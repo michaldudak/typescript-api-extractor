@@ -80,7 +80,9 @@ Parses a single TypeScript file and returns the extracted API information.
   - `filePath`: Path to the TypeScript file to parse
   - `options`: TypeScript compiler options
   - `parserOptions`: Optional parser configuration
-- **Returns:** `ModuleNode`
+- **Returns:** `ResolvedModuleNode` by default, or `SyntaxOnlyModuleNode` when
+  `parserOptions.typeOperatorOutput` is the literal `'syntaxOnly'`. A dynamic
+  `ParserOptions` value returns their union.
 
 ### `parseFromProgram(filePath: string, program: Program, parserOptions?: ParserOptions)`
 
@@ -90,7 +92,9 @@ Parses a file from an existing TypeScript program for better performance when pa
   - `filePath`: Path to the file to parse
   - `program`: TypeScript program instance
   - `parserOptions`: Optional parser configuration
-- **Returns:** `ModuleNode`
+- **Returns:** `ResolvedModuleNode` by default, or `SyntaxOnlyModuleNode` when
+  `parserOptions.typeOperatorOutput` is the literal `'syntaxOnly'`. A dynamic
+  `ParserOptions` value returns their union.
 
 ## Configuration Options
 
@@ -145,7 +149,10 @@ When `onWarning` is omitted, recoverable parser warnings are printed with
 
 ## Output Format
 
-The parser returns a `ModuleNode` object with the following structure:
+The parser returns a module object with the following structure. The default
+`ResolvedModuleNode` and opt-in `SyntaxOnlyModuleNode` types are recursively
+mode-aware versions of `ModuleNode`; both remain structurally compatible with
+the runtime model.
 
 ```typescript
 interface ModuleNode {
@@ -174,7 +181,23 @@ interface TypeOperatorNode {
 	resolvedType?: TypeNode;
 	resolutionKind?: 'exact' | 'baseConstraint' | 'fallback';
 }
+
+type ResolvedTypeOperatorNode = Omit<TypeOperatorNode, 'resolvedType' | 'resolutionKind'> & {
+	resolvedType: TypeNode;
+	resolutionKind: 'exact' | 'baseConstraint' | 'fallback';
+};
+
+type SyntaxOnlyTypeOperatorNode = Omit<TypeOperatorNode, 'resolvedType' | 'resolutionKind'> & {
+	resolvedType?: never;
+	resolutionKind?: never;
+};
 ```
+
+The exported `TypeOperatorNode` class represents both runtime modes, so its
+payload fields are optional. Parser entry points correlate them recursively:
+default and literal `'resolved'` calls return `ResolvedModuleNode`, literal
+`'syntaxOnly'` calls return `SyntaxOnlyModuleNode`, and a dynamic mode returns
+their union.
 
 Type-query operands retain their authored expression without expanding the
 queried value shape:
@@ -227,6 +250,13 @@ sets consistent.
   constraint nor a result the model can represent exactly; unsupported concrete
   results are represented by `any` and emit an `unsupported-type-fallback`
   warning.
+
+Preservation follows authored operators through the supported reference,
+container, mapped, indexed-access, conditional-branch, and heritage paths. It
+does not reconstruct operators after TypeScript selector or inference utilities
+have erased their source syntax. For example, `ReturnType`, `Parameters`,
+`Awaited`, `ConstructorParameters`, `ThisParameterType`, and user-authored
+conditional `infer` selectors can expose only their reduced semantic result.
 
 ### Example Output
 
@@ -349,6 +379,9 @@ substructures that are reused across multiple type classes.
   warnings, including source-location selection and TypeScript flag formatting.
 - `src/parsers/typeResolutionUtils.ts` isolates TypeScript internal API access,
   such as private type IDs and shallow cycle placeholders.
+- `src/parsers/authoredTypeReferenceBindings.ts` derives shared authored and
+  semantic generic bindings across references and interface/class heritage so
+  member, signature, and container resolution use the same specialization.
 
 ### Type-Class Resolvers
 
@@ -361,6 +394,8 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
   `keyof`, carries generic substitutions across local and relative-import alias
   chains, and preserves source-only preflight checks where export normalization
   must not perturb TypeScript's lazy caches.
+- `referencedTypeAlias.ts` centralizes type-alias lookup for ordinary references
+  and `import()` type references used by container and operator helpers.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
 - `classTypeResolver.ts` handles class detection, constructor model assembly,
   constructor documentation, class members, static members, and class type
