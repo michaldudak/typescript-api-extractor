@@ -46,7 +46,9 @@ export function resolveExternalType(
 ): AnyType | undefined {
 	const { type, typeName, typeNode } = request;
 	const { checker, includeExternalTypes } = session.context;
-	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
+	if (includeExternalTypes) {
+		return undefined;
+	}
 
 	// Generic parameters inherit the declaration path of the alias that owns
 	// them. For example, React's ComponentPropsWithRef expands through a `Props`
@@ -56,13 +58,14 @@ export function resolveExternalType(
 	if (type.flags & ts.TypeFlags.TypeParameter) {
 		return undefined;
 	}
+	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
+	const isSemanticTypeExternal = isSymbolExternal(type.aliasSymbol ?? type.getSymbol(), checker);
 
 	// Array and tuple identity is a semantic checker fact and remains stable
 	// across TypeScript versions and path separators. Let the dedicated
 	// container resolvers handle built-in and local containers, but retain opaque
 	// external aliases whose declarations merely happen to resolve to a container.
-	const hasSemanticExternalAlias =
-		type.aliasSymbol != null && isSymbolExternal(type.aliasSymbol, checker);
+	const hasSemanticExternalAlias = type.aliasSymbol != null && isSemanticTypeExternal;
 	if (
 		(checker.isArrayType(type) || checker.isTupleType(type)) &&
 		!authoredExternalAliasName &&
@@ -71,7 +74,7 @@ export function resolveExternalType(
 		return undefined;
 	}
 
-	if (includeExternalTypes || (!isTypeExternal(type, checker) && !authoredExternalAliasName)) {
+	if (!isSemanticTypeExternal && !authoredExternalAliasName) {
 		return undefined;
 	}
 
@@ -144,11 +147,6 @@ function getExternalTypeAliasName(
 
 	const symbol = checker.getSymbolAtLocation(declaration.name);
 	return isSymbolExternal(symbol, checker) ? declaration.name.text : undefined;
-}
-
-function isTypeExternal(type: ts.Type, checker: ts.TypeChecker): boolean {
-	const symbol = type.aliasSymbol ?? type.getSymbol();
-	return isSymbolExternal(symbol, checker);
 }
 
 /**
