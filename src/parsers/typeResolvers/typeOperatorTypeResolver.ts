@@ -225,7 +225,17 @@ function resolveCollapsedTypeOperatorSyntax(
 	return undefined;
 }
 
-function getIndexedAccessTypeParameterBindings(
+/**
+ * Derives the generic bindings visible while following an authored indexed access.
+ * Nested indexed objects and alias wrappers are traversed so the selected source
+ * property can replay the same arguments as the instantiated semantic result.
+ *
+ * @param typeNode - Authored indexed access whose object supplies generic arguments.
+ * @param session - Active resolution session providing checker and outer substitutions.
+ * @param baseBindings - Optional bindings accumulated by an enclosing indexed access.
+ * @returns The extended semantic and authored bindings, or `undefined` when none apply.
+ */
+export function getIndexedAccessTypeParameterBindings(
 	typeNode: ts.IndexedAccessTypeNode,
 	session: TypeResolutionSession,
 	baseBindings?: TypeParameterBindings,

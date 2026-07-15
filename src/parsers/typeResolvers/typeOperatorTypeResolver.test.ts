@@ -2210,6 +2210,30 @@ it('keeps external indexed-access union members in authored order after readonly
 	).toEqual(['string', 'array', 'number', 'undefined']);
 });
 
+it('substitutes generic external indexed-access members before ordering them', () => {
+	const filePath = '/virtual/generic-external-indexed-union-order.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export interface ConsumerProps {
+  value?: import('generic-external-union-package').Props<string>['value'] | undefined;
+}`,
+			'/virtual/node_modules/generic-external-union-package/index.d.ts': `export interface Props<T> {
+  value?: T | readonly T[] | number | undefined;
+}`,
+		}),
+	);
+	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	).type;
+
+	expect(
+		valueType.types.map(
+			(member: { intrinsic?: string; kind: string }) => member.intrinsic ?? member.kind,
+		),
+	).toEqual(['string', 'array', 'number', 'undefined']);
+});
+
 it('does not replay operators from external indexed-access unions without expansion', () => {
 	const filePath = '/virtual/external-indexed-operator-union.ts';
 	const moduleDefinition = parseSerializedModule(

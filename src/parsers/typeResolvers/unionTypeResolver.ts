@@ -2,7 +2,7 @@ import ts from 'typescript';
 import { type AnyType, UnionNode } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
 import { TypeName } from '../../models/typeName';
-import { deriveTypeParameterBindings } from '../typeParameterBindings';
+import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import {
 	type ResolveTypeInContext,
 	type TypeResolutionRequest,
@@ -16,7 +16,10 @@ import {
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
-import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
+import {
+	getIndexedAccessTypeParameterBindings,
+	getKeyofResultTypeFromSyntax,
+} from './typeOperatorTypeResolver';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
 /**
@@ -35,7 +38,17 @@ export function resolveUnionTypeNode(
 		return undefined;
 	}
 
-	return resolveUnionType(type, typeName, typeNode, session.context, session.resolveWithContext);
+	return resolveUnionType(type, typeName, typeNode, session);
+}
+
+interface AuthoredUnionMember {
+	typeNode: ts.TypeNode;
+	bindings?: TypeParameterBindings;
+}
+
+interface AuthoredUnionSource {
+	typeNode: ts.UnionTypeNode;
+	bindings?: TypeParameterBindings;
 }
 
 /**
@@ -50,10 +63,10 @@ export function resolveUnionTypeNode(
  */
 function flattenUnionTypeNode(
 	typeNode: ts.UnionTypeNode,
-	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
-): ts.TypeNode[] {
-	const result: ts.TypeNode[] = [];
+	session: TypeResolutionSession,
+	bindings?: TypeParameterBindings,
+): AuthoredUnionMember[] {
+	const result: AuthoredUnionMember[] = [];
 
 	for (const member of typeNode.types) {
 		// Unwrap parenthesized types like `(string | number)`
@@ -64,17 +77,19 @@ function flattenUnionTypeNode(
 
 		// If the unwrapped type is a union, recursively flatten it
 		if (ts.isUnionTypeNode(unwrapped)) {
-			result.push(...flattenUnionTypeNode(unwrapped, checker, includeExternalTypes));
+			result.push(...flattenUnionTypeNode(unwrapped, session, bindings));
 		} else {
 			// Check if this non-union TypeNode resolves to a union type.
 			// This currently handles indexed access types (e.g., `Foo['bar']`) whose
 			// resolved type is a union. We follow the declaration to find the source-ordered
 			// union TypeNode and flatten its members to preserve authored order.
-			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker, includeExternalTypes);
+			const underlyingUnion = resolveToUnionTypeNode(unwrapped, session, bindings);
 			if (underlyingUnion) {
-				result.push(...flattenUnionTypeNode(underlyingUnion, checker, includeExternalTypes));
+				result.push(
+					...flattenUnionTypeNode(underlyingUnion.typeNode, session, underlyingUnion.bindings),
+				);
 			} else {
-				result.push(unwrapped);
+				result.push({ typeNode: unwrapped, bindings });
 			}
 		}
 	}
@@ -92,42 +107,66 @@ function flattenUnionTypeNode(
  */
 function resolveToUnionTypeNode(
 	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
-): ts.UnionTypeNode | undefined {
+	session: TypeResolutionSession,
+	baseBindings?: TypeParameterBindings,
+): AuthoredUnionSource | undefined {
+	const { checker, includeExternalTypes } = session.context;
 	// Only resolve if the type actually resolves to a union
 	const resolvedType = checker.getTypeFromTypeNode(typeNode);
 	if (!resolvedType.isUnion()) {
 		return undefined;
 	}
 
-	let sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, includeExternalTypes);
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	const bindings = ts.isIndexedAccessTypeNode(unwrapped)
+		? (getIndexedAccessTypeParameterBindings(unwrapped, session, baseBindings) ?? baseBindings)
+		: baseBindings;
+	let sourceTypeNode = getIndexedAccessSourceTypeNode(
+		typeNode,
+		checker,
+		includeExternalTypes,
+		bindings?.typeNodes,
+	);
 	if (!sourceTypeNode && !includeExternalTypes) {
 		// Plain external unions may supply order for members already present in the
 		// semantic result without exposing an external model. Operator syntax is
 		// different: replaying it would bypass the caller's external-expansion
 		// policy and could attach a large resolved payload, so leave those unions
 		// in checker order unless external expansion is explicitly enabled.
-		const externalSourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, true);
+		const externalSourceTypeNode = getIndexedAccessSourceTypeNode(
+			typeNode,
+			checker,
+			true,
+			bindings?.typeNodes,
+		);
 		if (
 			externalSourceTypeNode &&
-			!containsKeyofTypeOperatorOrAlias(externalSourceTypeNode, checker, new Set(), true)
+			!containsKeyofTypeOperatorOrAlias(
+				externalSourceTypeNode,
+				checker,
+				new Set(),
+				true,
+				bindings?.typeNodes,
+			)
 		) {
 			sourceTypeNode = externalSourceTypeNode;
 		}
 	}
 	const unwrappedSource = sourceTypeNode ? unwrapParenthesizedTypeNode(sourceTypeNode) : undefined;
-	return unwrappedSource && ts.isUnionTypeNode(unwrappedSource) ? unwrappedSource : undefined;
+	return unwrappedSource && ts.isUnionTypeNode(unwrappedSource)
+		? { typeNode: unwrappedSource, bindings }
+		: undefined;
 }
 
 function resolveUnionType(
 	type: ts.UnionType,
 	typeName: TypeName | undefined,
 	typeNode: ts.TypeNode | undefined,
-	context: ScopedParserContext,
-	resolve: ResolveTypeInContext,
+	session: TypeResolutionSession,
 	aliasSubstitutionsApplied = false,
 ): AnyType {
+	const { context } = session;
+	const resolve = session.resolveWithContext;
 	const { checker } = context;
 	if (typeNode) {
 		typeNode = unwrapParenthesizedTypeNode(typeNode);
@@ -173,7 +212,7 @@ function resolveUnionType(
 	);
 	if (!aliasSubstitutionsApplied && aliasSubstitutions) {
 		return context.runWithTypeParameterSubstitutionScope(aliasSubstitutions, () =>
-			resolveUnionType(type, typeName, typeNode, context, resolve, true),
+			resolveUnionType(type, typeName, typeNode, session, true),
 		);
 	}
 
@@ -188,20 +227,16 @@ function resolveUnionType(
 		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
 
 		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
-		const flattenedTypeNodes = flattenUnionTypeNode(
-			typeNode,
-			checker,
-			context.includeExternalTypes,
-		);
+		const flattenedTypeNodes = flattenUnionTypeNode(typeNode, session);
 
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();
 
-		for (const authoredNode of flattenedTypeNodes) {
+		for (const { typeNode: authoredNode, bindings } of flattenedTypeNodes) {
 			const node = substituteTypeParameterTypeNode(
 				authoredNode,
 				checker,
-				context.typeParameterTypeNodeSubstitutions,
+				bindings?.typeNodes ?? context.typeParameterTypeNodeSubstitutions,
 			);
 			const operatorNode = getKeyofTypeOperatorNode(node);
 			const nodeType = operatorNode
