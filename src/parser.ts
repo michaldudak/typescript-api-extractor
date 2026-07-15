@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { ModuleNode, type AnyType } from './models';
 import { parseModule } from './parsers/moduleParser';
-import { type ScopedParserContext } from './parserContext';
+import { createParserContext } from './parserContextFactory';
 
 /**
  * Creates a program, parses the specified file and returns the PropTypes as an AST, if you need to parse more than one file
@@ -37,124 +37,16 @@ export function parseFromProgram(
 		throw new Error(`Program doesn't contain file: "${filePath}"`);
 	}
 
-	const parserContext = createParserContext(checker, sourceFile, program, parserOptions ?? {});
+	const parserContext = createParserContext(checker, sourceFile, program, parserOptions);
 
 	return parseModule(sourceFile, parserContext);
 }
 
-function createParserContext(
-	checker: ts.TypeChecker,
-	sourceFile: ts.SourceFile,
-	program: ts.Program,
-	parserOptions: ParserOptions,
-): ScopedParserContext {
-	const parsedSymbolStack: string[] = [];
-	const sourceNodeStack: ts.Node[] = [sourceFile];
-
-	const context: ScopedParserContext = {
-		checker,
-		sourceFile,
-		typeStack: [],
-		compilerOptions: program.getCompilerOptions(),
-		parsedSymbolStack,
-		sourceNodeStack,
-		program,
-		resolvedTypeCache: new Map<string, AnyType>(),
-		...getParserOptions(parserOptions),
-		runWithSymbolScope: (symbolName, callback) =>
-			runWithStackEntryScope(parsedSymbolStack, symbolName, callback),
-		runWithSourceNodeScope: (sourceNode, callback) => {
-			if (!sourceNode) {
-				return callback();
-			}
-
-			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
-		},
-		runWithTypeParameterSubstitutionScope: (
-			typeParameterSubstitutions,
-			callback,
-			typeParameterTypeNodeSubstitutions,
-		) => {
-			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
-			const previousTypeParameterTypeNodeSubstitutions = context.typeParameterTypeNodeSubstitutions;
-			context.typeParameterSubstitutions = typeParameterSubstitutions;
-			if (typeParameterTypeNodeSubstitutions) {
-				context.typeParameterTypeNodeSubstitutions = typeParameterTypeNodeSubstitutions;
-			}
-
-			try {
-				return callback();
-			} finally {
-				if (previousTypeParameterSubstitutions) {
-					context.typeParameterSubstitutions = previousTypeParameterSubstitutions;
-				} else {
-					delete context.typeParameterSubstitutions;
-				}
-				if (previousTypeParameterTypeNodeSubstitutions) {
-					context.typeParameterTypeNodeSubstitutions = previousTypeParameterTypeNodeSubstitutions;
-				} else {
-					delete context.typeParameterTypeNodeSubstitutions;
-				}
-			}
-		},
-	};
-
-	return context;
-}
-
-function runWithStackEntryScope<T, TEntry>(stack: TEntry[], entry: TEntry, callback: () => T): T {
-	stack.push(entry);
-
-	try {
-		return callback();
-	} finally {
-		stack.pop();
-	}
-}
-
-function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
-	const shouldInclude: ResolvedParserOptions['shouldInclude'] = (data) => {
-		if (parserOptions.shouldInclude) {
-			const result = parserOptions.shouldInclude(data);
-			if (result !== undefined) {
-				return result;
-			}
-		}
-
-		return true;
-	};
-
-	const shouldResolveObject: ResolvedParserOptions['shouldResolveObject'] = (data) => {
-		if (parserOptions.shouldResolveObject) {
-			const result = parserOptions.shouldResolveObject(data);
-			if (result !== undefined) {
-				return result;
-			}
-		}
-
-		return data.propertyCount <= 50 && data.depth <= 10;
-	};
-
-	return {
-		shouldInclude,
-		shouldResolveObject,
-		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
-		onWarning:
-			parserOptions.onWarning ??
-			((warning) => {
-				console.warn(warning.message);
-			}),
-	};
-}
-
-interface ResolvedParserOptions {
+export interface ParserContext {
 	shouldInclude: (data: { name: string; depth: number }) => boolean;
 	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
 	includeExternalTypes: boolean;
 	onWarning: (warning: ParserWarning) => void;
-}
-
-export interface ParserContext extends ResolvedParserOptions {
 	checker: ts.TypeChecker;
 	sourceFile: ts.SourceFile;
 	typeStack: number[];
