@@ -347,6 +347,18 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
+		if (
+			typeArgumentsContainReplayableKeyof(
+				unwrapped.typeArguments,
+				checker,
+				seenAliases,
+				includeExternalTypes,
+				substitutions,
+				seenAliasInstantiations,
+			)
+		) {
+			return true;
+		}
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 		const aliasSubstitutions = declaration
 			? getAliasTypeNodeSubstitutions(declaration, unwrapped.typeArguments, checker, substitutions)
@@ -381,20 +393,17 @@ export function containsKeyofTypeOperatorOrAlias(
 		return false;
 	}
 
-	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
-	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
-		return (
-			unwrapped.typeArguments?.some((argument) =>
-				containsKeyofTypeOperatorOrAlias(
-					argument,
-					checker,
-					seenAliases,
-					includeExternalTypes,
-					substitutions,
-					seenAliasInstantiations,
-				),
-			) ?? false
-		);
+	if (
+		typeArgumentsContainReplayableKeyof(
+			unwrapped.typeArguments,
+			checker,
+			seenAliases,
+			includeExternalTypes,
+			substitutions,
+			seenAliasInstantiations,
+		)
+	) {
+		return true;
 	}
 
 	const declaration =
@@ -427,6 +436,42 @@ export function containsKeyofTypeOperatorOrAlias(
 		includeExternalTypes,
 		aliasSubstitutions,
 		nextSeenAliasInstantiations,
+	);
+}
+
+/**
+ * Checks reference arguments before following the referenced declaration.
+ * Interfaces and classes are not transparent alias bodies, but their authored
+ * type arguments still appear in the public `TypeName` and can therefore replay
+ * operators that TypeScript erased while collapsing an outer compound.
+ *
+ * @param typeArguments - Authored generic arguments on a reference or import type.
+ * @param checker - Checker used to follow aliases inside those arguments.
+ * @param seenAliases - Alias declarations already visited by the current traversal.
+ * @param includeExternalTypes - Whether traversal may enter external aliases.
+ * @param substitutions - Active authored arguments for generic alias parameters.
+ * @param seenAliasInstantiations - Generic alias bindings already visited on this path.
+ * @returns Whether any argument contains replayable `keyof` syntax.
+ */
+function typeArgumentsContainReplayableKeyof(
+	typeArguments: ts.NodeArray<ts.TypeNode> | undefined,
+	checker: ts.TypeChecker,
+	seenAliases: Set<ts.TypeAliasDeclaration>,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>>,
+): boolean {
+	return (
+		typeArguments?.some((argument) =>
+			containsKeyofTypeOperatorOrAlias(
+				argument,
+				checker,
+				seenAliases,
+				includeExternalTypes,
+				substitutions,
+				seenAliasInstantiations,
+			),
+		) ?? false
 	);
 }
 

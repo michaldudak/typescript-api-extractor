@@ -267,6 +267,14 @@ function typeNodeReplaysKeyofInSource(
 			typeNodeReplaysKeyofInSource(typeNode.falseType, seen)
 		);
 	}
+	if (
+		(ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode)) &&
+		typeNode.typeArguments?.some((argument) => typeNodeReplaysKeyofInSource(argument, seen))
+	) {
+		// Generic object declarations are opaque to this checker-free pass, but
+		// their authored arguments remain visible in the emitted TypeName.
+		return true;
+	}
 
 	const referencedDeclaration = findLocalTypeAliasDeclaration(typeNode);
 	return referencedDeclaration ? typeAliasReplaysKeyofInSource(referencedDeclaration, seen) : false;

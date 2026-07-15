@@ -546,6 +546,57 @@ export type TupleConditional = true extends true ? [keyof Left] : [number];`,
 	});
 });
 
+it('preserves equivalent generic wrapper compounds with distinct keyof syntax', () => {
+	const filePath = '/virtual/keyof-equivalent-generic-wrapper-compounds.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Left { same: string }
+interface Right { same: number }
+interface Box<T> { value: T }
+
+export type Union = Box<keyof Left> | Box<keyof Right>;
+export type Intersection = Box<keyof Left> & Box<keyof Right>;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const wrappedOperatorFor = (name: 'Left' | 'Right') => ({
+		kind: 'object',
+		typeName: {
+			name: 'Box',
+			typeArguments: [
+				{
+					type: {
+						kind: 'typeOperator',
+						operator: 'keyof',
+						type: { typeName: { name } },
+					},
+				},
+			],
+		},
+		properties: [
+			{
+				name: 'value',
+				type: {
+					kind: 'typeOperator',
+					operator: 'keyof',
+					type: { typeName: { name } },
+				},
+			},
+		],
+	});
+
+	expect(exportByName('Union')?.type).toMatchObject({
+		kind: 'union',
+		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
+	});
+	expect(exportByName('Intersection')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
+	});
+});
+
 it('preserves keyof members after union simplification and generic alias instantiation', () => {
 	const filePath = '/virtual/keyof-simplified-unions.ts';
 	const moduleDefinition = parseSerializedModule(

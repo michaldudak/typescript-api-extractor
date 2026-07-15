@@ -555,6 +555,24 @@ function resolveAuthoredTypeNode(
 	typeOverride?: ts.Type,
 ): AnyType {
 	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (
+		session.isTypeActive(type) &&
+		(ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped))
+	) {
+		// Equivalent compound members can share the exact checker identity with
+		// their already-active collapsed parent. Dispatching the authored reference
+		// directly avoids replacing each recovered member with a shallow cycle
+		// placeholder while still scoping its generic bindings for nested members.
+		const replayedReference = session.resolveWithSyntax({
+			type,
+			typeName: getFullName(type, typeNode, session.context),
+			typeNode,
+		});
+		if (replayedReference) {
+			return replayedReference;
+		}
+	}
 	return session.resolveAuthoredSyntax({ type, typeName: undefined, typeNode });
 }
 
