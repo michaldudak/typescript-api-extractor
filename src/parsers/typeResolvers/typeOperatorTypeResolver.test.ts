@@ -640,6 +640,30 @@ export type Result = SelectKeys<never>;`,
 	});
 });
 
+it('matches conditional branches after substituting ordinary branch parameters', () => {
+	const filePath = '/virtual/keyof-conditional-branch-substitution.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`type Select<T, U> = [T] extends [string] ? U : keyof { n: 1 };
+
+export type Result = Select<string, 'x'>;
+export type IndistinguishableBranches = Select<string, 'n'>;`,
+		),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'literal',
+		value: '"x"',
+	});
+	expect(moduleDefinition.exports[1]?.type).toMatchObject({
+		kind: 'literal',
+		value: '"n"',
+	});
+	expect(JSON.stringify(moduleDefinition.exports)).not.toContain('typeOperator');
+});
+
 it('preserves keyof through generic container aliases and declaration defaults', () => {
 	const filePath = '/virtual/keyof-generic-container-aliases.ts';
 	const moduleDefinition = parseSerializedModule(

@@ -257,6 +257,12 @@ function resolveCollapsedConditional(
 	const falseType = getAuthoredTypeNodeType(typeNode.falseType, session);
 	const trueMatches = areSemanticTypesEquivalent(type, trueType, checker, 'exact');
 	const falseMatches = areSemanticTypesEquivalent(type, falseType, checker, 'exact');
+	if (trueMatches && falseMatches) {
+		// Once substitution makes both authored branches indistinguishable, their
+		// syntax cannot identify which branch TypeScript selected. Keep the already
+		// instantiated checker result instead of manufacturing both branches.
+		return session.resolve(type, undefined);
+	}
 	if (trueMatches && !falseMatches) {
 		return resolveAuthoredTypeNode(typeNode.trueType, session, type);
 	}
@@ -295,9 +301,12 @@ function resolveAuthoredTypeNode(
 
 function getAuthoredTypeNodeType(typeNode: ts.TypeNode, session: TypeResolutionSession): ts.Type {
 	const operatorNode = getKeyofTypeOperatorNode(typeNode);
-	return operatorNode
+	const authoredType = operatorNode
 		? getKeyofResultTypeFromSyntax(operatorNode, session.context)
 		: session.context.checker.getTypeFromTypeNode(typeNode);
+	return session.context.typeParameterSubstitutions
+		? substituteTypeParameter(authoredType, session.context.typeParameterSubstitutions)
+		: authoredType;
 }
 
 function isDistributiveConditionalInstantiation(
