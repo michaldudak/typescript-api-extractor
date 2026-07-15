@@ -737,6 +737,7 @@ function getConcreteConditionalBranch(
 		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
 		strictFunctionTypes,
+		compilerOptions.exactOptionalPropertyTypes ?? false,
 	);
 	if (rootObjectDecision != null) {
 		return rootObjectDecision ? typeNode.trueType : typeNode.falseType;
@@ -785,6 +786,7 @@ function getConcreteConditionalBranch(
  * @param substitutions - Active semantic type-parameter bindings.
  * @param typeNodeSubstitutions - Active authored type-parameter bindings.
  * @param strictFunctionTypes - Whether callable properties compare parameters contravariantly.
+ * @param exactOptionalPropertyTypes - Whether optional targets exclude implicit `undefined`.
  * @returns A definite structural relation, or `undefined` for non-object/unsupported shapes.
  */
 function getObjectConditionalDecision(
@@ -794,6 +796,7 @@ function getObjectConditionalDecision(
 	substitutions: Map<ts.Symbol, ts.Type> | undefined,
 	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	strictFunctionTypes: boolean,
+	exactOptionalPropertyTypes: boolean,
 ): boolean | undefined {
 	const checkObject = unwrapParenthesizedTypeNode(
 		substituteTypeParameterTypeNode(checkTypeNode, checker, typeNodeSubstitutions),
@@ -860,11 +863,50 @@ function getObjectConditionalDecision(
 		if (!checkPropertyType || !extendsPropertyType) {
 			return undefined;
 		}
-		if (!getConditionalElementAssignableDecision(checkPropertyType, extendsPropertyType, checker)) {
+		if (
+			!isConditionalPropertyTypeAssignable(
+				checkPropertyType,
+				extendsPropertyType,
+				checker,
+				Boolean(extendsProperty.questionToken),
+				exactOptionalPropertyTypes,
+			)
+		) {
 			return false;
 		}
 	}
 	return true;
+}
+
+/**
+ * Applies the compiler's implicit-`undefined` rule for optional target
+ * properties before delegating ordinary member comparison to the checker.
+ * With exact optional properties disabled, every concrete source union member
+ * except `undefined` must satisfy the authored target annotation.
+ *
+ * @param checkType - Instantiated source property type.
+ * @param extendsType - Instantiated target property annotation.
+ * @param checker - Checker used for ordinary assignability.
+ * @param extendsIsOptional - Whether the target property carries `?`.
+ * @param exactOptionalPropertyTypes - Whether `?` excludes implicit `undefined`.
+ * @returns Whether the source property type satisfies the target property.
+ */
+function isConditionalPropertyTypeAssignable(
+	checkType: ts.Type,
+	extendsType: ts.Type,
+	checker: ts.TypeChecker,
+	extendsIsOptional: boolean,
+	exactOptionalPropertyTypes: boolean,
+): boolean {
+	if (!extendsIsOptional || exactOptionalPropertyTypes) {
+		return getConditionalElementAssignableDecision(checkType, extendsType, checker);
+	}
+	const checkMembers = checkType.isUnion() ? checkType.types : [checkType];
+	return checkMembers.every(
+		(member) =>
+			Boolean(member.flags & ts.TypeFlags.Undefined) ||
+			getConditionalElementAssignableDecision(member, extendsType, checker),
+	);
 }
 
 /**

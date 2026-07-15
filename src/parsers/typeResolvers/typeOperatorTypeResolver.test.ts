@@ -1458,6 +1458,35 @@ export type VoidReturnTrue = SelectVoidReturn<number>;`,
 	}
 });
 
+it('honors optional-property compiler semantics in object conditionals', () => {
+	const filePath = '/virtual/keyof-optional-object-conditional.ts';
+	const source = `interface TrueTarget { same: string }
+interface FalseTarget { same: number }
+type Select<T> = { value: T } extends { value?: string }
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+
+export type Result = Select<undefined>;`;
+	const parseWithExactOptionalProperties = (exactOptionalPropertyTypes: boolean) =>
+		parseSerializedModule(
+			filePath,
+			createInMemoryProgram(filePath, source, { exactOptionalPropertyTypes }),
+		);
+	const expectedOperator = (name: 'TrueTarget' | 'FalseTarget') => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+
+	expect(createExportLookup(parseWithExactOptionalProperties(false))('Result')?.type).toMatchObject(
+		expectedOperator('TrueTarget'),
+	);
+	expect(createExportLookup(parseWithExactOptionalProperties(true))('Result')?.type).toMatchObject(
+		expectedOperator('FalseTarget'),
+	);
+});
+
 it('honors non-strict parameter bivariance in callable tuple conditionals', () => {
 	const filePath = '/virtual/keyof-non-strict-function-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
