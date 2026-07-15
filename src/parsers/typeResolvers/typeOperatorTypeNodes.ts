@@ -973,15 +973,25 @@ export function getPropertyTypeNode(
 	}
 
 	const readableCandidates: ts.TypeNode[] = [];
+	let hasUnannotatedReadableDeclaration = false;
 	for (const declaration of declarations) {
 		if (
-			(ts.isPropertySignature(declaration) ||
-				ts.isPropertyDeclaration(declaration) ||
-				ts.isParameter(declaration)) &&
-			declaration.type
+			ts.isPropertySignature(declaration) ||
+			ts.isPropertyDeclaration(declaration) ||
+			ts.isParameter(declaration) ||
+			ts.isGetAccessorDeclaration(declaration)
 		) {
-			readableCandidates.push(declaration.type);
+			if (declaration.type) {
+				readableCandidates.push(declaration.type);
+			} else {
+				hasUnannotatedReadableDeclaration = true;
+			}
 		}
+	}
+	if (hasUnannotatedReadableDeclaration) {
+		// The checker infers the readable type from the declaration body or
+		// initializer. Replaying another declaration's annotation would replace it.
+		return undefined;
 	}
 
 	const setterCandidates: ts.TypeNode[] = [];

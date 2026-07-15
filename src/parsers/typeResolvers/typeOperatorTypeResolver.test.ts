@@ -3467,6 +3467,12 @@ export class Example {
     this.accessorValue = value ?? 'a';
   }
 
+  get inferredKey() {
+    return 'a' as const;
+  }
+
+  set inferredKey(value: keyof Params) {}
+
   set setterKey(value: keyof Params) {}
 }
 
@@ -3508,6 +3514,15 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 			type: { kind: 'typeOperator', operator: 'keyof' },
 		});
 	}
+	expect(propertyByName('inferredKey')).toMatchObject({
+		type: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+	});
 	expect(exportByName('Intersection')?.type.types[0]).toMatchObject({
 		kind: 'typeOperator',
 		operator: 'keyof',
