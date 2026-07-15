@@ -832,8 +832,13 @@ type Mapped<K extends string> = {
   [Key in K]: keyof Params;
 };
 
+type ValueDictionary<Value> = {
+  [name in string]: Value;
+};
+
 export type Dictionary = Mapped<string>;
-export type Finite = Mapped<'value'>;`,
+export type Finite = Mapped<'value'>;
+export type GenericDictionary = ValueDictionary<keyof Params>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -847,6 +852,9 @@ export type Finite = Mapped<'value'>;`,
 	expect(exportByName('Finite')?.type.properties).toMatchObject([
 		{ name: 'value', type: expectedOperator },
 	]);
+	expect(exportByName('GenericDictionary')?.type.indexSignature.valueType).toMatchObject(
+		expectedOperator,
+	);
 });
 
 it('preserves authored keyof arguments through identity and container aliases', () => {
@@ -1841,7 +1849,13 @@ export interface Values {
 
 export type MappedValues = {
   [name in string]: Keys;
-};`,
+};
+
+type Dictionary<Value> = {
+  [name in string]: Value;
+};
+
+export type GenericMappedValues = Dictionary<Keys>;`,
 		'/virtual/node_modules/external-keyof-signatures/index.d.ts': `export interface Params {
   a: string;
   b: number;
@@ -1860,6 +1874,9 @@ export type Keys = keyof Params;`,
 	expect(signature.returnValueType).toMatchObject(expectedOperator);
 	expect(exportByName('Values')?.type.indexSignature.valueType).toMatchObject(expectedOperator);
 	expect(exportByName('MappedValues')?.type.indexSignature.valueType).toMatchObject(
+		expectedOperator,
+	);
+	expect(exportByName('GenericMappedValues')?.type.indexSignature.valueType).toMatchObject(
 		expectedOperator,
 	);
 });
