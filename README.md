@@ -360,6 +360,9 @@ substructures that are reused across multiple type classes.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.
+- `src/parserContextFactory.ts` constructs the scoped parser context shared by
+  production entry points and focused parser tests, including balanced
+  diagnostic and substitution scopes.
 
 ### Type Resolution
 
@@ -382,6 +385,15 @@ substructures that are reused across multiple type classes.
 - `src/parsers/authoredTypeReferenceBindings.ts` derives shared authored and
   semantic generic bindings across references and interface/class heritage so
   member, signature, and container resolution use the same specialization.
+- `src/parsers/typeParameterBindings.ts` pairs semantic arguments and authored
+  argument nodes with every checker symbol that can represent a generic
+  parameter during nested resolution.
+- `src/parsers/typeContainerUtils.ts` centralizes compiler-backed array and tuple
+  identity, readonly-state, and tuple-element syntax helpers shared by container
+  resolvers.
+- `src/parsers/sourceFileUtils.ts` owns the deliberately distinct broad and
+  path-segment-based `node_modules` policies used by semantic and authored-syntax
+  traversal.
 
 ### Type-Class Resolvers
 
