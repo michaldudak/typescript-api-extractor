@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
+import { isSemanticallyReadonlyArray } from '../typeContainerUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	containsKeyofTypeOperator,
@@ -49,16 +50,7 @@ function isReadonlyArrayType(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): boolean {
-	const targetSymbol =
-		type.flags & ts.TypeFlags.Object && 'target' in type
-			? (type as ts.TypeReference).target.symbol
-			: undefined;
-	if (
-		targetSymbol?.name === 'ReadonlyArray' &&
-		targetSymbol.declarations?.some((declaration) =>
-			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-		)
-	) {
+	if (isSemanticallyReadonlyArray(type)) {
 		return true;
 	}
 

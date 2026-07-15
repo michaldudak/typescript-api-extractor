@@ -10,6 +10,7 @@ import {
 	type AnyType,
 } from '../models';
 import { TypeName } from '../models/typeName';
+import { isSemanticallyReadonlyArray, isSemanticallyReadonlyTuple } from './typeContainerUtils';
 
 /**
  * Returns true only when every bit of `flag` is set on the type. Use for flags
@@ -91,12 +92,12 @@ export function createShallowType(
 				? new TypeName(type.aliasSymbol.name, typeName?.namespaces, typeName?.typeArguments)
 				: undefined,
 			new IntrinsicNode('any'),
-			isReadonlyArrayType(type) ? true : undefined,
+			isSemanticallyReadonlyArray(type) ? true : undefined,
 		);
 	}
 
 	if (checker.isTupleType(type)) {
-		return new TupleNode(typeName, [], isReadonlyTupleType(type) ? true : undefined);
+		return new TupleNode(typeName, [], isSemanticallyReadonlyTuple(type) ? true : undefined);
 	}
 
 	if (type.getCallSignatures().length >= 1) {
@@ -104,25 +105,6 @@ export function createShallowType(
 	}
 
 	return new ObjectNode(typeName, [], undefined);
-}
-
-function isReadonlyArrayType(type: ts.Type): boolean {
-	const targetSymbol =
-		type.flags & ts.TypeFlags.Object && 'target' in type
-			? (type as ts.TypeReference).target.symbol
-			: undefined;
-	return (
-		targetSymbol?.name === 'ReadonlyArray' &&
-		Boolean(
-			targetSymbol.declarations?.some((declaration) =>
-				/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-			),
-		)
-	);
-}
-
-function isReadonlyTupleType(type: ts.Type): boolean {
-	return 'target' in type && Boolean((type as ts.TupleTypeReference).target.readonly);
 }
 
 // Internal TypeScript API used when enum literal types point at a member symbol

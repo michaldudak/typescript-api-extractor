@@ -1,5 +1,10 @@
 import ts from 'typescript';
 import { TupleNode, type AnyType } from '../../models';
+import {
+	isRestTupleElementNode,
+	isSemanticallyReadonlyTuple,
+	unwrapTupleElementSyntax,
+} from '../typeContainerUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
@@ -54,7 +59,7 @@ export function resolveTupleType(
 }
 
 function isReadonlyTupleType(type: ts.Type, typeNode: ts.TypeNode | undefined): boolean {
-	if ('target' in type && (type as ts.TupleTypeReference).target.readonly) {
+	if (isSemanticallyReadonlyTuple(type)) {
 		return true;
 	}
 	if (!typeNode) {
@@ -98,13 +103,10 @@ function getTupleElementTypeNode(
 	);
 	let element = selection?.typeNode;
 	let isRest = false;
-	if (element && ts.isNamedTupleMember(element)) {
-		isRest = element.dotDotDotToken != null;
-		element = element.type;
-	}
-	while (element && (ts.isOptionalTypeNode(element) || ts.isRestTypeNode(element))) {
-		isRest ||= ts.isRestTypeNode(element);
-		element = element.type;
+	if (element) {
+		const syntax = unwrapTupleElementSyntax(element);
+		element = syntax.typeNode;
+		isRest = syntax.isRest;
 	}
 	if (!element) {
 		return undefined;
@@ -131,13 +133,10 @@ function getTupleElementTypeNode(
 				selection.restSemanticElementCount,
 			);
 			isRest = false;
-			if (element && ts.isNamedTupleMember(element)) {
-				isRest = element.dotDotDotToken != null;
-				element = element.type;
-			}
-			while (element && (ts.isOptionalTypeNode(element) || ts.isRestTypeNode(element))) {
-				isRest ||= ts.isRestTypeNode(element);
-				element = element.type;
+			if (element) {
+				const syntax = unwrapTupleElementSyntax(element);
+				element = syntax.typeNode;
+				isRest = syntax.isRest;
 			}
 			if (!element) {
 				return undefined;
@@ -274,10 +273,7 @@ function getKnownTupleElementWidth(
 		return 1;
 	}
 
-	let restTypeNode = ts.isNamedTupleMember(typeNode) ? typeNode.type : typeNode;
-	while (ts.isRestTypeNode(restTypeNode)) {
-		restTypeNode = restTypeNode.type;
-	}
+	const restTypeNode = unwrapTupleElementSyntax(typeNode).typeNode;
 	const substituted = substituteTypeParameterTypeNode(
 		restTypeNode,
 		checker,
@@ -401,10 +397,4 @@ function getReferencedTypeAliasDeclaration(
 	const targetSymbol =
 		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
-}
-
-function isRestTupleElementNode(typeNode: ts.TypeNode): boolean {
-	return ts.isNamedTupleMember(typeNode)
-		? typeNode.dotDotDotToken != null
-		: ts.isRestTypeNode(typeNode);
 }

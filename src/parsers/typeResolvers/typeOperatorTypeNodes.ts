@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 
 /** Unwraps syntax that is transparent to type-operator resolution. */
@@ -145,7 +146,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return unwrapped.elements.some((element) =>
 			containsKeyofTypeOperatorOrAlias(
-				unwrapTupleElementTypeNode(element),
+				unwrapTupleElementSyntax(element).typeNode,
 				checker,
 				seenAliases,
 				includeExternalTypes,
@@ -263,7 +264,7 @@ export function getIndexedAccessSourceTypeNode(
 			return undefined;
 		}
 
-		const elementType = unwrapTupleElementTypeNode(elementTypeNode);
+		const elementType = unwrapTupleElementSyntax(elementTypeNode).typeNode;
 		return getIndexedAccessSourceTypeNode(elementType, checker) ?? elementType;
 	}
 
@@ -300,12 +301,6 @@ export function getTupleElementTypeNodeAtSemanticIndex(
 	}
 
 	return tupleTypeNode.elements[restIndex];
-}
-
-function isRestTupleElementNode(typeNode: ts.TypeNode): boolean {
-	return ts.isNamedTupleMember(typeNode)
-		? typeNode.dotDotDotToken != null
-		: ts.isRestTypeNode(typeNode);
 }
 
 /** Locates the terminal authored source that actually contains an indexed-access `keyof`. */
@@ -390,14 +385,6 @@ function getTupleSourceTypeNode(
 	}
 	seen.add(declaration);
 	return getTupleSourceTypeNode(declaration.type, checker, seen);
-}
-
-function unwrapTupleElementTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
-	let unwrapped = ts.isNamedTupleMember(typeNode) ? typeNode.type : typeNode;
-	while (ts.isOptionalTypeNode(unwrapped) || ts.isRestTypeNode(unwrapped)) {
-		unwrapped = unwrapped.type;
-	}
-	return unwrapped;
 }
 
 function followTypeAliasToKeyofSource(
