@@ -318,9 +318,56 @@ function followHeritageTypeBindings(
 		includeExternalTypes,
 		baseBindings?.typeNodes,
 	);
-	return (
-		heritageBindings ?? (argumentContainsKeyof && bindings !== baseBindings ? bindings : undefined)
+	const memberContainsKeyof = declarationMembersContainKeyof(
+		genericDeclaration,
+		checker,
+		includeExternalTypes,
+		bindings?.typeNodes,
 	);
+	return (
+		heritageBindings ??
+		((argumentContainsKeyof || memberContainsKeyof) && bindings !== baseBindings
+			? bindings
+			: undefined)
+	);
+}
+
+/**
+ * Detects member syntax that needs the declaration's instantiated authored
+ * bindings. Without retaining those bindings, an inherited `keyof T` operand
+ * is replayed with the base declaration's now-out-of-scope `T` instead of the
+ * concrete heritage argument.
+ *
+ * @param declaration - Instantiated interface or class declaration.
+ * @param checker - Checker used to follow member aliases.
+ * @param includeExternalTypes - Whether alias traversal may enter external declarations.
+ * @param substitutions - Authored bindings for the declaration's type parameters.
+ * @returns Whether a member contains replayable `keyof` syntax.
+ */
+function declarationMembersContainKeyof(
+	declaration: ts.InterfaceDeclaration | ts.ClassDeclaration,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): boolean {
+	let found = false;
+	const visit = (node: ts.Node): void => {
+		if (found) {
+			return;
+		}
+		if (
+			ts.isTypeNode(node) &&
+			getPreservableKeyofTypeNode(node, checker, substitutions, includeExternalTypes)
+		) {
+			found = true;
+			return;
+		}
+		ts.forEachChild(node, visit);
+	};
+	for (const member of declaration.members) {
+		visit(member);
+	}
+	return found;
 }
 
 function declarationArgumentsContainKeyof(
