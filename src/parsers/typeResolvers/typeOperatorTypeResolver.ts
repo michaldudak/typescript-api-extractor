@@ -13,12 +13,13 @@ import {
 import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
-import { deriveTypeParameterBindings } from '../typeParameterBindings';
+import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { areSemanticTypesEquivalent, getKeyofTypeForOperand } from '../typeResolutionUtils';
 import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
+import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
@@ -124,16 +125,23 @@ function resolveCollapsedTypeOperatorSyntax(
 	// resolvers so the reduced semantic type is not mistaken for the whole API.
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
+		const bindings = getIndexedAccessTypeParameterBindings(unwrapped, session);
+		const authoredSubstitutions =
+			bindings?.typeNodes ?? session.context.typeParameterTypeNodeSubstitutions;
 		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(
 			unwrapped,
 			session.context.checker,
 			session.context.includeExternalTypes,
+			authoredSubstitutions,
 		);
 		if (sourceTypeNode) {
-			const substitutions = getIndexedAccessTypeParameterSubstitutions(unwrapped, session);
 			const resolveSource = () => resolveAuthoredTypeNode(sourceTypeNode, session, type);
-			return substitutions
-				? session.context.runWithTypeParameterSubstitutionScope(substitutions, resolveSource)
+			return bindings
+				? session.context.runWithTypeParameterSubstitutionScope(
+						bindings.types,
+						resolveSource,
+						bindings.typeNodes,
+					)
 				: resolveSource();
 		}
 	}
@@ -159,29 +167,48 @@ function resolveCollapsedTypeOperatorSyntax(
 	return undefined;
 }
 
-function getIndexedAccessTypeParameterSubstitutions(
+function getIndexedAccessTypeParameterBindings(
 	typeNode: ts.IndexedAccessTypeNode,
 	session: TypeResolutionSession,
-): Map<ts.Symbol, ts.Type> | undefined {
-	const { checker, typeParameterSubstitutions } = session.context;
+): TypeParameterBindings | undefined {
+	const { checker, typeParameterSubstitutions, typeParameterTypeNodeSubstitutions } =
+		session.context;
 	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
-	if (!(objectType.flags & ts.TypeFlags.Object) || !('target' in objectType)) {
-		return undefined;
-	}
-
-	const reference = objectType as ts.TypeReference;
-	const typeParameters = (reference.target as ts.GenericType).typeParameters;
-	const typeArguments = checker.getTypeArguments(reference);
-	if (!typeParameters?.length || !typeArguments.length) {
+	const reference =
+		objectType.flags & ts.TypeFlags.Object && 'target' in objectType
+			? (objectType as ts.TypeReference)
+			: undefined;
+	const declaration = getReferencedTypeAliasDeclaration(typeNode.objectType, checker);
+	const authoredReference = unwrapParenthesizedTypeNode(typeNode.objectType);
+	const authoredArguments =
+		ts.isTypeReferenceNode(authoredReference) || ts.isImportTypeNode(authoredReference)
+			? authoredReference.typeArguments
+			: undefined;
+	const semanticParameters = reference
+		? (reference.target as ts.GenericType).typeParameters
+		: undefined;
+	const semanticArguments = reference
+		? checker.getTypeArguments(reference)
+		: objectType.aliasTypeArguments;
+	if (
+		!(declaration?.typeParameters?.length || semanticParameters?.length) ||
+		!(authoredArguments?.length || semanticArguments?.length)
+	) {
 		return undefined;
 	}
 
 	return deriveTypeParameterBindings({
 		checker,
-		semanticParameters: typeParameters,
-		semanticArguments: typeArguments,
+		declarations: declaration?.typeParameters,
+		semanticParameters,
+		semanticArguments,
+		authoredArguments,
 		baseTypes: typeParameterSubstitutions,
-	})?.types;
+		baseTypeNodes: typeParameterTypeNodeSubstitutions,
+		useDeclarationDefaults: true,
+		substituteArgumentTypes: true,
+		bodyForFreshSymbols: declaration?.type,
+	});
 }
 
 function resolveAuthoredUnion(

@@ -280,7 +280,9 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
-		return Boolean(getIndexedAccessKeyofSourceTypeNode(unwrapped, checker, includeExternalTypes));
+		return Boolean(
+			getIndexedAccessKeyofSourceTypeNode(unwrapped, checker, includeExternalTypes, substitutions),
+		);
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
@@ -463,14 +465,17 @@ export function flattenIntersectionTypeNodes(
  * @param typeNode - Authored indexed-access syntax to follow.
  * @param checker - Checker used to resolve the object, index, and property symbols.
  * @param includeExternalTypes - Whether selected syntax may come from external declarations.
+ * @param substitutions - Active authored generic substitutions.
  * @returns The terminal selected type node, or `undefined` when the access is not statically known.
  */
 export function getIndexedAccessSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): ts.TypeNode | undefined {
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	const unwrapped = unwrapParenthesizedTypeNode(substituted);
 	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
 		return undefined;
 	}
@@ -495,7 +500,8 @@ export function getIndexedAccessSourceTypeNode(
 
 		const elementType = unwrapTupleElementSyntax(elementTypeNode).typeNode;
 		return (
-			getIndexedAccessSourceTypeNode(elementType, checker, includeExternalTypes) ?? elementType
+			getIndexedAccessSourceTypeNode(elementType, checker, includeExternalTypes, substitutions) ??
+			elementType
 		);
 	}
 
@@ -512,8 +518,12 @@ export function getIndexedAccessSourceTypeNode(
 	}
 
 	return (
-		getIndexedAccessSourceTypeNode(propertyTypeNode, checker, includeExternalTypes) ??
-		propertyTypeNode
+		getIndexedAccessSourceTypeNode(
+			propertyTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		) ?? propertyTypeNode
 	);
 }
 
@@ -556,16 +566,23 @@ export function getTupleElementTypeNodeAtSemanticIndex(
  * @param typeNode - Indexed-access syntax whose selected property should be traced.
  * @param checker - Checker used for property and alias resolution.
  * @param includeExternalTypes - Whether tracing may enter external declarations.
+ * @param substitutions - Active authored generic substitutions.
  * @returns The terminal syntax containing `keyof`, or `undefined` when none is reachable.
  */
 export function getIndexedAccessKeyofSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): ts.TypeNode | undefined {
-	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, includeExternalTypes);
+	const sourceTypeNode = getIndexedAccessSourceTypeNode(
+		typeNode,
+		checker,
+		includeExternalTypes,
+		substitutions,
+	);
 	return sourceTypeNode
-		? followTypeAliasToKeyofSource(sourceTypeNode, checker, includeExternalTypes)
+		? followTypeAliasToKeyofSource(sourceTypeNode, checker, includeExternalTypes, substitutions)
 		: undefined;
 }
 
@@ -662,16 +679,18 @@ function followTypeAliasToKeyofSource(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TypeNode | undefined {
-	if (!includeExternalTypes && hasNodeModulesPathSegment(typeNode.getSourceFile())) {
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	if (!includeExternalTypes && hasNodeModulesPathSegment(substituted.getSourceFile())) {
 		return undefined;
 	}
-	if (containsKeyofTypeOperator(typeNode)) {
-		return typeNode;
+	if (containsKeyofTypeOperator(substituted)) {
+		return substituted;
 	}
 
-	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	const unwrapped = unwrapParenthesizedTypeNode(substituted);
 	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 	if (
 		!declaration ||
@@ -681,7 +700,13 @@ function followTypeAliasToKeyofSource(
 		return undefined;
 	}
 	seen.add(declaration);
-	return followTypeAliasToKeyofSource(declaration.type, checker, includeExternalTypes, seen);
+	return followTypeAliasToKeyofSource(
+		declaration.type,
+		checker,
+		includeExternalTypes,
+		substitutions,
+		seen,
+	);
 }
 
 function findLocalTypeAliasDeclaration(

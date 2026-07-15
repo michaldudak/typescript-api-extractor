@@ -655,6 +655,36 @@ export type TupleIndexedKeys = KeyTuple[0];`,
 	expect(exportByName('TupleIndexedKeys')?.type).toMatchObject(expectedOperator);
 });
 
+it('applies authored generic alias bindings to indexed-access sources', () => {
+	const filePath = '/virtual/keyof-generic-alias-indexed-access.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type KeyTuple<T> = [keyof T];
+type NestedTuple<T> = [T];
+type KeyBox<T> = { keys: keyof T };
+type NestedBox<T> = { keys: T };
+
+export type TupleKey = KeyTuple<Params>[0];
+export type NestedTupleKey = NestedTuple<keyof Params>[0];
+export type ObjectKey = KeyBox<Params>['keys'];
+export type NestedObjectKey = NestedBox<keyof Params>['keys'];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const name of ['TupleKey', 'NestedTupleKey', 'ObjectKey', 'NestedObjectKey']) {
+		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
+	}
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
