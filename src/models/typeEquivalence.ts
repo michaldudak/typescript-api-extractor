@@ -160,19 +160,16 @@ class TypeEquivalence {
 			if (
 				type1.operator !== type2.operator ||
 				type1.resolutionKind !== type2.resolutionKind ||
-				!this.areEquivalent(type1.type, type2.type, anyIsWildcard, typeParamRenames)
+				// `any` inside authored operator syntax is semantic (`keyof any`), not
+				// a generated fallback that may wildcard-match another operand.
+				!this.areEquivalent(type1.type, type2.type, false, typeParamRenames)
 			) {
 				return false;
 			}
 
 			const resolvedTypesAreEquivalent =
 				type1.resolvedType && type2.resolvedType
-					? this.areEquivalent(
-							type1.resolvedType,
-							type2.resolvedType,
-							anyIsWildcard,
-							typeParamRenames,
-						)
+					? this.areEquivalent(type1.resolvedType, type2.resolvedType, false, typeParamRenames)
 					: type1.resolvedType === type2.resolvedType;
 			return resolvedTypesAreEquivalent;
 		}

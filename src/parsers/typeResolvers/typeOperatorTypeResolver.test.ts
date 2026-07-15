@@ -193,6 +193,37 @@ export type Keys = keyof Params;`,
 	expect(typeOperator).not.toHaveProperty('resolutionKind');
 });
 
+it('keeps distinct keyof-any and keyof-string callbacks in syntax-only output', () => {
+	const filePath = '/virtual/keyof-syntax-only-callbacks.ts';
+	const program = createInMemoryProgram(
+		filePath,
+		`export type Callbacks =
+  | ((key: keyof any) => void)
+  | ((key: keyof string) => void);`,
+	);
+	const moduleDefinition = parseSerializedModule(filePath, program);
+	const syntaxOnlyModuleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, program, {
+				typeOperatorOutput: 'syntaxOnly',
+			}),
+		),
+	);
+	const syntaxOnlyCallbacks = syntaxOnlyModuleDefinition.exports[0]?.type.types;
+
+	expect(moduleDefinition.exports[0]?.type.types).toHaveLength(2);
+	expect(syntaxOnlyCallbacks).toHaveLength(2);
+	expect(
+		syntaxOnlyCallbacks.map(
+			(callback: { callSignatures: Array<{ parameters: Array<{ type: { type: unknown } }> }> }) =>
+				callback.callSignatures[0].parameters[0].type.type,
+		),
+	).toMatchObject([
+		{ kind: 'intrinsic', intrinsic: 'any' },
+		{ kind: 'intrinsic', intrinsic: 'string' },
+	]);
+});
+
 it('preserves authored type-query operands without expanding their value shape', () => {
 	const filePath = '/virtual/keyof-type-query.ts';
 	const dependencyPath = '/virtual/keyof-type-query-dependency.ts';
