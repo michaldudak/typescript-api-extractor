@@ -670,17 +670,37 @@ type KeyTuple<T> = [keyof T];
 type NestedTuple<T> = [T];
 type KeyBox<T> = { keys: keyof T };
 type NestedBox<T> = { keys: T };
+type OuterKeyTuple<T> = KeyTuple<T>;
+type OuterNestedTuple<T> = NestedTuple<T>;
+type OuterKeyBox<T> = KeyBox<T>;
+type OuterNestedBox<T> = NestedBox<T>;
+type DeepBox<T> = { inner: { keys: T } };
 
 export type TupleKey = KeyTuple<Params>[0];
 export type NestedTupleKey = NestedTuple<keyof Params>[0];
 export type ObjectKey = KeyBox<Params>['keys'];
-export type NestedObjectKey = NestedBox<keyof Params>['keys'];`,
+export type NestedObjectKey = NestedBox<keyof Params>['keys'];
+export type ChainedTupleKey = OuterKeyTuple<Params>[0];
+export type ChainedNestedTupleKey = OuterNestedTuple<keyof Params>[0];
+export type ChainedObjectKey = OuterKeyBox<Params>['keys'];
+export type ChainedNestedObjectKey = OuterNestedBox<keyof Params>['keys'];
+export type DeepObjectKey = DeepBox<keyof Params>['inner']['keys'];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
 	const expectedOperator = expectedKeyofOperator();
 
-	for (const name of ['TupleKey', 'NestedTupleKey', 'ObjectKey', 'NestedObjectKey']) {
+	for (const name of [
+		'TupleKey',
+		'NestedTupleKey',
+		'ObjectKey',
+		'NestedObjectKey',
+		'ChainedTupleKey',
+		'ChainedNestedTupleKey',
+		'ChainedObjectKey',
+		'ChainedNestedObjectKey',
+		'DeepObjectKey',
+	]) {
 		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
 	}
 });

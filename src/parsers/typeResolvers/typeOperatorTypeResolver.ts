@@ -25,6 +25,7 @@ import {
 	flattenIntersectionTypeNodes,
 	getIndexedAccessKeyofSourceTypeNode,
 	getKeyofTypeOperatorNode,
+	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
@@ -170,19 +171,49 @@ function resolveCollapsedTypeOperatorSyntax(
 function getIndexedAccessTypeParameterBindings(
 	typeNode: ts.IndexedAccessTypeNode,
 	session: TypeResolutionSession,
+	baseBindings?: TypeParameterBindings,
 ): TypeParameterBindings | undefined {
 	const { checker, typeParameterSubstitutions, typeParameterTypeNodeSubstitutions } =
 		session.context;
-	const objectType = checker.getTypeFromTypeNode(typeNode.objectType);
+	let bindings =
+		baseBindings ??
+		(typeParameterSubstitutions?.size || typeParameterTypeNodeSubstitutions?.size
+			? {
+					types: new Map(typeParameterSubstitutions),
+					typeNodes: typeParameterTypeNodeSubstitutions
+						? new Map(typeParameterTypeNodeSubstitutions)
+						: undefined,
+				}
+			: undefined);
+	const authoredObject = unwrapParenthesizedTypeNode(typeNode.objectType);
+	if (ts.isIndexedAccessTypeNode(authoredObject)) {
+		bindings = getIndexedAccessTypeParameterBindings(authoredObject, session, bindings) ?? bindings;
+		return bindings;
+	}
+
+	const aliasBindings = getIndexedAccessAliasChainBindings(
+		authoredObject,
+		checker,
+		bindings,
+		new Set(),
+	);
+	if (aliasBindings !== bindings) {
+		return aliasBindings;
+	}
+
+	const substitutedObject = substituteTypeParameterTypeNode(
+		authoredObject,
+		checker,
+		bindings?.typeNodes,
+	);
+	const objectType = checker.getTypeFromTypeNode(substitutedObject);
 	const reference =
 		objectType.flags & ts.TypeFlags.Object && 'target' in objectType
 			? (objectType as ts.TypeReference)
 			: undefined;
-	const declaration = getReferencedTypeAliasDeclaration(typeNode.objectType, checker);
-	const authoredReference = unwrapParenthesizedTypeNode(typeNode.objectType);
 	const authoredArguments =
-		ts.isTypeReferenceNode(authoredReference) || ts.isImportTypeNode(authoredReference)
-			? authoredReference.typeArguments
+		ts.isTypeReferenceNode(substitutedObject) || ts.isImportTypeNode(substitutedObject)
+			? substitutedObject.typeArguments
 			: undefined;
 	const semanticParameters = reference
 		? (reference.target as ts.GenericType).typeParameters
@@ -190,25 +221,57 @@ function getIndexedAccessTypeParameterBindings(
 	const semanticArguments = reference
 		? checker.getTypeArguments(reference)
 		: objectType.aliasTypeArguments;
-	if (
-		!(declaration?.typeParameters?.length || semanticParameters?.length) ||
-		!(authoredArguments?.length || semanticArguments?.length)
-	) {
-		return undefined;
+	if (!semanticParameters?.length || !(authoredArguments?.length || semanticArguments?.length)) {
+		return bindings;
 	}
 
-	return deriveTypeParameterBindings({
-		checker,
-		declarations: declaration?.typeParameters,
-		semanticParameters,
-		semanticArguments,
-		authoredArguments,
-		baseTypes: typeParameterSubstitutions,
-		baseTypeNodes: typeParameterTypeNodeSubstitutions,
-		useDeclarationDefaults: true,
-		substituteArgumentTypes: true,
-		bodyForFreshSymbols: declaration?.type,
-	});
+	return (
+		deriveTypeParameterBindings({
+			checker,
+			semanticParameters,
+			semanticArguments,
+			authoredArguments,
+			baseTypes: bindings?.types,
+			baseTypeNodes: bindings?.typeNodes,
+			substituteArgumentTypes: true,
+		}) ?? bindings
+	);
+}
+
+/**
+ * Accumulates semantic and authored bindings while following generic alias
+ * references that wrap the indexed object. Each inner parameter is rebound to
+ * the outer argument before the selected tuple/property syntax is resolved.
+ */
+function getIndexedAccessAliasChainBindings(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	baseBindings: TypeParameterBindings | undefined,
+	seenAliases: Set<ts.TypeAliasDeclaration>,
+): TypeParameterBindings | undefined {
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, baseBindings?.typeNodes);
+	const declaration = getReferencedTypeAliasDeclaration(substituted, checker);
+	if (!declaration || seenAliases.has(declaration)) {
+		return baseBindings;
+	}
+	const typeArguments =
+		ts.isTypeReferenceNode(substituted) || ts.isImportTypeNode(substituted)
+			? substituted.typeArguments
+			: undefined;
+	const bindings =
+		deriveTypeParameterBindings({
+			checker,
+			declarations: declaration.typeParameters,
+			authoredArguments: typeArguments,
+			baseTypes: baseBindings?.types,
+			baseTypeNodes: baseBindings?.typeNodes,
+			useDeclarationDefaults: true,
+			substituteArgumentTypes: true,
+			bodyForFreshSymbols: declaration.type,
+		}) ?? baseBindings;
+	const nextSeenAliases = new Set(seenAliases);
+	nextSeenAliases.add(declaration);
+	return getIndexedAccessAliasChainBindings(declaration.type, checker, bindings, nextSeenAliases);
 }
 
 function resolveAuthoredUnion(
