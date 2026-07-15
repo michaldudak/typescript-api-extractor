@@ -26,6 +26,18 @@ export class Configurator {
    */
   configure(options = defaultOptions, inline = { compact: true }): void {}
 }`;
+const nestedKeyofReturnSource = `interface Params {
+  a: string;
+  b: number;
+}
+interface Box<T> {
+  value: T;
+}
+interface Holder<T> {
+  nested(): Box<T>;
+}
+
+export type Result = Holder<keyof Params>;`;
 
 it('does not use diagnostic source nodes to change function return type names', () => {
 	const filePath = '/virtual/return-alias.ts';
@@ -46,6 +58,27 @@ it('does not use diagnostic source nodes to change function return type names', 
 			},
 		],
 	});
+});
+
+it('keeps semantic substitutions inside nested generic return types', () => {
+	const filePath = '/virtual/nested-keyof-return.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, createInMemoryProgram(filePath, nestedKeyofReturnSource)),
+		),
+	);
+	const returnTypeArgument =
+		moduleDefinition.exports[0]?.type.properties[0]?.type.callSignatures[0]?.returnValueType
+			.typeName?.typeArguments?.[0]?.type;
+
+	expect(returnTypeArgument).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'literal', value: '"a"' },
+			{ kind: 'literal', value: '"b"' },
+		],
+	});
+	expect(returnTypeArgument).not.toHaveProperty('operator');
 });
 
 it('parses parameter defaults and docs consistently across function and class signatures', () => {
