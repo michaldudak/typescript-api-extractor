@@ -36,6 +36,7 @@ export function resolveTupleType(
 	}
 
 	const elementTypes = (type as ts.TupleType).typeArguments ?? [];
+	const nestedPlanCache = createTupleElementSelectionPlanCache();
 	const syntaxPlan = buildTupleElementSelectionPlan(
 		typeNode,
 		elementTypes.length,
@@ -43,8 +44,8 @@ export function resolveTupleType(
 		session.context.typeParameterSubstitutions,
 		session.context.typeParameterTypeNodeSubstitutions,
 		session.context.includeExternalTypes,
+		nestedPlanCache,
 	);
-	const nestedPlanCache = createTupleElementSelectionPlanCache();
 	return new TupleNode(
 		typeName,
 		elementTypes.map((elementType, index) => {
@@ -298,6 +299,7 @@ function getCachedTupleElementSelectionPlan(
 		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
+		cache,
 	);
 	sourcePlans.set(cacheKey, plan);
 	return plan;
@@ -345,6 +347,7 @@ function buildTupleElementSelectionPlan(
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
+	cache: TupleElementSelectionPlanCache = createTupleElementSelectionPlanCache(),
 ): (TupleElementSelection | undefined)[] | undefined {
 	if (!typeNode) {
 		return undefined;
@@ -366,7 +369,8 @@ function buildTupleElementSelectionPlan(
 			typeParameterSubstitutions,
 			typeParameterTypeNodeSubstitutions,
 			includeExternalTypes,
-			new Set(),
+			new Map(),
+			cache,
 		),
 	);
 	if (
@@ -414,8 +418,9 @@ function expandTupleElementSelections(
 /**
  * Computes the semantic width of an authored tuple element. Fixed elements are
  * one slot; rest elements have a known width only when their substituted type
- * can be followed to a finite tuple. The syntax-node set prevents recursive
- * tuple aliases from being treated as finite.
+ * can be followed to a finite tuple. Recursion is keyed by the tuple source and
+ * its authored and semantic bindings so separate generic instantiations do not
+ * collide while true recursive aliases remain open-width.
  */
 function getKnownTupleElementWidth(
 	typeNode: ts.TypeNode,
@@ -423,7 +428,8 @@ function getKnownTupleElementWidth(
 	typeParameterSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
 	typeParameterTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	includeExternalTypes: boolean,
-	seen: Set<ts.TypeNode>,
+	seenTupleSourceInstantiations: Map<ts.TupleTypeNode, Set<string>>,
+	cache: TupleElementSelectionPlanCache,
 ): number | undefined {
 	if (!isRestTupleElementNode(typeNode)) {
 		return 1;
@@ -442,11 +448,22 @@ function getKnownTupleElementWidth(
 		typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
 	);
-	if (!tupleSource || seen.has(tupleSource.typeNode)) {
+	if (!tupleSource) {
 		return undefined;
 	}
-	const nestedSeen = new Set(seen);
-	nestedSeen.add(tupleSource.typeNode);
+	const instantiationKey = [
+		getTupleSourceBindingsKey(tupleSource.typeParameterTypeNodeSubstitutions),
+		getTupleSourceSemanticBindingsKey(tupleSource.typeParameterSubstitutions, cache),
+	].join(':');
+	if (seenTupleSourceInstantiations.get(tupleSource.typeNode)?.has(instantiationKey)) {
+		return undefined;
+	}
+	const nestedSeenTupleSourceInstantiations = new Map(seenTupleSourceInstantiations);
+	const sourceInstantiations = new Set(
+		nestedSeenTupleSourceInstantiations.get(tupleSource.typeNode),
+	);
+	sourceInstantiations.add(instantiationKey);
+	nestedSeenTupleSourceInstantiations.set(tupleSource.typeNode, sourceInstantiations);
 	const widths = tupleSource.typeNode.elements.map((element) =>
 		getKnownTupleElementWidth(
 			element,
@@ -454,7 +471,8 @@ function getKnownTupleElementWidth(
 			tupleSource.typeParameterSubstitutions,
 			tupleSource.typeParameterTypeNodeSubstitutions,
 			includeExternalTypes,
-			new Set(nestedSeen),
+			nestedSeenTupleSourceInstantiations,
+			cache,
 		),
 	);
 	return widths.every((width): width is number => width != null)

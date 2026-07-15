@@ -1401,16 +1401,40 @@ it('distinguishes repeated finite tuple alias instantiations from cycles', () =>
   b: number;
 }
 
+interface OtherParams {
+  c: string;
+  d: number;
+}
+
 type Spread<T extends unknown[]> = [...T];
+type Left = Spread<Spread<[keyof Params, number]>>;
+type Right = Spread<Spread<[string, keyof OtherParams]>>;
 
 export type Result = Spread<Spread<Spread<[keyof Params]>>>;
-export type Indexed = Spread<Spread<Spread<[keyof Params]>>>[0];`,
+export type Indexed = Spread<Spread<Spread<[keyof Params]>>>[0];
+export type Composed = [...Left, ...Right];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('Result')?.type.types).toMatchObject([expectedKeyofOperator()]);
 	expect(exportByName('Indexed')?.type).toMatchObject(expectedKeyofOperator());
+	expect(exportByName('Composed')?.type.types).toMatchObject([
+		expectedKeyofOperator(),
+		{ kind: 'intrinsic', intrinsic: 'number' },
+		{ kind: 'intrinsic', intrinsic: 'string' },
+		{
+			...expectedKeyofOperator(),
+			type: { typeName: { name: 'OtherParams' } },
+			resolvedType: {
+				kind: 'union',
+				types: [
+					{ kind: 'literal', value: '"c"' },
+					{ kind: 'literal', value: '"d"' },
+				],
+			},
+		},
+	]);
 });
 
 it('preserves keyof through nested generic wrapper arguments', () => {
