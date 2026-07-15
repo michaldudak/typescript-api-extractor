@@ -1271,6 +1271,41 @@ export type ShortFunctionTrueKeyof = SelectShortFunction<string>;`,
 	}
 });
 
+it('matches conditional branches after substituting composite root parameters', () => {
+	const filePath = '/virtual/keyof-composite-root-conditional.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface TrueTarget { same: string }
+interface FalseTarget { same: number }
+type SelectArray<T> = T[] extends string[] ? keyof TrueTarget : keyof FalseTarget;
+type SelectReference<T> = Promise<T> extends Promise<string>
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+
+export type ArrayTrue = SelectArray<string>;
+export type ArrayFalse = SelectArray<number>;
+export type ReferenceTrue = SelectReference<string>;
+export type ReferenceFalse = SelectReference<number>;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const operatorFor = (name: 'TrueTarget' | 'FalseTarget') => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+
+	for (const name of ['ArrayTrue', 'ReferenceTrue']) {
+		expect(exportByName(name)?.type, name).toMatchObject(operatorFor('TrueTarget'));
+	}
+	for (const name of ['ArrayFalse', 'ReferenceFalse']) {
+		expect(exportByName(name)?.type, name).toMatchObject(operatorFor('FalseTarget'));
+	}
+});
+
 it('honors non-strict parameter bivariance in callable tuple conditionals', () => {
 	const filePath = '/virtual/keyof-non-strict-function-conditional.ts';
 	const moduleDefinition = parseSerializedModule(

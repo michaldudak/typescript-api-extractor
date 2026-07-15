@@ -632,31 +632,21 @@ function getConcreteConditionalBranch(
 	if (compositeDecision != null) {
 		return compositeDecision ? typeNode.trueType : typeNode.falseType;
 	}
-	const authoredCheckType = checker.getTypeFromTypeNode(typeNode.checkType);
-	const authoredExtendsType = checker.getTypeFromTypeNode(typeNode.extendsType);
-	if (
-		typeParameterSubstitutions?.size &&
-		((!(authoredCheckType.flags & ts.TypeFlags.TypeParameter) &&
-			typeNodeReferencesSubstitutedParameter(
-				typeNode.checkType,
-				checker,
-				typeParameterSubstitutions,
-			)) ||
-			(!(authoredExtendsType.flags & ts.TypeFlags.TypeParameter) &&
-				typeNodeReferencesSubstitutedParameter(
-					typeNode.extendsType,
-					checker,
-					typeParameterSubstitutions,
-				)))
-	) {
+	const checkType = getInstantiatedConditionalType(
+		typeNode.checkType,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+	);
+	const extendsType = getInstantiatedConditionalType(
+		typeNode.extendsType,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+	);
+	if (!checkType || !extendsType) {
 		return undefined;
 	}
-	const checkType = typeParameterSubstitutions
-		? substituteTypeParameter(authoredCheckType, typeParameterSubstitutions)
-		: authoredCheckType;
-	const extendsType = typeParameterSubstitutions
-		? substituteTypeParameter(authoredExtendsType, typeParameterSubstitutions)
-		: authoredExtendsType;
 	const unresolvedFlags =
 		ts.TypeFlags.Any |
 		ts.TypeFlags.Never |
@@ -667,7 +657,7 @@ function getConcreteConditionalBranch(
 		return undefined;
 	}
 
-	return checker.isTypeAssignableTo(checkType, extendsType)
+	return getConditionalElementAssignableDecision(checkType, extendsType, checker)
 		? typeNode.trueType
 		: typeNode.falseType;
 }
@@ -742,13 +732,13 @@ function getFixedTupleConditionalDecision(
 			}
 			continue;
 		}
-		const checkType = getInstantiatedConditionalElementType(
+		const checkType = getInstantiatedConditionalType(
 			checkElementNode,
 			checker,
 			checkTupleSyntax.typeParameterSubstitutions,
 			checkTupleSyntax.typeParameterTypeNodeSubstitutions,
 		);
-		const extendsType = getInstantiatedConditionalElementType(
+		const extendsType = getInstantiatedConditionalType(
 			extendsElementNode,
 			checker,
 			extendsTupleSyntax.typeParameterSubstitutions,
@@ -820,13 +810,13 @@ function getFunctionConditionalElementDecision(
 		if (!checkParameter.type || !extendsParameter.type) {
 			return undefined;
 		}
-		const checkParameterType = getInstantiatedConditionalElementType(
+		const checkParameterType = getInstantiatedConditionalType(
 			checkParameter.type,
 			checker,
 			checkSubstitutions,
 			checkTypeNodeSubstitutions,
 		);
-		const extendsParameterType = getInstantiatedConditionalElementType(
+		const extendsParameterType = getInstantiatedConditionalType(
 			extendsParameter.type,
 			checker,
 			extendsSubstitutions,
@@ -850,13 +840,13 @@ function getFunctionConditionalElementDecision(
 		}
 	}
 
-	const checkReturnType = getInstantiatedConditionalElementType(
+	const checkReturnType = getInstantiatedConditionalType(
 		checkFunction.type,
 		checker,
 		checkSubstitutions,
 		checkTypeNodeSubstitutions,
 	);
-	const extendsReturnType = getInstantiatedConditionalElementType(
+	const extendsReturnType = getInstantiatedConditionalType(
 		extendsFunction.type,
 		checker,
 		extendsSubstitutions,
@@ -899,21 +889,22 @@ function getConditionalElementAssignableDecision(
 }
 
 /**
- * Instantiates one fixed-tuple element using the active generic bindings.
- * TypeScript's public checker substitutes bare type parameters but does not
- * expose an API for instantiating a nested `Promise<T>` or `T[]` type. For type
- * references, its assignability engine reads `resolvedTypeArguments`; cloning
- * that internal shape lets the checker itself retain responsibility for
- * variance and structural compatibility. Unsupported semantic shapes remain
- * unresolved so branch selection never guesses.
+ * Instantiates a conditional operand using the active generic bindings. This
+ * serves both root composite checks and fixed-tuple elements. TypeScript's
+ * public checker substitutes bare type parameters but does not expose an API
+ * for instantiating a nested `Promise<T>` or `T[]` type. For type references,
+ * its assignability engine reads `resolvedTypeArguments`; cloning that internal
+ * shape lets the checker retain responsibility for variance and structural
+ * compatibility. Unsupported semantic shapes remain unresolved so branch
+ * selection never guesses.
  *
- * @param typeNode - Authored fixed-tuple element syntax.
+ * @param typeNode - Authored conditional operand syntax.
  * @param checker - Checker used to obtain and compare semantic types.
  * @param substitutions - Active semantic generic bindings.
  * @param typeNodeSubstitutions - Active authored generic bindings.
  * @returns The instantiated semantic type, or `undefined` when safe instantiation is unavailable.
  */
-function getInstantiatedConditionalElementType(
+function getInstantiatedConditionalType(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	substitutions: Map<ts.Symbol, ts.Type> | undefined,
