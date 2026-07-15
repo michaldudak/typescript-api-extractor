@@ -1381,6 +1381,63 @@ export class Example {
 	expect(boxArgument(methodReturn)).toMatchObject(expectedOperator);
 });
 
+it('carries generic keyof bindings through object aliases and callable interfaces', () => {
+	const filePath = '/virtual/keyof-generic-object-callable-aliases.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+interface Box<T> {
+  value: T;
+  getValue(): T;
+}
+type BoxAlias<T> = Box<T>;
+type ReorderedBoxAlias<Ignored, Value> = Box<Value>;
+
+interface Callback<T> {
+  (value: T): T;
+}
+type CallbackAlias<T> = Callback<T>;
+
+export type ObjectDirect = Box<keyof Params>;
+export type ObjectAliased = BoxAlias<keyof Params>;
+export type ObjectSelectedKey = ReorderedBoxAlias<string, keyof Params>;
+export type ObjectIgnoredKey = ReorderedBoxAlias<keyof Params, string>;
+export type CallableDirect = Callback<keyof Params>;
+export type CallableAliased = CallbackAlias<keyof Params>;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const name of ['ObjectDirect', 'ObjectAliased', 'ObjectSelectedKey']) {
+		const objectType = exportByName(name)?.type;
+		expect(
+			objectType.properties.find((property: { name: string }) => property.name === 'value')?.type,
+			name,
+		).toMatchObject(expectedOperator);
+		const methodSignature = objectType.properties.find(
+			(property: { name: string }) => property.name === 'getValue',
+		)?.type.callSignatures[0];
+		expect(methodSignature.returnValueType, name).toMatchObject(expectedOperator);
+	}
+	expect(exportByName('ObjectIgnoredKey')?.type.properties[0].type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+
+	for (const name of ['CallableDirect', 'CallableAliased']) {
+		const signature = exportByName(name)?.type.callSignatures[0];
+		expect(signature.parameters[0].type, name).toMatchObject(expectedOperator);
+		expect(signature.returnValueType, name).toMatchObject(expectedOperator);
+	}
+});
+
 it('keeps external keyof aliases semantic in class properties', () => {
 	const filePath = '/virtual/external-keyof-class-property.ts';
 	const moduleDefinition = JSON.parse(

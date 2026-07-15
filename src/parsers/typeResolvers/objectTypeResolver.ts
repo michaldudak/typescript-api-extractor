@@ -2,7 +2,6 @@ import ts from 'typescript';
 import { getDocumentationFromSymbol } from '../documentationParser';
 import { type ScopedParserContext } from '../../parserContext';
 import { isNodeModulesDeclaration } from '../sourceFileUtils';
-import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import {
 	ObjectNode,
 	TypeName,
@@ -28,7 +27,6 @@ import {
 	getPreservableKeyofTypeNode,
 	getPropertyTypeNode,
 	substituteTypeParameterTypeNode,
-	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
 /**
@@ -42,7 +40,7 @@ export function resolveObjectLikeType(
 	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
-	const { type, typeName, typeNode } = request;
+	const { type, typeName } = request;
 	const resolveObject = () => {
 		const objectType = buildObjectNodeFromType(
 			type,
@@ -64,62 +62,7 @@ export function resolveObjectLikeType(
 
 		return undefined;
 	};
-	const substitutions = getObjectTypeReferenceSubstitutions(type, typeNode, session.context);
-	return substitutions
-		? session.context.runWithTypeParameterSubstitutionScope(
-				substitutions.types,
-				resolveObject,
-				substitutions.typeNodes,
-			)
-		: resolveObject();
-}
-
-function getObjectTypeReferenceSubstitutions(
-	type: ts.Type,
-	typeNode: ts.TypeNode | undefined,
-	context: ScopedParserContext,
-): { types: Map<ts.Symbol, ts.Type>; typeNodes: Map<ts.Symbol, ts.TypeNode> } | undefined {
-	if (!typeNode || !(type.flags & ts.TypeFlags.Object) || !('target' in type)) {
-		return undefined;
-	}
-	const referenceNode = unwrapParenthesizedTypeNode(typeNode);
-	if (
-		!ts.isTypeReferenceNode(referenceNode) ||
-		!referenceNode.typeArguments?.some((argument) =>
-			containsKeyofTypeOperatorOrAlias(
-				argument,
-				context.checker,
-				new Set(),
-				context.includeExternalTypes,
-			),
-		)
-	) {
-		return undefined;
-	}
-
-	const reference = type as ts.TypeReference;
-	const semanticParameters = (reference.target as ts.GenericType).typeParameters;
-	const semanticArguments = context.checker.getTypeArguments(reference);
-	const declaration = reference.target.symbol?.declarations?.find(
-		(node): node is ts.TypeAliasDeclaration | ts.InterfaceDeclaration =>
-			ts.isTypeAliasDeclaration(node) || ts.isInterfaceDeclaration(node),
-	);
-	if (!semanticParameters?.length || !semanticArguments.length || !declaration) {
-		return undefined;
-	}
-
-	const bindings = deriveTypeParameterBindings({
-		checker: context.checker,
-		declarations: declaration.typeParameters,
-		semanticParameters,
-		semanticArguments,
-		authoredArguments: referenceNode.typeArguments,
-		baseTypes: context.typeParameterSubstitutions,
-		baseTypeNodes: context.typeParameterTypeNodeSubstitutions,
-		requireAuthoredArguments: true,
-	});
-
-	return bindings?.typeNodes ? { types: bindings.types, typeNodes: bindings.typeNodes } : undefined;
+	return resolveObject();
 }
 
 /**

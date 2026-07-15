@@ -14,6 +14,7 @@ import {
 import { typeResolvers } from './typeResolvers';
 import { createShallowType, getTypeId, hasExactFlag } from './typeResolutionUtils';
 import { resolveSubstitutionFallback } from './typeResolvers/specialTypeResolvers';
+import { getAuthoredTypeReferenceBindings } from './authoredTypeReferenceBindings';
 
 const unsupportedFallbackTypes = new WeakSet<ts.Type>();
 
@@ -268,17 +269,46 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		request: TypeResolutionRequest,
 		shouldAttempt: (resolver: TypeResolver) => boolean = () => true,
 	): { resolver: TypeResolver; resolvedType: AnyType } | undefined {
-		for (const resolver of typeResolvers) {
-			if (!shouldAttempt(resolver)) {
-				continue;
+		const dispatchResolvers = () => {
+			for (const resolver of typeResolvers) {
+				if (!shouldAttempt(resolver)) {
+					continue;
+				}
+
+				const resolvedType = resolver.resolve(request, this);
+				if (resolvedType) {
+					return { resolver, resolvedType };
+				}
 			}
 
-			const resolvedType = resolver.resolve(request, this);
-			if (resolvedType) {
-				return { resolver, resolvedType };
-			}
-		}
-
-		return undefined;
+			return undefined;
+		};
+		const { typeParameterSubstitutions, typeParameterTypeNodeSubstitutions } = this.context;
+		const baseBindings =
+			typeParameterSubstitutions?.size || typeParameterTypeNodeSubstitutions?.size
+				? {
+						types: new Map(typeParameterSubstitutions),
+						typeNodes: typeParameterTypeNodeSubstitutions
+							? new Map(typeParameterTypeNodeSubstitutions)
+							: undefined,
+					}
+				: undefined;
+		const bindings = getAuthoredTypeReferenceBindings(
+			request.typeNode,
+			this.context.checker,
+			this.context.includeExternalTypes,
+			baseBindings,
+		);
+		// Generic aliases can replace their own parameter symbols with different
+		// symbols declared by a terminal interface, class, or callable. Scope the
+		// complete resolver dispatch once so every shape and its nested members see
+		// the same authored argument instead of re-deriving bindings independently.
+		return bindings
+			? this.context.runWithTypeParameterSubstitutionScope(
+					bindings.types,
+					dispatchResolvers,
+					bindings.typeNodes,
+				)
+			: dispatchResolvers();
 	}
 }
