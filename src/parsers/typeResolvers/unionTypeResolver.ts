@@ -48,11 +48,7 @@ export function resolveUnionTypeNode(
  * it follows the declaration chain to find the source-ordered union TypeNode and flattens
  * its members in place. Named type references are intentionally not expanded.
  */
-function flattenUnionTypeNode(
-	typeNode: ts.UnionTypeNode,
-	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
-): ts.TypeNode[] {
+function flattenUnionTypeNode(typeNode: ts.UnionTypeNode, checker: ts.TypeChecker): ts.TypeNode[] {
 	const result: ts.TypeNode[] = [];
 
 	for (const member of typeNode.types) {
@@ -64,15 +60,15 @@ function flattenUnionTypeNode(
 
 		// If the unwrapped type is a union, recursively flatten it
 		if (ts.isUnionTypeNode(unwrapped)) {
-			result.push(...flattenUnionTypeNode(unwrapped, checker, includeExternalTypes));
+			result.push(...flattenUnionTypeNode(unwrapped, checker));
 		} else {
 			// Check if this non-union TypeNode resolves to a union type.
 			// This currently handles indexed access types (e.g., `Foo['bar']`) whose
 			// resolved type is a union. We follow the declaration to find the source-ordered
 			// union TypeNode and flatten its members to preserve authored order.
-			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker, includeExternalTypes);
+			const underlyingUnion = resolveToUnionTypeNode(unwrapped, checker);
 			if (underlyingUnion) {
-				result.push(...flattenUnionTypeNode(underlyingUnion, checker, includeExternalTypes));
+				result.push(...flattenUnionTypeNode(underlyingUnion, checker));
 			} else {
 				result.push(unwrapped);
 			}
@@ -93,7 +89,6 @@ function flattenUnionTypeNode(
 function resolveToUnionTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
 ): ts.UnionTypeNode | undefined {
 	// Only resolve if the type actually resolves to a union
 	const resolvedType = checker.getTypeFromTypeNode(typeNode);
@@ -101,7 +96,11 @@ function resolveToUnionTypeNode(
 		return undefined;
 	}
 
-	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, includeExternalTypes);
+	// This lookup only correlates members already present in the semantic union;
+	// it does not expose the selected declaration as an extracted external type.
+	// Keep external syntax eligible so indexed accesses into libraries such as
+	// React retain declaration order even when external output expansion is off.
+	const sourceTypeNode = getIndexedAccessSourceTypeNode(typeNode, checker, true);
 	const unwrappedSource = sourceTypeNode ? unwrapParenthesizedTypeNode(sourceTypeNode) : undefined;
 	return unwrappedSource && ts.isUnionTypeNode(unwrappedSource) ? unwrappedSource : undefined;
 }
@@ -174,11 +173,7 @@ function resolveUnionType(
 		//   For example, memberType = `Array<string>` and TypeNode = `Array<T>`.
 
 		// Flatten nested unions in the TypeNode to match how TypeScript flattens the Types
-		const flattenedTypeNodes = flattenUnionTypeNode(
-			typeNode,
-			checker,
-			context.includeExternalTypes,
-		);
+		const flattenedTypeNodes = flattenUnionTypeNode(typeNode, checker);
 
 		// Match each TypeNode to a memberType and resolve in source order
 		const usedMemberTypes = new Set<ts.Type>();

@@ -2186,6 +2186,30 @@ export type Pair = [keyof Params];`,
 	);
 });
 
+it('keeps external indexed-access union members in authored order after readonly erasure', () => {
+	const filePath = '/virtual/external-indexed-union-order.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export interface ConsumerProps {
+  value?: import('external-union-package').Props['value'] | undefined;
+}`,
+			'/virtual/node_modules/external-union-package/index.d.ts': `export interface Props {
+  value?: string | readonly string[] | number | undefined;
+}`,
+		}),
+	);
+	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	).type;
+
+	expect(
+		valueType.types.map(
+			(member: { intrinsic?: string; kind: string }) => member.intrinsic ?? member.kind,
+		),
+	).toEqual(['string', 'array', 'number', 'undefined']);
+});
+
 it('keeps third-party keyof re-exports external unless expansion is enabled', () => {
 	const filePath = '/virtual/keyof-external-reexport.ts';
 	const packagePath = '/virtual/node_modules/keyof-package/index.d.ts';
