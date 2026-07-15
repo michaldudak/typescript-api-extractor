@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
+import { isNodeModulesDeclaration } from '../sourceFileUtils';
 
 /** Unwraps syntax that is transparent to type-operator resolution. */
 export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
@@ -181,7 +182,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		const declaration = getImportTypeAliasDeclaration(unwrapped, checker);
 		if (
 			!declaration ||
-			(!includeExternalTypes && isExternalTypeAliasDeclaration(declaration)) ||
+			(!includeExternalTypes && isNodeModulesDeclaration(declaration)) ||
 			seenAliases.has(declaration)
 		) {
 			return false;
@@ -211,7 +212,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		getTypeAliasDeclaration(unwrapped, checker) ?? findLocalTypeAliasDeclaration(unwrapped);
 	if (
 		!declaration ||
-		(!includeExternalTypes && isExternalTypeAliasDeclaration(declaration)) ||
+		(!includeExternalTypes && isNodeModulesDeclaration(declaration)) ||
 		seenAliases.has(declaration)
 	) {
 		return false;
@@ -429,10 +430,6 @@ function getImportTypeAliasDeclaration(
 	const targetSymbol =
 		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 	return targetSymbol?.declarations?.find(ts.isTypeAliasDeclaration);
-}
-
-function isExternalTypeAliasDeclaration(declaration: ts.TypeAliasDeclaration): boolean {
-	return /[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName);
 }
 
 function findLocalTypeAliasDeclaration(

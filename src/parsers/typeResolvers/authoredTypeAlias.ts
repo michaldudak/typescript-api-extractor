@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { TypeName, withTypeName, type AnyType } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
+import { isNodeModulesDeclaration } from '../sourceFileUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
@@ -208,10 +209,7 @@ export function typeAliasContainsKeyofInSource(
 		return false;
 	}
 	seen.add(declaration);
-	if (
-		!includeExternalTypes &&
-		/[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName)
-	) {
+	if (!includeExternalTypes && isNodeModulesDeclaration(declaration)) {
 		return false;
 	}
 	return typeNodeContainsKeyofInSource(declaration.type, seen, includeExternalTypes);
@@ -298,10 +296,7 @@ export function typeAliasReferencesProjectImportInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): boolean {
-	if (
-		seen.has(declaration) ||
-		/[\\/]node_modules[\\/]/.test(declaration.getSourceFile().fileName)
-	) {
+	if (seen.has(declaration) || isNodeModulesDeclaration(declaration)) {
 		return false;
 	}
 	seen.add(declaration);
@@ -475,10 +470,7 @@ function concreteAliasReplaysKeyofObjectArgument(
 		return false;
 	}
 	const target = getGenericObjectDeclaration(reference, checker);
-	if (
-		!target ||
-		(!includeExternalTypes && /[\\/]node_modules[\\/]/.test(target.getSourceFile().fileName))
-	) {
+	if (!target || (!includeExternalTypes && isNodeModulesDeclaration(target))) {
 		return false;
 	}
 

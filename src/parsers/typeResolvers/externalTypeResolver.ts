@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { ExternalTypeNode, IntrinsicNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { isInternalSymbolName } from '../common';
+import { isNodeModulesDeclaration } from '../sourceFileUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 
 const allowedBuiltInTsTypes = new Set([
@@ -129,7 +130,7 @@ function isSymbolExternal(
 	return (
 		symbol.declarations?.some((x) => {
 			const sourceFileName = x.getSourceFile().fileName;
-			const definedExternally = sourceFileName.includes('node_modules');
+			const definedExternally = isNodeModulesDeclaration(x);
 			if (!definedExternally) return false;
 			if (!checkAllowList) return true;
 			return !(

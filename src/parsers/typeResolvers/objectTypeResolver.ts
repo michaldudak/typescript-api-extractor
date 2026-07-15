@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { getDocumentationFromSymbol } from '../documentationParser';
 import { type ScopedParserContext } from '../../parserContext';
+import { isNodeModulesDeclaration } from '../sourceFileUtils';
 import {
 	ObjectNode,
 	TypeName,
@@ -479,11 +480,7 @@ function buildObjectNodeFromType(
 }
 
 function isPropertyExternal(property: ts.Symbol): boolean {
-	return (
-		property.declarations?.every((declaration) =>
-			declaration.getSourceFile().fileName.includes('node_modules'),
-		) ?? false
-	);
+	return property.declarations?.every(isNodeModulesDeclaration) ?? false;
 }
 
 function buildPropertyNodeFromSymbol(

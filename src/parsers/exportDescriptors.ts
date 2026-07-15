@@ -3,6 +3,7 @@ import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
+import { isNodeModulesDeclaration } from './sourceFileUtils';
 import {
 	typeAliasContainsKeyofInSource,
 	typeAliasReplaysKeyofInSource,
@@ -195,8 +196,7 @@ function resolveExportSpecifierDescriptors(
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
 	const targetTypeAliasIsExternal =
-		targetTypeAlias != null &&
-		/[\\/]node_modules[\\/]/.test(targetTypeAlias.getSourceFile().fileName);
+		targetTypeAlias != null && isNodeModulesDeclaration(targetTypeAlias);
 	return withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
