@@ -10,7 +10,7 @@ export class ArrayNode implements TypeNode {
 	/** Extracted element type. */
 	public elementType: AnyType;
 	/** `true` for readonly arrays; omitted for mutable arrays. */
-	public readonly isReadonly: true | undefined;
+	declare public readonly isReadonly?: true;
 
 	/**
 	 * Creates an extracted array type.
@@ -22,7 +22,9 @@ export class ArrayNode implements TypeNode {
 	constructor(typeName: TypeName | undefined, elementType: AnyType, isReadonly?: true) {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.elementType = elementType;
-		this.isReadonly = isReadonly;
+		if (isReadonly) {
+			this.isReadonly = true;
+		}
 	}
 
 	/** @returns The public alias or rendered mutable/readonly array syntax. */

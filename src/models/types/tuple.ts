@@ -10,7 +10,7 @@ export class TupleNode implements TypeNode {
 	/** Extracted tuple element types in semantic order. */
 	public types: AnyType[];
 	/** `true` for readonly tuples; omitted for mutable tuples. */
-	public readonly isReadonly: true | undefined;
+	declare public readonly isReadonly?: true;
 
 	/**
 	 * Creates an extracted tuple type.
@@ -22,7 +22,9 @@ export class TupleNode implements TypeNode {
 	constructor(typeName: TypeName | undefined, types: AnyType[], isReadonly?: true) {
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.types = types;
-		this.isReadonly = isReadonly;
+		if (isReadonly) {
+			this.isReadonly = true;
+		}
 	}
 
 	/** @returns The public alias or rendered mutable/readonly tuple syntax. */

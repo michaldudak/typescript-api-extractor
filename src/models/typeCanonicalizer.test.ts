@@ -273,10 +273,11 @@ it('keeps compatible exact provenance for resolved type operator construction', 
 
 it('keeps type operators whose container operands differ by readonly', () => {
 	const resolvedType = new LiteralNode('"length"');
+	const mutableArray = new ArrayNode(undefined, new IntrinsicNode('string'));
 	const mutableOperator = new TypeOperatorNode(
 		undefined,
 		'keyof',
-		new ArrayNode(undefined, new IntrinsicNode('string')),
+		mutableArray,
 		resolvedType,
 		'exact',
 	);
@@ -291,6 +292,7 @@ it('keeps type operators whose container operands differ by readonly', () => {
 	expect(typeEquivalenceChecker.areEquivalentStrictly(mutableOperator, readonlyOperator)).toBe(
 		false,
 	);
+	expect(mutableArray).not.toHaveProperty('isReadonly');
 	expect(new UnionNode(undefined, [mutableOperator, readonlyOperator]).types).toEqual([
 		mutableOperator,
 		readonlyOperator,
@@ -299,10 +301,11 @@ it('keeps type operators whose container operands differ by readonly', () => {
 
 it('keeps type operators whose tuple operands differ by readonly', () => {
 	const resolvedType = new LiteralNode('"0"');
+	const mutableTuple = new TupleNode(undefined, [new IntrinsicNode('string')]);
 	const mutableOperator = new TypeOperatorNode(
 		undefined,
 		'keyof',
-		new TupleNode(undefined, [new IntrinsicNode('string')]),
+		mutableTuple,
 		resolvedType,
 		'exact',
 	);
@@ -317,6 +320,7 @@ it('keeps type operators whose tuple operands differ by readonly', () => {
 	expect(typeEquivalenceChecker.areEquivalentStrictly(mutableOperator, readonlyOperator)).toBe(
 		false,
 	);
+	expect(mutableTuple).not.toHaveProperty('isReadonly');
 	expect(new UnionNode(undefined, [mutableOperator, readonlyOperator]).types).toEqual([
 		mutableOperator,
 		readonlyOperator,
