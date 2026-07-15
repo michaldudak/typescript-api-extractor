@@ -102,8 +102,9 @@ export function parseParameter(
 
 /**
  * Parses a signature return type. Handles examples like `(): Promise<Result>`
- * while using the explicit return annotation only as diagnostic source context,
- * not as a forced type node override.
+ * while always using the explicit return annotation as diagnostic source
+ * context. An annotation that contains or references preservable `keyof`
+ * syntax also steers type resolution so the authored operator is not lost.
  *
  * @param signature - Checker signature whose return type should be resolved.
  * @param context - Active scoped parser context.
