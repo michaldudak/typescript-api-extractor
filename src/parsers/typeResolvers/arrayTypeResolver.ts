@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { ArrayNode, type AnyType } from '../../models';
 import { TypeName } from '../../models/typeName';
-import { isSemanticallyReadonlyArray } from '../typeContainerUtils';
+import { getBuiltInArrayReferenceName, isSemanticallyReadonlyArray } from '../typeContainerUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	getPreservableKeyofTypeNode,
@@ -101,7 +101,10 @@ export function getArrayElementTypeNode(
 	if (ts.isArrayTypeNode(unwrapped)) {
 		elementType = unwrapped.elementType;
 	}
-	if (ts.isTypeReferenceNode(unwrapped) && isBuiltInArrayReference(unwrapped, checker)) {
+	if (
+		ts.isTypeReferenceNode(unwrapped) &&
+		getBuiltInArrayReferenceName(unwrapped, checker) !== undefined
+	) {
 		elementType = unwrapped.typeArguments?.[0];
 	}
 
@@ -114,30 +117,4 @@ export function getArrayElementTypeNode(
 		typeParameterTypeNodeSubstitutions,
 		includeExternalTypes,
 	);
-}
-
-function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.TypeChecker): boolean {
-	return getBuiltInArrayReferenceName(typeNode, checker) !== undefined;
-}
-
-function getBuiltInArrayReferenceName(
-	typeNode: ts.TypeReferenceNode,
-	checker: ts.TypeChecker,
-): 'Array' | 'ReadonlyArray' | undefined {
-	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	if (
-		!targetSymbol ||
-		!['Array', 'ReadonlyArray'].includes(targetSymbol.getName()) ||
-		!(targetSymbol.flags & ts.SymbolFlags.Interface)
-	) {
-		return undefined;
-	}
-
-	const isBuiltIn =
-		targetSymbol.declarations?.some((declaration) =>
-			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-		) ?? false;
-	return isBuiltIn ? (targetSymbol.getName() as 'Array' | 'ReadonlyArray') : undefined;
 }

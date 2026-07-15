@@ -1,6 +1,39 @@
 import ts from 'typescript';
 
 /**
+ * Identifies an authored reference to TypeScript's built-in array interfaces.
+ *
+ * The symbol name alone is insufficient because projects may shadow `Array`
+ * or `ReadonlyArray`. Aliases are followed before checking that the target is
+ * an interface declared by TypeScript's bundled library definitions.
+ *
+ * @param typeNode - Authored type reference whose resolved target should be inspected.
+ * @param checker - Checker used to resolve aliases and declarations.
+ * @returns The built-in interface name, or `undefined` for non-array and shadowed references.
+ */
+export function getBuiltInArrayReferenceName(
+	typeNode: ts.TypeReferenceNode,
+	checker: ts.TypeChecker,
+): 'Array' | 'ReadonlyArray' | undefined {
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	if (
+		!targetSymbol ||
+		!['Array', 'ReadonlyArray'].includes(targetSymbol.getName()) ||
+		!(targetSymbol.flags & ts.SymbolFlags.Interface)
+	) {
+		return undefined;
+	}
+
+	const isBuiltIn =
+		targetSymbol.declarations?.some((declaration) =>
+			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		) ?? false;
+	return isBuiltIn ? (targetSymbol.getName() as 'Array' | 'ReadonlyArray') : undefined;
+}
+
+/**
  * Detects whether a semantic array reference targets TypeScript's built-in `ReadonlyArray`.
  *
  * The symbol name alone is insufficient because user code can declare another
