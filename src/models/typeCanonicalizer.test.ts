@@ -62,6 +62,9 @@ it('uses type equivalence when canonicalizing duplicate function members', () =>
 
 	const canonicalUnion = new UnionNode(undefined, [anyFunction, stringFunction]);
 	expect(canonicalUnion.types).toEqual([stringFunction]);
+
+	const reverseCanonicalUnion = new UnionNode(undefined, [stringFunction, anyFunction]);
+	expect(reverseCanonicalUnion.types).toEqual([stringFunction]);
 });
 
 it('replaces wildcard functions in place without merging later concrete overloads', () => {
