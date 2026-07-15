@@ -34,6 +34,53 @@ export type PropsFor<ElementType extends React.ElementType> =
 	});
 });
 
+it('infers memo component props without an explicit React.memo type argument', () => {
+	const filePath = path.resolve('src/parsers/typeResolvers/react-memo-inference.ts');
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram(
+					filePath,
+					`import * as React from 'react';
+
+interface Props {
+  className?: string;
+  count: number;
+}
+
+export const InferredMemo = React.memo(function InferredMemo(props: Props) {
+  return React.createElement('div', { className: props.className }, props.count);
+});`,
+				),
+			),
+		),
+	);
+	const component = moduleDefinition.exports[0]?.type;
+
+	expect(component).toMatchObject({
+		kind: 'component',
+		props: [
+			{
+				name: 'className',
+				type: {
+					kind: 'union',
+					types: [
+						{ kind: 'intrinsic', intrinsic: 'string' },
+						{ kind: 'intrinsic', intrinsic: 'undefined' },
+					],
+				},
+				optional: true,
+			},
+			{
+				name: 'count',
+				type: { kind: 'intrinsic', intrinsic: 'number' },
+				optional: false,
+			},
+		],
+	});
+});
+
 it('routes built-in arrays around external fallback while keeping external aliases opaque', () => {
 	const filePath = '/virtual/array-external-fallback-consumer.ts';
 	const moduleDefinition = JSON.parse(
