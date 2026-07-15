@@ -357,7 +357,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				checker,
 				includeExternalTypes,
 				substitutions,
-			)?.map((source) => source.typeNode);
+			);
 		}
 		if (!sourceTypeNodes && indexType.isNumberLiteral()) {
 			sourceTypeNodes = getTupleLiteralIndexedSourceTypeNodes(
@@ -717,15 +717,15 @@ export function getIndexedAccessSourceTypeNode(
 		);
 	}
 	if (indexType.flags & ts.TypeFlags.Number) {
-		const tupleElementSources = getTupleNumberIndexedTypeNodes(
+		const tupleElementTypeNodes = getTupleNumberIndexedTypeNodes(
 			unwrapped.objectType,
 			checker,
 			includeExternalTypes,
 			substitutions,
 		);
 		const elementTypeNode =
-			tupleElementSources?.length === 1 && !tupleElementSources[0]!.includesUndefined
-				? tupleElementSources[0]!.typeNode
+			tupleElementTypeNodes?.length === 1
+				? tupleElementTypeNodes[0]
 				: getArrayIndexedElementTypeNode(
 						unwrapped.objectType,
 						checker,
@@ -842,19 +842,6 @@ export function containsIndexedAccessUnionSource(typeNode: ts.TypeNode | undefin
 }
 
 /**
- * One authored source selected by a tuple `number` index.
- *
- * `includesUndefined` records optional-element semantics separately from the
- * inner syntax so the resolver can emit both the operator and `undefined`.
- */
-export interface TupleNumberIndexedSource {
-	/** Authored element syntax after rest or optional wrappers are removed. */
-	typeNode: ts.TypeNode;
-	/** Whether selecting this optional element can also produce `undefined`. */
-	includesUndefined: boolean;
-}
-
-/**
  * Returns every authored tuple source selected by a `number` index. Fixed,
  * optional, finite-spread, and open-rest members are expanded in source order.
  *
@@ -869,7 +856,7 @@ export function getTupleNumberIndexedTypeNodes(
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
-): readonly TupleNumberIndexedSource[] | undefined {
+): readonly ts.TypeNode[] | undefined {
 	const tupleSource = getBoundTupleSourceTypeNode(
 		typeNode,
 		checker,
@@ -894,8 +881,8 @@ function getTupleNumberIndexedSourcesFromTuple(
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seenTupleSources: readonly BoundTupleSourceTypeNode[] = [],
-): readonly TupleNumberIndexedSource[] | undefined {
-	const sources: TupleNumberIndexedSource[] = [];
+): readonly ts.TypeNode[] | undefined {
+	const sources: ts.TypeNode[] = [];
 	for (const element of tupleTypeNode.elements) {
 		const syntax = unwrapTupleElementSyntax(element);
 		const elementTypeNode = substituteTypeParameterTypeNode(
@@ -904,12 +891,7 @@ function getTupleNumberIndexedSourcesFromTuple(
 			substitutions,
 		);
 		if (!syntax.isRest) {
-			sources.push({
-				typeNode: elementTypeNode,
-				includesUndefined:
-					ts.isOptionalTypeNode(element) ||
-					(ts.isNamedTupleMember(element) && element.questionToken != null),
-			});
+			sources.push(elementTypeNode);
 			continue;
 		}
 
@@ -946,7 +928,7 @@ function getTupleNumberIndexedSourcesFromTuple(
 		if (!arrayElementTypeNode) {
 			return undefined;
 		}
-		sources.push({ typeNode: arrayElementTypeNode, includesUndefined: false });
+		sources.push(arrayElementTypeNode);
 	}
 	return sources;
 }

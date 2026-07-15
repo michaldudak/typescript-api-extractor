@@ -1044,11 +1044,13 @@ type Optional<T> = [value?: keyof T][number];
 interface Fields {
   a: keyof Left;
   b: keyof Right;
+  c?: keyof Params;
 }
 
 export type OpenResult = Open<Params>;
 export type OptionalResult = Optional<Params>;
-export type SelectedFields = Fields['a' | 'b'];`,
+export type SelectedFields = Fields['a' | 'b'];
+export type SelectedOptionalField = Fields['a' | 'c'];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1077,6 +1079,14 @@ export type SelectedFields = Fields['a' | 'b'];`,
 	expect(exportByName('SelectedFields')?.type).toMatchObject({
 		kind: 'union',
 		types: [operatorFor('Left', ['left']), operatorFor('Right', ['right'])],
+	});
+	expect(exportByName('SelectedOptionalField')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			operatorFor('Left', ['left']),
+			paramsOperator,
+			{ kind: 'intrinsic', intrinsic: 'undefined' },
+		],
 	});
 });
 

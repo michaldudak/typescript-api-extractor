@@ -139,26 +139,21 @@ function resolveCollapsedTypeOperatorSyntax(
 		const authoredSubstitutions =
 			bindings?.typeNodes ?? session.context.typeParameterTypeNodeSubstitutions;
 		const indexType = session.context.checker.getTypeFromTypeNode(unwrapped.indexType);
-		const resolveSourceMembers = (
-			sources: readonly { typeNode: ts.TypeNode; includesUndefined?: boolean }[],
-		) => {
+		const resolveSourceMembers = (sourceTypeNodes: readonly ts.TypeNode[]) => {
 			const resolveMembers = () =>
-				new UnionNode(
-					typeName,
-					sources.map(({ typeNode: sourceTypeNode, includesUndefined }) => {
-						const resolvedSource = resolveAuthoredTypeNode(
+				new UnionNode(typeName, [
+					...sourceTypeNodes.map((sourceTypeNode) =>
+						resolveAuthoredTypeNode(
 							substituteTypeParameterTypeNode(
 								sourceTypeNode,
 								session.context.checker,
 								authoredSubstitutions,
 							),
 							session,
-						);
-						return includesUndefined
-							? new UnionNode(undefined, [resolvedSource, new IntrinsicNode('undefined')])
-							: resolvedSource;
-					}),
-				);
+						),
+					),
+					...(getUndefinedUnionMember(type) ? [new IntrinsicNode('undefined')] : []),
+				]);
 			return bindings
 				? session.context.runWithTypeParameterSubstitutionScope(
 						bindings.types,
@@ -186,9 +181,7 @@ function resolveCollapsedTypeOperatorSyntax(
 				),
 			)
 		) {
-			return resolveSourceMembers(
-				indexedSourceTypeNodes.map((sourceTypeNode) => ({ typeNode: sourceTypeNode })),
-			);
+			return resolveSourceMembers(indexedSourceTypeNodes);
 		}
 		const tupleLiteralTypeNodes = indexType.isNumberLiteral()
 			? getTupleLiteralIndexedSourceTypeNodes(
@@ -213,9 +206,9 @@ function resolveCollapsedTypeOperatorSyntax(
 				),
 			)
 		) {
-			return resolveSourceMembers(tupleLiteralTypeNodes.map((typeNode) => ({ typeNode })));
+			return resolveSourceMembers(tupleLiteralTypeNodes);
 		}
-		const tupleElementSources =
+		const tupleElementTypeNodes =
 			indexType.flags & ts.TypeFlags.Number
 				? getTupleNumberIndexedTypeNodes(
 						unwrapped.objectType,
@@ -225,10 +218,9 @@ function resolveCollapsedTypeOperatorSyntax(
 					)
 				: undefined;
 		if (
-			tupleElementSources &&
-			(tupleElementSources.length > 1 ||
-				tupleElementSources.some((source) => source.includesUndefined)) &&
-			tupleElementSources.some(({ typeNode: elementTypeNode }) =>
+			tupleElementTypeNodes &&
+			(tupleElementTypeNodes.length > 1 || getUndefinedUnionMember(type)) &&
+			tupleElementTypeNodes.some((elementTypeNode) =>
 				Boolean(
 					getPreservableKeyofTypeNode(
 						elementTypeNode,
@@ -239,7 +231,7 @@ function resolveCollapsedTypeOperatorSyntax(
 				),
 			)
 		) {
-			return resolveSourceMembers(tupleElementSources);
+			return resolveSourceMembers(tupleElementTypeNodes);
 		}
 		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(
 			unwrapped,
