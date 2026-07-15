@@ -231,7 +231,7 @@ it('rejects distinct type-operator operands before comparing resolved keys', () 
 	expect(resolvedRenderCount).toBe(0);
 });
 
-it('requires explicit provenance for resolved type operator construction', () => {
+it('keeps compatible exact provenance for resolved type operator construction', () => {
 	const resolvedType = new LiteralNode('"value"');
 	const operator = new TypeOperatorNode(
 		undefined,
@@ -245,22 +245,30 @@ it('requires explicit provenance for resolved type operator construction', () =>
 		'keyof',
 		new TypeParameterNode('T', undefined, undefined),
 	);
+	const compatibleOperator = new TypeOperatorNode(
+		undefined,
+		'keyof',
+		syntaxOnlyOperator.type,
+		resolvedType,
+	);
 
 	expect(operator.resolutionKind).toBe('exact');
+	expect(compatibleOperator.resolutionKind).toBe('exact');
+	expect(compatibleOperator.resolvedType).toBe(resolvedType);
 	expect(syntaxOnlyOperator.resolvedType).toBeUndefined();
 	expect(syntaxOnlyOperator.resolutionKind).toBeUndefined();
 	expect(syntaxOnlyOperator).not.toHaveProperty('resolvedType');
 	expect(syntaxOnlyOperator).not.toHaveProperty('resolutionKind');
 	expect(() => {
-		// Exercise the runtime invariant for untyped JavaScript consumers. The
-		// public TypeScript overloads reject this four-argument call statically.
+		// Exercise the runtime invariant for untyped JavaScript consumers.
 		Reflect.construct(TypeOperatorNode, [
 			undefined,
 			'keyof',
 			syntaxOnlyOperator.type,
-			resolvedType,
+			undefined,
+			'exact',
 		]);
-	}).toThrow('resolvedType and resolutionKind must be provided together');
+	}).toThrow('resolutionKind requires resolvedType');
 });
 
 it('keeps type operators whose container operands differ by readonly', () => {

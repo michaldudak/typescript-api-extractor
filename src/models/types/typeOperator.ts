@@ -29,9 +29,15 @@ export class TypeOperatorNode implements TypeNode {
 	 * @param operator - Authored TypeScript operator.
 	 * @param type - Authored operator operand.
 	 * @param resolvedType - Checker-resolved operator result, omitted in syntax-only output.
-	 * @param resolutionKind - Provenance of `resolvedType`, omitted with the resolved result.
+	 * @param resolutionKind - Provenance of `resolvedType`; defaults to `exact` for compatibility.
 	 */
 	constructor(typeName: TypeName | undefined, operator: TypeOperator, type: AnyType);
+	constructor(
+		typeName: TypeName | undefined,
+		operator: TypeOperator,
+		type: AnyType,
+		resolvedType: AnyType,
+	);
 	constructor(
 		typeName: TypeName | undefined,
 		operator: TypeOperator,
@@ -46,16 +52,16 @@ export class TypeOperatorNode implements TypeNode {
 		resolvedType?: AnyType,
 		resolutionKind?: TypeOperatorResolutionKind,
 	) {
-		if ((resolvedType === undefined) !== (resolutionKind === undefined)) {
-			throw new TypeError('resolvedType and resolutionKind must be provided together');
+		if (resolvedType === undefined && resolutionKind !== undefined) {
+			throw new TypeError('resolutionKind requires resolvedType');
 		}
 
 		this.typeName = typeName?.name ? typeName : undefined;
 		this.operator = operator;
 		this.type = type;
-		if (resolvedType && resolutionKind) {
+		if (resolvedType) {
 			this.resolvedType = resolvedType;
-			this.resolutionKind = resolutionKind;
+			this.resolutionKind = resolutionKind ?? 'exact';
 		}
 	}
 
