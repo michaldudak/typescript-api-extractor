@@ -56,75 +56,53 @@ class TypeCanonicalizer {
 	 * `any` fallbacks.
 	 */
 	deduplicateMemberTypes(types: readonly AnyType[]): AnyType[] {
-		const functionTypes: { index: number; func: FunctionNode }[] = [];
-		const typeOperatorTypes: { index: number; typeOperator: TypeOperatorNode }[] = [];
-		const nonFunctionTypes: { index: number; type: AnyType }[] = [];
-
-		for (let i = 0; i < types.length; i++) {
-			const type = types[i];
-			if (type instanceof FunctionNode) {
-				functionTypes.push({ index: i, func: type });
-			} else if (type instanceof TypeOperatorNode) {
-				typeOperatorTypes.push({ index: i, typeOperator: type });
-			} else {
-				nonFunctionTypes.push({ index: i, type });
-			}
-		}
-
-		const deduplicatedTypeOperators: { index: number; typeOperator: TypeOperatorNode }[] = [];
-		for (const { index, typeOperator } of typeOperatorTypes) {
-			const alreadyIncluded = deduplicatedTypeOperators.some((existing) =>
-				typeEquivalenceChecker.areEquivalentStrictly(existing.typeOperator, typeOperator),
-			);
-			if (!alreadyIncluded) {
-				deduplicatedTypeOperators.push({ index, typeOperator });
-			}
-		}
-
-		const deduplicatedFunctions: { index: number; func: FunctionNode }[] = [];
-		for (const { index, func } of functionTypes) {
-			const existingIndex = deduplicatedFunctions.findIndex((existing) =>
-				typeEquivalenceChecker.areFunctionsEquivalentIgnoringAny(existing.func, func),
-			);
-
-			if (existingIndex === -1) {
-				deduplicatedFunctions.push({ index, func });
-			} else {
-				const existing = deduplicatedFunctions[existingIndex];
-				if (
-					typeEquivalenceChecker.containsAny(existing.func) &&
-					!typeEquivalenceChecker.containsAny(func)
-				) {
-					deduplicatedFunctions[existingIndex] = { index: existing.index, func };
-				}
-			}
-		}
-
+		const deduplicated: AnyType[] = [];
+		const functionIndexes: number[] = [];
+		const typeOperatorIndexes: number[] = [];
 		const seenNonFunctionKeys = new Set<unknown>();
-		const deduplicatedNonFunctions: { index: number; type: AnyType }[] = [];
-		for (const { index, type } of nonFunctionTypes) {
-			const uniqueKey = this.getNonFunctionMemberKey(type);
 
+		for (const type of types) {
+			if (type instanceof FunctionNode) {
+				const existingIndex = functionIndexes.find((index) =>
+					typeEquivalenceChecker.areFunctionsEquivalentIgnoringAny(
+						deduplicated[index] as FunctionNode,
+						type,
+					),
+				);
+				if (existingIndex === undefined) {
+					functionIndexes.push(deduplicated.length);
+					deduplicated.push(type);
+				} else if (
+					typeEquivalenceChecker.containsAny(deduplicated[existingIndex]) &&
+					!typeEquivalenceChecker.containsAny(type)
+				) {
+					deduplicated[existingIndex] = type;
+				}
+				continue;
+			}
+
+			if (type instanceof TypeOperatorNode) {
+				const alreadyIncluded = typeOperatorIndexes.some((index) =>
+					typeEquivalenceChecker.areEquivalentStrictly(
+						deduplicated[index] as TypeOperatorNode,
+						type,
+					),
+				);
+				if (!alreadyIncluded) {
+					typeOperatorIndexes.push(deduplicated.length);
+					deduplicated.push(type);
+				}
+				continue;
+			}
+
+			const uniqueKey = this.getNonFunctionMemberKey(type);
 			if (!seenNonFunctionKeys.has(uniqueKey)) {
 				seenNonFunctionKeys.add(uniqueKey);
-				deduplicatedNonFunctions.push({ index, type });
+				deduplicated.push(type);
 			}
 		}
 
-		const combined = [
-			...deduplicatedFunctions.map((entry) => ({
-				index: entry.index,
-				type: entry.func as AnyType,
-			})),
-			...deduplicatedTypeOperators.map((entry) => ({
-				index: entry.index,
-				type: entry.typeOperator as AnyType,
-			})),
-			...deduplicatedNonFunctions,
-		];
-		combined.sort((a, b) => a.index - b.index);
-
-		return combined.map((item) => item.type);
+		return deduplicated;
 	}
 
 	/**

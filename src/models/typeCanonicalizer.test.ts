@@ -28,6 +28,15 @@ function createGenericFunction(
 	]);
 }
 
+function createUnaryFunction(parameterType: IntrinsicNode): FunctionNode {
+	return new FunctionNode(undefined, [
+		new CallSignature(
+			[new Parameter(parameterType, 'value', undefined, false, undefined)],
+			new IntrinsicNode('void'),
+		),
+	]);
+}
+
 it('canonicalizes compound members from the union constructor', () => {
 	const canonicalUnion = new UnionNode(undefined, [
 		new IntrinsicNode('undefined'),
@@ -45,24 +54,32 @@ it('canonicalizes compound members from the union constructor', () => {
 });
 
 it('uses type equivalence when canonicalizing duplicate function members', () => {
-	const anyFunction = new FunctionNode(undefined, [
-		new CallSignature(
-			[new Parameter(new IntrinsicNode('any'), 'value', undefined, false, undefined)],
-			new IntrinsicNode('void'),
-		),
-	]);
-	const stringFunction = new FunctionNode(undefined, [
-		new CallSignature(
-			[new Parameter(new IntrinsicNode('string'), 'value', undefined, false, undefined)],
-			new IntrinsicNode('void'),
-		),
-	]);
+	const anyFunction = createUnaryFunction(new IntrinsicNode('any'));
+	const stringFunction = createUnaryFunction(new IntrinsicNode('string'));
 
 	expect(typeEquivalenceChecker.areEquivalentIgnoringAny(anyFunction, stringFunction)).toBe(true);
 	expect(typeEquivalenceChecker.containsAny(anyFunction)).toBe(true);
 
 	const canonicalUnion = new UnionNode(undefined, [anyFunction, stringFunction]);
 	expect(canonicalUnion.types).toEqual([stringFunction]);
+});
+
+it('replaces wildcard functions in place without merging later concrete overloads', () => {
+	const prefix = new LiteralNode('"prefix"');
+	const separator = new LiteralNode('"separator"');
+	const anyFunction = createUnaryFunction(new IntrinsicNode('any'));
+	const stringFunction = createUnaryFunction(new IntrinsicNode('string'));
+	const numberFunction = createUnaryFunction(new IntrinsicNode('number'));
+
+	const canonicalUnion = new UnionNode(undefined, [
+		prefix,
+		anyFunction,
+		separator,
+		stringFunction,
+		numberFunction,
+	]);
+
+	expect(canonicalUnion.types).toEqual([prefix, stringFunction, separator, numberFunction]);
 });
 
 it('canonicalizes alpha-equivalent generic function members', () => {
