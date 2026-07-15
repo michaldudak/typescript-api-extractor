@@ -962,6 +962,18 @@
 										"tags": []
 									},
 									"optional": false
+								},
+								{
+									"name": "isOpen",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "boolean"
+									},
+									"documentation": {
+										"description": "Indicates whether the component is currently open.",
+										"tags": []
+									},
+									"optional": false
 								}
 							]
 						},
