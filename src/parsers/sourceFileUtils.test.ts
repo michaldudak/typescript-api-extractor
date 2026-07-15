@@ -16,22 +16,14 @@ function createTypeAliasSourceFile(fileName: string) {
 	return { sourceFile, declaration };
 }
 
-it.each(['/project/node_modules/pkg/index.d.ts', 'C:\\project\\node_modules\\pkg\\index.d.ts'])(
-	'recognizes node_modules path segments: %s',
-	(fileName) => {
-		const { sourceFile, declaration } = createTypeAliasSourceFile(fileName);
+it.each([
+	'/project/node_modules/pkg/index.d.ts',
+	'C:\\project\\node_modules\\pkg\\index.d.ts',
+	'/project/node_modules_backup/pkg/index.d.ts',
+	'/project/my_node_modules/pkg/index.d.ts',
+])('recognizes paths containing node_modules according to parser policy: %s', (fileName) => {
+	const { sourceFile, declaration } = createTypeAliasSourceFile(fileName);
 
-		expect(isNodeModulesSourceFile(sourceFile)).toBe(true);
-		expect(isNodeModulesDeclaration(declaration)).toBe(true);
-	},
-);
-
-it.each(['/project/node_modules_backup/pkg/index.d.ts', '/project/my_node_modules/pkg/index.d.ts'])(
-	'ignores similarly named path segments: %s',
-	(fileName) => {
-		const { sourceFile, declaration } = createTypeAliasSourceFile(fileName);
-
-		expect(isNodeModulesSourceFile(sourceFile)).toBe(false);
-		expect(isNodeModulesDeclaration(declaration)).toBe(false);
-	},
-);
+	expect(isNodeModulesSourceFile(sourceFile)).toBe(true);
+	expect(isNodeModulesDeclaration(declaration)).toBe(true);
+});

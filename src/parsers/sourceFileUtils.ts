@@ -1,10 +1,10 @@
 import ts from 'typescript';
 
-const nodeModulesPathPattern = /(?:^|[\\/])node_modules(?:[\\/]|$)/;
+const nodeModulesPathSubstring = 'node_modules';
 
-/** Classifies physical node_modules paths without matching similarly named directories. */
+/** Preserves the parser's historical substring-based external-source policy. */
 export function isNodeModulesSourceFile(sourceFile: ts.SourceFile): boolean {
-	return nodeModulesPathPattern.test(sourceFile.fileName);
+	return sourceFile.fileName.includes(nodeModulesPathSubstring);
 }
 
 export function isNodeModulesDeclaration(declaration: ts.Declaration): boolean {
