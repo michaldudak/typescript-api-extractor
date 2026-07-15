@@ -26,6 +26,7 @@ import {
 	getIndexedAccessKeyofSourceTypeNode,
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
+	getTupleNumberIndexedTypeNodes,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
@@ -130,6 +131,50 @@ function resolveCollapsedTypeOperatorSyntax(
 		const bindings = getIndexedAccessTypeParameterBindings(unwrapped, session);
 		const authoredSubstitutions =
 			bindings?.typeNodes ?? session.context.typeParameterTypeNodeSubstitutions;
+		const indexType = session.context.checker.getTypeFromTypeNode(unwrapped.indexType);
+		const tupleElementTypeNodes =
+			indexType.flags & ts.TypeFlags.Number
+				? getTupleNumberIndexedTypeNodes(
+						unwrapped.objectType,
+						session.context.checker,
+						session.context.includeExternalTypes,
+						authoredSubstitutions,
+					)
+				: undefined;
+		if (
+			tupleElementTypeNodes &&
+			tupleElementTypeNodes.length > 1 &&
+			tupleElementTypeNodes.some((elementTypeNode) =>
+				containsKeyofTypeOperatorOrAlias(
+					elementTypeNode,
+					session.context.checker,
+					new Set(),
+					session.context.includeExternalTypes,
+					authoredSubstitutions,
+				),
+			)
+		) {
+			const resolveTupleMembers = () => {
+				const members = tupleElementTypeNodes.map((elementTypeNode) =>
+					resolveAuthoredTypeNode(
+						substituteTypeParameterTypeNode(
+							elementTypeNode,
+							session.context.checker,
+							authoredSubstitutions,
+						),
+						session,
+					),
+				);
+				return new UnionNode(typeName, members);
+			};
+			return bindings
+				? session.context.runWithTypeParameterSubstitutionScope(
+						bindings.types,
+						resolveTupleMembers,
+						bindings.typeNodes,
+					)
+				: resolveTupleMembers();
+		}
 		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(
 			unwrapped,
 			session.context.checker,

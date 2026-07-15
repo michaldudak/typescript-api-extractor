@@ -487,6 +487,7 @@ export function getIndexedAccessSourceTypeNode(
 			unwrapped.objectType,
 			checker,
 			includeExternalTypes,
+			substitutions,
 		);
 		const tupleElementCount = checker.isTupleType(objectType)
 			? ((objectType as ts.TupleType).typeArguments?.length ?? tupleTypeNode?.elements.length ?? 0)
@@ -510,12 +511,21 @@ export function getIndexedAccessSourceTypeNode(
 		);
 	}
 	if (indexType.flags & ts.TypeFlags.Number) {
-		const elementTypeNode = getArrayIndexedElementTypeNode(
+		const tupleElementTypeNodes = getTupleNumberIndexedTypeNodes(
 			unwrapped.objectType,
 			checker,
 			includeExternalTypes,
 			substitutions,
 		);
+		const elementTypeNode =
+			tupleElementTypeNodes?.length === 1
+				? tupleElementTypeNodes[0]
+				: getArrayIndexedElementTypeNode(
+						unwrapped.objectType,
+						checker,
+						includeExternalTypes,
+						substitutions,
+					);
 		if (!elementTypeNode) {
 			return undefined;
 		}
@@ -549,6 +559,43 @@ export function getIndexedAccessSourceTypeNode(
 			substitutions,
 		) ?? propertyTypeNode
 	);
+}
+
+/**
+ * Returns the fixed authored tuple members selected by a `number` index.
+ * Optional and rest members are excluded because their undefined/element
+ * semantics cannot be reconstructed by resolving the wrapper node directly.
+ *
+ * @param typeNode - Authored tuple syntax or alias reference.
+ * @param checker - Checker used to follow aliases and substitutions.
+ * @param includeExternalTypes - Whether tuple aliases may come from external declarations.
+ * @param substitutions - Active authored generic substitutions.
+ * @returns Fixed tuple member nodes, or `undefined` for non-fixed/non-tuple inputs.
+ */
+export function getTupleNumberIndexedTypeNodes(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+): readonly ts.TypeNode[] | undefined {
+	const tupleTypeNode = getTupleSourceTypeNode(
+		typeNode,
+		checker,
+		includeExternalTypes,
+		substitutions,
+	);
+	if (
+		!tupleTypeNode ||
+		tupleTypeNode.elements.some(
+			(element) =>
+				isRestTupleElementNode(element) ||
+				ts.isOptionalTypeNode(element) ||
+				(ts.isNamedTupleMember(element) && element.questionToken != null),
+		)
+	) {
+		return undefined;
+	}
+	return tupleTypeNode.elements.map((element) => unwrapTupleElementSyntax(element).typeNode);
 }
 
 /**
@@ -738,9 +785,11 @@ function getTupleSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TupleTypeNode | undefined {
-	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
 	if (ts.isTupleTypeNode(unwrapped)) {
 		return unwrapped;
 	}
@@ -753,7 +802,13 @@ function getTupleSourceTypeNode(
 		return undefined;
 	}
 	seen.add(declaration);
-	return getTupleSourceTypeNode(declaration.type, checker, includeExternalTypes, seen);
+	return getTupleSourceTypeNode(
+		declaration.type,
+		checker,
+		includeExternalTypes,
+		substitutions,
+		seen,
+	);
 }
 
 function followTypeAliasToKeyofSource(

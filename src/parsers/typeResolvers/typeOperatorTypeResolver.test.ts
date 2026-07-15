@@ -749,6 +749,39 @@ export type GenericLiteral = List<keyof Params>[123];`,
 	}
 });
 
+it('reconstructs fixed tuple members selected by a number index', () => {
+	const filePath = '/virtual/keyof-tuple-number-indexed-access.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Pair<Value> = [Value];
+type Mixed<Value> = [Value, number];
+
+export type Single = [keyof Params][number];
+export type GenericSingle = Pair<keyof Params>[number];
+export type Multiple = [keyof Params, number][number];
+export type GenericMultiple = Mixed<keyof Params>[number];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	expect(exportByName('Single')?.type).toMatchObject(expectedOperator);
+	expect(exportByName('GenericSingle')?.type).toMatchObject(expectedOperator);
+	for (const name of ['Multiple', 'GenericMultiple']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'union',
+			types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'number' }],
+		});
+	}
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
