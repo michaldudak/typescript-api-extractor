@@ -3538,6 +3538,8 @@ export class Example {
   set setterKey(value: keyof Params) {}
 }
 
+export type ExampleInstance = Example;
+
 export type Intersection<T> = keyof T & string;
 export type NestedIntersectionLeft<T, U> = (keyof T & U) & string;
 export type NestedIntersectionRight<T, U> = U & (keyof T & string);
@@ -3577,6 +3579,18 @@ export function withDefault<T = keyof Params>(value: T): void {}`,
 		});
 	}
 	expect(propertyByName('inferredKey')).toMatchObject({
+		type: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+	});
+	const instanceProperties = exportByName('ExampleInstance')?.type.properties;
+	expect(
+		instanceProperties.find((property: { name: string }) => property.name === 'inferredKey'),
+	).toMatchObject({
 		type: {
 			kind: 'union',
 			types: [

@@ -23,7 +23,6 @@ import {
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
 import {
-	containsKeyofTypeOperatorOrAlias,
 	getPreservableKeyofTypeNode,
 	getPropertyTypeNode,
 	substituteTypeParameterTypeNode,
@@ -385,23 +384,15 @@ function buildObjectNodeFromType(
 						}
 					}
 
-					const isKeyofClassMember =
-						(ts.isParameter(declaration) ||
-							ts.isGetAccessorDeclaration(declaration) ||
-							ts.isSetAccessorDeclaration(declaration)) &&
-						containsKeyofTypeOperatorOrAlias(
-							getPropertyTypeNode(property, context.checker),
-							context.checker,
-							new Set(),
-							context.includeExternalTypes,
-						);
 					return (
 						(ts.isPropertySignature(declaration) ||
 							ts.isMethodSignature(declaration) ||
 							ts.isPropertyAssignment(declaration) ||
 							ts.isPropertyDeclaration(declaration) ||
 							ts.isShorthandPropertyAssignment(declaration) ||
-							isKeyofClassMember) &&
+							ts.isParameter(declaration) ||
+							ts.isGetAccessorDeclaration(declaration) ||
+							ts.isSetAccessorDeclaration(declaration)) &&
 						shouldInclude({ name: property.getName(), depth: typeStack.length + 1 })
 					);
 				});
