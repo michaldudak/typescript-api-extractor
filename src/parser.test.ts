@@ -389,6 +389,7 @@ export function useBox(value: Box<keyof Props>): void {}`;
 	const syntaxOnlyModule = parseFromProgram(filePath, program, {
 		typeOperatorOutput: 'syntaxOnly',
 	});
+	const compatibleSyntaxOnlyModule: ModuleNode = syntaxOnlyModule;
 	const syntaxOnlyType = syntaxOnlyModule.exports.find(
 		(parsedExport) => parsedExport.name === 'Props',
 	)!.type;
@@ -453,6 +454,7 @@ export function useBox(value: Box<keyof Props>): void {}`;
 	expect(dynamicOperator.resolvedType).toBeUndefined();
 
 	expect(compatibleModule.exports[0]).toBeDefined();
+	expect(compatibleSyntaxOnlyModule.exports[0]).toBeDefined();
 	expect(resolvedModule.exports[0]).toBeDefined();
 	expect(syntaxOnlyModule.exports[0]).toBeDefined();
 });
