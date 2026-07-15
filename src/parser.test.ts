@@ -42,6 +42,9 @@ export class ClassWarnings {
     \`return-\${string}\` {
     return undefined as any;
   }
+
+  property:
+    \`property-\${string}\`;
 }`;
 const sourceNodeRestorationSource = `export function withReturn():
   \`return-\${string}\` {
@@ -228,7 +231,7 @@ it('reports implicit class parameter fallback locations at the parameter site', 
 	});
 });
 
-it('reports precise type locations in function and class signatures', () => {
+it('reports precise type locations in functions, class signatures, and class properties', () => {
 	const filePath = '/virtual/precise-warning-locations.ts';
 	const warnings: ParserWarning[] = [];
 
@@ -261,6 +264,14 @@ it('reports precise type locations in function and class signatures', () => {
 				column: 5,
 				sourceText: '`return-${string}`',
 				parsedSymbolStack: [filePath, 'ClassWarnings'],
+			}),
+			expect.objectContaining({
+				line: 17,
+				column: 5,
+				sourceText: '`property-${string}`',
+				parsedSymbolStack: [filePath, 'ClassWarnings'],
+				typeFlags: ['TemplateLiteral'],
+				typeText: '`property-${string}`',
 			}),
 		]),
 	);
