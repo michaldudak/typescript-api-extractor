@@ -41,11 +41,20 @@ it('routes built-in arrays around external fallback while keeping external alias
 			parseFromProgram(
 				filePath,
 				createInMemoryProgram({
-					[filePath]: `export type Mutable = Array<string>;
+					[filePath]: `import { getExternalList, getExternalPair } from 'external-array-package';
+
+export type Mutable = Array<string>;
 export type ReadonlyValues = ReadonlyArray<string>;
+
+export const inferredList = getExternalList();
+export const inferredPair = getExternalPair();
+
 export type { ExternalList } from 'external-array-package';`,
-					'/virtual/node_modules/external-array-package/index.d.ts':
-						'export type ExternalList = string[];',
+					'/virtual/node_modules/external-array-package/index.d.ts': `export type ExternalList = string[];
+export type ExternalPair = [string, number];
+
+export declare function getExternalList(): ExternalList;
+export declare function getExternalPair(): ExternalPair;`,
 				}),
 			),
 		),
@@ -66,5 +75,13 @@ export type { ExternalList } from 'external-array-package';`,
 	expect(exportByName('ExternalList')?.type).toMatchObject({
 		kind: 'external',
 		typeName: { name: 'ExternalList' },
+	});
+	expect(exportByName('inferredList')?.type).toMatchObject({
+		kind: 'external',
+		typeName: { name: 'ExternalList' },
+	});
+	expect(exportByName('inferredPair')?.type).toMatchObject({
+		kind: 'external',
+		typeName: { name: 'ExternalPair' },
 	});
 });

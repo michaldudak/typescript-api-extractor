@@ -59,9 +59,15 @@ export function resolveExternalType(
 
 	// Array and tuple identity is a semantic checker fact and remains stable
 	// across TypeScript versions and path separators. Let the dedicated
-	// container resolvers handle built-in containers, but retain opaque external
-	// aliases whose declarations merely happen to resolve to a container.
-	if ((checker.isArrayType(type) || checker.isTupleType(type)) && !authoredExternalAliasName) {
+	// container resolvers handle built-in and local containers, but retain opaque
+	// external aliases whose declarations merely happen to resolve to a container.
+	const hasSemanticExternalAlias =
+		type.aliasSymbol != null && isSymbolExternal(type.aliasSymbol, checker);
+	if (
+		(checker.isArrayType(type) || checker.isTupleType(type)) &&
+		!authoredExternalAliasName &&
+		!hasSemanticExternalAlias
+	) {
 		return undefined;
 	}
 
