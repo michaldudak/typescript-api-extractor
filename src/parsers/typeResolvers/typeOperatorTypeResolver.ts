@@ -655,11 +655,13 @@ function getFixedTupleConditionalDecision(
 	if (!substitutions?.size) {
 		return undefined;
 	}
-	const checkTuple = unwrapParenthesizedTypeNode(checkTypeNode);
-	const extendsTuple = unwrapParenthesizedTypeNode(extendsTypeNode);
-	if (!ts.isTupleTypeNode(checkTuple) || !ts.isTupleTypeNode(extendsTuple)) {
+	const checkTupleSyntax = getFixedTupleConditionalSyntax(checkTypeNode);
+	const extendsTupleSyntax = getFixedTupleConditionalSyntax(extendsTypeNode);
+	if (!checkTupleSyntax || !extendsTupleSyntax) {
 		return undefined;
 	}
+	const checkTuple = checkTupleSyntax.typeNode;
+	const extendsTuple = extendsTupleSyntax.typeNode;
 	if (
 		checkTuple.elements.some(isNonFixedTupleElement) ||
 		extendsTuple.elements.some(isNonFixedTupleElement)
@@ -667,6 +669,9 @@ function getFixedTupleConditionalDecision(
 		return undefined;
 	}
 	if (checkTuple.elements.length !== extendsTuple.elements.length) {
+		return false;
+	}
+	if (checkTupleSyntax.isReadonly && !extendsTupleSyntax.isReadonly) {
 		return false;
 	}
 
@@ -699,6 +704,31 @@ function getFixedTupleConditionalDecision(
 		}
 	}
 	return true;
+}
+
+interface FixedTupleConditionalSyntax {
+	typeNode: ts.TupleTypeNode;
+	isReadonly: boolean;
+}
+
+/**
+ * Unwraps the transparent syntax around a fixed-tuple conditional operand.
+ * Readonly is retained as assignability metadata instead of discarded: mutable
+ * tuples extend readonly tuples, but readonly tuples do not extend mutable ones.
+ *
+ * @param typeNode - Authored conditional check or extends operand.
+ * @returns The tuple and readonly state, or `undefined` for non-tuple syntax.
+ */
+function getFixedTupleConditionalSyntax(
+	typeNode: ts.TypeNode,
+): FixedTupleConditionalSyntax | undefined {
+	let unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	let isReadonly = false;
+	if (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
+		isReadonly = true;
+		unwrapped = unwrapParenthesizedTypeNode(unwrapped.type);
+	}
+	return ts.isTupleTypeNode(unwrapped) ? { typeNode: unwrapped, isReadonly } : undefined;
 }
 
 function isNonFixedTupleElement(typeNode: ts.TypeNode): boolean {

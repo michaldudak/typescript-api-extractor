@@ -991,6 +991,14 @@ type SelectNested<T> = [Promise<T>] extends [Promise<string>]
 type SelectArray<T> = [T[]] extends [string[]]
   ? keyof { arrayTrue: 1 }
   : keyof { arrayFalse: 1 };
+interface ReadonlyTrueTarget { same: string }
+interface ReadonlyFalseTarget { same: number }
+type SelectReadonly<T> = readonly [T] extends readonly [string]
+  ? keyof ReadonlyTrueTarget
+  : keyof ReadonlyFalseTarget;
+type SelectReadonlyToMutable<T> = readonly [T] extends [T]
+  ? keyof ReadonlyTrueTarget
+  : keyof ReadonlyFalseTarget;
 
 export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
@@ -998,7 +1006,10 @@ export type TrueKeyof = SelectTrueKeyof<string, 'n'>;
 export type FalseKeyof = SelectFalseKeyof<number, 'n'>;
 export type LabeledTrueKeyof = SelectLabeled<string>;
 export type NestedTrueKeyof = SelectNested<string>;
-export type ArrayTrueKeyof = SelectArray<string>;`,
+export type ArrayTrueKeyof = SelectArray<string>;
+export type ReadonlyTrueKeyof = SelectReadonly<string>;
+export type ReadonlyFalseKeyof = SelectReadonly<number>;
+export type ReadonlyMutableMismatchKeyof = SelectReadonlyToMutable<string>;`,
 		),
 	);
 
@@ -1035,6 +1046,25 @@ export type ArrayTrueKeyof = SelectArray<string>;`,
 		operator: 'keyof',
 		type: { kind: 'object', properties: [{ name: 'arrayTrue' }] },
 		resolvedType: { kind: 'literal', value: '"arrayTrue"' },
+	});
+	const exportByName = createExportLookup(moduleDefinition);
+	expect(exportByName('ReadonlyTrueKeyof')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'ReadonlyTrueTarget' } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+	expect(exportByName('ReadonlyFalseKeyof')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'ReadonlyFalseTarget' } },
+		resolvedType: { kind: 'literal', value: '"same"' },
+	});
+	expect(exportByName('ReadonlyMutableMismatchKeyof')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'ReadonlyFalseTarget' } },
+		resolvedType: { kind: 'literal', value: '"same"' },
 	});
 });
 
