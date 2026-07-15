@@ -305,7 +305,12 @@ function resolveTemplateValueType(
 	const typeParameterTypeNodeSubstitutions = new Map(context.typeParameterTypeNodeSubstitutions);
 	if (propertyKeyBinding) {
 		typeParameterSubstitutions.set(propertyKeyBinding.symbol, propertyKeyBinding.type);
-		typeParameterTypeNodeSubstitutions.set(propertyKeyBinding.symbol, propertyKeyBinding.typeNode);
+		if (propertyKeyBinding.typeNode) {
+			typeParameterTypeNodeSubstitutions.set(
+				propertyKeyBinding.symbol,
+				propertyKeyBinding.typeNode,
+			);
+		}
 	}
 
 	return context.runWithTypeParameterSubstitutionScope(
@@ -318,7 +323,7 @@ function resolveTemplateValueType(
 interface MappedPropertyKeyBinding {
 	symbol: ts.Symbol;
 	type: ts.Type;
-	typeNode: ts.LiteralTypeNode;
+	typeNode?: ts.LiteralTypeNode;
 }
 
 /**
@@ -330,7 +335,7 @@ interface MappedPropertyKeyBinding {
  * @param mappedNode - Authored mapped type that generated the property.
  * @param propertySymbol - Concrete generated property being resolved.
  * @param checker - Checker used to resolve the mapped parameter symbol and key type.
- * @returns The semantic and authored key binding, or `undefined` for unsupported symbol keys.
+ * @returns The semantic key and optional authored literal, or `undefined` when unrecoverable.
  */
 function getMappedPropertyKeyBinding(
 	mappedNode: ts.MappedTypeNode,
@@ -349,14 +354,10 @@ function getMappedPropertyKeyBinding(
 		: resolvedKeyType.isNumberLiteral()
 			? ts.factory.createLiteralTypeNode(ts.factory.createNumericLiteral(resolvedKeyType.value))
 			: undefined;
-	if (!keyTypeNode) {
-		return undefined;
-	}
-
 	return {
 		symbol,
 		type: resolvedKeyType,
-		typeNode: keyTypeNode,
+		...(keyTypeNode ? { typeNode: keyTypeNode } : {}),
 	};
 }
 

@@ -1679,9 +1679,13 @@ it('preserves keyof mapped-value syntax after mapped type instantiation', () => 
 	const filePath = '/virtual/keyof-instantiated-mapped-values.ts';
 	const program = createInMemoryProgram(
 		filePath,
-		`interface Params {
+		`declare const token: unique symbol;
+interface Params {
   a: string;
   b: number;
+}
+interface SymbolFields {
+  [token]: { symbolKey: string };
 }
 
 type Mapped<K extends string> = {
@@ -1707,7 +1711,9 @@ export type KeyDependent = KeysOfValues<{
   left: { x: string };
   right: { y: number };
 }>;
-export type Remapped = RemappedKeys<{ left: { x: string } }>;`,
+export type Remapped = RemappedKeys<{ left: { x: string } }>;
+export type SymbolMapped = KeysOfValues<SymbolFields>;`,
+		// TypeScript retains `token` only in generated mapped-property metadata.
 	);
 	const moduleDefinition = parseSerializedModule(filePath, program);
 	const syntaxOnlyDefinition = JSON.parse(
@@ -1767,6 +1773,19 @@ export type Remapped = RemappedKeys<{ left: { x: string } }>;`,
 	expect(createExportLookup(syntaxOnlyDefinition)('Remapped')?.type.properties).toMatchObject([
 		expectedRemappedProperty,
 	]);
+	const expectedSymbolMappedType = {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { kind: 'object', properties: [{ name: 'symbolKey' }] },
+	};
+	expect(exportByName('SymbolMapped')?.type.properties[0].type).toMatchObject({
+		...expectedSymbolMappedType,
+		resolvedType: { kind: 'literal', value: '"symbolKey"' },
+	});
+	const syntaxOnlySymbolType =
+		createExportLookup(syntaxOnlyDefinition)('SymbolMapped')?.type.properties[0].type;
+	expect(syntaxOnlySymbolType).toMatchObject(expectedSymbolMappedType);
+	expect(JSON.stringify(syntaxOnlySymbolType)).not.toContain('"intrinsic":"any"');
 });
 
 it('preserves authored keyof arguments through identity and container aliases', () => {
