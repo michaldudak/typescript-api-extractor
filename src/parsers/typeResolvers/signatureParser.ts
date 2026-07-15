@@ -100,15 +100,22 @@ export function parseReturnType(
 	resolveTypeReference: ResolveTypeInContext,
 ): AnyType {
 	const authoredReturnTypeNode = getReturnTypeNode(signature);
-	const returnTypeNode = getPreservableKeyofTypeNode(
-		authoredReturnTypeNode,
+	const returnTypeNode = authoredReturnTypeNode
+		? substituteTypeParameterTypeNode(
+				authoredReturnTypeNode,
+				context.checker,
+				context.typeParameterTypeNodeSubstitutions,
+			)
+		: undefined;
+	const resolutionTypeNode = getPreservableKeyofTypeNode(
+		returnTypeNode,
 		context.checker,
 		context.typeParameterTypeNodeSubstitutions,
 		context.includeExternalTypes,
 	);
 
 	return context.runWithSourceNodeScope(returnTypeNode, () =>
-		resolveTypeReference(signature.getReturnType(), returnTypeNode, context),
+		resolveTypeReference(signature.getReturnType(), resolutionTypeNode, context),
 	);
 }
 

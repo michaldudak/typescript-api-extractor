@@ -183,14 +183,15 @@ function extractMembers(
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
 			// It's a property
-			const propertyTypeNode = getPreservableKeyofTypeNode(
-				getPropertyTypeNode(member, checker),
+			const propertyTypeNode = getPropertyTypeNode(member, checker);
+			const resolutionTypeNode = getPreservableKeyofTypeNode(
+				propertyTypeNode,
 				checker,
 				context.typeParameterTypeNodeSubstitutions,
 				context.includeExternalTypes,
 			);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
-				resolveTypeReference(memberType, propertyTypeNode, context),
+				resolveTypeReference(memberType, resolutionTypeNode, context),
 			);
 			const isOptional = (member.flags & ts.SymbolFlags.Optional) !== 0;
 
