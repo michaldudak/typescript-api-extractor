@@ -729,12 +729,14 @@ it('traces keyof through numeric array indexed access', () => {
 
 type List<T> = T[];
 type ReadonlyList<T> = readonly T[];
+type WrappedList<T> = Promise<T>[];
 
 export type Direct = (keyof Params)[][number];
 export type Generic = List<keyof Params>[number];
 export type ReadonlyGeneric = ReadonlyList<keyof Params>[number];
 export type DirectLiteral = (keyof Params)[][0];
-export type GenericLiteral = List<keyof Params>[123];`,
+export type GenericLiteral = List<keyof Params>[123];
+export type WrappedGeneric = WrappedList<keyof Params>[number];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -743,6 +745,10 @@ export type GenericLiteral = List<keyof Params>[123];`,
 	for (const name of ['Direct', 'Generic', 'ReadonlyGeneric', 'DirectLiteral', 'GenericLiteral']) {
 		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
 	}
+	const wrappedGenericOperator =
+		exportByName('WrappedGeneric')?.type.typeName.typeArguments[0].type;
+	expect(wrappedGenericOperator).toMatchObject(expectedOperator);
+	expect(wrappedGenericOperator?.resolvedType).not.toHaveProperty('typeName');
 });
 
 it('reconstructs fixed tuple members selected by a number index', () => {
@@ -758,11 +764,15 @@ it('reconstructs fixed tuple members selected by a number index', () => {
 
 type Pair<Value> = [Value];
 type Mixed<Value> = [Value, number];
+type WrappedPair<Value> = [Promise<Value>];
+type WrappedMixed<Value> = [Promise<Value>, number];
 
 export type Single = [keyof Params][number];
 export type GenericSingle = Pair<keyof Params>[number];
 export type Multiple = [keyof Params, number][number];
-export type GenericMultiple = Mixed<keyof Params>[number];`,
+export type GenericMultiple = Mixed<keyof Params>[number];
+export type WrappedSingle = WrappedPair<keyof Params>[number];
+export type WrappedMultiple = WrappedMixed<keyof Params>[number];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -776,6 +786,13 @@ export type GenericMultiple = Mixed<keyof Params>[number];`,
 			types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'number' }],
 		});
 	}
+	const wrappedSingleOperator = exportByName('WrappedSingle')?.type.typeName.typeArguments[0].type;
+	expect(wrappedSingleOperator).toMatchObject(expectedOperator);
+	expect(wrappedSingleOperator?.resolvedType).not.toHaveProperty('typeName');
+	const wrappedMultipleOperator =
+		exportByName('WrappedMultiple')?.type.types[0].typeName.typeArguments[0].type;
+	expect(wrappedMultipleOperator).toMatchObject(expectedOperator);
+	expect(wrappedMultipleOperator?.resolvedType).not.toHaveProperty('typeName');
 });
 
 it('keeps the semantic result for distributed conditional keyof aliases', () => {

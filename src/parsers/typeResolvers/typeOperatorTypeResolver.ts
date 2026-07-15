@@ -26,6 +26,7 @@ import {
 	getIndexedAccessKeyofSourceTypeNode,
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
+	getPreservableKeyofTypeNode,
 	getTupleNumberIndexedTypeNodes,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -74,7 +75,7 @@ export function resolveTypeOperatorType(
 				: type;
 		const resolvedResult = resolveTypeOperatorResult(resultType, session, {
 			excludeUndefined: Boolean(undefinedMember),
-			typeName,
+			typeName: shouldRecomputeInstantiatedResult ? undefined : typeName,
 		});
 		typeOperatorNode = new TypeOperatorNode(
 			undefined,
@@ -145,12 +146,13 @@ function resolveCollapsedTypeOperatorSyntax(
 			tupleElementTypeNodes &&
 			tupleElementTypeNodes.length > 1 &&
 			tupleElementTypeNodes.some((elementTypeNode) =>
-				containsKeyofTypeOperatorOrAlias(
-					elementTypeNode,
-					session.context.checker,
-					new Set(),
-					session.context.includeExternalTypes,
-					authoredSubstitutions,
+				Boolean(
+					getPreservableKeyofTypeNode(
+						elementTypeNode,
+						session.context.checker,
+						authoredSubstitutions,
+						session.context.includeExternalTypes,
+					),
 				),
 			)
 		) {
@@ -182,7 +184,16 @@ function resolveCollapsedTypeOperatorSyntax(
 			authoredSubstitutions,
 		);
 		if (sourceTypeNode) {
-			const resolveSource = () => resolveAuthoredTypeNode(sourceTypeNode, session, type);
+			// A root `keyof` expression has the same semantic result as the indexed access,
+			// so its already-instantiated type is a useful override. A containing wrapper
+			// such as `Promise<T>` does not: passing the indexed result as its override would
+			// replace the wrapper before its substituted type argument can be resolved.
+			const resolveSource = () =>
+				resolveAuthoredTypeNode(
+					sourceTypeNode,
+					session,
+					getKeyofTypeOperatorNode(sourceTypeNode) ? type : undefined,
+				);
 			return bindings
 				? session.context.runWithTypeParameterSubstitutionScope(
 						bindings.types,

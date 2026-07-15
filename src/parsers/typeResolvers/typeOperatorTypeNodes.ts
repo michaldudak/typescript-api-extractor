@@ -822,8 +822,14 @@ function followTypeAliasToKeyofSource(
 	if (!includeExternalTypes && hasNodeModulesPathSegment(substituted.getSourceFile())) {
 		return undefined;
 	}
-	if (containsKeyofTypeOperator(substituted)) {
-		return substituted;
+	const preservableTypeNode = getPreservableKeyofTypeNode(
+		substituted,
+		checker,
+		substitutions,
+		includeExternalTypes,
+	);
+	if (preservableTypeNode) {
+		return preservableTypeNode;
 	}
 
 	const unwrapped = unwrapParenthesizedTypeNode(substituted);
