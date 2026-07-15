@@ -448,7 +448,7 @@ function resolveSubstitutedUnionMember(
 	resolve: ResolveTypeInContext,
 ): AnyType | undefined {
 	if (
-		!ts.isUnionTypeNode(unwrapParenthesizedTypeNode(typeNode)) ||
+		!nodeType.isUnion() ||
 		!selectCompositeMemberTypes(
 			nodeType,
 			memberTypes,
@@ -460,9 +460,10 @@ function resolveSubstitutedUnionMember(
 		return undefined;
 	}
 
-	// A generic argument can itself be a union. Resolve that authored argument as
-	// one composite at the parameter's position after claiming its flattened
-	// semantic members from the containing union.
+	// A generic argument can resolve to a union even when its syntax is an indexed
+	// access, conditional, or alias. Resolve that authored argument as one
+	// composite at the parameter's position after claiming its flattened semantic
+	// members from the containing union.
 	return resolve(nodeType, typeNode, context);
 }
 

@@ -2284,9 +2284,14 @@ it('substitutes generic external indexed-access members before ordering them', (
 	const moduleDefinition = parseSerializedModule(
 		filePath,
 		createInMemoryProgram({
-			[filePath]: `export interface ConsumerProps {
+			[filePath]: `interface LocalChoice {
+  value: 'first' | 'second';
+}
+
+export interface ConsumerProps {
   value?: import('generic-external-union-package').Props<string>['value'] | undefined;
   unionValue?: import('generic-external-union-package').Props<'first' | 'second'>['value'] | undefined;
+  indexedValue?: import('generic-external-union-package').Props<LocalChoice['value']>['value'] | undefined;
 }`,
 			'/virtual/node_modules/generic-external-union-package/index.d.ts': `export interface Props<T> {
   value?: T | readonly T[] | number | undefined;
@@ -2299,6 +2304,9 @@ it('substitutes generic external indexed-access members before ordering them', (
 	const unionValueType = createExportLookup(moduleDefinition)(
 		'ConsumerProps',
 	)?.type.properties.find((property: { name: string }) => property.name === 'unionValue').type;
+	const indexedValueType = createExportLookup(moduleDefinition)(
+		'ConsumerProps',
+	)?.type.properties.find((property: { name: string }) => property.name === 'indexedValue').type;
 
 	expect(
 		valueType.types.map(
@@ -2307,6 +2315,12 @@ it('substitutes generic external indexed-access members before ordering them', (
 	).toEqual(['string', 'array', 'number', 'undefined']);
 	expect(
 		unionValueType.types.map(
+			(member: { intrinsic?: string; kind: string; value?: string }) =>
+				member.intrinsic ?? member.value ?? member.kind,
+		),
+	).toEqual(['"first"', '"second"', 'array', 'number', 'undefined']);
+	expect(
+		indexedValueType.types.map(
 			(member: { intrinsic?: string; kind: string; value?: string }) =>
 				member.intrinsic ?? member.value ?? member.kind,
 		),
