@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
+import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 
 /**
@@ -200,6 +201,7 @@ export function getPreservableKeyofTypeNode(
  * @param checker - Checker used to follow local, imported, and qualified aliases.
  * @param seenAliases - Alias declarations already visited by the current traversal.
  * @param includeExternalTypes - Whether traversal may enter external aliases.
+ * @param substitutions - Active authored arguments for generic alias parameters.
  * @returns Whether replayable `keyof` syntax is reachable.
  */
 export function containsKeyofTypeOperatorOrAlias(
@@ -207,12 +209,14 @@ export function containsKeyofTypeOperatorOrAlias(
 	checker: ts.TypeChecker,
 	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
 	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
 ): boolean {
 	if (!typeNode) {
 		return false;
 	}
 
-	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	const unwrapped = unwrapReadonlyContainerTypeNode(substituted);
 	if (getKeyofTypeOperatorNode(unwrapped)) {
 		return true;
 	}
@@ -222,6 +226,7 @@ export function containsKeyofTypeOperatorOrAlias(
 			checker,
 			seenAliases,
 			includeExternalTypes,
+			substitutions,
 		);
 	}
 	if (ts.isTupleTypeNode(unwrapped)) {
@@ -231,12 +236,19 @@ export function containsKeyofTypeOperatorOrAlias(
 				checker,
 				seenAliases,
 				includeExternalTypes,
+				substitutions,
 			),
 		);
 	}
 	if (ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) {
 		return unwrapped.types.some((member) =>
-			containsKeyofTypeOperatorOrAlias(member, checker, seenAliases, includeExternalTypes),
+			containsKeyofTypeOperatorOrAlias(
+				member,
+				checker,
+				seenAliases,
+				includeExternalTypes,
+				substitutions,
+			),
 		);
 	}
 	if (ts.isConditionalTypeNode(unwrapped)) {
@@ -246,12 +258,14 @@ export function containsKeyofTypeOperatorOrAlias(
 				checker,
 				seenAliases,
 				includeExternalTypes,
+				substitutions,
 			) ||
 			containsKeyofTypeOperatorOrAlias(
 				unwrapped.falseType,
 				checker,
 				seenAliases,
 				includeExternalTypes,
+				substitutions,
 			)
 		);
 	}
@@ -267,12 +281,20 @@ export function containsKeyofTypeOperatorOrAlias(
 		) {
 			return false;
 		}
-		seenAliases.add(declaration);
+		const nextSeenAliases = new Set(seenAliases);
+		nextSeenAliases.add(declaration);
+		const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+			declaration,
+			unwrapped.typeArguments,
+			checker,
+			substitutions,
+		);
 		return containsKeyofTypeOperatorOrAlias(
 			declaration.type,
 			checker,
-			seenAliases,
+			nextSeenAliases,
 			includeExternalTypes,
+			aliasSubstitutions,
 		);
 	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
@@ -283,7 +305,13 @@ export function containsKeyofTypeOperatorOrAlias(
 	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
 		return (
 			unwrapped.typeArguments?.some((argument) =>
-				containsKeyofTypeOperatorOrAlias(argument, checker, seenAliases, includeExternalTypes),
+				containsKeyofTypeOperatorOrAlias(
+					argument,
+					checker,
+					seenAliases,
+					includeExternalTypes,
+					substitutions,
+				),
 			) ?? false
 		);
 	}
@@ -298,13 +326,42 @@ export function containsKeyofTypeOperatorOrAlias(
 	) {
 		return false;
 	}
-	seenAliases.add(declaration);
+	const nextSeenAliases = new Set(seenAliases);
+	nextSeenAliases.add(declaration);
+	const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+		declaration,
+		unwrapped.typeArguments,
+		checker,
+		substitutions,
+	);
 	return containsKeyofTypeOperatorOrAlias(
 		declaration.type,
 		checker,
-		seenAliases,
+		nextSeenAliases,
 		includeExternalTypes,
+		aliasSubstitutions,
 	);
+}
+
+/**
+ * Extends authored substitutions while descending through a generic alias.
+ * Binding the declaration body, rather than merely scanning type arguments,
+ * avoids treating an unused `keyof` argument as replayable syntax.
+ */
+function getAliasTypeNodeSubstitutions(
+	declaration: ts.TypeAliasDeclaration,
+	typeArguments: readonly ts.TypeNode[] | undefined,
+	checker: ts.TypeChecker,
+	baseTypeNodes: Map<ts.Symbol, ts.TypeNode> | undefined,
+): Map<ts.Symbol, ts.TypeNode> | undefined {
+	return deriveTypeParameterBindings({
+		checker,
+		declarations: declaration.typeParameters,
+		authoredArguments: typeArguments,
+		baseTypeNodes,
+		useDeclarationDefaults: true,
+		bodyForFreshSymbols: declaration.type,
+	})?.typeNodes;
 }
 
 /**

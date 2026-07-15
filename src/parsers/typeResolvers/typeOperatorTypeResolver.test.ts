@@ -944,6 +944,8 @@ interface OtherParams {
 type AppendKeys<T extends unknown[]> = [...T, keyof Params];
 type Spread<T extends unknown[]> = [...T];
 type DoubleSpread<T extends unknown[], U extends unknown[]> = [...T, ...U];
+type Combined<T extends unknown[], U extends unknown[]> = [...T, ...U];
+type Identity<T> = T;
 type OpenThenFiniteSpread<T extends unknown[]> = [...T, ...[keyof Params, string]];
 type Pair = [keyof Params, string];
 type PairAlias = Pair;
@@ -959,6 +961,8 @@ export type DoubleSpreadResult = DoubleSpread<
   [keyof Params, number],
   [string, keyof OtherParams]
 >;
+export type NestedSpreadResult = Spread<Combined<[string], [keyof Params, number]>>;
+export type RepeatedAliasTuple = [Identity<string>, Identity<keyof Params>];
 export type OpenThenFiniteSpreadResult<T extends unknown[]> = OpenThenFiniteSpread<T>;
 export type Middle = Result[1];
 export type Last = Result[2];`,
@@ -1003,6 +1007,15 @@ export type Last = Result[2];`,
 				],
 			},
 		},
+	]);
+	expect(exportByName('NestedSpreadResult')?.type.types).toMatchObject([
+		{ kind: 'intrinsic', intrinsic: 'string' },
+		expectedOperator,
+		{ kind: 'intrinsic', intrinsic: 'number' },
+	]);
+	expect(exportByName('RepeatedAliasTuple')?.type.types).toMatchObject([
+		{ kind: 'intrinsic', intrinsic: 'string' },
+		expectedOperator,
 	]);
 	expect(exportByName('OpenThenFiniteSpreadResult')?.type.types).toMatchObject([
 		{ kind: 'typeParameter', name: 'T' },

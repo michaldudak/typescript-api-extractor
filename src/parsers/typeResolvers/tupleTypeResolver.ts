@@ -12,7 +12,6 @@ import { getArrayElementTypeNode } from './arrayTypeResolver';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
 	getPreservableKeyofTypeNode,
-	getTupleElementTypeNodeAtSemanticIndex,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
@@ -90,6 +89,7 @@ function resolveTupleElementSyntax(
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
+	seenTupleSources: Set<ts.TupleTypeNode> = new Set(),
 ): TupleElementSyntax | undefined {
 	let element = selection?.typeNode;
 	let isRest = false;
@@ -115,22 +115,35 @@ function resolveTupleElementSyntax(
 			includeExternalTypes,
 		);
 		if (tupleSource && selection?.restSemanticIndex != null) {
-			typeParameterSubstitutions = tupleSource.typeParameterSubstitutions;
-			typeParameterTypeNodeSubstitutions = tupleSource.typeParameterTypeNodeSubstitutions;
-			element = getTupleElementTypeNodeAtSemanticIndex(
-				tupleSource.typeNode,
-				selection.restSemanticIndex,
-				selection.restSemanticElementCount,
-			);
-			isRest = false;
-			if (element) {
-				const syntax = unwrapTupleElementSyntax(element);
-				element = syntax.typeNode;
-				isRest = syntax.isRest;
-			}
-			if (!element) {
+			if (seenTupleSources.has(tupleSource.typeNode)) {
 				return undefined;
 			}
+			const nestedPlan = buildTupleElementSelectionPlan(
+				tupleSource.typeNode,
+				selection.restSemanticElementCount,
+				checker,
+				tupleSource.typeParameterSubstitutions,
+				tupleSource.typeParameterTypeNodeSubstitutions,
+				includeExternalTypes,
+			);
+			const nestedSelection = nestedPlan?.[selection.restSemanticIndex];
+			if (!nestedSelection) {
+				return undefined;
+			}
+
+			// A finite rest alias can itself contain several spreads. Reusing the
+			// complete selection plan preserves the exact authored segment instead
+			// of collapsing every middle element onto the first rest node.
+			const nextSeenTupleSources = new Set(seenTupleSources);
+			nextSeenTupleSources.add(tupleSource.typeNode);
+			return resolveTupleElementSyntax(
+				nestedSelection,
+				checker,
+				tupleSource.typeParameterSubstitutions,
+				tupleSource.typeParameterTypeNodeSubstitutions,
+				includeExternalTypes,
+				nextSeenTupleSources,
+			);
 		} else {
 			element = substitutedRestType;
 		}
