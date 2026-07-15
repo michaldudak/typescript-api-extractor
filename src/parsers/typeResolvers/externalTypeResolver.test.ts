@@ -33,3 +33,38 @@ export type PropsFor<ElementType extends React.ElementType> =
 		name: 'Props',
 	});
 });
+
+it('routes built-in arrays around external fallback while keeping external aliases opaque', () => {
+	const filePath = '/virtual/array-external-fallback-consumer.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram({
+					[filePath]: `export type Mutable = Array<string>;
+export type ReadonlyValues = ReadonlyArray<string>;
+export type { ExternalList } from 'external-array-package';`,
+					'/virtual/node_modules/external-array-package/index.d.ts':
+						'export type ExternalList = string[];',
+				}),
+			),
+		),
+	);
+	const exportByName = (name: string) =>
+		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+
+	expect(exportByName('Mutable')?.type).toMatchObject({
+		kind: 'array',
+		elementType: { kind: 'intrinsic', intrinsic: 'string' },
+	});
+	expect(exportByName('Mutable')?.type).not.toHaveProperty('isReadonly');
+	expect(exportByName('ReadonlyValues')?.type).toMatchObject({
+		kind: 'array',
+		elementType: { kind: 'intrinsic', intrinsic: 'string' },
+		isReadonly: true,
+	});
+	expect(exportByName('ExternalList')?.type).toMatchObject({
+		kind: 'external',
+		typeName: { name: 'ExternalList' },
+	});
+});

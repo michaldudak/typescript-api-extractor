@@ -16,8 +16,6 @@ const allowedBuiltInTsTypes = new Set([
 	'Readonly',
 	'Exclude',
 	'Extract',
-	'Array',
-	'ReadonlyArray',
 ]);
 
 const allowedBuiltInReactTypes = new Set([
@@ -56,6 +54,14 @@ export function resolveExternalType(
 	// external, but it is still generic syntax and must reach the type-parameter
 	// resolver so callers see `Props` rather than an invented `React.Props` type.
 	if (type.flags & ts.TypeFlags.TypeParameter) {
+		return undefined;
+	}
+
+	// Array and tuple identity is a semantic checker fact and remains stable
+	// across TypeScript versions and path separators. Let the dedicated
+	// container resolvers handle built-in containers, but retain opaque external
+	// aliases whose declarations merely happen to resolve to a container.
+	if ((checker.isArrayType(type) || checker.isTupleType(type)) && !authoredExternalAliasName) {
 		return undefined;
 	}
 
