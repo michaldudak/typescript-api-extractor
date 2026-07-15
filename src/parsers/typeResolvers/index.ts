@@ -18,10 +18,14 @@ import { resolveTupleType } from './tupleTypeResolver';
 import { resolveTypeOperatorType } from './typeOperatorTypeResolver';
 import { resolveUnionTypeNode } from './unionTypeResolver';
 
-// Registry note: ordered from the most specific TS type shapes to broader
-// fallbacks. Keep this list explicit so adding support for a new TypeScript
-// shape does not require editing one long branch chain, and so resolver
-// precedence is visible.
+/**
+ * Ordered type-resolution strategies, from authored/specific shapes to broad fallbacks.
+ *
+ * The order is observable: TypeScript frequently exposes `keyof`, arrays,
+ * callables, and classes as object-like semantic types. Keeping the registry
+ * explicit prevents a broad resolver from silently consuming a shape before
+ * its syntax-aware resolver can preserve public output.
+ */
 export const typeResolvers: TypeResolver[] = [
 	{
 		name: 'authored-keyof-alias',

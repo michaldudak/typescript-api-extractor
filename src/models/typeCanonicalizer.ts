@@ -18,6 +18,12 @@ import { TypeParameterNode } from './types/typeParameter';
  * overload signatures that differ only by `any` fallback members.
  */
 class TypeCanonicalizer {
+	/**
+	 * Canonicalizes members before constructing a union model.
+	 *
+	 * @param types - Union members in authored or checker-provided order.
+	 * @returns Flattened, simplified, stably ordered, and deduplicated members.
+	 */
 	canonicalizeUnionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'union');
 		this.sanitizeBooleanLiterals(flatTypes);
@@ -26,6 +32,12 @@ class TypeCanonicalizer {
 		return this.deduplicateMemberTypes(flatTypes);
 	}
 
+	/**
+	 * Canonicalizes members before constructing an intersection model.
+	 *
+	 * @param types - Intersection members in authored or checker-provided order.
+	 * @returns Flattened, stably ordered, and deduplicated members.
+	 */
 	canonicalizeIntersectionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'intersection');
 		this.sortMemberTypes(flatTypes);
@@ -35,6 +47,10 @@ class TypeCanonicalizer {
 	/**
 	 * Flattens nested, unaliased compound nodes. Aliased compounds are preserved
 	 * because their TypeName is part of the public API identity.
+	 *
+	 * @param nodes - Compound members that may themselves contain the same compound kind.
+	 * @param kind - Compound kind whose unaliased nested members should be flattened.
+	 * @returns A new flat member array in source order.
 	 */
 	flattenTypes(nodes: readonly AnyType[], kind: 'union' | 'intersection'): AnyType[] {
 		let flatTypes: AnyType[] = [];
@@ -54,6 +70,14 @@ class TypeCanonicalizer {
 	 * Function and type-operator members use the equivalence checker; concrete
 	 * overload signatures win over otherwise identical signatures containing
 	 * `any` fallbacks.
+	 *
+	 * The three indexes deliberately share the `deduplicated` array. A function
+	 * wildcard can therefore be replaced in place without moving surrounding
+	 * members, while scalar model nodes use cheap stable keys and complex model
+	 * nodes retain identity-based deduplication.
+	 *
+	 * @param types - Members after flattening and kind-specific simplification.
+	 * @returns Members with redundant equivalents removed.
 	 */
 	deduplicateMemberTypes(types: readonly AnyType[]): AnyType[] {
 		const deduplicated: AnyType[] = [];
@@ -108,6 +132,8 @@ class TypeCanonicalizer {
 	/**
 	 * Keeps `null` and `undefined` at the end of compound member lists for stable
 	 * rendering while leaving authored order of the remaining members intact.
+	 *
+	 * @param members - Mutable member list to reorder in place.
 	 */
 	sortMemberTypes(members: AnyType[]): void {
 		const nullIndex = members.findIndex(
@@ -194,4 +220,5 @@ class TypeCanonicalizer {
 	}
 }
 
+/** Shared compound-type normalization policy used by union and intersection DTOs. */
 export const typeCanonicalizer = new TypeCanonicalizer();

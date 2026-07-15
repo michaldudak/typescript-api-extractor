@@ -40,6 +40,8 @@ export interface ExportDescriptor {
 	 * an `ExportNode`. This is deliberately not evaluated during normalization:
 	 * `checker.getTypeAtLocation` mutates TypeScript's lazy internal caches, and
 	 * batched upfront type queries can change observable union/property order.
+	 *
+	 * @returns The semantic type owned by this descriptor's target declaration.
 	 */
 	getType: () => ts.Type;
 	/** Public namespace path applied when this descriptor came from a namespace export. */
@@ -55,7 +57,9 @@ export interface ExportDescriptor {
 	symbolScope: string[];
 	/** Authored type node, when it affects alias or union preservation during type resolution. */
 	typeNode?: ts.TypeNode;
+	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
+	/** Interface or class heritage metadata attached to the export. */
 	extendsTypes?: ExtendsTypeInfo[];
 }
 
@@ -71,6 +75,7 @@ export interface ExportDescriptor {
  * @param parentNamespaces Namespace path inherited from enclosing namespace exports, prefixed onto the public name.
  * @param parentSymbolScope Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata.
  * @param resolutionState Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order.
+ * @returns One or more normalized descriptors, or `undefined` when the symbol has no extractable declaration.
  */
 export function resolveExportDescriptors(
 	exportSymbol: ts.Symbol,

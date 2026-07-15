@@ -9,21 +9,28 @@ import {
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
 
-// Array handling is small but still owns a distinct TypeScript
-// shape. Keeping it separate makes resolver precedence and element recursion
-// easy to inspect from the registry.
-
+/**
+ * Resolves semantic array types while preserving authored element syntax and readonly state.
+ *
+ * @param request - Semantic array candidate, public name, and optional authored syntax.
+ * @param session - Active resolution session used for the array element.
+ * @returns An array model when the checker recognizes the type as an array, otherwise `undefined`.
+ */
 export function resolveArrayType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	const { checker } = session.context;
 
 	if (!checker.isArrayType(type)) {
 		return undefined;
 	}
 
-	// @ts-expect-error - Private method
+	// `getElementTypeOfArrayType` is compiler-internal, but unlike reading
+	// `typeArguments` directly it follows TypeScript's own array recognition and
+	// works for the array shapes accepted by `checker.isArrayType` above.
+	// @ts-expect-error - Private TypeChecker method intentionally isolated here.
 	const arrayType: ts.Type = checker.getElementTypeOfArrayType(type);
 	return new ArrayNode(
 		type.aliasSymbol?.name
@@ -66,6 +73,15 @@ function isReadonlyArrayType(
 	);
 }
 
+/**
+ * Recovers authored array element syntax when it can preserve a nested `keyof` expression.
+ *
+ * @param typeNode - Authored array, readonly-array, or parenthesized container syntax.
+ * @param checker - Checker used to verify built-in `Array` and `ReadonlyArray` references.
+ * @param typeParameterTypeNodeSubstitutions - Active authored generic substitutions.
+ * @param includeExternalTypes - Whether syntax traversal may enter external declarations.
+ * @returns The preservable element node, or `undefined` when semantic resolution is sufficient.
+ */
 export function getArrayElementTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,

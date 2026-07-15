@@ -27,14 +27,22 @@ import {
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
-// Type operators are syntax-first: concrete `keyof Foo` may already be exposed
-// by TypeScript as a literal, intrinsic, or literal union, so this resolver must
-// run before broad value-shape resolvers.
-
+/**
+ * Reconstructs authored `keyof` syntax around TypeScript's reduced semantic result.
+ *
+ * Concrete `keyof Foo` often reaches the resolver as a literal, intrinsic, or
+ * literal union, so this syntax-first resolver must run before broad semantic
+ * shape resolvers that would discard the operator.
+ *
+ * @param request - Semantic result, public name, and authored operator/container syntax.
+ * @param session - Active resolution session used for the operand and resolved key set.
+ * @returns A type-operator model, a containing union, or `undefined` when no operator applies.
+ */
 export function resolveTypeOperatorType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	if (
 		!session.context.includeExternalTypes &&
 		isExternalTypeNode(typeNode, session.context.checker)
@@ -74,6 +82,13 @@ export function resolveTypeOperatorType(
 	return new UnionNode(undefined, [typeOperatorNode, new IntrinsicNode('undefined')]);
 }
 
+/**
+ * Recomputes the semantic result of authored `keyof` syntax under active substitutions.
+ *
+ * @param operatorNode - Authored `keyof` node whose operand should be evaluated.
+ * @param context - Context containing the checker and semantic substitutions.
+ * @returns The substituted key type, falling back to the checker's type for the operator node.
+ */
 export function getKeyofResultTypeFromSyntax(
 	operatorNode: ts.TypeOperatorNode,
 	context: ScopedParserContext,
@@ -98,6 +113,9 @@ function resolveCollapsedTypeOperatorSyntax(
 		return undefined;
 	}
 
+	// TypeScript eagerly reduces operators nested in these containers. Recover
+	// the authored branch/property first, then re-enter only syntax-aware
+	// resolvers so the reduced semantic type is not mistaken for the whole API.
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
 		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(unwrapped, session.context.checker);
@@ -188,6 +206,9 @@ function getCollapsedUnionOperatorResult(
 		return undefined;
 	}
 
+	// Instantiated unions may retain their pre-canonicalization members only on
+	// the private `origin`. When exactly one authored member is `keyof`, the sole
+	// concrete non-undefined origin member is its semantic result.
 	const origin = (type as ts.Type & { origin?: ts.Type }).origin;
 	if (!origin?.isUnion()) {
 		return undefined;

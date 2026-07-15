@@ -3,7 +3,12 @@ import { isRestTupleElementNode, unwrapTupleElementSyntax } from '../typeContain
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 
-/** Unwraps syntax that is transparent to type-operator resolution. */
+/**
+ * Removes parenthesized wrappers that are transparent to type-operator resolution.
+ *
+ * @param typeNode - Authored syntax to unwrap.
+ * @returns The first non-parenthesized type node.
+ */
 export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
 	let unwrapped = typeNode;
 	while (ts.isParenthesizedTypeNode(unwrapped)) {
@@ -13,7 +18,12 @@ export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode 
 	return unwrapped;
 }
 
-/** Unwraps syntax that is transparent when locating an array or tuple container. */
+/**
+ * Removes parentheses and readonly operators while locating an array or tuple container.
+ *
+ * @param typeNode - Authored container syntax to unwrap.
+ * @returns The underlying non-readonly container node.
+ */
 export function unwrapReadonlyContainerTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
 	let unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	while (ts.isTypeOperatorNode(unwrapped) && unwrapped.operator === ts.SyntaxKind.ReadonlyKeyword) {
@@ -23,7 +33,12 @@ export function unwrapReadonlyContainerTypeNode(typeNode: ts.TypeNode): ts.TypeN
 	return unwrapped;
 }
 
-/** Returns an authored `keyof` node after removing transparent parentheses. */
+/**
+ * Locates a root authored `keyof` node after removing transparent parentheses.
+ *
+ * @param typeNode - Optional authored syntax to inspect.
+ * @returns The root `keyof` node, or `undefined` for any other shape.
+ */
 export function getKeyofTypeOperatorNode(
 	typeNode: ts.TypeNode | undefined,
 ): ts.TypeOperatorNode | undefined {
@@ -37,7 +52,12 @@ export function getKeyofTypeOperatorNode(
 		: undefined;
 }
 
-/** Checks whether a type syntax subtree contains an authored `keyof` expression. */
+/**
+ * Checks whether a syntax subtree contains an authored `keyof` expression.
+ *
+ * @param typeNode - Optional syntax subtree to traverse.
+ * @returns Whether any descendant is a `keyof` operator.
+ */
 export function containsKeyofTypeOperator(typeNode: ts.TypeNode | undefined): boolean {
 	if (!typeNode) {
 		return false;
@@ -61,7 +81,19 @@ export function containsKeyofTypeOperator(typeNode: ts.TypeNode | undefined): bo
 	return found;
 }
 
-/** Replaces a root type-parameter reference with its active authored argument. */
+/**
+ * Replaces a root type-parameter reference with its active authored argument.
+ *
+ * Only bare root references are substituted. Rewriting arbitrary descendants
+ * here would manufacture syntax the caller did not author and would overlap
+ * the dedicated nested-substitution probe. The seen-symbol set also protects
+ * malformed or mutually recursive substitution maps.
+ *
+ * @param typeNode - Authored root syntax that may name a type parameter.
+ * @param checker - Checker used to resolve the referenced parameter symbol.
+ * @param substitutions - Active mapping from parameter symbols to authored arguments.
+ * @returns The terminal substituted root node, or the original node when no binding applies.
+ */
 export function substituteTypeParameterTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
@@ -89,7 +121,15 @@ export function substituteTypeParameterTypeNode(
 	return substituted;
 }
 
-/** Checks whether an authored subtree receives `keyof` through an active type argument. */
+/**
+ * Checks whether a syntax subtree receives `keyof` through an active authored argument.
+ *
+ * @param typeNode - Optional syntax subtree containing type references.
+ * @param checker - Checker used to resolve type-parameter symbols and alias declarations.
+ * @param substitutions - Active authored type-parameter arguments.
+ * @param includeExternalTypes - Whether alias traversal may enter external declarations.
+ * @returns Whether substituting any referenced parameter exposes preservable `keyof` syntax.
+ */
 export function containsKeyofTypeNodeSubstitution(
 	typeNode: ts.Node | undefined,
 	checker: ts.TypeChecker,
@@ -121,7 +161,15 @@ export function containsKeyofTypeNodeSubstitution(
 	return found;
 }
 
-/** Applies authored substitutions and keeps only syntax that can replay `keyof`. */
+/**
+ * Applies root substitutions and keeps only syntax capable of replaying `keyof`.
+ *
+ * @param typeNode - Optional authored syntax proposed for nested resolution.
+ * @param checker - Checker used for parameter and alias lookups.
+ * @param substitutions - Active authored generic substitutions.
+ * @param includeExternalTypes - Whether alias traversal may enter external declarations.
+ * @returns Preservable substituted syntax, or `undefined` when semantic resolution is sufficient.
+ */
 export function getPreservableKeyofTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
@@ -140,7 +188,19 @@ export function getPreservableKeyofTypeNode(
 		: undefined;
 }
 
-/** Checks authored syntax and any referenced type aliases for a `keyof` expression. */
+/**
+ * Checks authored syntax and supported alias/container chains for a `keyof` expression.
+ *
+ * Traversal is deliberately limited to transparent containers whose output can
+ * faithfully replay a nested operator. The alias set prevents recursive alias
+ * graphs, and external traversal follows the caller's public expansion policy.
+ *
+ * @param typeNode - Optional authored syntax or alias reference to inspect.
+ * @param checker - Checker used to follow local, imported, and qualified aliases.
+ * @param seenAliases - Alias declarations already visited by the current traversal.
+ * @param includeExternalTypes - Whether traversal may enter external aliases.
+ * @returns Whether replayable `keyof` syntax is reachable.
+ */
 export function containsKeyofTypeOperatorOrAlias(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
@@ -245,7 +305,12 @@ export function containsKeyofTypeOperatorOrAlias(
 	);
 }
 
-/** Flattens authored intersection syntax while preserving source order. */
+/**
+ * Flattens authored intersection syntax while preserving source order.
+ *
+ * @param typeNode - Authored syntax that may be a nested intersection.
+ * @returns Flat intersection members, or `undefined` when the root is not an intersection.
+ */
 export function flattenIntersectionTypeNodes(
 	typeNode: ts.TypeNode,
 ): readonly ts.TypeNode[] | undefined {
@@ -260,7 +325,18 @@ export function flattenIntersectionTypeNodes(
 	});
 }
 
-/** Follows a string-literal indexed access to the property's authored type node. */
+/**
+ * Follows a literal indexed access to the selected property's authored type node.
+ *
+ * Numeric tuple access must map TypeScript's expanded semantic index back to
+ * authored rest/suffix positions. String access follows the selected property,
+ * and both forms recurse through nested indexed accesses until reaching the
+ * terminal syntax that should control source-preserving resolution.
+ *
+ * @param typeNode - Authored indexed-access syntax to follow.
+ * @param checker - Checker used to resolve the object, index, and property symbols.
+ * @returns The terminal selected type node, or `undefined` when the access is not statically known.
+ */
 export function getIndexedAccessSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
@@ -300,7 +376,17 @@ export function getIndexedAccessSourceTypeNode(
 	return getIndexedAccessSourceTypeNode(propertyTypeNode, checker) ?? propertyTypeNode;
 }
 
-/** Maps an expanded semantic tuple index back to its authored tuple element. */
+/**
+ * Maps an expanded semantic tuple index back to its authored tuple element.
+ *
+ * For `[Head, ...Middle, Tail]`, semantic elements between `Head` and the final
+ * suffix all map to the rest node, while the suffix is aligned from the end.
+ *
+ * @param tupleTypeNode - Authored tuple syntax containing fixed and optional rest elements.
+ * @param index - Zero-based index in TypeScript's expanded semantic tuple.
+ * @param semanticElementCount - Total number of expanded semantic elements.
+ * @returns The authored element responsible for the semantic index.
+ */
 export function getTupleElementTypeNodeAtSemanticIndex(
 	tupleTypeNode: ts.TupleTypeNode,
 	index: number,
@@ -323,7 +409,13 @@ export function getTupleElementTypeNodeAtSemanticIndex(
 	return tupleTypeNode.elements[restIndex];
 }
 
-/** Locates the terminal authored source that actually contains an indexed-access `keyof`. */
+/**
+ * Locates the terminal authored source that contains an indexed-access `keyof`.
+ *
+ * @param typeNode - Indexed-access syntax whose selected property should be traced.
+ * @param checker - Checker used for property and alias resolution.
+ * @returns The terminal syntax containing `keyof`, or `undefined` when none is reachable.
+ */
 export function getIndexedAccessKeyofSourceTypeNode(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
@@ -332,6 +424,19 @@ export function getIndexedAccessKeyofSourceTypeNode(
 	return sourceTypeNode ? followTypeAliasToKeyofSource(sourceTypeNode, checker) : undefined;
 }
 
+/**
+ * Selects one unambiguous authored type node for a readable property symbol.
+ *
+ * Getter annotations take precedence because they define the readable side of
+ * an accessor pair. Otherwise every readable declaration must have identical
+ * text and an equivalent semantic type; disagreeing merged declarations return
+ * `undefined` so source syntax cannot incorrectly override checker semantics.
+ * Setter parameters are considered only when no readable declaration exists.
+ *
+ * @param property - Property symbol whose declarations should be examined.
+ * @param checker - Checker used to verify semantic equivalence across declarations.
+ * @returns A stable authored property type node, or `undefined` when none is unambiguous.
+ */
 export function getPropertyTypeNode(
 	property: ts.Symbol | undefined,
 	checker: ts.TypeChecker,
@@ -466,6 +571,12 @@ function findLocalTypeAliasDeclaration(
 		);
 }
 
+/**
+ * Checks whether a type reference is bound by a relative project import.
+ *
+ * @param typeNode - Authored type reference whose root binding should be inspected.
+ * @returns Whether a default, namespace, or named import from a relative module binds the root.
+ */
 export function isRelativeImportedTypeReference(typeNode: ts.TypeReferenceNode): boolean {
 	let rootName = typeNode.typeName;
 	while (ts.isQualifiedName(rootName)) {

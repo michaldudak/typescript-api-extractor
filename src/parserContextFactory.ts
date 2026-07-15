@@ -2,7 +2,15 @@ import ts from 'typescript';
 import { type ParserOptions } from './parser';
 import { type ScopedParserContext } from './parserContext';
 
-/** Builds the internal scoped context shared by production parsing and focused tests. */
+/**
+ * Builds the scoped parser context shared by production parsing and focused tests.
+ *
+ * @param checker - TypeScript checker for the program being extracted.
+ * @param sourceFile - Root source file whose exports are being extracted.
+ * @param program - Program that owns the checker and source file.
+ * @param parserOptions - Optional public policy overrides and warning handler.
+ * @returns A context with balanced symbol, source-node, and substitution scopes.
+ */
 export function createParserContext(
 	checker: ts.TypeChecker,
 	sourceFile: ts.SourceFile,
@@ -11,6 +19,9 @@ export function createParserContext(
 ): ScopedParserContext {
 	const parsedSymbolStack: string[] = [];
 	const sourceNodeStack: ts.Node[] = [sourceFile];
+	// The scope callbacks close over `context` so they can temporarily replace
+	// substitution maps on the same object observed by every nested resolver.
+	// The object is assigned before any callback can execute.
 	const context: ScopedParserContext = {
 		checker,
 		sourceFile,
@@ -40,6 +51,8 @@ export function createParserContext(
 			try {
 				return callback();
 			} finally {
+				// Deleting an originally absent optional property is observably
+				// different from restoring it to `undefined` during context spreads.
 				restoreOptionalProperty(context, 'typeParameterSubstitutions', previousTypes);
 				restoreOptionalProperty(context, 'typeParameterTypeNodeSubstitutions', previousTypeNodes);
 			}

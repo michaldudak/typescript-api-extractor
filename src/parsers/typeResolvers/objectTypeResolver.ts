@@ -30,15 +30,18 @@ import {
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
 
-// Object-like type handling lives in one resolver module. The
-// exported resolver owns object-shape selection and object-keyword fallback,
-// while private helpers build properties, index signatures, and mapped-type
-// details with the active resolution session.
-
+/**
+ * Resolves object-like types, including mapped substitutions and index signatures.
+ *
+ * @param request - Semantic object candidate, public name, and optional authored generic syntax.
+ * @param session - Active resolution session used for properties and index values.
+ * @returns An expanded or shallow object model, otherwise `undefined` when another resolver owns it.
+ */
 export function resolveObjectLikeType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	const resolveObject = () => {
 		const objectType = buildObjectNodeFromType(
 			type,
@@ -121,6 +124,10 @@ function getObjectTypeReferenceSubstitutions(
 /**
  * Returns whether a plain object can skip the earlier array, tuple, callable,
  * and constructable resolver paths without changing which shape owns it.
+ *
+ * @param type - Semantic type to classify.
+ * @param checker - Checker used for array and tuple recognition.
+ * @returns Whether the type is an object with no more specific container/callable shape.
  */
 export function canResolveObjectTypeShallowly(type: ts.Type, checker: ts.TypeChecker): boolean {
 	return (
@@ -132,11 +139,18 @@ export function canResolveObjectTypeShallowly(type: ts.Type, checker: ts.TypeChe
 	);
 }
 
-/** Builds the named portion of an object while retaining observable index-signature output. */
+/**
+ * Builds a shallow named object while retaining observable index-signature output.
+ *
+ * @param request - Semantic object candidate and its required public name.
+ * @param session - Active resolution session used for the index-signature value.
+ * @returns A shallow object model when safe, otherwise `undefined`.
+ */
 export function resolveShallowObjectLikeType(
-	{ type, typeName }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): ObjectNode | undefined {
+	const { type, typeName } = request;
 	if (!typeName || !canResolveObjectTypeShallowly(type, session.context.checker)) {
 		return undefined;
 	}

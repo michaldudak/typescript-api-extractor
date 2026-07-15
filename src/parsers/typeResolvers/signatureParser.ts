@@ -18,6 +18,11 @@ import {
  * Parses a TypeScript call signature into the API model. Handles function
  * declarations like `fn(value: string): number` and class methods like
  * `instance.update(value = 1): void`.
+ *
+ * @param signature - Checker signature to convert.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for nested parameter and return types.
+ * @returns The extracted call-signature model.
  */
 export function parseCallSignature(
 	signature: ts.Signature,
@@ -37,6 +42,11 @@ export function parseCallSignature(
  * Parses a signature parameter and its local metadata. Handles examples like
  * `value?: string`, `options = { dense: true }`, and JSDoc `@param` comments
  * attached to either function parameters or class method parameters.
+ *
+ * @param parameterSymbol - Checker symbol for the signature parameter.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for the parameter type.
+ * @returns The extracted parameter model, including docs and default value.
  */
 export function parseParameter(
 	parameterSymbol: ts.Symbol,
@@ -94,6 +104,11 @@ export function parseParameter(
  * Parses a signature return type. Handles examples like `(): Promise<Result>`
  * while using the explicit return annotation only as diagnostic source context,
  * not as a forced type node override.
+ *
+ * @param signature - Checker signature whose return type should be resolved.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for the return type.
+ * @returns The extracted return-type model.
  */
 export function parseReturnType(
 	signature: ts.Signature,

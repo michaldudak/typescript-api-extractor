@@ -17,14 +17,18 @@ import {
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
 
-// Tuple handling stays separate from arrays because TypeScript
-// exposes tuple element types through tuple-specific metadata and the output
-// model preserves tuple arity.
-
+/**
+ * Resolves tuples while mapping expanded semantic elements back to authored tuple syntax.
+ *
+ * @param request - Semantic tuple candidate, public name, and optional authored syntax.
+ * @param session - Active resolution session used for element substitutions.
+ * @returns A tuple model when the checker recognizes the type as a tuple, otherwise `undefined`.
+ */
 export function resolveTupleType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	const { checker } = session.context;
 
 	if (!checker.isTupleType(type)) {
@@ -200,6 +204,12 @@ interface TupleElementSelection {
 	restSemanticElementCount: number;
 }
 
+/**
+ * Selects the authored tuple element responsible for one expanded checker
+ * element. When every spread has a statically known tuple width, offsets are
+ * computed exactly. Otherwise the fallback aligns fixed suffix elements from
+ * the end and assigns the remaining semantic range to the rest element.
+ */
 function getTupleElementSelection(
 	tupleTypeNode: ts.TupleTypeNode,
 	semanticIndex: number,
@@ -256,6 +266,12 @@ function getTupleElementSelection(
 	};
 }
 
+/**
+ * Computes the semantic width of an authored tuple element. Fixed elements are
+ * one slot; rest elements have a known width only when their substituted type
+ * can be followed to a finite tuple. The syntax-node set prevents recursive
+ * tuple aliases from being treated as finite.
+ */
 function getKnownTupleElementWidth(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
@@ -307,6 +323,12 @@ interface TupleTypeNodeSource {
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
 }
 
+/**
+ * Follows a tuple alias chain while carrying both semantic and authored generic
+ * bindings. Defaults and earlier bindings are applied before descending so a
+ * nested rest alias is interpreted in the same instantiation as the checker
+ * tuple whose elements are being mapped.
+ */
 function getTupleTypeNodeSource(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,

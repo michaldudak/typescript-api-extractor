@@ -12,14 +12,22 @@ import {
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
 
-// Intersection handling stays separate because it composes several
-// other type classes. It preserves explicit intersection members, then asks the
-// function/object resolvers for any merged shape TypeScript exposes.
-
+/**
+ * Resolves intersections while matching checker members back to authored member syntax.
+ *
+ * TypeScript can reorder or merge intersection members. The resolver first
+ * matches semantically equivalent syntax nodes, then preserves callable or
+ * object properties that TypeScript exposes only on the merged type.
+ *
+ * @param request - Semantic intersection candidate and optional authored syntax.
+ * @param session - Active resolution session used for members and merged shapes.
+ * @returns An intersection or merged callable model, otherwise `undefined` for non-intersections.
+ */
 export function resolveIntersectionType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	if (!type.isIntersection()) {
 		return undefined;
 	}

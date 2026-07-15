@@ -37,11 +37,16 @@ const allowedBuiltInReactTypes = new Set([
  * Summarizes a type defined in an external package as an opaque ExternalTypeNode
  * reference, preserving the authored name. Declines (returns undefined) when
  * `includeExternalTypes` is set or the type is local, so it is expanded normally.
+ *
+ * @param request - Semantic type, derived name, and optional authored alias syntax.
+ * @param session - Active resolution session containing external-expansion policy.
+ * @returns An opaque external reference, an unnamed `any` fallback, or `undefined` to decline.
  */
 export function resolveExternalType(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	const { checker, includeExternalTypes } = session.context;
 	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
 
@@ -90,6 +95,13 @@ export function resolveExternalType(
 	);
 }
 
+/**
+ * Checks whether authored syntax belongs to an external type-alias declaration.
+ *
+ * @param typeNode - Authored syntax nested inside a possible type-alias declaration.
+ * @param checker - Checker used to classify the alias symbol.
+ * @returns Whether the surrounding alias is external under the resolver policy.
+ */
 export function isExternalTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,

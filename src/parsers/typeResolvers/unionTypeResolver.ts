@@ -18,14 +18,18 @@ import {
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
 
-// Union resolution owns its own resolver adapter because preserving
-// authored member order requires TypeNode reconstruction that is specific to
-// unions and should not be hidden inside the generic compound resolver group.
-
+/**
+ * Resolves unions while preserving authored member order and source-only operator syntax.
+ *
+ * @param request - Semantic union candidate, public name, and optional authored union syntax.
+ * @param session - Active resolution session used for union members and alias substitutions.
+ * @returns A union-derived model, otherwise `undefined` for non-union types.
+ */
 export function resolveUnionTypeNode(
-	{ type, typeName, typeNode }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type, typeName, typeNode } = request;
 	if (!type.isUnion()) {
 		return undefined;
 	}

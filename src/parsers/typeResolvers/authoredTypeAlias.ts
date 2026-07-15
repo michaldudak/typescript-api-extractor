@@ -38,9 +38,13 @@ const typeAliasSourceAnalysisCache = new WeakMap<
 	Map<boolean, TypeAliasSourceAnalysis>
 >();
 
+/** Checker-free facts about an alias declaration used during export normalization. */
 export interface TypeAliasSourceAnalysis {
+	/** Whether the alias chain contains authored `keyof` syntax. */
 	containsKeyof: boolean;
+	/** Whether the alias's outer/container shape can replay the `keyof` syntax. */
 	replaysKeyof: boolean;
+	/** Whether the alias chain references a relative project import. */
 	referencesProjectImport: boolean;
 }
 
@@ -49,6 +53,10 @@ export interface TypeAliasSourceAnalysis {
  * another alias. TypeScript often reduces the semantic type to an array, tuple,
  * union, or conditional branch before the normal shape resolver sees the
  * operator syntax.
+ *
+ * @param request - Semantic alias result plus any authored reference syntax.
+ * @param session - Active session used to replay the alias body under generic substitutions.
+ * @returns The replayed model, or `undefined` when the alias is not safely replayable.
  */
 export function resolveAuthoredKeyofAlias(
 	request: TypeResolutionRequest,
@@ -116,6 +124,10 @@ function getAuthoredKeyofReplayPlan(
 		return undefined;
 	}
 
+	// A replay plan is intentionally stricter than simply finding `keyof` in an
+	// alias. The outer semantic result must be a shape the syntax resolvers can
+	// reconstruct, and the alias body must either replay its own operator or
+	// receive one through an authored generic argument.
 	const bindings = getTypeAliasParameterSubstitutions(reference, session.context);
 	const replaysAuthoredArgument = Boolean(
 		bindings?.typeNodes &&
@@ -146,7 +158,17 @@ function getAuthoredKeyofReplayPlan(
 	};
 }
 
-/** Summarizes checker-free alias facts used while normalizing export descriptors. */
+/**
+ * Summarizes checker-free alias facts used while normalizing export descriptors.
+ *
+ * This source-only pass must not ask the checker for alias symbols: those
+ * queries populate TypeScript's lazy caches and can change later observable
+ * union/property ordering before descriptors are resolved in their legacy order.
+ *
+ * @param declaration - Root alias declaration to analyze.
+ * @param includeExternalTypes - Whether the analysis may traverse external alias declarations.
+ * @returns Cached source-only facts for the alias and selected external policy.
+ */
 export function analyzeTypeAliasSource(
 	declaration: ts.TypeAliasDeclaration,
 	includeExternalTypes = false,
@@ -384,6 +406,10 @@ function analyzeCheckerAliasReplay(
 	includeExternalTypes = false,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): CheckerAliasReplayAnalysis {
+	// Unlike the export-normalization analysis, this phase may consult checker
+	// symbols because ordered type resolution has already begun. It determines
+	// whether the alias's outer syntax is transparent enough for a replayed
+	// operator to reach the matching container resolver.
 	if (
 		seen.has(declaration) ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration))

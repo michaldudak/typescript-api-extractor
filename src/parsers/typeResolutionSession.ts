@@ -23,12 +23,22 @@ const unsupportedFallbackTypes = new WeakSet<ts.Type>();
  * cache keys, recursion guards, substitution probes, and warning replay.
  */
 export class TypeResolutionSession implements TypeResolutionSessionContract {
+	/**
+	 * Creates a resolution session around one scoped parser context.
+	 *
+	 * @param context - Context whose caches, scopes, and policy callbacks are shared by nested work.
+	 */
 	constructor(readonly context: ScopedParserContext) {}
 
 	/**
 	 * Adapter passed to lower-level parsers that still accept a resolver callback.
 	 * Reuses this session for the same ParserContext so nested resolutions share
 	 * the active cache, cycle stack, substitutions, and warning interception.
+	 *
+	 * @param type - Semantic type to resolve.
+	 * @param typeNode - Optional authored syntax associated with the type.
+	 * @param context - Context requested by the lower-level parser.
+	 * @returns The extracted model type.
 	 */
 	readonly resolveWithContext: ResolveTypeInContext = (type, typeNode, context) => {
 		if (context === this.context) {
@@ -38,6 +48,13 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		return new TypeResolutionSession(context).resolve(type, typeNode);
 	};
 
+	/**
+	 * Resolves a semantic type through the session's cache and resolver pipeline.
+	 *
+	 * @param type - Semantic checker type to resolve.
+	 * @param typeNode - Optional authored syntax that can steer source-preserving resolvers.
+	 * @returns The extracted model type.
+	 */
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType {
 		const { resolvedTypeCache, typeStack } = this.context;
 
@@ -66,10 +83,22 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		return result;
 	}
 
+	/**
+	 * Dispatches recovered syntax without entering the normal cache/cycle path again.
+	 *
+	 * @param request - Active semantic type paired with recovered authored syntax.
+	 * @returns The first resolver result, if a resolver accepts the request.
+	 */
 	resolveWithSyntax(request: TypeResolutionRequest): AnyType | undefined {
 		return this.dispatch(request)?.resolvedType;
 	}
 
+	/**
+	 * Replays syntax-aware resolvers before falling back to semantic resolution.
+	 *
+	 * @param request - Semantic and authored inputs for the replay attempt.
+	 * @returns The replayed model or the normal resolution fallback.
+	 */
 	resolveAuthoredSyntax(request: TypeResolutionRequest): AnyType {
 		return (
 			this.dispatch(request, (resolver) => resolver.replaysAuthoredSyntax === true)?.resolvedType ??
@@ -77,11 +106,27 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		);
 	}
 
+	/**
+	 * Checks the active recursion stack for a checker type's private identity.
+	 *
+	 * @param type - Checker type to inspect.
+	 * @returns Whether the type already has an active frame.
+	 */
 	isTypeActive(type: ts.Type): boolean {
 		const typeId = getTypeId(type);
 		return typeId !== undefined && this.context.typeStack.includes(typeId);
 	}
 
+	/**
+	 * Executes nested resolution inside a balanced recursion frame.
+	 *
+	 * Types without an internal identity, and types already framed by their
+	 * caller, execute directly so the session never pushes duplicate frames.
+	 *
+	 * @param type - Checker type that owns the frame.
+	 * @param callback - Nested resolution work.
+	 * @returns The callback result.
+	 */
 	runWithTypeFrame<T>(type: ts.Type, callback: () => T): T {
 		const typeId = getTypeId(type);
 		if (typeId === undefined || this.context.typeStack.includes(typeId)) {
@@ -121,10 +166,9 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 
 		const typeId = getTypeId(type);
 
-		// If the typeStack contains type.id we're dealing with an object that references itself.
-		// To prevent getting stuck in an infinite loop we just set it to an objectNode
-		// However, we should not apply this check to intrinsic types like any/unknown/string/etc
-		// as they can appear multiple times without causing infinite recursion.
+		// Only structural types participate in cycle detection. Intrinsics reuse the
+		// same checker identity freely and cannot recurse through nested members, so
+		// framing them would produce false shallow placeholders.
 		const isIntrinsicType =
 			(type.flags &
 				(ts.TypeFlags.Any |
@@ -142,8 +186,8 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 					ts.TypeFlags.BigInt)) !==
 			0;
 
-		// Check for cycles before pushing to stack.
-		// If we're already resolving this type, return a shallow version with type info but no properties.
+		// Detect the cycle before pushing. A repeated structural identity resolves to
+		// a shallow node that keeps its public name but omits recursive members.
 		const shouldDetectCycles = !isIntrinsicType && typeId !== undefined;
 		const isAlreadyOnStack = shouldDetectCycles && this.isTypeActive(type);
 

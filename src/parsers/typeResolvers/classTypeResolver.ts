@@ -19,14 +19,18 @@ import {
 import { parseCallSignature, parseParameter } from './signatureParser';
 import { getPreservableKeyofTypeNode, getPropertyTypeNode } from './typeOperatorTypeNodes';
 
-// Class type handling lives in one resolver module. The exported
-// resolver owns class-shape selection, while private helpers build the ClassNode
-// and its members with the active resolution session.
-
+/**
+ * Resolves class constructor types and their instance/static API members.
+ *
+ * @param request - Semantic class candidate; authored syntax is handled by nested member parsers.
+ * @param session - Active resolution session shared by constructors, methods, and properties.
+ * @returns A class model for actual class declarations/expressions, otherwise `undefined`.
+ */
 export function resolveClassType(
-	{ type }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type } = request;
 	if (type.getConstructSignatures().length < 1) {
 		return undefined;
 	}
