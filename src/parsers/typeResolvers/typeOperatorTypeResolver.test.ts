@@ -5,8 +5,92 @@ import { parseFromProgram, type ParserWarning } from '../../index';
 import { FunctionNode, TypeOperatorNode } from '../../models';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
+function createExportLookup<TModule extends { exports: readonly { name: string }[] }>(
+	moduleDefinition: TModule,
+) {
+	type Export = TModule['exports'][number];
+	return (name: string): Export | undefined =>
+		moduleDefinition.exports.find((exportNode) => exportNode.name === name) as Export | undefined;
+}
+
+function parseModuleExports(filePath: string, program: ts.Program) {
+	const parsedModule = parseFromProgram(filePath, program);
+	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
+	return {
+		moduleDefinition,
+		exportByName: createExportLookup(moduleDefinition),
+		parsedExportByName: createExportLookup(parsedModule),
+	};
+}
+
 function parseSerializedModule(filePath: string, program: ts.Program) {
-	return JSON.parse(JSON.stringify(parseFromProgram(filePath, program)));
+	return parseModuleExports(filePath, program).moduleDefinition;
+}
+
+function expectedKeyofOperator(overrides: Record<string, unknown> = {}) {
+	return {
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'Params' } },
+		resolvedType: {
+			kind: 'union',
+			types: [
+				{ kind: 'literal', value: '"a"' },
+				{ kind: 'literal', value: '"b"' },
+			],
+		},
+		resolutionKind: 'exact',
+		...overrides,
+	};
+}
+
+const referenceFormsDependencyPath = '/virtual/keyof-reference-forms-dependency.ts';
+const referenceFormsSourcePath = '/virtual/keyof-reference-forms-source.ts';
+const referenceFormsEntryPath = '/virtual/keyof-reference-forms-entry.ts';
+const referenceFormsDependencySource = `export interface Params {
+  dependency: string;
+}
+export type Keys = keyof Params;`;
+const referenceFormsSource = `interface LocalParams {
+  local: string;
+}
+namespace LocalTypes {
+  export type Keys = keyof LocalParams;
+}
+
+import RelativeTypes = require('./keyof-reference-forms-dependency');
+import MappedTypes = require('@project/keyof-reference-forms-dependency');
+
+export type LocalQualifiedKeys = LocalTypes.Keys;
+export type ImportTypeKeys = import('./keyof-reference-forms-dependency').Keys;
+export type ImportEqualsKeys = RelativeTypes.Keys;
+export type PathMappedKeys = MappedTypes.Keys;`;
+const referenceFormsEntrySource = `export {
+  type LocalQualifiedKeys,
+  type ImportTypeKeys,
+  type ImportEqualsKeys,
+  type PathMappedKeys,
+} from './keyof-reference-forms-source';`;
+const referenceFormsCompilerOptions = {
+	baseUrl: '/virtual',
+	paths: { '@project/*': ['*'] },
+};
+
+function expectReferenceFormExports(
+	exportByName: (name: string) => { type: unknown } | undefined,
+): void {
+	expect(exportByName('LocalQualifiedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name: 'LocalParams' } },
+	});
+	for (const name of ['ImportTypeKeys', 'ImportEqualsKeys', 'PathMappedKeys']) {
+		expect(exportByName(name)?.type).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Params' } },
+		});
+	}
 }
 
 it('preserves concrete keyof operators instead of expanding them to literal unions', () => {
@@ -83,7 +167,7 @@ export interface Parameters {
 it('preserves authored type-query operands without expanding their value shape', () => {
 	const filePath = '/virtual/keyof-type-query.ts';
 	const dependencyPath = '/virtual/keyof-type-query-dependency.ts';
-	const parsedModule = parseFromProgram(
+	const { exportByName, parsedExportByName } = parseModuleExports(
 		filePath,
 		createInMemoryProgram({
 			[filePath]: `const value = { a: 1, b: 2 };
@@ -94,11 +178,6 @@ export type ImportedKeys = keyof typeof import("./keyof-type-query-dependency");
 export const importedText = 'text';`,
 		}),
 	);
-	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const parsedExportByName = (name: string) =>
-		parsedModule.exports.find((exportNode) => exportNode.name === name);
 
 	expect(exportByName('Keys')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -138,7 +217,7 @@ export const importedText = 'text';`,
 
 it('preserves readonly array and tuple operands', () => {
 	const filePath = '/virtual/keyof-readonly-operands.ts';
-	const parsedModule = parseFromProgram(
+	const { exportByName, parsedExportByName } = parseModuleExports(
 		filePath,
 		createInMemoryProgram(
 			filePath,
@@ -155,11 +234,6 @@ export interface Box {
 }`,
 		),
 	);
-	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const parsedExportByName = (name: string) =>
-		parsedModule.exports.find((exportNode) => exportNode.name === name);
 
 	expect(exportByName('ReadonlyArrayKeys')?.type.type).toMatchObject({
 		kind: 'array',
@@ -281,8 +355,7 @@ export type AliasedForward = WideKeys | NarrowKeys;
 export type AliasedReverse = NarrowKeys | WideKeys;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const operatorFor = (operandName: string, keys: string[]) => ({
 		kind: 'typeOperator',
 		operator: 'keyof',
@@ -330,8 +403,7 @@ export type Forward = keyof Box<any> | keyof Box<string>;
 export type Reverse = keyof Box<string> | keyof Box<any>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const operatorFor = (intrinsic: 'any' | 'string') => ({
 		kind: 'typeOperator',
 		operator: 'keyof',
@@ -369,8 +441,7 @@ type MaybeKeys<T> = keyof T | undefined;
 export type Concrete = MaybeKeys<Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('Collapsed')?.type).toMatchObject({
 		kind: 'union',
@@ -469,21 +540,10 @@ export type AccessorIndexedKeys = AccessorBox['keys'];
 export type TupleIndexedKeys = KeyTuple[0];`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator({
 		type: { kind: 'object', typeName: { name: 'Params' }, properties: [] },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	});
 
 	expect(exportByName('ConcreteIntersection')?.type).toMatchObject({
 		kind: 'intersection',
@@ -592,21 +652,8 @@ export type ExplicitCompositeDefault = MaybePartialKeys<Params>;
 export type NestedCompositeDefault = CompositeKeyDefault<Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('ArrayAlias')?.type).toMatchObject({
 		kind: 'array',
@@ -681,21 +728,8 @@ export type Dictionary = Mapped<string>;
 export type Finite = Mapped<'value'>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('Dictionary')?.type.indexSignature).toMatchObject({
 		keyName: 'Key',
@@ -729,21 +763,8 @@ export type KeyPair = Pair<keyof Params>;
 export type KeyRest = Rest<keyof Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('Keys')?.type).toMatchObject(expectedOperator);
 	expect(exportByName('KeyVector')?.type).toMatchObject({
@@ -781,21 +802,8 @@ export type Callable = Callback<keyof Params>;
 export type List = MaybeList<keyof Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('Boxed')?.type.properties[0].type).toMatchObject(expectedOperator);
 	const signature = exportByName('Callable')?.type.callSignatures[0];
@@ -847,21 +855,8 @@ export type Last = Result[2];`,
 			[pairPath]: `export type ImportedPair<T> = [keyof T, string];`,
 		}),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('Result')?.type.types).toMatchObject([
 		{ kind: 'intrinsic', intrinsic: 'string' },
@@ -926,21 +921,8 @@ export type Wrapped = Wrap<keyof Params>;
 export type Promised = NestedPromise<keyof Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 
 	expect(exportByName('Direct')?.type.types[0].typeName.typeArguments[0].type).toMatchObject(
 		expectedOperator,
@@ -1052,21 +1034,8 @@ export class Example {
 }`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
-		resolvedType: {
-			kind: 'union',
-			types: [
-				{ kind: 'literal', value: '"a"' },
-				{ kind: 'literal', value: '"b"' },
-			],
-		},
-		resolutionKind: 'exact',
-	};
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
 	const boxArgument = (type: { typeName: { typeArguments: Array<{ type: unknown }> } }) =>
 		type.typeName.typeArguments[0]?.type;
 
@@ -1117,15 +1086,10 @@ export type PatternResult = PatternKeys;`,
 			),
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const expectedOperator = {
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'Params' } },
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator({
 		resolvedType: { kind: 'literal', value: '"a"' },
-		resolutionKind: 'exact',
-	};
+	});
 
 	expect(exportByName('UnknownResult')?.type).toMatchObject({
 		kind: 'union',
@@ -1312,8 +1276,7 @@ export type UnknownKey = keyof unknown;`,
 		),
 	);
 
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('StringKey')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -1371,8 +1334,7 @@ export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };
 			}),
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('PatternKeys')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -1435,8 +1397,7 @@ export type MaybeUnknown = undefined | keyof unknown;
 export type MaybeKeys = keyof Params | undefined;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const expectedMaybeNever = {
 		kind: 'union',
 		types: [
@@ -1488,8 +1449,7 @@ export type AliasUnion = EmptyKeys | 'a' | 'b';
 export type DirectUnion = keyof {} | 'a' | 'b';`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const expectedTypes = [
 		{
 			kind: 'typeOperator',
@@ -1570,8 +1530,7 @@ declare const iterator: unique symbol;
 export type SymbolKeys = keyof { [iterator]: string };`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('MappedKeys')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -1632,8 +1591,7 @@ export type WrappedUnion = OuterKeys | null;`,
 			parseFromProgram(filePath, createInMemoryProgram(files), { includeExternalTypes: true }),
 		),
 	);
-	const expandedExportByName = (name: string) =>
-		expandedModule.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const expandedExportByName = createExportLookup(expandedModule);
 	const operator = { kind: 'typeOperator', operator: 'keyof' };
 	expect(expandedExportByName('Keys')?.type).toMatchObject(operator);
 	expect(expandedExportByName('RenamedKeys')).toMatchObject({
@@ -1666,12 +1624,7 @@ export type Keys = keyof Params;
 declare const tag: unique symbol;
 export type UniqueKey = keyof { [tag]: string };`,
 	);
-	const parsedModule = parseFromProgram(filePath, program);
-	const moduleDefinition = JSON.parse(JSON.stringify(parsedModule));
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-	const parsedExportByName = (name: string) =>
-		parsedModule.exports.find((exportNode) => exportNode.name === name);
+	const { exportByName, parsedExportByName } = parseModuleExports(filePath, program);
 
 	expect(exportByName('Keys')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -1750,8 +1703,7 @@ it('parenthesizes function types when rendering array elements', () => {
 export type ReadonlyKeys = keyof readonly (() => void)[];`,
 		),
 	);
-	const exportByName = (name: string) =>
-		parsedModule.exports.find((exportNode) => exportNode.name === name);
+	const exportByName = createExportLookup(parsedModule);
 
 	expect(exportByName('MutableKeys')?.type.toString()).toBe('keyof (() => void)[]');
 	expect(exportByName('ReadonlyKeys')?.type.toString()).toBe('keyof readonly (() => void)[]');
@@ -1836,8 +1788,7 @@ export type ArrayKeys = keyof RecursiveArray;
 export type TupleKeys = keyof RecursiveTuple;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('ArrayKeys')?.type.type).toMatchObject({
 		kind: 'array',
@@ -1877,8 +1828,7 @@ export type MappedDictionary<K extends string> = {
 export type DictionaryKeys = keyof StringDictionary;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const expectedValueType = {
 		kind: 'typeOperator',
 		operator: 'keyof',
@@ -2074,8 +2024,7 @@ export type NamedKeyTuple = [key?: keyof Params];
 export type RestKeyTuple = [head: keyof Params, ...tail: (keyof Params)[]];`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('KeyFactory')?.type.callSignatures[0].returnValueType).toMatchObject({
 		kind: 'typeOperator',
@@ -2143,8 +2092,7 @@ export interface Dictionary {
 }`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 	const operator = { kind: 'typeOperator', operator: 'keyof' };
 
 	expect(exportByName('returns')?.type.callSignatures[0].returnValueType).toMatchObject(operator);
@@ -2188,104 +2136,30 @@ export type PublicKeys = Keys;`,
 });
 
 it('preserves qualified and project-mapped keyof alias references', () => {
-	const dependencyPath = '/virtual/keyof-reference-forms-dependency.ts';
-	const entryPath = '/virtual/keyof-reference-forms-entry.ts';
 	const program = createInMemoryProgram(
 		{
-			[dependencyPath]: `export interface Params {
-  dependency: string;
-}
-export type Keys = keyof Params;`,
-			[entryPath]: `interface LocalParams {
-  local: string;
-}
-namespace LocalTypes {
-  export type Keys = keyof LocalParams;
-}
-
-import RelativeTypes = require('./keyof-reference-forms-dependency');
-import MappedTypes = require('@project/keyof-reference-forms-dependency');
-
-export type LocalQualifiedKeys = LocalTypes.Keys;
-export type ImportTypeKeys = import('./keyof-reference-forms-dependency').Keys;
-export type ImportEqualsKeys = RelativeTypes.Keys;
-export type PathMappedKeys = MappedTypes.Keys;`,
+			[referenceFormsDependencyPath]: referenceFormsDependencySource,
+			[referenceFormsSourcePath]: referenceFormsSource,
 		},
-		{
-			baseUrl: '/virtual',
-			paths: { '@project/*': ['*'] },
-		},
+		referenceFormsCompilerOptions,
 	);
-	const moduleDefinition = parseSerializedModule(entryPath, program);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-
-	expect(exportByName('LocalQualifiedKeys')?.type).toMatchObject({
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'LocalParams' } },
-	});
-	for (const name of ['ImportTypeKeys', 'ImportEqualsKeys', 'PathMappedKeys']) {
-		expect(exportByName(name)?.type).toMatchObject({
-			kind: 'typeOperator',
-			operator: 'keyof',
-			type: { typeName: { name: 'Params' } },
-		});
-	}
+	const moduleDefinition = parseSerializedModule(referenceFormsSourcePath, program);
+	const exportByName = createExportLookup(moduleDefinition);
+	expectReferenceFormExports(exportByName);
 });
 
 it('preserves project reference forms through export specifiers', () => {
-	const dependencyPath = '/virtual/keyof-export-forms-dependency.ts';
-	const sourcePath = '/virtual/keyof-export-forms-source.ts';
-	const entryPath = '/virtual/keyof-export-forms-entry.ts';
 	const program = createInMemoryProgram(
 		{
-			[dependencyPath]: `export interface Params {
-  dependency: string;
-}
-export type Keys = keyof Params;`,
-			[sourcePath]: `interface LocalParams {
-  local: string;
-}
-namespace LocalTypes {
-  export type Keys = keyof LocalParams;
-}
-
-import RelativeTypes = require('./keyof-export-forms-dependency');
-import MappedTypes = require('@project/keyof-export-forms-dependency');
-
-export type LocalQualifiedKeys = LocalTypes.Keys;
-export type ImportTypeKeys = import('./keyof-export-forms-dependency').Keys;
-export type ImportEqualsKeys = RelativeTypes.Keys;
-export type PathMappedKeys = MappedTypes.Keys;`,
-			[entryPath]: `export {
-  type LocalQualifiedKeys,
-  type ImportTypeKeys,
-  type ImportEqualsKeys,
-  type PathMappedKeys,
-} from './keyof-export-forms-source';`,
+			[referenceFormsDependencyPath]: referenceFormsDependencySource,
+			[referenceFormsSourcePath]: referenceFormsSource,
+			[referenceFormsEntryPath]: referenceFormsEntrySource,
 		},
-		{
-			baseUrl: '/virtual',
-			paths: { '@project/*': ['*'] },
-		},
+		referenceFormsCompilerOptions,
 	);
-	const moduleDefinition = parseSerializedModule(entryPath, program);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
-
-	expect(exportByName('LocalQualifiedKeys')?.type).toMatchObject({
-		kind: 'typeOperator',
-		operator: 'keyof',
-		type: { typeName: { name: 'LocalParams' } },
-	});
-	for (const name of ['ImportTypeKeys', 'ImportEqualsKeys', 'PathMappedKeys']) {
-		expect(exportByName(name)?.type).toMatchObject({
-			kind: 'typeOperator',
-			operator: 'keyof',
-			type: { typeName: { name: 'Params' } },
-		});
-	}
+	const moduleDefinition = parseSerializedModule(referenceFormsEntryPath, program);
+	const exportByName = createExportLookup(moduleDefinition);
+	expectReferenceFormExports(exportByName);
 });
 
 it('does not treat unrelated generic array-alias arguments as element syntax', () => {
@@ -2306,8 +2180,7 @@ export type IgnoredArgument = AsStrings<keyof Params>;
 export type ReorderedArgument = Reordered<keyof Params, number>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('IgnoredArgument')?.type.elementType).toEqual({
 		kind: 'intrinsic',
@@ -2364,8 +2237,7 @@ export type Mutable = Array<keyof Params>;
 export type Readonly = ReadonlyArray<keyof Params>;`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('Mutable')?.type).toMatchObject({
 		kind: 'array',
@@ -2396,8 +2268,7 @@ export type WithoutKeyof<T> = [PropsOf<T>, number];
 export type WithKeyof<T> = [PropsOf<T>, keyof Params];`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('WithoutKeyof')?.type.types[0].typeName).toMatchObject({ name: 'WithBase' });
 	expect(exportByName('WithKeyof')?.type.types[0].typeName).toMatchObject({ name: 'WithBase' });
@@ -2423,8 +2294,7 @@ export function find<T, K extends (keyof T)>(key: K): void {}
 export function findOrFallback<T, K extends keyof T | 'fallback'>(key: K): void {}`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('ParenthesizedKeys')?.type).toMatchObject({
 		kind: 'typeOperator',
@@ -2505,8 +2375,7 @@ export type Conditional<T> = T extends unknown ? keyof T : never;
 export function withDefault<T = keyof Params>(value: T): void {}`,
 		),
 	);
-	const exportByName = (name: string) =>
-		moduleDefinition.exports.find((exportNode: { name: string }) => exportNode.name === name);
+	const exportByName = createExportLookup(moduleDefinition);
 
 	const exampleProperties = exportByName('Example')?.type.properties;
 	const propertyByName = (name: string) =>
