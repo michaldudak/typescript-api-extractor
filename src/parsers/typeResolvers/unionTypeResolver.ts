@@ -255,6 +255,7 @@ function resolveUnionType(
 				: checker.getTypeFromTypeNode(node);
 			if (
 				orderOnly &&
+				node === authoredNode &&
 				containsKeyofTypeOperatorOrAlias(node, checker, new Set(), true, bindings?.typeNodes)
 			) {
 				const orderedMembers = resolveOrderOnlyCompositeMembers(

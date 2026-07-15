@@ -2313,6 +2313,43 @@ it('substitutes generic external indexed-access members before ordering them', (
 	).toEqual(['"first"', '"second"', 'array', 'number', 'undefined']);
 });
 
+it('preserves a local keyof argument substituted into an external indexed union', () => {
+	const filePath = '/virtual/local-keyof-external-indexed-union.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `interface LocalProps {
+  first: string;
+  second: number;
+}
+
+export interface ConsumerProps {
+  value?: import('local-keyof-external-union-package').Props<keyof LocalProps>['value'] | undefined;
+}`,
+			'/virtual/node_modules/local-keyof-external-union-package/index.d.ts': `export interface Props<T> {
+  value?: T | boolean | undefined;
+}`,
+		}),
+	);
+	const valueType = createExportLookup(moduleDefinition)('ConsumerProps')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	).type;
+
+	expect(
+		valueType.types.map(
+			(member: { intrinsic?: string; kind: string }) => member.intrinsic ?? member.kind,
+		),
+	).toEqual(['typeOperator', 'boolean', 'undefined']);
+	expect(valueType.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		resolvedType: {
+			kind: 'union',
+			types: [{ value: '"first"' }, { value: '"second"' }],
+		},
+	});
+});
+
 it('does not replay operators from external indexed-access unions without expansion', () => {
 	const filePath = '/virtual/external-indexed-operator-union.ts';
 	const moduleDefinition = parseSerializedModule(
