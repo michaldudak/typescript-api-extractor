@@ -482,6 +482,25 @@ it('correlates parseFile return types with literal and dynamic output modes', ()
 	const dynamicModule = parseFile(filePath, compilerOptions, dynamicOptions);
 	expectTypeOf(dynamicModule).toEqualTypeOf<ResolvedModuleNode | SyntaxOnlyModuleNode>();
 
+	const getKeyofOperator = (module: ResolvedModuleNode | SyntaxOnlyModuleNode) => {
+		const functionType = module.exports.find(
+			(parsedExport) => parsedExport.name === 'acceptsKeyofProp',
+		)!.type;
+		expectKind(functionType, 'function');
+		const parameterType = functionType.callSignatures[0]!.parameters[0]!.type;
+		expectKind(parameterType, 'typeOperator');
+		return parameterType;
+	};
+	const defaultOperator = getKeyofOperator(defaultModule);
+	const resolvedOperator = getKeyofOperator(resolvedModule);
+	const syntaxOnlyOperator = getKeyofOperator(syntaxOnlyModule);
+	const dynamicOperator = getKeyofOperator(dynamicModule);
+
+	expect(defaultOperator).toHaveProperty('resolvedType');
+	expect(resolvedOperator).toHaveProperty('resolvedType');
+	expect(syntaxOnlyOperator).not.toHaveProperty('resolvedType');
+	expect(dynamicOperator).not.toHaveProperty('resolvedType');
+
 	expect(defaultModule.exports).not.toHaveLength(0);
 	expect(resolvedModule.exports).not.toHaveLength(0);
 	expect(syntaxOnlyModule.exports).not.toHaveLength(0);
