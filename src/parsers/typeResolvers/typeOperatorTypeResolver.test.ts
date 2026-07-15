@@ -2234,6 +2234,51 @@ it('keeps direct external indexed-access unions in authored order', () => {
 	).toEqual(['string', 'array', 'number']);
 });
 
+it('passes indexed-access union syntax through class properties and function returns', () => {
+	const filePath = '/virtual/indexed-union-member-owners.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export class Consumer {
+  value!: import('member-owner-union-package').Props['value'];
+
+  read(): import('member-owner-union-package').Props['value'] {
+    throw new Error('not implemented');
+  }
+}
+
+export function readValue(): import('member-owner-union-package').Props['value'] {
+  throw new Error('not implemented');
+}`,
+			'/virtual/node_modules/member-owner-union-package/index.d.ts': `export interface Props {
+  value: string | readonly string[] | number;
+}`,
+		}),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const consumer = exportByName('Consumer')?.type;
+	const readValue = exportByName('readValue')?.type;
+	const memberOrder = (type: { types: { intrinsic?: string; kind: string }[] }): string[] =>
+		type.types.map((member) => member.intrinsic ?? member.kind);
+
+	expect(
+		memberOrder(
+			consumer.properties.find((property: { name: string }) => property.name === 'value').type,
+		),
+	).toEqual(['string', 'array', 'number']);
+	expect(
+		memberOrder(
+			consumer.methods.find((method: { name: string }) => method.name === 'read').callSignatures[0]
+				.returnValueType,
+		),
+	).toEqual(['string', 'array', 'number']);
+	expect(memberOrder(readValue.callSignatures[0].returnValueType)).toEqual([
+		'string',
+		'array',
+		'number',
+	]);
+});
+
 it('substitutes generic external indexed-access members before ordering them', () => {
 	const filePath = '/virtual/generic-external-indexed-union-order.ts';
 	const moduleDefinition = parseSerializedModule(

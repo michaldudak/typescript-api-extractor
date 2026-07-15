@@ -620,6 +620,27 @@ export function getIndexedAccessSourceTypeNode(
 }
 
 /**
+ * Checks whether a root type or one of its explicit union members is an indexed access.
+ * These are the syntax shapes the union resolver can use to reconstruct authored
+ * member order without treating unrelated nested indexed accesses as root sources.
+ *
+ * @param typeNode - Authored type syntax to inspect.
+ * @returns Whether the root or an explicit union member is an indexed access.
+ */
+export function containsIndexedAccessUnionSource(typeNode: ts.TypeNode | undefined): boolean {
+	if (!typeNode) {
+		return false;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	return (
+		ts.isIndexedAccessTypeNode(unwrapped) ||
+		(ts.isUnionTypeNode(unwrapped) &&
+			unwrapped.types.some((member) => containsIndexedAccessUnionSource(member)))
+	);
+}
+
+/**
  * Returns the fixed authored tuple members selected by a `number` index.
  * Optional and rest members are excluded because their undefined/element
  * semantics cannot be reconstructed by resolving the wrapper node directly.

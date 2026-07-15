@@ -6,6 +6,7 @@ import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
 import {
+	containsIndexedAccessUnionSource,
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	substituteTypeParameterTypeNode,
@@ -126,6 +127,7 @@ export function parseReturnType(
 		: undefined;
 	const resolutionTypeNode =
 		containsKeyofTypeOperator(returnTypeNode) ||
+		containsIndexedAccessUnionSource(returnTypeNode) ||
 		containsKeyofTypeOperatorOrAlias(
 			returnTypeNode,
 			context.checker,

@@ -17,7 +17,12 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { parseCallSignature, parseParameter } from './signatureParser';
-import { getPreservableKeyofTypeNode, getPropertyTypeNode } from './typeOperatorTypeNodes';
+import {
+	containsIndexedAccessUnionSource,
+	getPreservableKeyofTypeNode,
+	getPropertyTypeNode,
+	substituteTypeParameterTypeNode,
+} from './typeOperatorTypeNodes';
 
 /**
  * Resolves class constructor types and their instance/static API members.
@@ -188,12 +193,23 @@ function extractMembers(
 		} else {
 			// It's a property
 			const propertyTypeNode = getPropertyTypeNode(member, checker);
-			const resolutionTypeNode = getPreservableKeyofTypeNode(
-				propertyTypeNode,
-				checker,
-				context.typeParameterTypeNodeSubstitutions,
-				context.includeExternalTypes,
-			);
+			const substitutedPropertyTypeNode = propertyTypeNode
+				? substituteTypeParameterTypeNode(
+						propertyTypeNode,
+						checker,
+						context.typeParameterTypeNodeSubstitutions,
+					)
+				: undefined;
+			const resolutionTypeNode =
+				getPreservableKeyofTypeNode(
+					substitutedPropertyTypeNode,
+					checker,
+					context.typeParameterTypeNodeSubstitutions,
+					context.includeExternalTypes,
+				) ??
+				(containsIndexedAccessUnionSource(substitutedPropertyTypeNode)
+					? substitutedPropertyTypeNode
+					: undefined);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
 				resolveTypeReference(memberType, resolutionTypeNode, context),
 			);
