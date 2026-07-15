@@ -14,7 +14,10 @@ import {
 import { typeResolvers } from './typeResolvers';
 import { createShallowType, getTypeId, hasExactFlag } from './typeResolutionUtils';
 import { resolveSubstitutionFallback } from './typeResolvers/specialTypeResolvers';
-import { getAuthoredTypeReferenceBindings } from './authoredTypeReferenceBindings';
+import {
+	getAuthoredHeritageBindings,
+	getAuthoredTypeReferenceBindings,
+} from './authoredTypeReferenceBindings';
 
 const unsupportedFallbackTypes = new WeakSet<ts.Type>();
 
@@ -293,12 +296,23 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 							: undefined,
 					}
 				: undefined;
-		const bindings = getAuthoredTypeReferenceBindings(
+		const referenceBindings = getAuthoredTypeReferenceBindings(
 			request.typeNode,
 			this.context.checker,
 			this.context.includeExternalTypes,
 			baseBindings,
 		);
+		// The reference walker already follows heritage from its terminal declaration.
+		// Checker-declaration lookup is only needed when dispatch has no authored root
+		// reference, as with directly exported interfaces and classes.
+		const bindings =
+			referenceBindings ??
+			getAuthoredHeritageBindings(
+				request.type,
+				this.context.checker,
+				this.context.includeExternalTypes,
+				baseBindings,
+			);
 		// Generic aliases can replace their own parameter symbols with different
 		// symbols declared by a terminal interface, class, or callable. Scope the
 		// complete resolver dispatch once so every shape and its nested members see

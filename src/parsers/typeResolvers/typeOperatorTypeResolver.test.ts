@@ -1438,6 +1438,154 @@ export type CallableAliased = CallbackAlias<keyof Params>;`,
 	}
 });
 
+it('carries generic keyof bindings through interface and class heritage', () => {
+	const filePath = '/virtual/keyof-generic-heritage.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+interface Base<T> {
+  value: T;
+  method(value: T): T;
+}
+interface Middle<U> extends Base<U> {}
+type ReorderedBase<Ignored, Value> = Base<Value>;
+
+interface CallableBase<T> {
+  (value: T): T;
+}
+interface CallableMiddle<U> extends CallableBase<U> {}
+interface Left<T> {
+  left: T;
+}
+interface Right<T> {
+  right: T;
+}
+
+export interface DirectInterface extends Base<keyof Params> {}
+export interface DeepInterface extends Middle<keyof Params> {}
+export interface ReorderedInterface extends ReorderedBase<string, keyof Params> {}
+export interface IgnoredInterface extends ReorderedBase<keyof Params, string> {}
+export type DeepObjectAlias = Middle<keyof Params>;
+export interface DirectCallable extends CallableBase<keyof Params> {}
+export type DeepCallableAlias = CallableMiddle<keyof Params>;
+export interface MultipleBases extends Left<keyof Params>, Right<keyof Params> {}
+
+class BaseClass<T> {
+  value!: T;
+  method(value: T): T {
+    return value;
+  }
+}
+class MiddleClass<U> extends BaseClass<U> {}
+
+export class DirectClass extends BaseClass<keyof Params> {}
+export class DeepClass extends MiddleClass<keyof Params> {}`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const name of [
+		'DirectInterface',
+		'DeepInterface',
+		'ReorderedInterface',
+		'DeepObjectAlias',
+	]) {
+		const type = exportByName(name)?.type;
+		expect(
+			type.properties.find((property: { name: string }) => property.name === 'value')?.type,
+			name,
+		).toMatchObject(expectedOperator);
+		const signature = type.properties.find(
+			(property: { name: string }) => property.name === 'method',
+		)?.type.callSignatures[0];
+		expect(signature.parameters[0].type, name).toMatchObject(expectedOperator);
+		expect(signature.returnValueType, name).toMatchObject(expectedOperator);
+	}
+	expect(exportByName('IgnoredInterface')?.type.properties[0].type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+
+	for (const name of ['DirectClass', 'DeepClass']) {
+		const type = exportByName(name)?.type;
+		expect(
+			type.properties.find((property: { name: string }) => property.name === 'value')?.type,
+			name,
+		).toMatchObject(expectedOperator);
+		const signature = type.methods.find((method: { name: string }) => method.name === 'method')
+			?.callSignatures[0];
+		expect(signature.parameters[0].type, name).toMatchObject(expectedOperator);
+		expect(signature.returnValueType, name).toMatchObject(expectedOperator);
+	}
+
+	for (const name of ['DirectCallable', 'DeepCallableAlias']) {
+		const signature = exportByName(name)?.type.callSignatures[0];
+		expect(signature.parameters[0].type, name).toMatchObject(expectedOperator);
+		expect(signature.returnValueType, name).toMatchObject(expectedOperator);
+	}
+	const multipleBaseProperties = exportByName('MultipleBases')?.type.properties ?? [];
+	expect(multipleBaseProperties.map((property: { name: string }) => property.name)).toEqual([
+		'left',
+		'right',
+	]);
+	for (const property of multipleBaseProperties) {
+		expect(property.type, property.name).toMatchObject(expectedOperator);
+	}
+});
+
+it('applies external expansion policy while collecting heritage bindings', () => {
+	const filePath = '/virtual/keyof-external-generic-heritage.ts';
+	const program = createInMemoryProgram({
+		[filePath]: `import { ExternalBase, ExternalClass } from 'heritage-package';
+
+interface Params {
+  a: string;
+  b: number;
+}
+
+export interface DerivedInterface extends ExternalBase<keyof Params> {}
+export class DerivedClass extends ExternalClass<keyof Params> {}`,
+		'/virtual/node_modules/heritage-package/index.d.ts': `export interface ExternalBase<T> {
+  value: T;
+}
+
+export declare class ExternalClass<T> {
+  value: T;
+}`,
+	});
+	const parse = (includeExternalTypes: boolean) =>
+		JSON.parse(JSON.stringify(parseFromProgram(filePath, program, { includeExternalTypes })));
+	const opaqueExportByName = createExportLookup(parse(false));
+	const expandedExportByName = createExportLookup(parse(true));
+
+	expect(opaqueExportByName('DerivedInterface')?.type.properties).toEqual([]);
+	const opaqueClassProperty = opaqueExportByName('DerivedClass')?.type.properties.find(
+		(property: { name: string }) => property.name === 'value',
+	)?.type;
+	expect(opaqueClassProperty).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'literal', value: '"a"' },
+			{ kind: 'literal', value: '"b"' },
+		],
+	});
+	expect(opaqueClassProperty).not.toHaveProperty('operator');
+
+	for (const name of ['DerivedInterface', 'DerivedClass']) {
+		const property = expandedExportByName(name)?.type.properties.find(
+			(candidate: { name: string }) => candidate.name === 'value',
+		);
+		expect(property?.type, name).toMatchObject(expectedKeyofOperator());
+	}
+});
+
 it('preserves external keyof aliases in class properties when expansion is enabled', () => {
 	const filePath = '/virtual/external-keyof-class-property.ts';
 	const moduleDefinition = JSON.parse(
