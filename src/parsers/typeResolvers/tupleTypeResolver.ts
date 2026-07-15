@@ -194,8 +194,10 @@ interface TupleElementSelection {
 /**
  * Builds the complete authored-to-semantic tuple selection plan once. When
  * every spread has a statically known tuple width, exact offsets are expanded
- * into one selection per checker element. Otherwise fixed prefixes and suffixes
- * are aligned around the first open rest element.
+ * into one selection per checker element. Otherwise each open rest accounts
+ * for at least one checker element, and any remaining elements are attributed
+ * to the first open rest. Known finite spreads still retain their full widths,
+ * which keeps suffix syntax aligned after an open rest.
  *
  * Keeping width and rest-alias discovery outside the element-resolution loop is
  * important for long finite variadic tuples: following a 2,000-element rest
@@ -233,46 +235,42 @@ function buildTupleElementSelectionPlan(
 		widths.every((width): width is number => width != null) &&
 		widths.reduce((total, width) => total + width, 0) === semanticElementCount
 	) {
-		const selections: TupleElementSelection[] = [];
-		for (let authoredIndex = 0; authoredIndex < tupleTypeNode.elements.length; authoredIndex += 1) {
-			const element = tupleTypeNode.elements[authoredIndex]!;
-			const width = widths[authoredIndex]!;
-			for (let restSemanticIndex = 0; restSemanticIndex < width; restSemanticIndex += 1) {
-				selections.push({
-					typeNode: element,
-					restSemanticIndex: isRestTupleElementNode(element) ? restSemanticIndex : undefined,
-					restSemanticElementCount: width,
-				});
-			}
-		}
-		return selections;
+		return expandTupleElementSelections(tupleTypeNode, widths);
 	}
 
-	const restIndex = tupleTypeNode.elements.findIndex(isRestTupleElementNode);
-	const suffixLength = restIndex === -1 ? 0 : tupleTypeNode.elements.length - restIndex - 1;
-	const semanticSuffixStart = semanticElementCount - suffixLength;
-	const restSemanticElementCount = semanticElementCount - (tupleTypeNode.elements.length - 1);
-	return Array.from({ length: semanticElementCount }, (_, semanticIndex) => {
-		let authoredIndex = semanticIndex;
-		if (restIndex !== -1 && semanticIndex >= restIndex) {
-			authoredIndex =
-				semanticIndex >= semanticSuffixStart
-					? restIndex + 1 + semanticIndex - semanticSuffixStart
-					: restIndex;
-		}
-		const selectedTypeNode = tupleTypeNode.elements[authoredIndex];
-		if (!selectedTypeNode) {
-			return undefined;
-		}
+	const firstOpenRestIndex = widths.findIndex((width) => width == null);
+	const minimumWidths = widths.map((width) => width ?? 1);
+	const minimumElementCount = minimumWidths.reduce((total, width) => total + width, 0);
+	if (firstOpenRestIndex === -1 || minimumElementCount > semanticElementCount) {
+		return undefined;
+	}
 
-		return {
-			typeNode: selectedTypeNode,
-			restSemanticIndex: isRestTupleElementNode(selectedTypeNode)
-				? semanticIndex - restIndex
-				: undefined,
-			restSemanticElementCount,
-		};
-	});
+	minimumWidths[firstOpenRestIndex]! += semanticElementCount - minimumElementCount;
+	return expandTupleElementSelections(tupleTypeNode, minimumWidths);
+}
+
+/**
+ * Expands one authored selection per semantic tuple element using the supplied
+ * widths. Rest selections carry their local index so nested finite tuple aliases
+ * can select the matching authored member during element resolution.
+ */
+function expandTupleElementSelections(
+	tupleTypeNode: ts.TupleTypeNode,
+	widths: readonly number[],
+): TupleElementSelection[] {
+	const selections: TupleElementSelection[] = [];
+	for (let authoredIndex = 0; authoredIndex < tupleTypeNode.elements.length; authoredIndex += 1) {
+		const element = tupleTypeNode.elements[authoredIndex]!;
+		const width = widths[authoredIndex]!;
+		for (let restSemanticIndex = 0; restSemanticIndex < width; restSemanticIndex += 1) {
+			selections.push({
+				typeNode: element,
+				restSemanticIndex: isRestTupleElementNode(element) ? restSemanticIndex : undefined,
+				restSemanticElementCount: width,
+			});
+		}
+	}
+	return selections;
 }
 
 /**
