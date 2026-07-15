@@ -289,9 +289,15 @@ export interface Box {
 		{ name: 'values', type: { kind: 'array', isReadonly: true } },
 		{ name: 'pair', type: { kind: 'tuple', isReadonly: true } },
 	]);
-	const arrayKeyValues = exportByName('ReadonlyArrayKeys')
-		?.type.resolvedType.types.filter((type: { kind: string }) => type.kind === 'literal')
+	const readonlyArrayKeys = exportByName('ReadonlyArrayKeys')?.type;
+	expect(readonlyArrayKeys).toMatchObject({
+		resolutionKind: 'exact',
+		resolvedType: { kind: 'union' },
+	});
+	const arrayKeyValues = readonlyArrayKeys?.resolvedType.types
+		.filter((type: { kind: string }) => type.kind === 'literal')
 		.map((type: { value: string }) => type.value);
+	expect(arrayKeyValues).toContain('"length"');
 	expect(arrayKeyValues).not.toContain('"push"');
 });
 
