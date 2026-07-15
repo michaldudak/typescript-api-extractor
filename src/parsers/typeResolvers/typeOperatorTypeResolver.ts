@@ -1094,6 +1094,12 @@ function getFunctionConditionalElementDecision(
 		extendsSubstitutions,
 		extendsTypeNodeSubstitutions,
 	);
+	if (extendsReturnType && extendsReturnType.flags & ts.TypeFlags.Void) {
+		// TypeScript intentionally accepts a value-returning callback where the
+		// target discards its result. Comparing `number` directly with `void`
+		// would therefore invert the authored conditional branch.
+		return true;
+	}
 	return checkReturnType && extendsReturnType
 		? getConditionalElementAssignableDecision(checkReturnType, extendsReturnType, checker)
 		: undefined;
