@@ -622,6 +622,24 @@ export type Keys = Distributed<A | B>;`,
 	expect(JSON.stringify(keys)).not.toContain('typeOperator');
 });
 
+it('keeps never for distributed conditional aliases instantiated with never', () => {
+	const filePath = '/virtual/keyof-distributed-conditional-never.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`type SelectKeys<T> = T extends string ? keyof { a: 1 } : keyof { b: 1 };
+
+export type Result = SelectKeys<never>;`,
+		),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'never',
+	});
+});
+
 it('preserves keyof through generic container aliases and declaration defaults', () => {
 	const filePath = '/virtual/keyof-generic-container-aliases.ts';
 	const moduleDefinition = parseSerializedModule(

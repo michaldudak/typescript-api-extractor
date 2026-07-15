@@ -314,7 +314,8 @@ function isDistributiveConditionalInstantiation(
 		return false;
 	}
 
-	return substituteTypeParameter(checkType, typeParameterSubstitutions).isUnion();
+	const substitutedCheckType = substituteTypeParameter(checkType, typeParameterSubstitutions);
+	return substitutedCheckType.isUnion() || isNeverType(substitutedCheckType);
 }
 
 function getConcreteConditionalBranch(
