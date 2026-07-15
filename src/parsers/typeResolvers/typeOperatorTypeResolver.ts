@@ -57,23 +57,29 @@ export function resolveTypeOperatorType(
 	const operandType = session.context.checker.getTypeFromTypeNode(operatorNode.type);
 	const undefinedMember = getUndefinedUnionMember(type);
 	const collapsedToUndefined = isUndefinedType(type);
-	const shouldRecomputeInstantiatedResult =
-		session.context.typeParameterSubstitutions?.size && !isConcreteKeyofResultType(type);
-	const resultType =
-		collapsedToUndefined || shouldRecomputeInstantiatedResult
-			? getKeyofResultTypeFromSyntax(operatorNode, session.context)
-			: type;
-	const resolvedResult = resolveTypeOperatorResult(resultType, session, {
-		excludeUndefined: Boolean(undefinedMember),
-		typeName,
-	});
-	const typeOperatorNode = new TypeOperatorNode(
-		undefined,
-		'keyof',
-		resolveTypeOperatorOperand(operandType, operatorNode.type, session),
-		resolvedResult.type,
-		resolvedResult.resolutionKind,
-	);
+	const operand = resolveTypeOperatorOperand(operandType, operatorNode.type, session);
+	let typeOperatorNode: TypeOperatorNode;
+	if (session.context.typeOperatorOutput === 'syntaxOnly') {
+		typeOperatorNode = new TypeOperatorNode(undefined, 'keyof', operand);
+	} else {
+		const shouldRecomputeInstantiatedResult =
+			session.context.typeParameterSubstitutions?.size && !isConcreteKeyofResultType(type);
+		const resultType =
+			collapsedToUndefined || shouldRecomputeInstantiatedResult
+				? getKeyofResultTypeFromSyntax(operatorNode, session.context)
+				: type;
+		const resolvedResult = resolveTypeOperatorResult(resultType, session, {
+			excludeUndefined: Boolean(undefinedMember),
+			typeName,
+		});
+		typeOperatorNode = new TypeOperatorNode(
+			undefined,
+			'keyof',
+			operand,
+			resolvedResult.type,
+			resolvedResult.resolutionKind,
+		);
+	}
 
 	if (!undefinedMember && !collapsedToUndefined) {
 		return typeOperatorNode;

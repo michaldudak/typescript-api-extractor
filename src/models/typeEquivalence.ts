@@ -138,11 +138,20 @@ class TypeEquivalence {
 		}
 
 		if (type1 instanceof TypeOperatorNode && type2 instanceof TypeOperatorNode) {
+			const resolvedTypesAreEquivalent =
+				type1.resolvedType && type2.resolvedType
+					? this.areEquivalent(
+							type1.resolvedType,
+							type2.resolvedType,
+							anyIsWildcard,
+							typeParamRenames,
+						)
+					: type1.resolvedType === type2.resolvedType;
 			return (
 				type1.operator === type2.operator &&
 				type1.resolutionKind === type2.resolutionKind &&
 				this.areEquivalent(type1.type, type2.type, anyIsWildcard, typeParamRenames) &&
-				this.areEquivalent(type1.resolvedType, type2.resolvedType, anyIsWildcard, typeParamRenames)
+				resolvedTypesAreEquivalent
 			);
 		}
 
@@ -304,7 +313,10 @@ class TypeEquivalence {
 		}
 
 		if (type instanceof TypeOperatorNode) {
-			return this.containsAny(type.type) || this.containsAny(type.resolvedType);
+			return (
+				this.containsAny(type.type) ||
+				(type.resolvedType !== undefined && this.containsAny(type.resolvedType))
+			);
 		}
 
 		if (type instanceof ObjectNode) {

@@ -164,6 +164,35 @@ export interface Parameters {
 	expect(typeOperatorNode.resolvedType.types.length).toBeGreaterThan(100);
 });
 
+it('can omit checker-resolved type-operator payloads', () => {
+	const filePath = '/virtual/keyof-syntax-only.ts';
+	const program = createInMemoryProgram(
+		filePath,
+		`interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+	);
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, program, {
+				typeOperatorOutput: 'syntaxOnly',
+			}),
+		),
+	);
+	const typeOperator = moduleDefinition.exports[0]?.type;
+
+	expect(typeOperator).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { kind: 'object', typeName: { name: 'Params' } },
+	});
+	expect(typeOperator).not.toHaveProperty('resolvedType');
+	expect(typeOperator).not.toHaveProperty('resolutionKind');
+});
+
 it('preserves authored type-query operands without expanding their value shape', () => {
 	const filePath = '/virtual/keyof-type-query.ts';
 	const dependencyPath = '/virtual/keyof-type-query-dependency.ts';

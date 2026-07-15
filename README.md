@@ -105,6 +105,7 @@ interface ParserOptions {
 		depth: number;
 	}) => boolean | undefined;
 	includeExternalTypes?: boolean;
+	typeOperatorOutput?: 'resolved' | 'syntaxOnly';
 	onWarning?: (warning: ParserWarning) => void;
 }
 
@@ -170,8 +171,8 @@ interface TypeOperatorNode {
 	kind: 'typeOperator';
 	operator: 'keyof';
 	type: TypeNode;
-	resolvedType: TypeNode;
-	resolutionKind: 'exact' | 'baseConstraint' | 'fallback';
+	resolvedType?: TypeNode;
+	resolutionKind?: 'exact' | 'baseConstraint' | 'fallback';
 }
 ```
 
@@ -215,7 +216,8 @@ sets consistent.
   references because expanding their properties does not change the operator or
   its key result.
 - `resolvedType` is the checker result used to describe the keys available from
-  the operator.
+  the operator. Set `typeOperatorOutput: 'syntaxOnly'` to omit this potentially
+  large payload together with `resolutionKind`; the default is `'resolved'`.
 - `resolutionKind: 'exact'` means `resolvedType` is the concrete result.
 - `resolutionKind: 'baseConstraint'` means the operand is still generic, so
   `resolvedType` is the best available base constraint rather than its eventual

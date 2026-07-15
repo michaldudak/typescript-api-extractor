@@ -69,6 +69,7 @@ function resolveParserOptions(parserOptions: ParserOptions) {
 		shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) =>
 			parserOptions.shouldResolveObject?.(data) ?? (data.propertyCount <= 50 && data.depth <= 10),
 		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
+		typeOperatorOutput: parserOptions.typeOperatorOutput ?? 'resolved',
 		onWarning:
 			parserOptions.onWarning ??
 			((warning) => {

@@ -65,6 +65,8 @@ export interface ParserContext {
 	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
 	/** Whether declarations from external libraries may be expanded. */
 	includeExternalTypes: boolean;
+	/** Controls whether preserved type operators include their checker-resolved result. */
+	typeOperatorOutput: TypeOperatorOutputMode;
 	/**
 	 * Receives recoverable parser warnings.
 	 *
@@ -125,6 +127,14 @@ export interface ParserOptions {
 	 */
 	includeExternalTypes?: boolean;
 	/**
+	 * Controls whether preserved type operators include their checker-resolved result.
+	 * Use `syntaxOnly` when consumers only need the authored operator and want to
+	 * avoid storing large key unions such as `keyof React.JSX.IntrinsicElements`.
+	 *
+	 * @default 'resolved'
+	 */
+	typeOperatorOutput?: TypeOperatorOutputMode;
+	/**
 	 * Called when the parser recovers from a non-fatal issue.
 	 * If not provided, warnings are printed with console.warn.
 	 *
@@ -132,6 +142,9 @@ export interface ParserOptions {
 	 */
 	onWarning?: (warning: ParserWarning) => void;
 }
+
+/** Output policy for the checker-resolved payload of preserved type operators. */
+export type TypeOperatorOutputMode = 'resolved' | 'syntaxOnly';
 
 /** Recoverable warning emitted while extracting an otherwise usable module model. */
 export type ParserWarning =
