@@ -42,7 +42,12 @@ export function resolveIntersectionType(
 		const memberTypeNode = matchedMemberTypeNodes?.[index];
 		return session.resolve(
 			memberType,
-			containsKeyofTypeOperatorOrAlias(memberTypeNode, session.context.checker)
+			containsKeyofTypeOperatorOrAlias(
+				memberTypeNode,
+				session.context.checker,
+				new Set(),
+				session.context.includeExternalTypes,
+			)
 				? memberTypeNode
 				: undefined,
 		);

@@ -1769,6 +1769,33 @@ export type Keys = keyof Params;`,
 	);
 });
 
+it('preserves expanded external keyof aliases in intersection members', () => {
+	const filePath = '/virtual/external-keyof-intersection-consumer.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram({
+					[filePath]: `import type { Keys } from 'external-keyof-intersection-package';
+
+export type Narrow<T> = Keys<T> & string;`,
+					'/virtual/node_modules/external-keyof-intersection-package/index.d.ts':
+						'export type Keys<T> = keyof T;',
+				}),
+				{ includeExternalTypes: true },
+			),
+		),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'intersection',
+		types: [
+			{ kind: 'typeOperator', operator: 'keyof' },
+			{ kind: 'intrinsic', intrinsic: 'string' },
+		],
+	});
+});
+
 it('replays renamed keyof aliases from similarly named project directories', () => {
 	const filePath = '/virtual/similar-node-modules-entry.ts';
 	const moduleDefinition = JSON.parse(
