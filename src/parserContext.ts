@@ -1,5 +1,5 @@
 import type ts from 'typescript';
-import { type ParserContext } from './parser';
+import { type ParserContext, type TypeOperatorOutputMode } from './parser';
 
 /**
  * Internal parser context used by parser implementation modules. The public
@@ -8,6 +8,8 @@ import { type ParserContext } from './parser';
  * reference the exported public type.
  */
 export interface ScopedParserContext extends ParserContext {
+	/** Normalized type-operator output mode used by internal resolvers. */
+	typeOperatorOutput: TypeOperatorOutputMode;
 	/**
 	 * Runs parser work in a scoped diagnostic symbol context. The symbol is
 	 * visible to warning/error metadata only while the callback runs, and the

@@ -66,7 +66,7 @@ export interface ParserContext {
 	/** Whether declarations from external libraries may be expanded. */
 	includeExternalTypes: boolean;
 	/** Controls whether preserved type operators include their checker-resolved result. */
-	typeOperatorOutput: TypeOperatorOutputMode;
+	typeOperatorOutput?: TypeOperatorOutputMode;
 	/**
 	 * Receives recoverable parser warnings.
 	 *
