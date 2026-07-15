@@ -17,11 +17,7 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { parseCallSignature, parseParameter } from './signatureParser';
-import {
-	containsKeyofTypeOperator,
-	containsKeyofTypeOperatorOrAlias,
-	getPropertyTypeNode,
-} from './typeOperatorTypeNodes';
+import { getPreservableKeyofTypeNode, getPropertyTypeNode } from './typeOperatorTypeNodes';
 
 // Class type handling lives in one resolver module. The exported
 // resolver owns class-shape selection, while private helpers build the ClassNode
@@ -187,16 +183,14 @@ function extractMembers(
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
 			// It's a property
-			const propertyTypeNode = getPropertyTypeNode(member, checker);
+			const propertyTypeNode = getPreservableKeyofTypeNode(
+				getPropertyTypeNode(member, checker),
+				checker,
+				context.typeParameterTypeNodeSubstitutions,
+				context.includeExternalTypes,
+			);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
-				resolveTypeReference(
-					memberType,
-					containsKeyofTypeOperator(propertyTypeNode) ||
-						containsKeyofTypeOperatorOrAlias(propertyTypeNode, context.checker)
-						? propertyTypeNode
-						: undefined,
-					context,
-				),
+				resolveTypeReference(memberType, propertyTypeNode, context),
 			);
 			const isOptional = (member.flags & ts.SymbolFlags.Optional) !== 0;
 

@@ -4,10 +4,7 @@ import { TypeName } from '../../models/typeName';
 import { isSemanticallyReadonlyArray } from '../typeContainerUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
-	containsKeyofTypeOperator,
-	containsKeyofTypeOperatorOrAlias,
-	containsKeyofTypeNodeSubstitution,
-	substituteTypeParameterTypeNode,
+	getPreservableKeyofTypeNode,
 	unwrapParenthesizedTypeNode,
 	unwrapReadonlyContainerTypeNode,
 } from './typeOperatorTypeNodes';
@@ -91,26 +88,12 @@ export function getArrayElementTypeNode(
 	if (!elementType) {
 		return undefined;
 	}
-	const substitutedElementType = substituteTypeParameterTypeNode(
+	return getPreservableKeyofTypeNode(
 		elementType,
 		checker,
 		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
 	);
-	return containsKeyofTypeOperator(substitutedElementType) ||
-		containsKeyofTypeOperatorOrAlias(
-			substitutedElementType,
-			checker,
-			new Set(),
-			includeExternalTypes,
-		) ||
-		containsKeyofTypeNodeSubstitution(
-			substitutedElementType,
-			checker,
-			typeParameterTypeNodeSubstitutions,
-			includeExternalTypes,
-		)
-		? substitutedElementType
-		: undefined;
 }
 
 function isBuiltInArrayReference(typeNode: ts.TypeReferenceNode, checker: ts.TypeChecker): boolean {

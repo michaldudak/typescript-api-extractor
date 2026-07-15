@@ -91,7 +91,7 @@ export function substituteTypeParameterTypeNode(
 
 /** Checks whether an authored subtree receives `keyof` through an active type argument. */
 export function containsKeyofTypeNodeSubstitution(
-	typeNode: ts.TypeNode | undefined,
+	typeNode: ts.Node | undefined,
 	checker: ts.TypeChecker,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	includeExternalTypes = false,
@@ -119,6 +119,25 @@ export function containsKeyofTypeNodeSubstitution(
 	};
 	visit(typeNode);
 	return found;
+}
+
+/** Applies authored substitutions and keeps only syntax that can replay `keyof`. */
+export function getPreservableKeyofTypeNode(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+	includeExternalTypes = false,
+): ts.TypeNode | undefined {
+	if (!typeNode) {
+		return undefined;
+	}
+
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	return containsKeyofTypeOperator(substituted) ||
+		containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes) ||
+		containsKeyofTypeNodeSubstitution(substituted, checker, substitutions, includeExternalTypes)
+		? substituted
+		: undefined;
 }
 
 /** Checks authored syntax and any referenced type aliases for a `keyof` expression. */

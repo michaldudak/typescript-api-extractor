@@ -6,8 +6,7 @@ import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
 import {
-	containsKeyofTypeOperator,
-	containsKeyofTypeOperatorOrAlias,
+	getPreservableKeyofTypeNode,
 	substituteTypeParameterTypeNode,
 } from './typeOperatorTypeNodes';
 
@@ -101,23 +100,15 @@ export function parseReturnType(
 	resolveTypeReference: ResolveTypeInContext,
 ): AnyType {
 	const authoredReturnTypeNode = getReturnTypeNode(signature);
-	const returnTypeNode = authoredReturnTypeNode
-		? substituteTypeParameterTypeNode(
-				authoredReturnTypeNode,
-				context.checker,
-				context.typeParameterTypeNodeSubstitutions,
-			)
-		: undefined;
+	const returnTypeNode = getPreservableKeyofTypeNode(
+		authoredReturnTypeNode,
+		context.checker,
+		context.typeParameterTypeNodeSubstitutions,
+		context.includeExternalTypes,
+	);
 
 	return context.runWithSourceNodeScope(returnTypeNode, () =>
-		resolveTypeReference(
-			signature.getReturnType(),
-			containsKeyofTypeOperator(returnTypeNode) ||
-				containsKeyofTypeOperatorOrAlias(returnTypeNode, context.checker)
-				? returnTypeNode
-				: undefined,
-			context,
-		),
+		resolveTypeReference(signature.getReturnType(), returnTypeNode, context),
 	);
 }
 

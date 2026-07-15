@@ -7,6 +7,7 @@ import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
+	containsKeyofTypeNodeSubstitution,
 	isRelativeImportedTypeReference,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -56,10 +57,10 @@ export function resolveAuthoredKeyofAlias(
 	const replaysAuthoredArgument = Boolean(
 		reference &&
 		substitutions?.typeNodes &&
-		aliasBodyUsesKeyofTypeNodeSubstitution(
+		containsKeyofTypeNodeSubstitution(
 			reference.declaration.type,
-			substitutions.typeNodes,
 			checker,
+			substitutions.typeNodes,
 			session.context.includeExternalTypes,
 		),
 	);
@@ -166,33 +167,6 @@ export function resolveAuthoredKeyofAlias(
 				substitutions.typeNodes,
 			)
 		: resolveAliasBody();
-}
-
-function aliasBodyUsesKeyofTypeNodeSubstitution(
-	typeNode: ts.Node,
-	substitutions: Map<ts.Symbol, ts.TypeNode>,
-	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
-): boolean {
-	let found = false;
-	const visit = (node: ts.Node): void => {
-		if (found) {
-			return;
-		}
-		if (ts.isTypeReferenceNode(node)) {
-			const substituted = substituteTypeParameterTypeNode(node, checker, substitutions);
-			if (
-				substituted !== node &&
-				containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes)
-			) {
-				found = true;
-				return;
-			}
-		}
-		ts.forEachChild(node, visit);
-	};
-	visit(typeNode);
-	return found;
 }
 
 /**
@@ -497,7 +471,7 @@ function concreteAliasReplaysKeyofObjectArgument(
 	const targetNode = ts.isTypeAliasDeclaration(target) ? target.type : target;
 	return (
 		substitutions.size > 0 &&
-		aliasBodyUsesKeyofTypeNodeSubstitution(targetNode, substitutions, checker, includeExternalTypes)
+		containsKeyofTypeNodeSubstitution(targetNode, checker, substitutions, includeExternalTypes)
 	);
 }
 

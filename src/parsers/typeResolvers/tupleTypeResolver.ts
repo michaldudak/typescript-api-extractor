@@ -10,9 +10,7 @@ import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeR
 import { getArrayElementTypeNode } from './arrayTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
-	containsKeyofTypeOperator,
-	containsKeyofTypeOperatorOrAlias,
-	containsKeyofTypeNodeSubstitution,
+	getPreservableKeyofTypeNode,
 	getTupleElementTypeNodeAtSemanticIndex,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -159,17 +157,13 @@ function getTupleElementTypeNode(
 			};
 		}
 	}
-	element = substituteTypeParameterTypeNode(element, checker, typeParameterTypeNodeSubstitutions);
-	if (
-		!containsKeyofTypeOperator(element) &&
-		!containsKeyofTypeOperatorOrAlias(element, checker, new Set(), includeExternalTypes) &&
-		!containsKeyofTypeNodeSubstitution(
-			element,
-			checker,
-			typeParameterTypeNodeSubstitutions,
-			includeExternalTypes,
-		)
-	) {
+	element = getPreservableKeyofTypeNode(
+		element,
+		checker,
+		typeParameterTypeNodeSubstitutions,
+		includeExternalTypes,
+	);
+	if (!element) {
 		return undefined;
 	}
 	if (element && isRest) {
