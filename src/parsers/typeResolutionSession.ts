@@ -290,10 +290,11 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		const baseBindings =
 			typeParameterSubstitutions?.size || typeParameterTypeNodeSubstitutions?.size
 				? {
-						types: new Map(typeParameterSubstitutions),
-						typeNodes: typeParameterTypeNodeSubstitutions
-							? new Map(typeParameterTypeNodeSubstitutions)
-							: undefined,
+						// Binding derivation copies its base maps before extending them, so
+						// dispatch can reuse the active scope without cloning it for every
+						// nested property or signature that needs no new binding.
+						types: typeParameterSubstitutions ?? new Map<ts.Symbol, ts.Type>(),
+						typeNodes: typeParameterTypeNodeSubstitutions,
 					}
 				: undefined;
 		const referenceBindings = getAuthoredTypeReferenceBindings(
