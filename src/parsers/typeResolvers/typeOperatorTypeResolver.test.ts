@@ -1346,12 +1346,14 @@ it('distinguishes repeated finite tuple alias instantiations from cycles', () =>
 
 type Spread<T extends unknown[]> = [...T];
 
-export type Result = Spread<Spread<Spread<[keyof Params]>>>;`,
+export type Result = Spread<Spread<Spread<[keyof Params]>>>;
+export type Indexed = Spread<Spread<Spread<[keyof Params]>>>[0];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
 
 	expect(exportByName('Result')?.type.types).toMatchObject([expectedKeyofOperator()]);
+	expect(exportByName('Indexed')?.type).toMatchObject(expectedKeyofOperator());
 });
 
 it('preserves keyof through nested generic wrapper arguments', () => {

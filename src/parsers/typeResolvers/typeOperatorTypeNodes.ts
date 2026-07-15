@@ -768,7 +768,7 @@ function getTupleIndexedElementSourceTypeNode(
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
-	seenTupleSources: Set<ts.TupleTypeNode> = new Set(),
+	seenTupleSources: readonly BoundTupleSourceTypeNode[] = [],
 ): ts.TypeNode | undefined {
 	let remainingIndex = index;
 	for (const [elementIndex, element] of tupleTypeNode.elements.entries()) {
@@ -793,7 +793,7 @@ function getTupleIndexedElementSourceTypeNode(
 			substitutions,
 		);
 		if (tupleSource) {
-			if (seenTupleSources.has(tupleSource.typeNode)) {
+			if (hasTupleSourceFrame(seenTupleSources, tupleSource)) {
 				return undefined;
 			}
 			const finiteElements = getFiniteTupleElementSourceTypeNodes(
@@ -801,7 +801,7 @@ function getTupleIndexedElementSourceTypeNode(
 				checker,
 				includeExternalTypes,
 				tupleSource.substitutions,
-				new Set(seenTupleSources).add(tupleSource.typeNode),
+				[...seenTupleSources, tupleSource],
 			);
 			if (!finiteElements) {
 				return undefined;
@@ -843,7 +843,7 @@ function getFiniteTupleElementSourceTypeNodes(
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
-	seenTupleSources: Set<ts.TupleTypeNode>,
+	seenTupleSources: readonly BoundTupleSourceTypeNode[],
 ): readonly ts.TypeNode[] | undefined {
 	const elements: ts.TypeNode[] = [];
 	for (const element of tupleTypeNode.elements) {
@@ -864,7 +864,7 @@ function getFiniteTupleElementSourceTypeNodes(
 			includeExternalTypes,
 			substitutions,
 		);
-		if (!tupleSource || seenTupleSources.has(tupleSource.typeNode)) {
+		if (!tupleSource || hasTupleSourceFrame(seenTupleSources, tupleSource)) {
 			return undefined;
 		}
 		const nestedElements = getFiniteTupleElementSourceTypeNodes(
@@ -872,7 +872,7 @@ function getFiniteTupleElementSourceTypeNodes(
 			checker,
 			includeExternalTypes,
 			tupleSource.substitutions,
-			new Set(seenTupleSources).add(tupleSource.typeNode),
+			[...seenTupleSources, tupleSource],
 		);
 		if (!nestedElements) {
 			return undefined;
@@ -881,6 +881,43 @@ function getFiniteTupleElementSourceTypeNodes(
 	}
 
 	return elements;
+}
+
+/**
+ * Detects recursion without conflating separate generic tuple instantiations.
+ *
+ * A tuple alias reuses one declaration node for every instantiation, so source
+ * identity alone incorrectly treats `Spread<Spread<T>>` as a cycle. Binding
+ * values are authored nodes; comparing their identities distinguishes nested
+ * arguments while recognizing a recursive alias that re-enters with the same
+ * effective substitutions.
+ *
+ * @param seenTupleSources - Tuple source frames already active in this traversal.
+ * @param candidate - Newly resolved tuple source frame.
+ * @returns Whether the same tuple source and authored bindings are already active.
+ */
+function hasTupleSourceFrame(
+	seenTupleSources: readonly BoundTupleSourceTypeNode[],
+	candidate: BoundTupleSourceTypeNode,
+): boolean {
+	return seenTupleSources.some(
+		(seen) =>
+			seen.typeNode === candidate.typeNode &&
+			areTypeNodeSubstitutionsIdentical(seen.substitutions, candidate.substitutions),
+	);
+}
+
+function areTypeNodeSubstitutionsIdentical(
+	left: Map<ts.Symbol, ts.TypeNode> | undefined,
+	right: Map<ts.Symbol, ts.TypeNode> | undefined,
+): boolean {
+	if (left === right) {
+		return true;
+	}
+	if ((left?.size ?? 0) !== (right?.size ?? 0)) {
+		return false;
+	}
+	return Array.from(left ?? []).every(([symbol, typeNode]) => right?.get(symbol) === typeNode);
 }
 
 /**
