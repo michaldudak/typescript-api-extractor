@@ -1,6 +1,13 @@
 import ts from 'typescript';
-import { afterEach, expect, it, vi } from 'vitest';
-import { parseFromProgram, type ParserOptions, type ParserWarning } from './index';
+import { afterEach, expect, expectTypeOf, it, vi } from 'vitest';
+import {
+	parseFromProgram,
+	TypeOperatorNode,
+	type ModuleNode,
+	type ParserOptions,
+	type ParserWarning,
+	type TypeOperatorResolutionKind,
+} from './index';
 import { type ScopedParserContext } from './parserContext';
 import { parseExport } from './parsers/exportParser';
 import { createInMemoryProgram } from '../test/support/inMemoryProgram';
@@ -334,6 +341,100 @@ it('parses generic aliases whose resolved types expose extra type arguments', ()
 			},
 		},
 	]);
+});
+
+it('correlates type operator payloads with the selected output mode', () => {
+	const filePath = '/virtual/type-operator-output-types.ts';
+	const source = `export interface Props { key: keyof { value: string } }
+interface Box<T> { value: T }
+export function useBox(value: Box<keyof Props>): void {}`;
+	const program = createInMemoryProgram(filePath, source);
+
+	const resolvedModule = parseFromProgram(filePath, program);
+	const compatibleModule: ModuleNode = resolvedModule;
+	const resolvedType = resolvedModule.exports[0]!.type;
+	if (resolvedType.kind === 'object') {
+		const nestedType = resolvedType.properties[0]!.type;
+		if (nestedType.kind === 'typeOperator') {
+			expect(nestedType.resolvedType.kind).toBeDefined();
+			const resolutionKind: TypeOperatorResolutionKind = nestedType.resolutionKind;
+			expect(resolutionKind).toBe('exact');
+		}
+	}
+	const explicitResolvedModule = parseFromProgram(filePath, program, {
+		typeOperatorOutput: 'resolved',
+	});
+	const explicitResolvedType = explicitResolvedModule.exports[0]!.type;
+	if (explicitResolvedType.kind === 'object') {
+		const nestedType = explicitResolvedType.properties[0]!.type;
+		if (nestedType.kind === 'typeOperator') {
+			expect(nestedType.resolvedType.kind).toBeDefined();
+		}
+	}
+
+	const syntaxOnlyModule = parseFromProgram(filePath, program, {
+		typeOperatorOutput: 'syntaxOnly',
+	});
+	const syntaxOnlyType = syntaxOnlyModule.exports[0]!.type;
+	if (syntaxOnlyType.kind === 'object') {
+		const nestedType = syntaxOnlyType.properties[0]!.type;
+		if (nestedType.kind === 'typeOperator') {
+			expect(nestedType).toBeInstanceOf(TypeOperatorNode);
+			expectTypeOf(nestedType.resolvedType).toEqualTypeOf<undefined>();
+			expect(nestedType).not.toHaveProperty('resolvedType');
+			if (nestedType instanceof TypeOperatorNode) {
+				expectTypeOf(nestedType.resolvedType).toEqualTypeOf<undefined>();
+			}
+		}
+	}
+	const syntaxOnlyFunction = syntaxOnlyModule.exports.find(
+		(parsedExport) => parsedExport.name === 'useBox',
+	)!.type;
+	if (syntaxOnlyFunction.kind === 'function') {
+		const parameterType = syntaxOnlyFunction.callSignatures[0]!.parameters[0]!.type;
+		if (parameterType.kind === 'object') {
+			const typeArgument = parameterType.typeName?.typeArguments?.[0]?.type;
+			if (typeArgument?.kind === 'typeOperator') {
+				expectTypeOf(typeArgument.resolvedType).toEqualTypeOf<undefined>();
+			}
+		}
+		const syntaxOnlyCopy = syntaxOnlyModule.exports
+			.find((parsedExport) => parsedExport.name === 'useBox')!
+			.withType(syntaxOnlyFunction);
+		if (syntaxOnlyCopy.type.kind === 'function') {
+			const copiedParameterType = syntaxOnlyCopy.type.callSignatures[0]!.parameters[0]!.type;
+			if (copiedParameterType.kind === 'object') {
+				const copiedTypeArgument = copiedParameterType.typeName?.typeArguments?.[0]?.type;
+				if (copiedTypeArgument?.kind === 'typeOperator') {
+					expectTypeOf(copiedTypeArgument.resolvedType).toEqualTypeOf<undefined>();
+				}
+			}
+		}
+	}
+
+	const dynamicOptions: ParserOptions = { typeOperatorOutput: 'syntaxOnly' };
+	const dynamicModule = parseFromProgram(filePath, program, dynamicOptions);
+	const dynamicType = dynamicModule.exports[0]!.type;
+	if (dynamicType.kind === 'object') {
+		const nestedType = dynamicType.properties[0]!.type;
+		if (nestedType.kind === 'typeOperator') {
+			expect(nestedType).toBeInstanceOf(TypeOperatorNode);
+			// @ts-expect-error A dynamic output mode may omit the checker payload.
+			expect(nestedType.resolvedType.kind).toBeDefined();
+			if (nestedType instanceof TypeOperatorNode) {
+				// @ts-expect-error instanceof does not imply a resolved dynamic-mode payload.
+				expect(nestedType.resolvedType.kind).toBeDefined();
+			}
+			if (nestedType.resolvedType) {
+				expect(nestedType.resolvedType.kind).toBeDefined();
+			}
+			expect(nestedType.resolvedType).toBeUndefined();
+		}
+	}
+
+	expect(compatibleModule.exports[0]).toBeDefined();
+	expect(resolvedModule.exports[0]).toBeDefined();
+	expect(syntaxOnlyModule.exports[0]).toBeDefined();
 });
 
 it('reports missing enum declarations through onWarning', () => {

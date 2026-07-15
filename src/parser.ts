@@ -1,7 +1,55 @@
 import ts from 'typescript';
-import { ModuleNode, type AnyType } from './models';
+import {
+	ModuleNode,
+	type AnyType,
+	type ExportNode,
+	type TypeOperatorNode,
+	type TypeOperatorResolutionKind,
+} from './models';
 import { parseModule } from './parsers/moduleParser';
 import { createParserContext } from './parserContextFactory';
+
+// Type operators can occur anywhere AnyType is nested, including alias type
+// arguments. Mirror the complete model graph so literal parser modes expose a
+// correlated payload shape. ExportNode needs an explicit branch because its
+// withType method accepts and returns model types that must use the same mode.
+type ParserOutput<T, TMode extends TypeOperatorOutputMode> = T extends TypeOperatorNode
+	? Omit<T, 'typeName' | 'type' | 'resolvedType' | 'resolutionKind'> & {
+			readonly typeName: ParserOutput<T['typeName'], TMode>;
+			readonly type: ParserOutput<AnyType, TMode>;
+		} & (TMode extends 'resolved'
+				? {
+						readonly resolvedType: ParserOutput<AnyType, TMode>;
+						readonly resolutionKind: TypeOperatorResolutionKind;
+					}
+				: {
+						readonly resolvedType?: never;
+						readonly resolutionKind?: never;
+					})
+	: T extends ExportNode
+		? Omit<T, 'type' | 'withType'> & {
+				type: ParserOutput<AnyType, TMode>;
+				withType(type: ParserOutput<AnyType, TMode>): ParserOutput<ExportNode, TMode>;
+			}
+		: T extends (...args: never[]) => unknown
+			? T
+			: T extends (infer TItem)[]
+				? ParserOutput<TItem, TMode>[]
+				: T extends readonly (infer TItem)[]
+					? readonly ParserOutput<TItem, TMode>[]
+					: T extends object
+						? { [TKey in keyof T]: ParserOutput<T[TKey], TMode> }
+						: T;
+
+/** Extracted module shape whose preserved type operators have resolved payloads. */
+export type ResolvedModuleNode = ParserOutput<ModuleNode, 'resolved'>;
+
+/**
+ * Extracted module shape returned by syntax-only type-operator output.
+ * Nested model containers are transformed recursively because a preserved
+ * operator may appear in a property, signature, tuple, or type argument.
+ */
+export type SyntaxOnlyModuleNode = ParserOutput<ModuleNode, 'syntaxOnly'>;
 
 /**
  * Creates a TypeScript program and extracts the public API of one source file.
@@ -13,6 +61,21 @@ import { createParserContext } from './parserContextFactory';
  * @param parserOptions - Optional extraction policy and warning callbacks.
  * @returns The extracted module model for the requested file.
  */
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions: ParserOptions & { typeOperatorOutput: 'syntaxOnly' },
+): SyntaxOnlyModuleNode;
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions?: ParserOptions & { typeOperatorOutput?: 'resolved' },
+): ResolvedModuleNode;
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions?: ParserOptions,
+): ResolvedModuleNode | SyntaxOnlyModuleNode;
 export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
@@ -30,6 +93,21 @@ export function parseFile(
  * @param parserOptions - Optional extraction policy and warning callbacks.
  * @returns The extracted module model for the requested program source file.
  */
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions: ParserOptions & { typeOperatorOutput: 'syntaxOnly' },
+): SyntaxOnlyModuleNode;
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions?: ParserOptions & { typeOperatorOutput?: 'resolved' },
+): ResolvedModuleNode;
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions?: ParserOptions,
+): ResolvedModuleNode | SyntaxOnlyModuleNode;
 export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
