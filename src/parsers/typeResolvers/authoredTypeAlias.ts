@@ -5,11 +5,11 @@ import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
-	allCompoundMembersContainKeyofReferenceArgumentsInSource,
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeNodeSubstitution,
 	isBuiltInReadonlyUtilityDeclaration,
+	isKeyofReferenceCompoundReplayableInSource,
 	isRelativeImportedTypeReference,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -457,8 +457,7 @@ function analyzeCheckerAliasReplay(
 		includeExternalTypes,
 	);
 	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
-	const replaysCompoundReferenceArgument =
-		allCompoundMembersContainKeyofReferenceArgumentsInSource(typeNode);
+	const replaysCompoundReferenceArgument = isKeyofReferenceCompoundReplayableInSource(typeNode);
 	const containsKeyof =
 		replaysConcreteArgument ||
 		replaysCompoundReferenceArgument ||

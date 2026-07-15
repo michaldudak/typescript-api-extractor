@@ -521,28 +521,58 @@ export function containsKeyofTypeReferenceArgumentOrAlias(
 }
 
 /**
- * Detects a collapsed compound whose every authored member carries `keyof` in
- * a generic reference argument. Requiring all members keeps this recovery path
- * away from ordinary unions such as `ExternalAlias | undefined`, whose legacy
- * alias and optionality normalization must remain semantic.
+ * Detects a collapsed compound made entirely from the same generic wrapper
+ * when at least one authored argument carries `keyof`. Requiring a common root
+ * wrapper keeps this recovery path away from ordinary unions such as
+ * `ExternalAlias | undefined`, while permitting an equivalent literal member
+ * such as `Box<keyof T> | Box<'same'>` to remain visible.
  *
  * The probe is source-only so it cannot perturb TypeScript's lazy checker caches.
  *
  * @param typeNode - Authored union or intersection syntax to inspect.
- * @returns Whether every compound member contains a keyed reference argument.
+ * @returns Whether the compound can safely replay its generic reference members.
  */
-export function allCompoundMembersContainKeyofReferenceArgumentsInSource(
+export function isKeyofReferenceCompoundReplayableInSource(
 	typeNode: ts.TypeNode | undefined,
 ): boolean {
 	if (!typeNode) {
 		return false;
 	}
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	if (
+		(!ts.isUnionTypeNode(unwrapped) && !ts.isIntersectionTypeNode(unwrapped)) ||
+		unwrapped.types.length < 2
+	) {
+		return false;
+	}
+
+	const references = unwrapped.types.map(getRootGenericReferenceInSource);
+	if (references.some((reference) => !reference)) {
+		return false;
+	}
+	const target = getGenericReferenceTargetInSource(references[0]!);
 	return (
-		(ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) &&
-		unwrapped.types.length > 1 &&
-		unwrapped.types.every((member) => containsKeyofTypeReferenceArgumentInSource(member))
+		references.every((reference) => getGenericReferenceTargetInSource(reference!) === target) &&
+		references.some((reference) => containsKeyofTypeReferenceArgumentInSource(reference!))
 	);
+}
+
+function getRootGenericReferenceInSource(
+	typeNode: ts.TypeNode,
+): ts.TypeReferenceNode | ts.ImportTypeNode | undefined {
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	return (ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)) &&
+		unwrapped.typeArguments?.length
+		? unwrapped
+		: undefined;
+}
+
+function getGenericReferenceTargetInSource(
+	reference: ts.TypeReferenceNode | ts.ImportTypeNode,
+): string {
+	return ts.isTypeReferenceNode(reference)
+		? `reference:${reference.typeName.getText()}`
+		: `import:${reference.argument.getText()}:${reference.qualifier?.getText() ?? ''}`;
 }
 
 function containsKeyofTypeReferenceArgumentInSource(typeNode: ts.TypeNode): boolean {

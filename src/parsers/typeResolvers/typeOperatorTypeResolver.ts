@@ -22,7 +22,6 @@ import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
-	allCompoundMembersContainKeyofReferenceArgumentsInSource,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeOperator,
 	flattenIntersectionTypeNodes,
@@ -34,6 +33,7 @@ import {
 	getPreservableKeyofTypeNode,
 	getTupleLiteralIndexedSourceTypeNodes,
 	getTupleNumberIndexedTypeNodes,
+	isKeyofReferenceCompoundReplayableInSource,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
 } from './typeOperatorTypeNodes';
@@ -304,8 +304,7 @@ function resolveCollapsedTypeOperatorSyntax(
 				: resolveSource();
 		}
 	}
-	const replaysCompoundReferenceArgument =
-		allCompoundMembersContainKeyofReferenceArgumentsInSource(unwrapped);
+	const replaysCompoundReferenceArgument = isKeyofReferenceCompoundReplayableInSource(unwrapped);
 	if (
 		!replaysCompoundReferenceArgument &&
 		!containsKeyofTypeOperatorOrAlias(
@@ -318,10 +317,21 @@ function resolveCollapsedTypeOperatorSyntax(
 		return undefined;
 	}
 	if (ts.isUnionTypeNode(unwrapped)) {
-		return resolveAuthoredUnion(type, unwrapped, typeName, session);
+		return resolveAuthoredUnion(
+			type,
+			unwrapped,
+			typeName,
+			session,
+			replaysCompoundReferenceArgument,
+		);
 	}
 	if (ts.isIntersectionTypeNode(unwrapped) && !type.isIntersection()) {
-		return resolveAuthoredIntersection(unwrapped, typeName, session);
+		return resolveAuthoredIntersection(
+			unwrapped,
+			typeName,
+			session,
+			replaysCompoundReferenceArgument,
+		);
 	}
 	if (ts.isConditionalTypeNode(unwrapped) && (type.flags & ts.TypeFlags.Conditional) === 0) {
 		return resolveCollapsedConditional(type, unwrapped, typeName, session);
@@ -484,6 +494,7 @@ function resolveAuthoredUnion(
 	typeNode: ts.UnionTypeNode,
 	typeName: TypeResolutionRequest['typeName'],
 	session: TypeResolutionSession,
+	replayActiveReferences = false,
 ): UnionNode {
 	return new UnionNode(
 		typeName,
@@ -492,6 +503,7 @@ function resolveAuthoredUnion(
 				memberTypeNode,
 				session,
 				getCollapsedUnionOperatorResult(type, memberTypeNode, typeNode, session),
+				replayActiveReferences,
 			),
 		),
 	);
@@ -554,11 +566,14 @@ function resolveAuthoredIntersection(
 	typeNode: ts.IntersectionTypeNode,
 	typeName: TypeResolutionRequest['typeName'],
 	session: TypeResolutionSession,
+	replayActiveReferences = false,
 ): IntersectionNode {
 	const memberTypeNodes = flattenIntersectionTypeNodes(typeNode) ?? typeNode.types;
 	return new IntersectionNode(
 		typeName,
-		memberTypeNodes.map((memberTypeNode) => resolveAuthoredTypeNode(memberTypeNode, session)),
+		memberTypeNodes.map((memberTypeNode) =>
+			resolveAuthoredTypeNode(memberTypeNode, session, undefined, replayActiveReferences),
+		),
 		[],
 	);
 }
@@ -625,13 +640,14 @@ function resolveAuthoredTypeNode(
 	typeNode: ts.TypeNode,
 	session: TypeResolutionSession,
 	typeOverride?: ts.Type,
+	replayActiveReference = false,
 ): AnyType {
 	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	const referenceContainsKeyofArgument =
 		(ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)) &&
 		unwrapped.typeArguments?.some((argument) => containsKeyofTypeOperator(argument));
-	if (session.isTypeActive(type) && referenceContainsKeyofArgument) {
+	if (session.isTypeActive(type) && (referenceContainsKeyofArgument || replayActiveReference)) {
 		// Equivalent compound members can share the exact checker identity with
 		// their already-active collapsed parent. Dispatching the authored reference
 		// directly avoids replacing each recovered member with a shallow cycle

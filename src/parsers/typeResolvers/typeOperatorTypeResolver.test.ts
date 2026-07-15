@@ -561,7 +561,9 @@ type RightKeys = keyof Right;
 export type Union = Box<keyof Left> | Box<keyof Right>;
 export type Intersection = Box<keyof Left> & Box<keyof Right>;
 export type AliasUnion = Box<LeftKeys> | Box<RightKeys>;
-export type AliasIntersection = Box<LeftKeys> & Box<RightKeys>;`,
+export type AliasIntersection = Box<LeftKeys> & Box<RightKeys>;
+export type MixedUnion = Box<keyof Left> | Box<'same'>;
+export type MixedIntersection = Box<keyof Left> & Box<'same'>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -590,6 +592,14 @@ export type AliasIntersection = Box<LeftKeys> & Box<RightKeys>;`,
 			},
 		],
 	});
+	const wrappedLiteral = {
+		kind: 'object',
+		typeName: {
+			name: 'Box',
+			typeArguments: [{ type: { kind: 'literal', value: '"same"' } }],
+		},
+		properties: [{ name: 'value', type: { kind: 'literal', value: '"same"' } }],
+	};
 
 	expect(exportByName('Union')?.type).toMatchObject({
 		kind: 'union',
@@ -606,6 +616,14 @@ export type AliasIntersection = Box<LeftKeys> & Box<RightKeys>;`,
 	expect(exportByName('AliasIntersection')?.type).toMatchObject({
 		kind: 'intersection',
 		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
+	});
+	expect(exportByName('MixedUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: [wrappedOperatorFor('Left'), wrappedLiteral],
+	});
+	expect(exportByName('MixedIntersection')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [wrappedOperatorFor('Left'), wrappedLiteral],
 	});
 });
 
