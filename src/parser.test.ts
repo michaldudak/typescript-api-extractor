@@ -245,6 +245,7 @@ it('reports precise type locations in functions, class signatures, and class pro
 		(warning) => warning.code === 'unsupported-type-fallback',
 	);
 
+	expect(unsupportedWarnings).toHaveLength(4);
 	expect(unsupportedWarnings).toEqual(
 		expect.arrayContaining([
 			expect.objectContaining({
