@@ -11,9 +11,9 @@ import {
 
 /**
  * Derives semantic and authored bindings for a generic reference whose
- * arguments contain preservable `keyof` syntax. Alias parameters and the
- * parameters of the terminal interface or class are kept in one map so member
- * and signature resolvers see the same instantiated argument.
+ * arguments or declaration defaults contain preservable `keyof` syntax. Alias
+ * parameters and the parameters of the terminal interface or class are kept in
+ * one map so member and signature resolvers see the same instantiated argument.
  *
  * @param typeNode - Authored generic reference to inspect.
  * @param checker - Checker used to follow aliases and bind declaration parameters.
@@ -33,7 +33,18 @@ export function getAuthoredTypeReferenceBindings(
 
 	const reference = unwrapParenthesizedTypeNode(typeNode);
 	const typeArguments = getReferenceTypeArguments(reference);
+	const referencedDeclaration =
+		getReferencedTypeAliasDeclaration(reference, checker) ??
+		getReferencedGenericDeclaration(reference, checker);
+	const declarationArgumentContainsKeyof = declarationArgumentsContainKeyof(
+		typeArguments,
+		referencedDeclaration?.typeParameters,
+		checker,
+		includeExternalTypes,
+		baseBindings?.typeNodes,
+	);
 	if (
+		!declarationArgumentContainsKeyof &&
 		!typeArguments?.some((argument) =>
 			containsKeyofTypeOperatorOrAlias(
 				argument,

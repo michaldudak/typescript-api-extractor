@@ -1227,6 +1227,51 @@ export type List = MaybeList<keyof Params>;`,
 	});
 });
 
+it('preserves authored keyof in omitted interface and class defaults', () => {
+	const filePath = '/virtual/keyof-generic-declaration-defaults.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+interface Holder<T = keyof Params> {
+  value: T;
+}
+
+interface PairHolder<T, U = keyof Params> {
+  first: T;
+  second: U;
+}
+
+class ClassHolder<T = keyof Params> {
+  value!: T;
+}
+
+export type OmittedInterfaceDefault = Holder;
+export type PartialInterfaceDefault = PairHolder<string>;
+export type OmittedClassDefault = ClassHolder;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+	const propertyType = (exportName: string, propertyName: string) =>
+		exportByName(exportName)?.type.properties.find(
+			(property: { name: string }) => property.name === propertyName,
+		)?.type;
+
+	expect(propertyType('OmittedInterfaceDefault', 'value')).toMatchObject(expectedOperator);
+	expect(propertyType('PartialInterfaceDefault', 'first')).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+	expect(propertyType('PartialInterfaceDefault', 'second')).toMatchObject(expectedOperator);
+	expect(propertyType('OmittedClassDefault', 'value')).toMatchObject(expectedOperator);
+});
+
 it('matches fixed keyof syntax after an expanded variadic tuple element', () => {
 	const filePath = '/virtual/keyof-variadic-tuple.ts';
 	const pairPath = '/virtual/keyof-variadic-pair.ts';
