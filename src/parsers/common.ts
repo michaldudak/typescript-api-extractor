@@ -219,8 +219,8 @@ function getTypeArguments(
 	let typeArguments: TypeArgument[] = [];
 
 	const authoredTypeArguments =
-		typeNode && ts.isTypeReferenceNode(typeNode)
-			? ((typeNode as ts.TypeReferenceNode).typeArguments ?? [])
+		typeNode && (ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode))
+			? (typeNode.typeArguments ?? [])
 			: [];
 	const nodeTypeArguments = authoredTypeArguments.map((argument) => {
 		const substituted = substituteTypeParameterTypeNode(

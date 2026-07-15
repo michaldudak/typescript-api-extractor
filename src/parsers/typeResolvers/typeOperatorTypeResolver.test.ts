@@ -1619,6 +1619,37 @@ export class Example {
 	expect(boxArgument(methodReturn)).toMatchObject(expectedOperator);
 });
 
+it('preserves authored keyof arguments on import type references', () => {
+	const filePath = '/virtual/keyof-import-type-generic.ts';
+	const dependencyPath = '/virtual/keyof-import-type-generic-dependency.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: `export type Result = import('./keyof-import-type-generic-dependency').Box<
+  keyof import('./keyof-import-type-generic-dependency').Params
+>;`,
+			[dependencyPath]: `export interface Params {
+  a: string;
+  b: number;
+}
+
+export interface Box<T> {
+  value: T;
+}`,
+		}),
+	);
+	const result = createExportLookup(moduleDefinition)('Result')?.type;
+	const expectedOperator = expectedKeyofOperator({
+		type: { typeName: { name: 'Params' } },
+	});
+
+	expect(result.typeName.typeArguments[0].type).toMatchObject(expectedOperator);
+	expect(result.properties[0]).toMatchObject({
+		name: 'value',
+		type: expectedOperator,
+	});
+});
+
 it('carries generic keyof bindings through object aliases and callable interfaces', () => {
 	const filePath = '/virtual/keyof-generic-object-callable-aliases.ts';
 	const moduleDefinition = parseSerializedModule(
