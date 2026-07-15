@@ -342,6 +342,15 @@ function getConcreteConditionalBranch(
 	session: TypeResolutionSession,
 ): ts.TypeNode | undefined {
 	const { checker, typeParameterSubstitutions } = session.context;
+	const compositeDecision = getFixedTupleConditionalDecision(
+		typeNode.checkType,
+		typeNode.extendsType,
+		checker,
+		typeParameterSubstitutions,
+	);
+	if (compositeDecision != null) {
+		return compositeDecision ? typeNode.trueType : typeNode.falseType;
+	}
 	const authoredCheckType = checker.getTypeFromTypeNode(typeNode.checkType);
 	const authoredExtendsType = checker.getTypeFromTypeNode(typeNode.extendsType);
 	if (
@@ -380,6 +389,70 @@ function getConcreteConditionalBranch(
 	return checker.isTypeAssignableTo(checkType, extendsType)
 		? typeNode.trueType
 		: typeNode.falseType;
+}
+
+/**
+ * Decides non-distributive fixed-tuple checks after substituting their element
+ * parameters. TypeScript exposes `[T]` as an object type, so the root-only
+ * semantic substitution used by ordinary conditionals cannot instantiate it.
+ * Restricting this fallback to plain fixed tuples keeps the element-wise
+ * assignability test equivalent to the authored tuple relation.
+ */
+function getFixedTupleConditionalDecision(
+	checkTypeNode: ts.TypeNode,
+	extendsTypeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+): boolean | undefined {
+	if (!substitutions?.size) {
+		return undefined;
+	}
+	const checkTuple = unwrapParenthesizedTypeNode(checkTypeNode);
+	const extendsTuple = unwrapParenthesizedTypeNode(extendsTypeNode);
+	if (!ts.isTupleTypeNode(checkTuple) || !ts.isTupleTypeNode(extendsTuple)) {
+		return undefined;
+	}
+	if (
+		checkTuple.elements.some(isNonFixedTupleElement) ||
+		extendsTuple.elements.some(isNonFixedTupleElement)
+	) {
+		return undefined;
+	}
+	if (checkTuple.elements.length !== extendsTuple.elements.length) {
+		return false;
+	}
+
+	const unresolvedFlags =
+		ts.TypeFlags.Any |
+		ts.TypeFlags.Never |
+		ts.TypeFlags.TypeParameter |
+		ts.TypeFlags.Conditional |
+		ts.TypeFlags.Substitution;
+	for (let index = 0; index < checkTuple.elements.length; index += 1) {
+		const checkType = substituteTypeParameter(
+			checker.getTypeFromTypeNode(checkTuple.elements[index]!),
+			substitutions,
+		);
+		const extendsType = substituteTypeParameter(
+			checker.getTypeFromTypeNode(extendsTuple.elements[index]!),
+			substitutions,
+		);
+		if (checkType.flags & unresolvedFlags || extendsType.flags & unresolvedFlags) {
+			return undefined;
+		}
+		if (!checker.isTypeAssignableTo(checkType, extendsType)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+function isNonFixedTupleElement(typeNode: ts.TypeNode): boolean {
+	return (
+		ts.isNamedTupleMember(typeNode) ||
+		ts.isOptionalTypeNode(typeNode) ||
+		ts.isRestTypeNode(typeNode)
+	);
 }
 
 function typeNodeReferencesSubstitutedParameter(

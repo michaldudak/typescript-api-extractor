@@ -713,9 +713,13 @@ it('matches conditional branches after substituting ordinary branch parameters',
 		createInMemoryProgram(
 			filePath,
 			`type Select<T, U> = [T] extends [string] ? U : keyof { n: 1 };
+type SelectTrueKeyof<T, U> = [T] extends [string] ? keyof { n: 1 } : U;
+type SelectFalseKeyof<T, U> = [T] extends [string] ? U : keyof { n: 1 };
 
 export type Result = Select<string, 'x'>;
-export type IndistinguishableBranches = Select<string, 'n'>;`,
+export type IndistinguishableBranches = Select<string, 'n'>;
+export type TrueKeyof = SelectTrueKeyof<string, 'n'>;
+export type FalseKeyof = SelectFalseKeyof<number, 'n'>;`,
 		),
 	);
 
@@ -727,7 +731,14 @@ export type IndistinguishableBranches = Select<string, 'n'>;`,
 		kind: 'literal',
 		value: '"n"',
 	});
-	expect(JSON.stringify(moduleDefinition.exports)).not.toContain('typeOperator');
+	expect(moduleDefinition.exports[2]?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+	expect(moduleDefinition.exports[3]?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
 });
 
 it('preserves keyof through generic container aliases and declaration defaults', () => {
