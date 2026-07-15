@@ -35,6 +35,7 @@ import {
 	getTupleNumberIndexedTypeNodes,
 	getUniqueSymbolProperty,
 	getPropertyTypeNode,
+	getSymbolIndexInfo,
 	isKeyofReferenceCompoundReplayableInSource,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -220,10 +221,18 @@ function getIndexedKeyofOperand(
 	selector: ts.Type,
 	checker: ts.TypeChecker,
 ): IndexedKeyofOperand | undefined {
-	if (selector.flags & ts.TypeFlags.String || selector.flags & ts.TypeFlags.Number) {
-		const indexKind =
-			selector.flags & ts.TypeFlags.String ? ts.IndexKind.String : ts.IndexKind.Number;
-		const indexInfo = checker.getIndexInfoOfType(objectType, indexKind);
+	if (
+		selector.flags & ts.TypeFlags.String ||
+		selector.flags & ts.TypeFlags.Number ||
+		selector.flags & ts.TypeFlags.ESSymbol
+	) {
+		const indexInfo =
+			selector.flags & ts.TypeFlags.ESSymbol
+				? getSymbolIndexInfo(objectType, checker)
+				: checker.getIndexInfoOfType(
+						objectType,
+						selector.flags & ts.TypeFlags.String ? ts.IndexKind.String : ts.IndexKind.Number,
+					);
 		const declaration = indexInfo?.declaration;
 		return indexInfo
 			? {

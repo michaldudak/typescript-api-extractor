@@ -782,9 +782,8 @@ export function getIndexedAccessSourceTypeNode(
 				) ?? elementTypeNode
 			);
 		}
-		return getIndexSignatureSourceTypeNode(
-			objectType,
-			ts.IndexKind.Number,
+		return getIndexInfoSourceTypeNode(
+			checker.getIndexInfoOfType(objectType, ts.IndexKind.Number),
 			checker,
 			includeExternalTypes,
 			substitutions,
@@ -792,9 +791,16 @@ export function getIndexedAccessSourceTypeNode(
 	}
 
 	if (indexType.flags & ts.TypeFlags.String) {
-		return getIndexSignatureSourceTypeNode(
-			objectType,
-			ts.IndexKind.String,
+		return getIndexInfoSourceTypeNode(
+			checker.getIndexInfoOfType(objectType, ts.IndexKind.String),
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+	}
+	if (indexType.flags & ts.TypeFlags.ESSymbol) {
+		return getIndexInfoSourceTypeNode(
+			getSymbolIndexInfo(objectType, checker),
 			checker,
 			includeExternalTypes,
 			substitutions,
@@ -824,25 +830,23 @@ export function getIndexedAccessSourceTypeNode(
 }
 
 /**
- * Follows a broad string or number selector to its authored index-signature
- * value. The checker owns which declaration supplies the effective index, and
- * the declaration's annotation supplies the syntax needed for `keyof` replay.
+ * Follows a broad string, number, or symbol index to its authored value. The
+ * checker owns which declaration supplies the effective index, and the
+ * declaration's annotation supplies the syntax needed for `keyof` replay.
  *
- * @param objectType - Semantic object being indexed.
- * @param indexKind - Broad string or number index selected by the access.
- * @param checker - Checker used to locate the effective index information.
+ * @param indexInfo - Effective checker index information.
+ * @param checker - Checker used to follow nested indexed value sources.
  * @param includeExternalTypes - Whether external index declarations may be followed.
  * @param substitutions - Active authored generic substitutions.
  * @returns The terminal authored value source, or `undefined` when unavailable.
  */
-function getIndexSignatureSourceTypeNode(
-	objectType: ts.Type,
-	indexKind: ts.IndexKind,
+function getIndexInfoSourceTypeNode(
+	indexInfo: ts.IndexInfo | undefined,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 ): ts.TypeNode | undefined {
-	const declaration = checker.getIndexInfoOfType(objectType, indexKind)?.declaration;
+	const declaration = indexInfo?.declaration;
 	const valueTypeNode =
 		declaration && ts.isIndexSignatureDeclaration(declaration) ? declaration.type : undefined;
 	if (
@@ -855,6 +859,23 @@ function getIndexSignatureSourceTypeNode(
 		getIndexedAccessSourceTypeNode(valueTypeNode, checker, includeExternalTypes, substitutions) ??
 		valueTypeNode
 	);
+}
+
+/**
+ * Locates a broad symbol index, which is absent from the string/number
+ * `IndexKind` enum but exposed through the checker's complete index-info list.
+ *
+ * @param objectType - Semantic object whose symbol index is needed.
+ * @param checker - Checker used to enumerate all index information.
+ * @returns The broad symbol index information, or `undefined` when absent.
+ */
+export function getSymbolIndexInfo(
+	objectType: ts.Type,
+	checker: ts.TypeChecker,
+): ts.IndexInfo | undefined {
+	return checker
+		.getIndexInfosOfType(objectType)
+		.find((indexInfo) => Boolean(indexInfo.keyType.flags & ts.TypeFlags.ESSymbol));
 }
 
 /**
@@ -888,7 +909,7 @@ export function getUniqueSymbolProperty(
 }
 
 /**
- * Returns the authored sources selected by a finite string or numeric index.
+ * Returns the authored sources selected by finite string, number, or symbol indexes.
  * Direct unions retain their authored order. Alias, generic, and `keyof`
  * selectors use the checker's finite literal members, allowing their selected
  * properties or tuple elements to remain distinguishable after reduction.
@@ -920,7 +941,7 @@ export function getIndexedAccessSourceTypeNodes(
 		checker,
 		substitutions,
 	);
-	const selectors = getFiniteIndexedAccessSelectors(indexTypeNode, checker);
+	const selectors = getFiniteIndexedAccessSelectorTypes(indexTypeNode, checker);
 	if (!selectors || selectors.length < 2) {
 		return undefined;
 	}
@@ -928,10 +949,10 @@ export function getIndexedAccessSourceTypeNodes(
 	const objectType = checker.getTypeFromTypeNode(objectTypeNode);
 	const sources: ts.TypeNode[] = [];
 	for (const selector of selectors) {
-		if (typeof selector === 'number') {
+		if (selector.isNumberLiteral()) {
 			const tupleSources = getTupleLiteralIndexedSourceTypeNodes(
 				objectTypeNode,
-				selector,
+				selector.value,
 				checker,
 				includeExternalTypes,
 				substitutions,
@@ -941,7 +962,13 @@ export function getIndexedAccessSourceTypeNodes(
 				continue;
 			}
 		}
-		const propertyTypeNode = getPropertyTypeNode(objectType.getProperty(String(selector)), checker);
+		const property =
+			selector.isStringLiteral() || selector.isNumberLiteral()
+				? objectType.getProperty(String(selector.value))
+				: selector.flags & ts.TypeFlags.UniqueESSymbol
+					? getUniqueSymbolProperty(objectType, selector, checker)
+					: undefined;
+		const propertyTypeNode = getPropertyTypeNode(property, checker);
 		if (
 			!propertyTypeNode ||
 			(!includeExternalTypes && hasNodeModulesPathSegment(propertyTypeNode.getSourceFile()))
@@ -962,18 +989,18 @@ export function getIndexedAccessSourceTypeNodes(
 
 /**
  * Expands an indexed-access selector only when every semantic member is a
- * finite string or number literal. Direct union syntax is inspected member by
- * member to retain authored order; aliases and `keyof` fall back to the
- * checker's reduced union.
+ * finite string, number, or unique-symbol key. Direct union syntax is inspected
+ * member by member to retain authored order; aliases and `keyof` fall back to
+ * the checker's reduced union.
  *
  * @param indexTypeNode - Authored selector after root generic substitution.
  * @param checker - Checker used to evaluate selector members.
- * @returns Ordered literal selector values, or `undefined` for open indexes.
+ * @returns Ordered semantic selectors, or `undefined` for open indexes.
  */
-function getFiniteIndexedAccessSelectors(
+function getFiniteIndexedAccessSelectorTypes(
 	indexTypeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
-): readonly (string | number)[] | undefined {
+): readonly ts.Type[] | undefined {
 	const authoredIndex = unwrapParenthesizedTypeNode(indexTypeNode);
 	const selectorTypes = ts.isUnionTypeNode(authoredIndex)
 		? authoredIndex.types.flatMap((member) => {
@@ -984,15 +1011,15 @@ function getFiniteIndexedAccessSelectors(
 				const semanticIndex = checker.getTypeFromTypeNode(authoredIndex);
 				return semanticIndex.isUnion() ? semanticIndex.types : [semanticIndex];
 			})();
-	const selectors: Array<string | number> = [];
-	const seenSelectors = new Set<string>();
+	const selectors: ts.Type[] = [];
 	for (const selectorType of selectorTypes) {
-		if (selectorType.isStringLiteral() || selectorType.isNumberLiteral()) {
-			const selector = selectorType.value;
-			const selectorKey = `${typeof selector}:${selector}`;
-			if (!seenSelectors.has(selectorKey)) {
-				seenSelectors.add(selectorKey);
-				selectors.push(selector);
+		if (
+			selectorType.isStringLiteral() ||
+			selectorType.isNumberLiteral() ||
+			selectorType.flags & ts.TypeFlags.UniqueESSymbol
+		) {
+			if (!selectors.includes(selectorType)) {
+				selectors.push(selectorType);
 			}
 			continue;
 		}

@@ -1169,16 +1169,28 @@ it('reconstructs broad and unique-symbol indexed sources', () => {
 		createInMemoryProgram(
 			filePath,
 			`declare const token: unique symbol;
+declare const other: unique symbol;
 interface Params { a: string; b: number }
+interface First { first: string }
+interface Second { second: number }
 interface Indexed {
   [token]: keyof Params;
   [key: string]: keyof Params;
   [index: number]: keyof Params;
 }
+interface SymbolValues {
+  [token]: keyof First;
+  [other]: keyof Second;
+}
+interface BroadSymbols {
+  [key: symbol]: keyof Params;
+}
 
 export type SymbolIndex = Indexed[typeof token];
 export type StringIndex = Indexed[string];
-export type NumberIndex = Indexed[number];`,
+export type NumberIndex = Indexed[number];
+export type SymbolUnion = SymbolValues[typeof token | typeof other];
+export type BroadSymbol = BroadSymbols[symbol];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1186,6 +1198,14 @@ export type NumberIndex = Indexed[number];`,
 	for (const name of ['SymbolIndex', 'StringIndex', 'NumberIndex']) {
 		expect(exportByName(name)?.type, name).toMatchObject(expectedKeyofOperator());
 	}
+	expect(exportByName('SymbolUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'typeOperator', operator: 'keyof', type: { typeName: { name: 'First' } } },
+			{ kind: 'typeOperator', operator: 'keyof', type: { typeName: { name: 'Second' } } },
+		],
+	});
+	expect(exportByName('BroadSymbol')?.type).toMatchObject(expectedKeyofOperator());
 });
 
 it('instantiates finite and symbol generic indexed operands', () => {
@@ -1197,10 +1217,12 @@ interface Left { common: string; left: boolean }
 interface Right { common: number; right: boolean }
 interface Fields { a: Left; b: Right }
 interface SymbolFields { [token]: Left }
+interface BroadSymbolFields { [key: symbol]: Left }
 type Keys<T, P extends keyof T = keyof T> = keyof T[P];
 
 export type All = Keys<Fields>;
-export type SymbolValue = Keys<SymbolFields, typeof token>;`,
+export type SymbolValue = Keys<SymbolFields, typeof token>;
+export type BroadSymbolValue = Keys<BroadSymbolFields, symbol>;`,
 	);
 	const parseWithMode = (typeOperatorOutput: 'resolved' | 'syntaxOnly') =>
 		JSON.parse(JSON.stringify(parseFromProgram(filePath, program, { typeOperatorOutput })));
@@ -1209,6 +1231,7 @@ export type SymbolValue = Keys<SymbolFields, typeof token>;`,
 		const exportByName = createExportLookup(parseWithMode(mode));
 		const all = exportByName('All')?.type;
 		const symbolValue = exportByName('SymbolValue')?.type;
+		const broadSymbolValue = exportByName('BroadSymbolValue')?.type;
 		expect(all).toMatchObject({
 			kind: 'typeOperator',
 			operator: 'keyof',
@@ -1222,13 +1245,20 @@ export type SymbolValue = Keys<SymbolFields, typeof token>;`,
 			operator: 'keyof',
 			type: { typeName: { name: 'Left' } },
 		});
+		expect(broadSymbolValue).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'Left' } },
+		});
 		expect(JSON.stringify(all)).not.toContain('"intrinsic":"any"');
 		expect(JSON.stringify(symbolValue)).not.toContain('"intrinsic":"any"');
+		expect(JSON.stringify(broadSymbolValue)).not.toContain('"intrinsic":"any"');
 		if (mode === 'resolved') {
 			expect(all.resolvedType).toMatchObject({ kind: 'literal', value: '"common"' });
 		} else {
 			expect(all).not.toHaveProperty('resolvedType');
 			expect(symbolValue).not.toHaveProperty('resolvedType');
+			expect(broadSymbolValue).not.toHaveProperty('resolvedType');
 		}
 	}
 });
