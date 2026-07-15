@@ -4,11 +4,7 @@ import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 import { isNodeModulesDeclaration } from './sourceFileUtils';
-import {
-	typeAliasContainsKeyofInSource,
-	typeAliasReplaysKeyofInSource,
-	typeAliasReferencesProjectImportInSource,
-} from './typeResolvers/authoredTypeAlias';
+import { analyzeTypeAliasSource } from './typeResolvers/authoredTypeAlias';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
@@ -195,8 +191,6 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
-	const targetTypeAliasIsExternal =
-		targetTypeAlias != null && isNodeModulesDeclaration(targetTypeAlias);
 	return withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
@@ -208,14 +202,29 @@ function resolveExportSpecifierDescriptors(
 			reexportedFrom,
 			typeNode:
 				targetTypeAlias &&
-				((targetTypeAliasIsExternal &&
-					(!reexportedFrom || typeAliasReplaysKeyofInSource(targetTypeAlias))) ||
-					typeAliasReferencesProjectImportInSource(targetTypeAlias) ||
-					typeAliasContainsKeyofInSource(targetTypeAlias, new Set(), context.includeExternalTypes))
+				shouldPreserveTypeAliasNode(targetTypeAlias, reexportedFrom, context.includeExternalTypes)
 					? targetTypeNode
 					: undefined,
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
+	);
+}
+
+function shouldPreserveTypeAliasNode(
+	declaration: ts.TypeAliasDeclaration,
+	reexportedFrom: string | undefined,
+	includeExternalTypes: boolean,
+): boolean {
+	const isExternal = isNodeModulesDeclaration(declaration);
+	if (isExternal && !reexportedFrom) {
+		return true;
+	}
+
+	const analysis = analyzeTypeAliasSource(declaration, includeExternalTypes);
+	return (
+		(isExternal && analysis.replaysKeyof) ||
+		analysis.referencesProjectImport ||
+		analysis.containsKeyof
 	);
 }
 

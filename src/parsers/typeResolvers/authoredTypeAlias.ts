@@ -20,7 +20,29 @@ interface AuthoredTypeAliasReference {
 	typeArguments?: readonly ts.Type[];
 }
 
+interface AuthoredKeyofReplayPlan {
+	reference: AuthoredTypeAliasReference;
+	bindings: TypeParameterBindings | undefined;
+	typeName: TypeName | undefined;
+	replayTypeNode: ts.TypeNode;
+}
+
+interface CheckerAliasReplayAnalysis {
+	containsKeyof: boolean;
+	replayable: boolean;
+}
+
 const activeAliasResolutions = new WeakMap<TypeResolutionSession, Set<ts.TypeAliasDeclaration>>();
+const typeAliasSourceAnalysisCache = new WeakMap<
+	ts.TypeAliasDeclaration,
+	Map<boolean, TypeAliasSourceAnalysis>
+>();
+
+export interface TypeAliasSourceAnalysis {
+	containsKeyof: boolean;
+	replaysKeyof: boolean;
+	referencesProjectImport: boolean;
+}
 
 /**
  * Replays an authored alias body when it contains `keyof`, including through
@@ -44,85 +66,11 @@ export function resolveAuthoredKeyofAlias(
 	) {
 		return undefined;
 	}
-	const checker = session.context.checker;
-	const reference = getAuthoredAliasReference(request, checker);
-	const substitutions = reference
-		? getTypeAliasParameterSubstitutions(reference, session.context)
-		: undefined;
-	const replaysAuthoredArgument = Boolean(
-		reference &&
-		substitutions?.typeNodes &&
-		containsKeyofTypeNodeSubstitution(
-			reference.declaration.type,
-			checker,
-			substitutions.typeNodes,
-			session.context.includeExternalTypes,
-		),
-	);
-	const replaysConcreteKeyofObjectArgument = Boolean(
-		reference &&
-		concreteAliasReplaysKeyofObjectArgument(
-			reference.declaration,
-			checker,
-			session.context.includeExternalTypes,
-		),
-	);
-	const semanticAliasContainsKeyof =
-		semanticDeclaration &&
-		(typeAliasContainsKeyofInSource(
-			semanticDeclaration,
-			new Set(),
-			session.context.includeExternalTypes,
-		) ||
-			typeAliasContainsKeyof(
-				semanticDeclaration,
-				checker,
-				new Set(),
-				session.context.includeExternalTypes,
-			));
-	const authoredNodeContainsKeyof =
-		typeNodeContainsKeyofAliasInSource(request.typeNode, session.context.includeExternalTypes) ||
-		containsKeyofTypeOperatorOrAlias(
-			request.typeNode,
-			checker,
-			new Set(),
-			session.context.includeExternalTypes,
-		);
-	if (
-		!semanticAliasContainsKeyof &&
-		!authoredNodeContainsKeyof &&
-		!replaysAuthoredArgument &&
-		!replaysConcreteKeyofObjectArgument
-	) {
+	const plan = getAuthoredKeyofReplayPlan(request, session);
+	if (!plan) {
 		return undefined;
 	}
-	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
-		return undefined;
-	}
-	const referenceContainsKeyof = Boolean(
-		reference &&
-		(replaysConcreteKeyofObjectArgument ||
-			typeAliasContainsKeyof(
-				reference.declaration,
-				checker,
-				new Set(),
-				session.context.includeExternalTypes,
-			)),
-	);
-
-	if (
-		!reference ||
-		(!replaysAuthoredArgument &&
-			(!referenceContainsKeyof ||
-				!aliasNeedsSyntaxReplay(
-					reference.declaration,
-					checker,
-					new Set(),
-					session.context.includeExternalTypes,
-				)))
-	) {
-		return undefined;
-	}
+	const { reference, bindings, typeName, replayTypeNode } = plan;
 
 	let activeAliases = activeAliasResolutions.get(session);
 	if (!activeAliases) {
@@ -133,15 +81,9 @@ export function resolveAuthoredKeyofAlias(
 		return undefined;
 	}
 
-	const typeName = getOuterAliasTypeName(request, reference.declaration);
 	const resolveAliasBody = () => {
 		activeAliases.add(reference.declaration);
 		try {
-			const replayTypeNode = substituteTypeParameterTypeNode(
-				reference.declaration.type,
-				checker,
-				substitutions?.typeNodes,
-			);
 			const resolvedType = session.context.runWithSourceNodeScope(reference.declaration.type, () =>
 				session.resolveWithSyntax({
 					...request,
@@ -155,13 +97,77 @@ export function resolveAuthoredKeyofAlias(
 		}
 	};
 
-	return substitutions
+	return bindings
 		? session.context.runWithTypeParameterSubstitutionScope(
-				substitutions.types,
+				bindings.types,
 				resolveAliasBody,
-				substitutions.typeNodes,
+				bindings.typeNodes,
 			)
 		: resolveAliasBody();
+}
+
+function getAuthoredKeyofReplayPlan(
+	request: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AuthoredKeyofReplayPlan | undefined {
+	const { checker, includeExternalTypes } = session.context;
+	const reference = getAuthoredAliasReference(request, checker);
+	if (!reference) {
+		return undefined;
+	}
+
+	const bindings = getTypeAliasParameterSubstitutions(reference, session.context);
+	const replaysAuthoredArgument = Boolean(
+		bindings?.typeNodes &&
+		containsKeyofTypeNodeSubstitution(
+			reference.declaration.type,
+			checker,
+			bindings.typeNodes,
+			includeExternalTypes,
+		),
+	);
+	const analysis = analyzeCheckerAliasReplay(reference.declaration, checker, includeExternalTypes);
+	if (!replaysAuthoredArgument && (!analysis.containsKeyof || !analysis.replayable)) {
+		return undefined;
+	}
+	if (!canCollapseAuthoredKeyofAlias(request.type, checker)) {
+		return undefined;
+	}
+
+	return {
+		reference,
+		bindings,
+		typeName: getOuterAliasTypeName(request, reference.declaration),
+		replayTypeNode: substituteTypeParameterTypeNode(
+			reference.declaration.type,
+			checker,
+			bindings?.typeNodes,
+		),
+	};
+}
+
+/** Summarizes checker-free alias facts used while normalizing export descriptors. */
+export function analyzeTypeAliasSource(
+	declaration: ts.TypeAliasDeclaration,
+	includeExternalTypes = false,
+): TypeAliasSourceAnalysis {
+	let analyses = typeAliasSourceAnalysisCache.get(declaration);
+	const cached = analyses?.get(includeExternalTypes);
+	if (cached) {
+		return cached;
+	}
+
+	const analysis = {
+		containsKeyof: typeAliasContainsKeyofInSource(declaration, new Set(), includeExternalTypes),
+		replaysKeyof: typeAliasReplaysKeyofInSource(declaration),
+		referencesProjectImport: typeAliasReferencesProjectImportInSource(declaration),
+	};
+	if (!analyses) {
+		analyses = new Map();
+		typeAliasSourceAnalysisCache.set(declaration, analyses);
+	}
+	analyses.set(includeExternalTypes, analysis);
+	return analysis;
 }
 
 /**
@@ -169,7 +175,7 @@ export function resolveAuthoredKeyofAlias(
  * avoids checker symbol queries so export normalization cannot perturb
  * TypeScript's lazy type caches before ordered type resolution begins.
  */
-export function typeAliasContainsKeyofInSource(
+function typeAliasContainsKeyofInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 	includeExternalTypes = false,
@@ -185,7 +191,7 @@ export function typeAliasContainsKeyofInSource(
 }
 
 /** Checks whether an alias's emitted root/container shape can replay `keyof` syntax. */
-export function typeAliasReplaysKeyofInSource(
+function typeAliasReplaysKeyofInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): boolean {
@@ -261,7 +267,7 @@ function typeNodeContainsKeyofInSource(
 }
 
 /** Identifies a source-only alias chain that needs checker-backed project-reference resolution. */
-export function typeAliasReferencesProjectImportInSource(
+function typeAliasReferencesProjectImportInSource(
 	declaration: ts.TypeAliasDeclaration,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): boolean {
@@ -322,23 +328,6 @@ function isProjectReferenceCandidateInSource(typeNode: ts.TypeReferenceNode): bo
 	});
 }
 
-function typeNodeContainsKeyofAliasInSource(
-	typeNode: ts.TypeNode | undefined,
-	includeExternalTypes: boolean,
-): boolean {
-	if (!typeNode) {
-		return false;
-	}
-	if (containsKeyofTypeOperator(typeNode)) {
-		return true;
-	}
-
-	const declaration = findLocalTypeAliasDeclaration(typeNode);
-	return declaration
-		? typeAliasContainsKeyofInSource(declaration, new Set(), includeExternalTypes)
-		: false;
-}
-
 function findLocalTypeAliasDeclaration(typeNode: ts.TypeNode): ts.TypeAliasDeclaration | undefined {
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	if (!ts.isTypeReferenceNode(unwrapped) || !ts.isIdentifier(unwrapped.typeName)) {
@@ -389,41 +378,58 @@ function canCollapseAuthoredKeyofAlias(type: ts.Type, checker: ts.TypeChecker): 
 	);
 }
 
-function aliasNeedsSyntaxReplay(
+function analyzeCheckerAliasReplay(
 	declaration: ts.TypeAliasDeclaration,
 	checker: ts.TypeChecker,
-	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 	includeExternalTypes = false,
-): boolean {
-	if (seen.has(declaration)) {
-		return false;
+	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+): CheckerAliasReplayAnalysis {
+	if (seen.has(declaration) || (!includeExternalTypes && isNodeModulesDeclaration(declaration))) {
+		return { containsKeyof: false, replayable: false };
 	}
 	seen.add(declaration);
-	if (
-		concreteAliasReplaysKeyofObjectArgument(declaration, checker, includeExternalTypes) ||
-		(containsKeyofTypeOperator(declaration.type) &&
-			containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes))
-	) {
-		return true;
+	const replaysConcreteArgument = concreteAliasReplaysKeyofObjectArgument(
+		declaration,
+		checker,
+		includeExternalTypes,
+	);
+	const containsKeyof =
+		replaysConcreteArgument ||
+		containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes);
+	if (replaysConcreteArgument || (containsKeyofTypeOperator(declaration.type) && containsKeyof)) {
+		return { containsKeyof, replayable: true };
 	}
 
 	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
 	if (ts.isTypeReferenceNode(typeNode)) {
 		const referencedDeclaration = getTypeAliasDeclaration(typeNode, checker);
-		return referencedDeclaration
-			? aliasNeedsSyntaxReplay(referencedDeclaration, checker, seen, includeExternalTypes)
-			: false;
+		if (
+			!referencedDeclaration ||
+			(!includeExternalTypes && isNodeModulesDeclaration(referencedDeclaration))
+		) {
+			return { containsKeyof, replayable: false };
+		}
+		const referencedAnalysis = analyzeCheckerAliasReplay(
+			referencedDeclaration,
+			checker,
+			includeExternalTypes,
+			seen,
+		);
+		return {
+			containsKeyof: containsKeyof || referencedAnalysis.containsKeyof,
+			replayable: referencedAnalysis.replayable,
+		};
 	}
 
-	return (
+	const replayable =
 		ts.isTypeOperatorNode(typeNode) ||
 		ts.isArrayTypeNode(typeNode) ||
 		ts.isTupleTypeNode(typeNode) ||
 		ts.isUnionTypeNode(typeNode) ||
 		ts.isIntersectionTypeNode(typeNode) ||
 		ts.isConditionalTypeNode(typeNode) ||
-		ts.isIndexedAccessTypeNode(typeNode)
-	);
+		ts.isIndexedAccessTypeNode(typeNode);
+	return { containsKeyof, replayable };
 }
 
 function concreteAliasReplaysKeyofObjectArgument(
@@ -536,21 +542,6 @@ function getTypeAliasParameterSubstitutions(
 		substituteArgumentTypes: true,
 		bodyForFreshSymbols: reference.declaration.type,
 	});
-}
-
-/** Checks direct syntax and referenced aliases without expanding semantic types. */
-export function typeAliasContainsKeyof(
-	declaration: ts.TypeAliasDeclaration,
-	checker: ts.TypeChecker,
-	seen: Set<ts.TypeAliasDeclaration> = new Set(),
-	includeExternalTypes = false,
-): boolean {
-	if (seen.has(declaration)) {
-		return false;
-	}
-	seen.add(declaration);
-
-	return containsKeyofTypeOperatorOrAlias(declaration.type, checker, seen, includeExternalTypes);
 }
 
 function getAuthoredAliasReference(
