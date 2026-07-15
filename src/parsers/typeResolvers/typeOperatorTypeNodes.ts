@@ -550,22 +550,35 @@ export function getIndexedAccessSourceTypeNode(
 		const tupleElementCount = checker.isTupleType(objectType)
 			? ((objectType as ts.TupleType).typeArguments?.length ?? tupleTypeNode?.elements.length ?? 0)
 			: (tupleTypeNode?.elements.length ?? 0);
-		const elementTypeNode = tupleTypeNode
-			? getTupleElementTypeNodeAtSemanticIndex(tupleTypeNode, indexType.value, tupleElementCount)
-			: getArrayIndexedElementTypeNode(
-					unwrapped.objectType,
+		const tupleSelection = tupleTypeNode
+			? getTupleElementSelectionAtSemanticIndex(tupleTypeNode, indexType.value, tupleElementCount)
+			: undefined;
+		const elementTypeNode = tupleSelection
+			? getTupleIndexedElementSourceTypeNode(
+					tupleSelection,
 					checker,
 					includeExternalTypes,
 					substitutions,
-				);
+				)
+			: !tupleTypeNode
+				? getArrayIndexedElementTypeNode(
+						unwrapped.objectType,
+						checker,
+						includeExternalTypes,
+						substitutions,
+					)
+				: undefined;
 		if (!elementTypeNode) {
 			return undefined;
 		}
 
-		const elementType = unwrapTupleElementSyntax(elementTypeNode).typeNode;
 		return (
-			getIndexedAccessSourceTypeNode(elementType, checker, includeExternalTypes, substitutions) ??
-			elementType
+			getIndexedAccessSourceTypeNode(
+				elementTypeNode,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			) ?? elementTypeNode
 		);
 	}
 	if (indexType.flags & ts.TypeFlags.Number) {
@@ -782,21 +795,110 @@ export function getTupleElementTypeNodeAtSemanticIndex(
 	index: number,
 	semanticElementCount: number,
 ): ts.TypeNode | undefined {
+	return getTupleElementSelectionAtSemanticIndex(tupleTypeNode, index, semanticElementCount)
+		?.typeNode;
+}
+
+interface TupleElementSelection {
+	typeNode: ts.TypeNode;
+	restSemanticIndex?: number;
+	restSemanticElementCount?: number;
+}
+
+// Rest selections retain their local checker index. A finite tuple spread uses
+// it to select the corresponding nested tuple member, while an open array rest
+// uses the same metadata for any literal index beyond the checker's placeholder.
+function getTupleElementSelectionAtSemanticIndex(
+	tupleTypeNode: ts.TupleTypeNode,
+	index: number,
+	semanticElementCount: number,
+): TupleElementSelection | undefined {
 	const restIndex = tupleTypeNode.elements.findIndex(isRestTupleElementNode);
 	if (restIndex === -1) {
-		return tupleTypeNode.elements[index];
+		const typeNode = tupleTypeNode.elements[index];
+		return typeNode ? { typeNode } : undefined;
 	}
 	if (index < restIndex) {
-		return tupleTypeNode.elements[index];
+		const typeNode = tupleTypeNode.elements[index];
+		return typeNode ? { typeNode } : undefined;
 	}
 
 	const suffixLength = tupleTypeNode.elements.length - restIndex - 1;
 	const semanticSuffixStart = semanticElementCount - suffixLength;
-	if (index >= semanticSuffixStart) {
-		return tupleTypeNode.elements[restIndex + 1 + index - semanticSuffixStart];
+	if (index >= semanticSuffixStart && index < semanticElementCount) {
+		const typeNode = tupleTypeNode.elements[restIndex + 1 + index - semanticSuffixStart];
+		return typeNode ? { typeNode } : undefined;
 	}
 
-	return tupleTypeNode.elements[restIndex];
+	const typeNode = tupleTypeNode.elements[restIndex];
+	const restSemanticIndex = index - restIndex;
+	return {
+		typeNode,
+		restSemanticIndex,
+		restSemanticElementCount: Math.max(semanticSuffixStart - restIndex, restSemanticIndex + 1),
+	};
+}
+
+// Resolve rest selections recursively instead of replaying the authored spread
+// container. Alias bindings travel with finite tuple sources; open array rests
+// terminate at their element syntax.
+function getTupleIndexedElementSourceTypeNode(
+	selection: TupleElementSelection,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenTupleSources: Set<ts.TupleTypeNode> = new Set(),
+): ts.TypeNode | undefined {
+	const elementSyntax = unwrapTupleElementSyntax(selection.typeNode);
+	const elementTypeNode = substituteTypeParameterTypeNode(
+		elementSyntax.typeNode,
+		checker,
+		substitutions,
+	);
+	if (!elementSyntax.isRest) {
+		return elementTypeNode;
+	}
+
+	const arrayElementTypeNode = getArrayIndexedElementTypeNode(
+		elementTypeNode,
+		checker,
+		includeExternalTypes,
+		substitutions,
+	);
+	if (arrayElementTypeNode) {
+		return arrayElementTypeNode;
+	}
+	if (selection.restSemanticIndex == null || selection.restSemanticElementCount == null) {
+		return undefined;
+	}
+
+	const tupleSource = getBoundTupleSourceTypeNode(
+		elementTypeNode,
+		checker,
+		includeExternalTypes,
+		substitutions,
+	);
+	if (!tupleSource || seenTupleSources.has(tupleSource.typeNode)) {
+		return undefined;
+	}
+	const nestedSelection = getTupleElementSelectionAtSemanticIndex(
+		tupleSource.typeNode,
+		selection.restSemanticIndex,
+		selection.restSemanticElementCount,
+	);
+	if (!nestedSelection) {
+		return undefined;
+	}
+
+	const nextSeenTupleSources = new Set(seenTupleSources);
+	nextSeenTupleSources.add(tupleSource.typeNode);
+	return getTupleIndexedElementSourceTypeNode(
+		nestedSelection,
+		checker,
+		includeExternalTypes,
+		tupleSource.substitutions,
+		nextSeenTupleSources,
+	);
 }
 
 /**
@@ -899,10 +1001,29 @@ function getTupleSourceTypeNode(
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
 ): ts.TupleTypeNode | undefined {
+	return getBoundTupleSourceTypeNode(typeNode, checker, includeExternalTypes, substitutions, seen)
+		?.typeNode;
+}
+
+interface BoundTupleSourceTypeNode {
+	typeNode: ts.TupleTypeNode;
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined;
+}
+
+// Tuple-spread aliases need their authored generic bindings when a local rest
+// index is resolved. Returning the bindings with the tuple source prevents a
+// nested alias body from being interpreted in its uninstantiated declaration.
+function getBoundTupleSourceTypeNode(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+): BoundTupleSourceTypeNode | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
 	const unwrapped = unwrapReadonlyContainerTypeNode(substituted, checker, substitutions);
 	if (ts.isTupleTypeNode(unwrapped)) {
-		return unwrapped;
+		return { typeNode: unwrapped, substitutions };
 	}
 	const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 	if (
@@ -912,13 +1033,24 @@ function getTupleSourceTypeNode(
 	) {
 		return undefined;
 	}
-	seen.add(declaration);
-	return getTupleSourceTypeNode(
+	const nextSeen = new Set(seen);
+	nextSeen.add(declaration);
+	const typeArguments =
+		ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)
+			? unwrapped.typeArguments
+			: undefined;
+	const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+		declaration,
+		typeArguments,
+		checker,
+		substitutions,
+	);
+	return getBoundTupleSourceTypeNode(
 		declaration.type,
 		checker,
 		includeExternalTypes,
-		substitutions,
-		seen,
+		aliasSubstitutions,
+		nextSeen,
 	);
 }
 

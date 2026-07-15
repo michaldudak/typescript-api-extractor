@@ -716,6 +716,41 @@ export type InterfaceWrappedAliasKey = InterfaceKeyAlias<Params>['keys'];`,
 	}
 });
 
+it('unwraps open tuple rest arrays selected by literal indexes', () => {
+	const filePath = '/virtual/keyof-open-rest-literal-index.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Values = [string, ...(keyof Params)[]];
+type NamedValues = [head: string, ...tail: (keyof Params)[]];
+type Pair = [keyof Params, string];
+type SpreadPair = [...Pair];
+
+export type FirstRest = Values[1];
+export type LaterRest = Values[123];
+export type NamedRest = NamedValues[1];
+export type PairKey = SpreadPair[0];
+export type PairValue = SpreadPair[1];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = expectedKeyofOperator();
+
+	for (const name of ['FirstRest', 'LaterRest', 'NamedRest', 'PairKey']) {
+		expect(exportByName(name)?.type, name).toMatchObject(expectedOperator);
+	}
+	expect(exportByName('PairValue')?.type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+});
+
 it('traces keyof through numeric array indexed access', () => {
 	const filePath = '/virtual/keyof-array-indexed-access.ts';
 	const moduleDefinition = parseSerializedModule(
