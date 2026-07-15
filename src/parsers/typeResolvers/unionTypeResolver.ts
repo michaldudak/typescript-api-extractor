@@ -367,7 +367,7 @@ function resolveUnionType(
 			memberTypes.length === 2 &&
 			memberTypes.some((x) => x.flags & ts.TypeFlags.Undefined) &&
 			typeNode &&
-			ts.isTypeReferenceNode(typeNode)
+			(ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode))
 		) {
 			// In such case propagate the parent TypeNode to the member types.
 			// It will help to resolve T correctly and won't have any effect on the `undefined` type.

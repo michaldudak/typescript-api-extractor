@@ -1715,7 +1715,13 @@ it('preserves authored keyof arguments on import type references', () => {
 		createInMemoryProgram({
 			[filePath]: `export type Result = import('./keyof-import-type-generic-dependency').Box<
   keyof import('./keyof-import-type-generic-dependency').Params
->;`,
+>;
+
+export interface Options {
+  result?: import('./keyof-import-type-generic-dependency').Box<
+    keyof import('./keyof-import-type-generic-dependency').Params
+  >;
+}`,
 			[dependencyPath]: `export interface Params {
   a: string;
   b: number;
@@ -1733,6 +1739,15 @@ export interface Box<T> {
 
 	expect(result.typeName.typeArguments[0].type).toMatchObject(expectedOperator);
 	expect(result.properties[0]).toMatchObject({
+		name: 'value',
+		type: expectedOperator,
+	});
+	const optionalResult = createExportLookup(moduleDefinition)('Options')?.type.properties[0].type;
+	const optionalBox = optionalResult.types.find(
+		(member: { kind: string }) => member.kind === 'object',
+	);
+	expect(optionalBox.typeName.typeArguments[0].type).toMatchObject(expectedOperator);
+	expect(optionalBox.properties[0]).toMatchObject({
 		name: 'value',
 		type: expectedOperator,
 	});
