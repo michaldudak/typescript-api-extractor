@@ -36,13 +36,19 @@ export function resolveTupleType(
 	}
 
 	const elementTypes = (type as ts.TupleType).typeArguments ?? [];
+	const syntaxPlan = buildTupleElementSelectionPlan(
+		typeNode,
+		elementTypes.length,
+		checker,
+		session.context.typeParameterSubstitutions,
+		session.context.typeParameterTypeNodeSubstitutions,
+		session.context.includeExternalTypes,
+	);
 	return new TupleNode(
 		typeName,
 		elementTypes.map((elementType, index) => {
-			const syntax = getTupleElementTypeNode(
-				typeNode,
-				index,
-				elementTypes.length,
+			const syntax = resolveTupleElementSyntax(
+				syntaxPlan?.[index],
 				checker,
 				session.context.typeParameterSubstitutions,
 				session.context.typeParameterTypeNodeSubstitutions,
@@ -77,33 +83,13 @@ function isReadonlyTupleType(type: ts.Type, typeNode: ts.TypeNode | undefined): 
 	);
 }
 
-function getTupleElementTypeNode(
-	typeNode: ts.TypeNode | undefined,
-	index: number,
-	semanticElementCount: number,
+function resolveTupleElementSyntax(
+	selection: TupleElementSelection | undefined,
 	checker: ts.TypeChecker,
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
 ): TupleElementSyntax | undefined {
-	if (!typeNode) {
-		return undefined;
-	}
-
-	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
-	if (!ts.isTupleTypeNode(unwrapped)) {
-		return undefined;
-	}
-
-	const selection = getTupleElementSelection(
-		unwrapped,
-		index,
-		semanticElementCount,
-		checker,
-		typeParameterSubstitutions,
-		typeParameterTypeNodeSubstitutions,
-		includeExternalTypes,
-	);
 	let element = selection?.typeNode;
 	let isRest = false;
 	if (element) {
@@ -205,20 +191,33 @@ interface TupleElementSelection {
 }
 
 /**
- * Selects the authored tuple element responsible for one expanded checker
- * element. When every spread has a statically known tuple width, offsets are
- * computed exactly. Otherwise the fallback aligns fixed suffix elements from
- * the end and assigns the remaining semantic range to the rest element.
+ * Builds the complete authored-to-semantic tuple selection plan once. When
+ * every spread has a statically known tuple width, exact offsets are expanded
+ * into one selection per checker element. Otherwise fixed prefixes and suffixes
+ * are aligned around the first open rest element.
+ *
+ * Keeping width and rest-alias discovery outside the element-resolution loop is
+ * important for long finite variadic tuples: following a 2,000-element rest
+ * alias once is linear, while recomputing its width for every semantic element
+ * is quadratic.
  */
-function getTupleElementSelection(
-	tupleTypeNode: ts.TupleTypeNode,
-	semanticIndex: number,
+function buildTupleElementSelectionPlan(
+	typeNode: ts.TypeNode | undefined,
 	semanticElementCount: number,
 	checker: ts.TypeChecker,
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
-): TupleElementSelection | undefined {
+): (TupleElementSelection | undefined)[] | undefined {
+	if (!typeNode) {
+		return undefined;
+	}
+
+	const unwrapped = unwrapReadonlyContainerTypeNode(typeNode);
+	if (!ts.isTupleTypeNode(unwrapped)) {
+		return undefined;
+	}
+	const tupleTypeNode = unwrapped;
 	const widths = tupleTypeNode.elements.map((element) =>
 		getKnownTupleElementWidth(
 			element,
@@ -233,37 +232,46 @@ function getTupleElementSelection(
 		widths.every((width): width is number => width != null) &&
 		widths.reduce((total, width) => total + width, 0) === semanticElementCount
 	) {
-		let semanticOffset = 0;
+		const selections: TupleElementSelection[] = [];
 		for (let authoredIndex = 0; authoredIndex < tupleTypeNode.elements.length; authoredIndex += 1) {
 			const element = tupleTypeNode.elements[authoredIndex]!;
 			const width = widths[authoredIndex]!;
-			if (semanticIndex < semanticOffset + width) {
-				return {
+			for (let restSemanticIndex = 0; restSemanticIndex < width; restSemanticIndex += 1) {
+				selections.push({
 					typeNode: element,
-					restSemanticIndex: isRestTupleElementNode(element)
-						? semanticIndex - semanticOffset
-						: undefined,
+					restSemanticIndex: isRestTupleElementNode(element) ? restSemanticIndex : undefined,
 					restSemanticElementCount: width,
-				};
+				});
 			}
-			semanticOffset += width;
 		}
+		return selections;
 	}
 
-	const typeNode = getTupleElementTypeNodeAtSemanticIndex(
-		tupleTypeNode,
-		semanticIndex,
-		semanticElementCount,
-	);
-	if (!typeNode) {
-		return undefined;
-	}
-	const authoredIndex = tupleTypeNode.elements.indexOf(typeNode);
-	return {
-		typeNode,
-		restSemanticIndex: isRestTupleElementNode(typeNode) ? semanticIndex - authoredIndex : undefined,
-		restSemanticElementCount: semanticElementCount - (tupleTypeNode.elements.length - 1),
-	};
+	const restIndex = tupleTypeNode.elements.findIndex(isRestTupleElementNode);
+	const suffixLength = restIndex === -1 ? 0 : tupleTypeNode.elements.length - restIndex - 1;
+	const semanticSuffixStart = semanticElementCount - suffixLength;
+	const restSemanticElementCount = semanticElementCount - (tupleTypeNode.elements.length - 1);
+	return Array.from({ length: semanticElementCount }, (_, semanticIndex) => {
+		let authoredIndex = semanticIndex;
+		if (restIndex !== -1 && semanticIndex >= restIndex) {
+			authoredIndex =
+				semanticIndex >= semanticSuffixStart
+					? restIndex + 1 + semanticIndex - semanticSuffixStart
+					: restIndex;
+		}
+		const selectedTypeNode = tupleTypeNode.elements[authoredIndex];
+		if (!selectedTypeNode) {
+			return undefined;
+		}
+
+		return {
+			typeNode: selectedTypeNode,
+			restSemanticIndex: isRestTupleElementNode(selectedTypeNode)
+				? semanticIndex - restIndex
+				: undefined,
+			restSemanticElementCount,
+		};
+	});
 }
 
 /**
