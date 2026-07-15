@@ -748,7 +748,7 @@ type Values = [string, ...(keyof Params)[]];
 type NamedValues = [head: string, ...tail: (keyof Params)[]];
 type Pair = [keyof Params, string];
 type SpreadPair = [...Pair];
-type SlidingSuffix = [...(keyof Params)[], string];
+type SlidingSuffix = [...(keyof Params)[], number];
 type DoubleFiniteSpread = [...[keyof Params, number], ...[string, keyof OtherParams]];
 
 export type FirstRest = Values[1];
@@ -770,9 +770,9 @@ export type SecondSpreadKey = DoubleFiniteSpread[3];`,
 		kind: 'intrinsic',
 		intrinsic: 'string',
 	});
-	expect(exportByName('SlidingFirst')?.type).toEqual({
-		kind: 'intrinsic',
-		intrinsic: 'string',
+	expect(exportByName('SlidingFirst')?.type).toMatchObject({
+		kind: 'union',
+		types: [expectedOperator, { kind: 'intrinsic', intrinsic: 'number' }],
 	});
 	expect(exportByName('SecondSpreadKey')?.type).toMatchObject({
 		...expectedOperator,

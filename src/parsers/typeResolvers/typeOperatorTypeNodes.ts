@@ -551,22 +551,26 @@ export function getIndexedAccessSourceTypeNode(
 			includeExternalTypes,
 			substitutions,
 		);
-		const elementTypeNode = tupleSource
-			? getTupleIndexedElementSourceTypeNode(
+		const tupleElementTypeNodes = tupleSource
+			? getTupleIndexedElementSourceTypeNodes(
 					tupleSource.typeNode,
 					indexType.value,
 					checker,
 					includeExternalTypes,
 					tupleSource.substitutions,
 				)
-			: !tupleSource
-				? getArrayIndexedElementTypeNode(
-						unwrapped.objectType,
-						checker,
-						includeExternalTypes,
-						substitutions,
-					)
-				: undefined;
+			: undefined;
+		const elementTypeNode =
+			tupleElementTypeNodes?.length === 1
+				? tupleElementTypeNodes[0]
+				: !tupleSource
+					? getArrayIndexedElementTypeNode(
+							unwrapped.objectType,
+							checker,
+							includeExternalTypes,
+							substitutions,
+						)
+					: undefined;
 		if (!elementTypeNode) {
 			return undefined;
 		}
@@ -690,6 +694,44 @@ export function getTupleNumberIndexedTypeNodes(
 }
 
 /**
+ * Returns every authored tuple element that can occupy a literal numeric index.
+ *
+ * Finite spreads are expanded exactly. When an open rest precedes a suffix, the
+ * result includes both the rest element and every suffix element that can slide
+ * into the requested index for some valid rest length.
+ *
+ * @param typeNode - Authored tuple syntax or alias reference.
+ * @param index - Zero-based literal index to inspect.
+ * @param checker - Checker used to follow tuple aliases and array rests.
+ * @param includeExternalTypes - Whether tuple aliases may come from external declarations.
+ * @param substitutions - Active authored generic substitutions.
+ * @returns Candidate element nodes, or `undefined` for non-tuple and unresolved inputs.
+ */
+export function getTupleLiteralIndexedSourceTypeNodes(
+	typeNode: ts.TypeNode,
+	index: number,
+	checker: ts.TypeChecker,
+	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+): readonly ts.TypeNode[] | undefined {
+	const tupleSource = getBoundTupleSourceTypeNode(
+		typeNode,
+		checker,
+		includeExternalTypes,
+		substitutions,
+	);
+	return tupleSource
+		? getTupleIndexedElementSourceTypeNodes(
+				tupleSource.typeNode,
+				index,
+				checker,
+				includeExternalTypes,
+				tupleSource.substitutions,
+			)
+		: undefined;
+}
+
+/**
  * Follows array and readonly-array aliases to their authored element syntax.
  * Generic bindings are extended at each alias so `List<keyof T>[number]`
  * reaches the concrete operator argument instead of the reduced key union.
@@ -747,29 +789,28 @@ function getArrayIndexedElementTypeNode(
 }
 
 /**
- * Maps a literal tuple index to the authored element that always occupies it.
+ * Maps a literal tuple index to the authored elements that can occupy it.
  *
  * Finite tuple spreads are expanded recursively, which handles multiple and
  * nested spreads without relying on TypeScript's compact rest placeholders. An
- * open array rest is safe only when it is the final element: a following suffix
- * can slide into any literal index as the rest length changes, so no single
- * authored element can faithfully represent that access.
+ * open array rest followed by a suffix returns every element that can slide
+ * into the index as the rest length changes.
  *
  * @param tupleTypeNode - Authored tuple whose element is being selected.
  * @param index - Zero-based literal index to locate.
  * @param checker - Checker used to resolve tuple aliases and array rests.
  * @param includeExternalTypes - Whether finite tuple aliases may be external.
  * @param substitutions - Authored substitutions active for this tuple source.
- * @returns The unambiguous selected element, or `undefined` for out-of-range or sliding indexes.
+ * @returns Candidate selected elements, or `undefined` for out-of-range or unresolved indexes.
  */
-function getTupleIndexedElementSourceTypeNode(
+function getTupleIndexedElementSourceTypeNodes(
 	tupleTypeNode: ts.TupleTypeNode,
 	index: number,
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seenTupleSources: readonly BoundTupleSourceTypeNode[] = [],
-): ts.TypeNode | undefined {
+): readonly ts.TypeNode[] | undefined {
 	let remainingIndex = index;
 	for (const [elementIndex, element] of tupleTypeNode.elements.entries()) {
 		const elementSyntax = unwrapTupleElementSyntax(element);
@@ -780,7 +821,7 @@ function getTupleIndexedElementSourceTypeNode(
 		);
 		if (!elementSyntax.isRest) {
 			if (remainingIndex === 0) {
-				return elementTypeNode;
+				return [elementTypeNode];
 			}
 			remainingIndex -= 1;
 			continue;
@@ -807,7 +848,7 @@ function getTupleIndexedElementSourceTypeNode(
 				return undefined;
 			}
 			if (remainingIndex < finiteElements.length) {
-				return finiteElements[remainingIndex];
+				return [finiteElements[remainingIndex]!];
 			}
 			remainingIndex -= finiteElements.length;
 			continue;
@@ -819,10 +860,25 @@ function getTupleIndexedElementSourceTypeNode(
 			includeExternalTypes,
 			substitutions,
 		);
-		if (!arrayElementTypeNode || elementIndex !== tupleTypeNode.elements.length - 1) {
+		if (!arrayElementTypeNode) {
 			return undefined;
 		}
-		return arrayElementTypeNode;
+		if (elementIndex === tupleTypeNode.elements.length - 1) {
+			return [arrayElementTypeNode];
+		}
+
+		// An open rest can be empty or arbitrarily long. At local index N, its
+		// element and the first N+1 finite suffix elements are all possible sources.
+		const suffixElements = getFiniteTupleElementSourceTypeNodesFromElements(
+			tupleTypeNode.elements.slice(elementIndex + 1),
+			checker,
+			includeExternalTypes,
+			substitutions,
+			seenTupleSources,
+		);
+		return suffixElements
+			? [arrayElementTypeNode, ...suffixElements.slice(0, remainingIndex + 1)]
+			: undefined;
 	}
 
 	return undefined;
@@ -845,8 +901,24 @@ function getFiniteTupleElementSourceTypeNodes(
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seenTupleSources: readonly BoundTupleSourceTypeNode[],
 ): readonly ts.TypeNode[] | undefined {
+	return getFiniteTupleElementSourceTypeNodesFromElements(
+		tupleTypeNode.elements,
+		checker,
+		includeExternalTypes,
+		substitutions,
+		seenTupleSources,
+	);
+}
+
+function getFiniteTupleElementSourceTypeNodesFromElements(
+	tupleElements: readonly ts.TypeNode[],
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenTupleSources: readonly BoundTupleSourceTypeNode[],
+): readonly ts.TypeNode[] | undefined {
 	const elements: ts.TypeNode[] = [];
-	for (const element of tupleTypeNode.elements) {
+	for (const element of tupleElements) {
 		const elementSyntax = unwrapTupleElementSyntax(element);
 		const elementTypeNode = substituteTypeParameterTypeNode(
 			elementSyntax.typeNode,

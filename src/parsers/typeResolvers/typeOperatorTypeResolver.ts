@@ -28,6 +28,7 @@ import {
 	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
 	getPreservableKeyofTypeNode,
+	getTupleLiteralIndexedSourceTypeNodes,
 	getTupleNumberIndexedTypeNodes,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -134,6 +135,54 @@ function resolveCollapsedTypeOperatorSyntax(
 		const authoredSubstitutions =
 			bindings?.typeNodes ?? session.context.typeParameterTypeNodeSubstitutions;
 		const indexType = session.context.checker.getTypeFromTypeNode(unwrapped.indexType);
+		const resolveTupleMembers = (elementTypeNodes: readonly ts.TypeNode[]) => {
+			const resolveMembers = () =>
+				new UnionNode(
+					typeName,
+					elementTypeNodes.map((elementTypeNode) =>
+						resolveAuthoredTypeNode(
+							substituteTypeParameterTypeNode(
+								elementTypeNode,
+								session.context.checker,
+								authoredSubstitutions,
+							),
+							session,
+						),
+					),
+				);
+			return bindings
+				? session.context.runWithTypeParameterSubstitutionScope(
+						bindings.types,
+						resolveMembers,
+						bindings.typeNodes,
+					)
+				: resolveMembers();
+		};
+		const tupleLiteralTypeNodes = indexType.isNumberLiteral()
+			? getTupleLiteralIndexedSourceTypeNodes(
+					unwrapped.objectType,
+					indexType.value,
+					session.context.checker,
+					session.context.includeExternalTypes,
+					authoredSubstitutions,
+				)
+			: undefined;
+		if (
+			tupleLiteralTypeNodes &&
+			tupleLiteralTypeNodes.length > 1 &&
+			tupleLiteralTypeNodes.some((elementTypeNode) =>
+				Boolean(
+					getPreservableKeyofTypeNode(
+						elementTypeNode,
+						session.context.checker,
+						authoredSubstitutions,
+						session.context.includeExternalTypes,
+					),
+				),
+			)
+		) {
+			return resolveTupleMembers(tupleLiteralTypeNodes);
+		}
 		const tupleElementTypeNodes =
 			indexType.flags & ts.TypeFlags.Number
 				? getTupleNumberIndexedTypeNodes(
@@ -157,26 +206,7 @@ function resolveCollapsedTypeOperatorSyntax(
 				),
 			)
 		) {
-			const resolveTupleMembers = () => {
-				const members = tupleElementTypeNodes.map((elementTypeNode) =>
-					resolveAuthoredTypeNode(
-						substituteTypeParameterTypeNode(
-							elementTypeNode,
-							session.context.checker,
-							authoredSubstitutions,
-						),
-						session,
-					),
-				);
-				return new UnionNode(typeName, members);
-			};
-			return bindings
-				? session.context.runWithTypeParameterSubstitutionScope(
-						bindings.types,
-						resolveTupleMembers,
-						bindings.typeNodes,
-					)
-				: resolveTupleMembers();
+			return resolveTupleMembers(tupleElementTypeNodes);
 		}
 		const sourceTypeNode = getIndexedAccessKeyofSourceTypeNode(
 			unwrapped,
