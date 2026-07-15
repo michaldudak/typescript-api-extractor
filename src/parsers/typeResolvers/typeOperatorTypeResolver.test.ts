@@ -1053,6 +1053,40 @@ export class Example {
 	expect(boxArgument(methodReturn)).toMatchObject(expectedOperator);
 });
 
+it('keeps external keyof aliases semantic in class properties', () => {
+	const filePath = '/virtual/external-keyof-class-property.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram({
+					[filePath]: `import type { Keys } from 'class-keyof-package';
+
+export class Example {
+  value!: Keys;
+}`,
+					'/virtual/node_modules/class-keyof-package/index.d.ts': `export interface Params {
+  a: string;
+  b: number;
+}
+export type Keys = keyof Params;`,
+				}),
+				{ includeExternalTypes: true },
+			),
+		),
+	);
+	const propertyType = moduleDefinition.exports[0]?.type.properties[0]?.type;
+
+	expect(propertyType).toMatchObject({
+		kind: 'union',
+		types: [
+			{ kind: 'literal', value: '"a"' },
+			{ kind: 'literal', value: '"b"' },
+		],
+	});
+	expect(propertyType).not.toHaveProperty('operator');
+});
+
 it('replays keyof aliases that semantically collapse to any or unknown', () => {
 	const filePath = '/virtual/keyof-top-type-aliases.ts';
 	const warnings: ParserWarning[] = [];

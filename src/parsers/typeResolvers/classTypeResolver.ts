@@ -184,12 +184,7 @@ function extractMembers(
 		} else {
 			// It's a property
 			const propertyTypeNode = getPropertyTypeNode(member, checker);
-			const resolutionTypeNode = getPreservableKeyofTypeNode(
-				propertyTypeNode,
-				checker,
-				context.typeParameterTypeNodeSubstitutions,
-				context.includeExternalTypes,
-			);
+			const resolutionTypeNode = getPreservableKeyofTypeNode(propertyTypeNode, checker);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
 				resolveTypeReference(memberType, resolutionTypeNode, context),
 			);
