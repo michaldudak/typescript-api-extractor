@@ -1438,7 +1438,7 @@ export type CallableAliased = CallbackAlias<keyof Params>;`,
 	}
 });
 
-it('keeps external keyof aliases semantic in class properties', () => {
+it('preserves external keyof aliases in class properties when expansion is enabled', () => {
 	const filePath = '/virtual/external-keyof-class-property.ts';
 	const moduleDefinition = JSON.parse(
 		JSON.stringify(
@@ -1462,14 +1462,7 @@ export type Keys = keyof Params;`,
 	);
 	const propertyType = moduleDefinition.exports[0]?.type.properties[0]?.type;
 
-	expect(propertyType).toMatchObject({
-		kind: 'union',
-		types: [
-			{ kind: 'literal', value: '"a"' },
-			{ kind: 'literal', value: '"b"' },
-		],
-	});
-	expect(propertyType).not.toHaveProperty('operator');
+	expect(propertyType).toMatchObject(expectedKeyofOperator());
 });
 
 it('replays keyof aliases that semantically collapse to any or unknown', () => {
