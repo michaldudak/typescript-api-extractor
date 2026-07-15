@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { type AnyType, UnionNode } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
 import { TypeName } from '../../models/typeName';
+import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import {
 	type ResolveTypeInContext,
 	type TypeResolutionRequest,
@@ -286,16 +287,12 @@ function getAliasTypeParameterSubstitutions(
 		return undefined;
 	}
 
-	const substitutions = new Map(context.typeParameterSubstitutions);
-	for (let index = 0; index < declaration.typeParameters.length; index += 1) {
-		const parameterType = context.checker.getTypeAtLocation(declaration.typeParameters[index]);
-		const argumentType = typeArguments[index];
-		if (parameterType.symbol && argumentType) {
-			substitutions.set(parameterType.symbol, argumentType);
-		}
-	}
-
-	return substitutions.size > 0 ? substitutions : undefined;
+	return deriveTypeParameterBindings({
+		checker: context.checker,
+		declarations: declaration.typeParameters,
+		semanticArguments: typeArguments,
+		baseTypes: context.typeParameterSubstitutions,
+	})?.types;
 }
 
 function getAuthoredUnionAlias(

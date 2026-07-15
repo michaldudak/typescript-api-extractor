@@ -13,6 +13,7 @@ import {
 import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
+import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
 	areSemanticTypesEquivalent,
@@ -152,15 +153,12 @@ function getIndexedAccessTypeParameterSubstitutions(
 		return undefined;
 	}
 
-	const substitutions = new Map(typeParameterSubstitutions);
-	for (let index = 0; index < typeParameters.length; index += 1) {
-		const parameter = typeParameters[index];
-		const argument = typeArguments[index];
-		if (parameter.symbol && argument) {
-			substitutions.set(parameter.symbol, argument);
-		}
-	}
-	return substitutions.size > 0 ? substitutions : undefined;
+	return deriveTypeParameterBindings({
+		checker,
+		semanticParameters: typeParameters,
+		semanticArguments: typeArguments,
+		baseTypes: typeParameterSubstitutions,
+	})?.types;
 }
 
 function resolveAuthoredUnion(

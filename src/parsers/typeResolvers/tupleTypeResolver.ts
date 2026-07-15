@@ -6,9 +6,9 @@ import {
 	unwrapTupleElementSyntax,
 } from '../typeContainerUtils';
 import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { getArrayElementTypeNode } from './arrayTypeResolver';
-import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	getPreservableKeyofTypeNode,
 	getTupleElementTypeNodeAtSemanticIndex,
@@ -339,38 +339,26 @@ function getTupleTypeNodeSource(
 
 	const nextAliases = new Set(seenAliases);
 	nextAliases.add(declaration);
-	const semanticSubstitutions = new Map(typeParameterSubstitutions);
-	const typeNodeSubstitutions = new Map(typeParameterTypeNodeSubstitutions);
 	const typeArguments = ts.isTypeReferenceNode(unwrapped)
 		? unwrapped.typeArguments
 		: ts.isImportTypeNode(unwrapped)
 			? unwrapped.typeArguments
 			: undefined;
-	for (let index = 0; index < (declaration.typeParameters?.length ?? 0); index += 1) {
-		const parameter = declaration.typeParameters![index]!;
-		const argumentNode = typeArguments?.[index] ?? parameter.default;
-		if (!argumentNode) {
-			continue;
-		}
-		const argumentType = substituteTypeParameter(
-			checker.getTypeFromTypeNode(argumentNode),
-			semanticSubstitutions,
-		);
-		const symbols = [
-			checker.getTypeAtLocation(parameter).symbol,
-			checker.getSymbolAtLocation(parameter.name),
-		].filter((symbol): symbol is ts.Symbol => symbol != null);
-		for (const symbol of symbols) {
-			semanticSubstitutions.set(symbol, argumentType);
-			typeNodeSubstitutions.set(symbol, argumentNode);
-		}
-	}
+	const bindings = deriveTypeParameterBindings({
+		checker,
+		declarations: declaration.typeParameters,
+		authoredArguments: typeArguments,
+		baseTypes: typeParameterSubstitutions,
+		baseTypeNodes: typeParameterTypeNodeSubstitutions,
+		useDeclarationDefaults: true,
+		substituteArgumentTypes: true,
+	});
 
 	return getTupleTypeNodeSource(
 		declaration.type,
 		checker,
-		semanticSubstitutions,
-		typeNodeSubstitutions,
+		bindings?.types ?? new Map(typeParameterSubstitutions),
+		bindings?.typeNodes ?? new Map(typeParameterTypeNodeSubstitutions),
 		includeExternalTypes,
 		nextAliases,
 	);

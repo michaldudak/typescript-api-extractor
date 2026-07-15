@@ -2,8 +2,8 @@ import ts from 'typescript';
 import { TypeName, withTypeName, type AnyType } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
 import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
@@ -18,11 +18,6 @@ interface AuthoredTypeAliasReference {
 	declaration: ts.TypeAliasDeclaration;
 	typeArgumentNodes?: readonly ts.TypeNode[];
 	typeArguments?: readonly ts.Type[];
-}
-
-interface AliasParameterSubstitutions {
-	types: Map<ts.Symbol, ts.Type>;
-	typeNodes?: Map<ts.Symbol, ts.TypeNode>;
 }
 
 const activeAliasResolutions = new WeakMap<TypeResolutionSession, Set<ts.TypeAliasDeclaration>>();
@@ -529,95 +524,18 @@ function getSemanticTypeAliasReference(type: ts.Type): AuthoredTypeAliasReferenc
 function getTypeAliasParameterSubstitutions(
 	reference: AuthoredTypeAliasReference,
 	context: ScopedParserContext,
-): AliasParameterSubstitutions | undefined {
-	const typeParameters = reference.declaration.typeParameters;
-	if (!typeParameters?.length) {
-		return undefined;
-	}
-
-	const substitutions = new Map(context.typeParameterSubstitutions);
-	const typeNodeSubstitutions = new Map(context.typeParameterTypeNodeSubstitutions);
-	let addedSubstitution = false;
-	let addedTypeNodeSubstitution = false;
-	for (let index = 0; index < typeParameters.length; index += 1) {
-		const parameter = typeParameters[index];
-		const parameterType = context.checker.getTypeAtLocation(parameter);
-		let argumentNode = reference.typeArgumentNodes?.[index];
-		let argumentType = argumentNode
-			? context.checker.getTypeFromTypeNode(argumentNode)
-			: reference.typeArguments?.[index];
-		if (!argumentType && parameter.default) {
-			argumentNode = parameter.default;
-			argumentType = context.checker.getTypeFromTypeNode(parameter.default);
-		}
-		if (!parameterType.symbol || !argumentType) {
-			continue;
-		}
-
-		const substitutedArgument = substituteTypeParameter(argumentType, substitutions);
-		const declarationSymbol = context.checker.getSymbolAtLocation(parameter.name);
-		addAliasTypeParameterSymbols(
-			reference.declaration.type,
-			parameter,
-			declarationSymbol ? [parameterType.symbol, declarationSymbol] : [parameterType.symbol],
-			substitutedArgument,
-			context.checker,
-			substitutions,
-			typeNodeSubstitutions,
-			argumentNode,
-		);
-		addedSubstitution = true;
-		addedTypeNodeSubstitution ||= Boolean(argumentNode);
-	}
-
-	return addedSubstitution
-		? {
-				types: substitutions,
-				typeNodes: addedTypeNodeSubstitution ? typeNodeSubstitutions : undefined,
-			}
-		: undefined;
-}
-
-function addAliasTypeParameterSymbols(
-	typeNode: ts.TypeNode,
-	parameter: ts.TypeParameterDeclaration,
-	parameterSymbols: readonly ts.Symbol[],
-	argumentType: ts.Type,
-	checker: ts.TypeChecker,
-	substitutions: Map<ts.Symbol, ts.Type>,
-	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode>,
-	argumentNode: ts.TypeNode | undefined,
-): void {
-	for (const parameterSymbol of parameterSymbols) {
-		substitutions.set(parameterSymbol, argumentType);
-		if (argumentNode) {
-			typeNodeSubstitutions.set(parameterSymbol, argumentNode);
-		}
-	}
-
-	// Conditional types can expose a fresh checker-internal TypeParameter for an
-	// authored `T`. Key the active substitution by that symbol as well, while
-	// using symbol-at-location to avoid matching a nested shadowing parameter.
-	const visit = (node: ts.Node): void => {
-		const referencedSymbol = ts.isTypeReferenceNode(node)
-			? checker.getSymbolAtLocation(node.typeName)
-			: undefined;
-		const referencesParameter =
-			referencedSymbol &&
-			(parameterSymbols.includes(referencedSymbol) ||
-				referencedSymbol.declarations?.includes(parameter));
-		if (ts.isTypeReferenceNode(node) && referencesParameter) {
-			const referencedType = checker.getTypeFromTypeNode(node);
-			if (referencedType.flags & ts.TypeFlags.TypeParameter && referencedType.symbol) {
-				substitutions.set(referencedType.symbol, argumentType);
-				if (argumentNode) {
-					typeNodeSubstitutions.set(referencedType.symbol, argumentNode);
-				}
-			}
-		}
-		ts.forEachChild(node, visit);
-	};
-	visit(typeNode);
+): TypeParameterBindings | undefined {
+	return deriveTypeParameterBindings({
+		checker: context.checker,
+		declarations: reference.declaration.typeParameters,
+		semanticArguments: reference.typeArguments,
+		authoredArguments: reference.typeArgumentNodes,
+		baseTypes: context.typeParameterSubstitutions,
+		baseTypeNodes: context.typeParameterTypeNodeSubstitutions,
+		useDeclarationDefaults: true,
+		substituteArgumentTypes: true,
+		bodyForFreshSymbols: reference.declaration.type,
+	});
 }
 
 /** Checks direct syntax and referenced aliases without expanding semantic types. */

@@ -2,6 +2,7 @@ import ts from 'typescript';
 import { getDocumentationFromSymbol } from '../documentationParser';
 import { type ScopedParserContext } from '../../parserContext';
 import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import { deriveTypeParameterBindings } from '../typeParameterBindings';
 import {
 	ObjectNode,
 	TypeName,
@@ -103,34 +104,18 @@ function getObjectTypeReferenceSubstitutions(
 		return undefined;
 	}
 
-	const types = new Map(context.typeParameterSubstitutions);
-	const typeNodes = new Map(context.typeParameterTypeNodeSubstitutions);
-	let added = false;
-	for (let index = 0; index < semanticParameters.length; index += 1) {
-		const semanticParameter = semanticParameters[index];
-		const semanticArgument = semanticArguments[index];
-		const authoredArgument = referenceNode.typeArguments[index];
-		const parameterDeclaration = declaration.typeParameters?.[index];
-		if (!semanticArgument || !authoredArgument) {
-			continue;
-		}
-		const symbols = [
-			semanticParameter.symbol,
-			parameterDeclaration
-				? context.checker.getTypeAtLocation(parameterDeclaration).symbol
-				: undefined,
-			parameterDeclaration
-				? context.checker.getSymbolAtLocation(parameterDeclaration.name)
-				: undefined,
-		].filter((symbol): symbol is ts.Symbol => symbol != null);
-		for (const symbol of symbols) {
-			types.set(symbol, semanticArgument);
-			typeNodes.set(symbol, authoredArgument);
-			added = true;
-		}
-	}
+	const bindings = deriveTypeParameterBindings({
+		checker: context.checker,
+		declarations: declaration.typeParameters,
+		semanticParameters,
+		semanticArguments,
+		authoredArguments: referenceNode.typeArguments,
+		baseTypes: context.typeParameterSubstitutions,
+		baseTypeNodes: context.typeParameterTypeNodeSubstitutions,
+		requireAuthoredArguments: true,
+	});
 
-	return added ? { types, typeNodes } : undefined;
+	return bindings?.typeNodes ? { types: bindings.types, typeNodes: bindings.typeNodes } : undefined;
 }
 
 /**
