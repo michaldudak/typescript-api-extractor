@@ -259,14 +259,20 @@ function followHeritageTypeBindings(
 				substituteArgumentTypes: true,
 				bodyForFreshSymbols: aliasDeclaration.type,
 			}) ?? baseBindings;
-		if (
-			!getPreservableKeyofTypeNode(
-				aliasDeclaration.type,
-				checker,
-				bindings?.typeNodes,
-				includeExternalTypes,
-			)
-		) {
+		const aliasContainsKeyof = getPreservableKeyofTypeNode(
+			aliasDeclaration.type,
+			checker,
+			bindings?.typeNodes,
+			includeExternalTypes,
+		);
+		const targetMembersContainKeyof = referencedDeclarationMembersContainKeyof(
+			aliasDeclaration.type,
+			checker,
+			includeExternalTypes,
+			bindings,
+			new Set(seenAliases).add(aliasDeclaration),
+		);
+		if (!aliasContainsKeyof && !targetMembersContainKeyof) {
 			return undefined;
 		}
 		const nextSeenAliases = new Set(seenAliases);
@@ -329,6 +335,83 @@ function followHeritageTypeBindings(
 		((argumentContainsKeyof || memberContainsKeyof) && bindings !== baseBindings
 			? bindings
 			: undefined)
+	);
+}
+
+/**
+ * Follows a heritage alias to determine whether its terminal interface or
+ * class members need authored `keyof` replay. The traversal composes each
+ * alias's bindings so `type Alias<T> = Base<T>` reaches `Base<P>` rather than
+ * inspecting the uninstantiated base declaration.
+ *
+ * @param typeNode - Alias body or terminal generic reference to inspect.
+ * @param checker - Checker used to resolve aliases and generic declarations.
+ * @param includeExternalTypes - Whether traversal may enter external declarations.
+ * @param baseBindings - Bindings accumulated before this reference.
+ * @param seenAliases - Alias declarations already visited on this path.
+ * @returns Whether a terminal declaration member contains replayable `keyof` syntax.
+ */
+function referencedDeclarationMembersContainKeyof(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	baseBindings: TypeParameterBindings | undefined,
+	seenAliases: Set<ts.TypeAliasDeclaration>,
+): boolean {
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, baseBindings?.typeNodes);
+	const aliasDeclaration = getReferencedTypeAliasDeclaration(substituted, checker);
+	if (aliasDeclaration) {
+		if (
+			seenAliases.has(aliasDeclaration) ||
+			(!includeExternalTypes && declarationHasNodeModulesPathSegment(aliasDeclaration))
+		) {
+			return false;
+		}
+		const bindings =
+			deriveTypeParameterBindings({
+				checker,
+				declarations: aliasDeclaration.typeParameters,
+				authoredArguments: getReferenceTypeArguments(substituted),
+				baseTypes: baseBindings?.types,
+				baseTypeNodes: baseBindings?.typeNodes,
+				useDeclarationDefaults: true,
+				substituteArgumentTypes: true,
+				bodyForFreshSymbols: aliasDeclaration.type,
+			}) ?? baseBindings;
+		const nextSeenAliases = new Set(seenAliases);
+		nextSeenAliases.add(aliasDeclaration);
+		return referencedDeclarationMembersContainKeyof(
+			aliasDeclaration.type,
+			checker,
+			includeExternalTypes,
+			bindings,
+			nextSeenAliases,
+		);
+	}
+
+	const genericDeclaration = getReferencedGenericDeclaration(substituted, checker);
+	if (
+		!genericDeclaration ||
+		(!includeExternalTypes && declarationHasNodeModulesPathSegment(genericDeclaration))
+	) {
+		return false;
+	}
+	const bindings =
+		deriveTypeParameterBindings({
+			checker,
+			declarations: genericDeclaration.typeParameters,
+			authoredArguments: getReferenceTypeArguments(substituted),
+			baseTypes: baseBindings?.types,
+			baseTypeNodes: baseBindings?.typeNodes,
+			useDeclarationDefaults: true,
+			substituteArgumentTypes: true,
+			bodyForFreshSymbols: genericDeclaration,
+		}) ?? baseBindings;
+	return declarationMembersContainKeyof(
+		genericDeclaration,
+		checker,
+		includeExternalTypes,
+		bindings?.typeNodes,
 	);
 }
 

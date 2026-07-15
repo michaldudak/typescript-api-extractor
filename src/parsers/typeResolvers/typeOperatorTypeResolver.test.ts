@@ -1823,6 +1823,7 @@ interface KeyedBase<T> {
 interface AliasedKeyedBase<T> {
   aliasKeys: KeysOf<T>;
 }
+type KeyedHeritageAlias<T> = KeyedBase<T>;
 
 export interface DirectInterface extends Base<keyof Params> {}
 export interface DeepInterface extends Middle<keyof Params> {}
@@ -1834,6 +1835,7 @@ export type DeepCallableAlias = CallableMiddle<keyof Params>;
 export interface MultipleBases extends Left<keyof Params>, Right<keyof Params> {}
 export interface KeyedInterface extends KeyedBase<Params> {}
 export interface AliasedKeyedInterface extends AliasedKeyedBase<Params> {}
+export interface AliasHeritageKeyedInterface extends KeyedHeritageAlias<Params> {}
 
 class BaseClass<T> {
   value!: T;
@@ -1897,7 +1899,7 @@ export class DeepClass extends MiddleClass<keyof Params> {}`,
 	for (const property of multipleBaseProperties) {
 		expect(property.type, property.name).toMatchObject(expectedOperator);
 	}
-	for (const name of ['KeyedInterface', 'AliasedKeyedInterface']) {
+	for (const name of ['KeyedInterface', 'AliasedKeyedInterface', 'AliasHeritageKeyedInterface']) {
 		expect(exportByName(name)?.type.properties[0].type, name).toMatchObject(expectedOperator);
 	}
 });
