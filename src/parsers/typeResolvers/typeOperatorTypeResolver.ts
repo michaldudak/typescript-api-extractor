@@ -429,14 +429,20 @@ function getFixedTupleConditionalDecision(
 		ts.TypeFlags.Conditional |
 		ts.TypeFlags.Substitution;
 	for (let index = 0; index < checkTuple.elements.length; index += 1) {
-		const checkType = substituteTypeParameter(
-			checker.getTypeFromTypeNode(checkTuple.elements[index]!),
-			substitutions,
-		);
-		const extendsType = substituteTypeParameter(
-			checker.getTypeFromTypeNode(extendsTuple.elements[index]!),
-			substitutions,
-		);
+		const checkElementNode = checkTuple.elements[index]!;
+		const extendsElementNode = extendsTuple.elements[index]!;
+		const authoredCheckType = checker.getTypeFromTypeNode(checkElementNode);
+		const authoredExtendsType = checker.getTypeFromTypeNode(extendsElementNode);
+		if (
+			(!(authoredCheckType.flags & ts.TypeFlags.TypeParameter) &&
+				typeNodeReferencesSubstitutedParameter(checkElementNode, checker, substitutions)) ||
+			(!(authoredExtendsType.flags & ts.TypeFlags.TypeParameter) &&
+				typeNodeReferencesSubstitutedParameter(extendsElementNode, checker, substitutions))
+		) {
+			return undefined;
+		}
+		const checkType = substituteTypeParameter(authoredCheckType, substitutions);
+		const extendsType = substituteTypeParameter(authoredExtendsType, substitutions);
 		if (checkType.flags & unresolvedFlags || extendsType.flags & unresolvedFlags) {
 			return undefined;
 		}
