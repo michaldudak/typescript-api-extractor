@@ -699,6 +699,32 @@ function getConcreteConditionalBranch(
 	if (compositeDecision != null) {
 		return compositeDecision ? typeNode.trueType : typeNode.falseType;
 	}
+	const strictFunctionTypes =
+		compilerOptions.strictFunctionTypes ?? compilerOptions.strict ?? false;
+	const rootFunctionDecision = getFunctionConditionalElementDecision(
+		typeNode.checkType,
+		typeNode.extendsType,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		strictFunctionTypes,
+	);
+	if (rootFunctionDecision != null) {
+		return rootFunctionDecision ? typeNode.trueType : typeNode.falseType;
+	}
+	const rootObjectDecision = getObjectConditionalDecision(
+		typeNode.checkType,
+		typeNode.extendsType,
+		checker,
+		typeParameterSubstitutions,
+		typeParameterTypeNodeSubstitutions,
+		strictFunctionTypes,
+	);
+	if (rootObjectDecision != null) {
+		return rootObjectDecision ? typeNode.trueType : typeNode.falseType;
+	}
 	const checkType = getInstantiatedConditionalType(
 		typeNode.checkType,
 		checker,
@@ -727,6 +753,139 @@ function getConcreteConditionalBranch(
 	return getConditionalElementAssignableDecision(checkType, extendsType, checker)
 		? typeNode.trueType
 		: typeNode.falseType;
+}
+
+/**
+ * Decides conditional relations between direct anonymous object literals by
+ * replaying their property requirements under the active bindings. This keeps
+ * TypeScript's structural rule—every required target property must be present
+ * and assignable—without cloning its internal anonymous symbols or signatures.
+ * Unsupported member shapes return `undefined` so the semantic fallback, not a
+ * partial structural guess, owns them.
+ *
+ * @param checkTypeNode - Authored anonymous object on the conditional's left side.
+ * @param extendsTypeNode - Authored anonymous object on the conditional's right side.
+ * @param checker - Checker used for member type assignability.
+ * @param substitutions - Active semantic type-parameter bindings.
+ * @param typeNodeSubstitutions - Active authored type-parameter bindings.
+ * @param strictFunctionTypes - Whether callable properties compare parameters contravariantly.
+ * @returns A definite structural relation, or `undefined` for non-object/unsupported shapes.
+ */
+function getObjectConditionalDecision(
+	checkTypeNode: ts.TypeNode,
+	extendsTypeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	substitutions: Map<ts.Symbol, ts.Type> | undefined,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	strictFunctionTypes: boolean,
+): boolean | undefined {
+	const checkObject = unwrapParenthesizedTypeNode(
+		substituteTypeParameterTypeNode(checkTypeNode, checker, typeNodeSubstitutions),
+	);
+	const extendsObject = unwrapParenthesizedTypeNode(
+		substituteTypeParameterTypeNode(extendsTypeNode, checker, typeNodeSubstitutions),
+	);
+	if (!ts.isTypeLiteralNode(checkObject) || !ts.isTypeLiteralNode(extendsObject)) {
+		return undefined;
+	}
+	if (
+		!checkObject.members.every(ts.isPropertySignature) ||
+		!extendsObject.members.every(ts.isPropertySignature)
+	) {
+		return undefined;
+	}
+
+	const checkProperties = getConditionalPropertySignatures(checkObject);
+	const extendsProperties = getConditionalPropertySignatures(extendsObject);
+	if (!checkProperties || !extendsProperties) {
+		return undefined;
+	}
+	for (const [name, extendsProperty] of extendsProperties) {
+		const checkProperty = checkProperties.get(name);
+		if (!checkProperty) {
+			if (extendsProperty.questionToken) {
+				continue;
+			}
+			return false;
+		}
+		if (checkProperty.questionToken && !extendsProperty.questionToken) {
+			return false;
+		}
+
+		const functionDecision = getFunctionConditionalElementDecision(
+			checkProperty.type!,
+			extendsProperty.type!,
+			checker,
+			substitutions,
+			typeNodeSubstitutions,
+			substitutions,
+			typeNodeSubstitutions,
+			strictFunctionTypes,
+		);
+		if (functionDecision != null) {
+			if (!functionDecision) {
+				return false;
+			}
+			continue;
+		}
+
+		const checkPropertyType = getInstantiatedConditionalType(
+			checkProperty.type!,
+			checker,
+			substitutions,
+			typeNodeSubstitutions,
+		);
+		const extendsPropertyType = getInstantiatedConditionalType(
+			extendsProperty.type!,
+			checker,
+			substitutions,
+			typeNodeSubstitutions,
+		);
+		if (!checkPropertyType || !extendsPropertyType) {
+			return undefined;
+		}
+		if (!getConditionalElementAssignableDecision(checkPropertyType, extendsPropertyType, checker)) {
+			return false;
+		}
+	}
+	return true;
+}
+
+/**
+ * Indexes statically named property signatures and rejects declarations that
+ * cannot be compared without the checker's merged-symbol machinery.
+ *
+ * @param objectNode - Authored anonymous object whose properties are needed.
+ * @returns Unique named property signatures, or `undefined` for unsupported declarations.
+ */
+function getConditionalPropertySignatures(
+	objectNode: ts.TypeLiteralNode,
+): Map<string, ts.PropertySignature> | undefined {
+	const properties = new Map<string, ts.PropertySignature>();
+	for (const property of objectNode.members) {
+		if (!ts.isPropertySignature(property) || !property.type) {
+			return undefined;
+		}
+		const name = getStaticPropertyName(property.name);
+		if (name == null || properties.has(name)) {
+			return undefined;
+		}
+		properties.set(name, property);
+	}
+	return properties;
+}
+
+/**
+ * Reads an identifier, string, or numeric property name without evaluating a
+ * computed expression.
+ *
+ * @param name - Authored property name to inspect.
+ * @returns Its stable text, or `undefined` for computed/private names.
+ */
+function getStaticPropertyName(name: ts.PropertyName): string | undefined {
+	return ts.isIdentifier(name) || ts.isStringLiteral(name) || ts.isNumericLiteral(name)
+		? name.text
+		: undefined;
 }
 
 /**

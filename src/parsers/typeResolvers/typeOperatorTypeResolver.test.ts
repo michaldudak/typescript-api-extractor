@@ -1397,11 +1397,21 @@ type SelectArray<T> = T[] extends string[] ? keyof TrueTarget : keyof FalseTarge
 type SelectReference<T> = Promise<T> extends Promise<string>
   ? keyof TrueTarget
   : keyof FalseTarget;
+type SelectObject<T> = { value: T } extends { value: string }
+  ? keyof TrueTarget
+  : keyof FalseTarget;
+type SelectCallable<T> = ((value: T) => void) extends ((value: string) => void)
+  ? keyof TrueTarget
+  : keyof FalseTarget;
 
 export type ArrayTrue = SelectArray<string>;
 export type ArrayFalse = SelectArray<number>;
 export type ReferenceTrue = SelectReference<string>;
-export type ReferenceFalse = SelectReference<number>;`,
+export type ReferenceFalse = SelectReference<number>;
+export type ObjectTrue = SelectObject<string>;
+export type ObjectFalse = SelectObject<number>;
+export type CallableTrue = SelectCallable<unknown>;
+export type CallableFalse = SelectCallable<number>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -1412,10 +1422,10 @@ export type ReferenceFalse = SelectReference<number>;`,
 		resolvedType: { kind: 'literal', value: '"same"' },
 	});
 
-	for (const name of ['ArrayTrue', 'ReferenceTrue']) {
+	for (const name of ['ArrayTrue', 'ReferenceTrue', 'ObjectTrue', 'CallableTrue']) {
 		expect(exportByName(name)?.type, name).toMatchObject(operatorFor('TrueTarget'));
 	}
-	for (const name of ['ArrayFalse', 'ReferenceFalse']) {
+	for (const name of ['ArrayFalse', 'ReferenceFalse', 'ObjectFalse', 'CallableFalse']) {
 		expect(exportByName(name)?.type, name).toMatchObject(operatorFor('FalseTarget'));
 	}
 });
