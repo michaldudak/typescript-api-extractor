@@ -711,7 +711,7 @@ function resolveTypeOperatorOperand(
 		return new TypeQueryNode(unwrappedTypeNode.exprName.getText());
 	}
 	if (ts.isImportTypeNode(unwrappedTypeNode) && unwrappedTypeNode.isTypeOf) {
-		return new TypeQueryNode(unwrappedTypeNode.getText().replace(/^typeof\s+/, ''));
+		return new TypeQueryNode(getImportTypeExpressionText(unwrappedTypeNode));
 	}
 
 	if (canResolveObjectTypeShallowly(type, session.context.checker)) {
@@ -738,6 +738,35 @@ function resolveTypeOperatorOperand(
 	}
 
 	return compactTypeOperatorOperand(session.resolve(type, typeNode));
+}
+
+/**
+ * Extracts the import expression from a `typeof import(...)` type node.
+ *
+ * The `typeof` keyword and `import` expression are separate AST tokens even
+ * when comments or unusual whitespace appear between them. Slicing from the
+ * import token avoids interpreting trivia while retaining authored qualifiers,
+ * type arguments, and import attributes.
+ *
+ * @param typeNode - A `typeof import(...)` node whose query expression is needed.
+ * @returns The authored text beginning with the `import` keyword.
+ */
+function getImportTypeExpressionText(typeNode: ts.ImportTypeNode): string {
+	const sourceFile = typeNode.getSourceFile();
+	const importToken = typeNode
+		.getChildren(sourceFile)
+		.find((child) => child.kind === ts.SyntaxKind.ImportKeyword);
+
+	if (!importToken) {
+		// Valid ImportTypeNodes always contain this token. Keep malformed or synthetic
+		// nodes recoverable without reintroducing a whitespace-sensitive assumption.
+		return typeNode
+			.getText(sourceFile)
+			.replace(/^typeof\b/, '')
+			.trimStart();
+	}
+
+	return sourceFile.text.slice(importToken.getStart(sourceFile), typeNode.getEnd());
 }
 
 function resolveTypeOperatorResult(

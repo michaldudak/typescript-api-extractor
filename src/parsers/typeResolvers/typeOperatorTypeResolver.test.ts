@@ -229,7 +229,8 @@ it('preserves authored type-query operands without expanding their value shape',
 			[filePath]: `const value = { a: 1, b: 2 };
 
 export type Keys = keyof typeof value;
-export type ImportedKeys = keyof typeof import("./keyof-type-query-dependency");`,
+export type ImportedKeys = keyof typeof import("./keyof-type-query-dependency");
+export type CommentedImportedKeys = keyof typeof/*comment*/ import("./keyof-type-query-dependency");`,
 			[dependencyPath]: `export const importedValue = 1;
 export const importedText = 'text';`,
 		}),
@@ -265,8 +266,19 @@ export const importedText = 'text';`,
 			],
 		},
 	});
+	expect(exportByName('CommentedImportedKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: {
+			kind: 'typeQuery',
+			expressionName: 'import("./keyof-type-query-dependency")',
+		},
+	});
 	expect(parsedExportByName('Keys')?.type.toString()).toBe('keyof typeof value');
 	expect(parsedExportByName('ImportedKeys')?.type.toString()).toBe(
+		'keyof typeof import("./keyof-type-query-dependency")',
+	);
+	expect(parsedExportByName('CommentedImportedKeys')?.type.toString()).toBe(
 		'keyof typeof import("./keyof-type-query-dependency")',
 	);
 });
