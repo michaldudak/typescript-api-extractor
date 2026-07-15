@@ -125,7 +125,12 @@ export function parseReturnType(
 		: undefined;
 	const resolutionTypeNode =
 		containsKeyofTypeOperator(returnTypeNode) ||
-		containsKeyofTypeOperatorOrAlias(returnTypeNode, context.checker)
+		containsKeyofTypeOperatorOrAlias(
+			returnTypeNode,
+			context.checker,
+			new Set(),
+			context.includeExternalTypes,
+		)
 			? returnTypeNode
 			: undefined;
 

@@ -25,6 +25,7 @@ import {
 } from './mappedTypeSubstitutions';
 import {
 	containsKeyofTypeOperatorOrAlias,
+	getPreservableKeyofTypeNode,
 	getPropertyTypeNode,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -226,7 +227,7 @@ function buildIndexSignatureNode(
 			keyType: 'string',
 			valueType: resolveValueType(
 				stringIndexInfo.type,
-				getIndexValueTypeNode(stringIndexInfo, checker),
+				getIndexValueTypeNode(stringIndexInfo, context),
 				context,
 			),
 		};
@@ -239,7 +240,7 @@ function buildIndexSignatureNode(
 			keyType: 'number',
 			valueType: resolveValueType(
 				numberIndexInfo.type,
-				getIndexValueTypeNode(numberIndexInfo, checker),
+				getIndexValueTypeNode(numberIndexInfo, context),
 				context,
 			),
 		};
@@ -284,9 +285,12 @@ function buildMappedIndexSignatureNode(
 		keyType === 'string' ? ts.IndexKind.String : ts.IndexKind.Number,
 	);
 	const templateType = indexInfo?.type ?? checker.getTypeAtLocation(mappedNode.type);
-	const templateTypeNode = containsKeyofTypeOperatorOrAlias(mappedNode.type, checker)
-		? mappedNode.type
-		: undefined;
+	const templateTypeNode = getPreservableKeyofTypeNode(
+		mappedNode.type,
+		checker,
+		context.typeParameterTypeNodeSubstitutions,
+		context.includeExternalTypes,
+	);
 	let valueType = resolveTemplateValueType(
 		templateType,
 		templateTypeNode,
@@ -312,13 +316,16 @@ function buildMappedIndexSignatureNode(
 
 function getIndexValueTypeNode(
 	indexInfo: ts.IndexInfo,
-	checker: ts.TypeChecker,
+	context: ScopedParserContext,
 ): ts.TypeNode | undefined {
 	const declaration = indexInfo.declaration;
-	return declaration &&
-		ts.isIndexSignatureDeclaration(declaration) &&
-		containsKeyofTypeOperatorOrAlias(declaration.type, checker)
-		? declaration.type
+	return declaration && ts.isIndexSignatureDeclaration(declaration)
+		? getPreservableKeyofTypeNode(
+				declaration.type,
+				context.checker,
+				context.typeParameterTypeNodeSubstitutions,
+				context.includeExternalTypes,
+			)
 		: undefined;
 }
 

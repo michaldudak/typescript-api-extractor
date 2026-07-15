@@ -1689,6 +1689,37 @@ export type WrappedUnion = OuterKeys | null;`,
 	});
 });
 
+it('preserves expanded external keyof aliases in parameters, returns, and index values', () => {
+	const filePath = '/virtual/external-keyof-signature-consumer.ts';
+	const program = createInMemoryProgram({
+		[filePath]: `import type { Keys } from 'external-keyof-signatures';
+
+export function select(value: Keys): Keys {
+  return value;
+}
+
+export interface Values {
+  [name: string]: Keys;
+}`,
+		'/virtual/node_modules/external-keyof-signatures/index.d.ts': `export interface Params {
+  a: string;
+  b: number;
+}
+
+export type Keys = keyof Params;`,
+	});
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(parseFromProgram(filePath, program, { includeExternalTypes: true })),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const expectedOperator = { kind: 'typeOperator', operator: 'keyof' };
+	const signature = exportByName('select')?.type.callSignatures[0];
+
+	expect(signature.parameters[0].type).toMatchObject(expectedOperator);
+	expect(signature.returnValueType).toMatchObject(expectedOperator);
+	expect(exportByName('Values')?.type.indexSignature.valueType).toMatchObject(expectedOperator);
+});
+
 it('replays renamed keyof aliases from similarly named project directories', () => {
 	const filePath = '/virtual/similar-node-modules-entry.ts';
 	const moduleDefinition = JSON.parse(
