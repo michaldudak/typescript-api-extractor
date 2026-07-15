@@ -202,6 +202,7 @@ export function getPreservableKeyofTypeNode(
  * @param seenAliases - Alias declarations already visited by the current traversal.
  * @param includeExternalTypes - Whether traversal may enter external aliases.
  * @param substitutions - Active authored arguments for generic alias parameters.
+ * @param seenAliasInstantiations - Generic alias bindings already visited on this path.
  * @returns Whether replayable `keyof` syntax is reachable.
  */
 export function containsKeyofTypeOperatorOrAlias(
@@ -210,6 +211,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	seenAliases: Set<ts.TypeAliasDeclaration> = new Set(),
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>> = new Map(),
 ): boolean {
 	if (!typeNode) {
 		return false;
@@ -227,6 +229,7 @@ export function containsKeyofTypeOperatorOrAlias(
 			seenAliases,
 			includeExternalTypes,
 			substitutions,
+			seenAliasInstantiations,
 		);
 	}
 	if (ts.isTupleTypeNode(unwrapped)) {
@@ -237,6 +240,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				seenAliases,
 				includeExternalTypes,
 				substitutions,
+				seenAliasInstantiations,
 			),
 		);
 	}
@@ -248,6 +252,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				seenAliases,
 				includeExternalTypes,
 				substitutions,
+				seenAliasInstantiations,
 			),
 		);
 	}
@@ -259,6 +264,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				seenAliases,
 				includeExternalTypes,
 				substitutions,
+				seenAliasInstantiations,
 			) ||
 			containsKeyofTypeOperatorOrAlias(
 				unwrapped.falseType,
@@ -266,6 +272,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				seenAliases,
 				includeExternalTypes,
 				substitutions,
+				seenAliasInstantiations,
 			)
 		);
 	}
@@ -274,20 +281,25 @@ export function containsKeyofTypeOperatorOrAlias(
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
+		const aliasSubstitutions = declaration
+			? getAliasTypeNodeSubstitutions(declaration, unwrapped.typeArguments, checker, substitutions)
+			: undefined;
+		const instantiationKey = declaration
+			? getAliasInstantiationKey(declaration, aliasSubstitutions, checker)
+			: undefined;
 		if (
 			!declaration ||
 			(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
-			seenAliases.has(declaration)
+			hasSeenAliasInstantiation(declaration, instantiationKey, seenAliases, seenAliasInstantiations)
 		) {
 			return false;
 		}
 		const nextSeenAliases = new Set(seenAliases);
 		nextSeenAliases.add(declaration);
-		const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+		const nextSeenAliasInstantiations = addSeenAliasInstantiation(
 			declaration,
-			unwrapped.typeArguments,
-			checker,
-			substitutions,
+			instantiationKey,
+			seenAliasInstantiations,
 		);
 		return containsKeyofTypeOperatorOrAlias(
 			declaration.type,
@@ -295,6 +307,7 @@ export function containsKeyofTypeOperatorOrAlias(
 			nextSeenAliases,
 			includeExternalTypes,
 			aliasSubstitutions,
+			nextSeenAliasInstantiations,
 		);
 	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
@@ -311,6 +324,7 @@ export function containsKeyofTypeOperatorOrAlias(
 					seenAliases,
 					includeExternalTypes,
 					substitutions,
+					seenAliasInstantiations,
 				),
 			) ?? false
 		);
@@ -319,20 +333,25 @@ export function containsKeyofTypeOperatorOrAlias(
 	const declaration =
 		getReferencedTypeAliasDeclaration(unwrapped, checker) ??
 		findLocalTypeAliasDeclaration(unwrapped);
+	const aliasSubstitutions = declaration
+		? getAliasTypeNodeSubstitutions(declaration, unwrapped.typeArguments, checker, substitutions)
+		: undefined;
+	const instantiationKey = declaration
+		? getAliasInstantiationKey(declaration, aliasSubstitutions, checker)
+		: undefined;
 	if (
 		!declaration ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(declaration)) ||
-		seenAliases.has(declaration)
+		hasSeenAliasInstantiation(declaration, instantiationKey, seenAliases, seenAliasInstantiations)
 	) {
 		return false;
 	}
 	const nextSeenAliases = new Set(seenAliases);
 	nextSeenAliases.add(declaration);
-	const aliasSubstitutions = getAliasTypeNodeSubstitutions(
+	const nextSeenAliasInstantiations = addSeenAliasInstantiation(
 		declaration,
-		unwrapped.typeArguments,
-		checker,
-		substitutions,
+		instantiationKey,
+		seenAliasInstantiations,
 	);
 	return containsKeyofTypeOperatorOrAlias(
 		declaration.type,
@@ -340,7 +359,53 @@ export function containsKeyofTypeOperatorOrAlias(
 		nextSeenAliases,
 		includeExternalTypes,
 		aliasSubstitutions,
+		nextSeenAliasInstantiations,
 	);
+}
+
+function hasSeenAliasInstantiation(
+	declaration: ts.TypeAliasDeclaration,
+	instantiationKey: string | undefined,
+	seenAliases: Set<ts.TypeAliasDeclaration>,
+	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>>,
+): boolean {
+	return instantiationKey
+		? Boolean(seenAliasInstantiations.get(declaration)?.has(instantiationKey))
+		: seenAliases.has(declaration);
+}
+
+function addSeenAliasInstantiation(
+	declaration: ts.TypeAliasDeclaration,
+	instantiationKey: string | undefined,
+	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>>,
+): Map<ts.TypeAliasDeclaration, Set<string>> {
+	if (!instantiationKey) {
+		return seenAliasInstantiations;
+	}
+	const next = new Map(seenAliasInstantiations);
+	const declarationInstantiations = new Set(next.get(declaration));
+	declarationInstantiations.add(instantiationKey);
+	next.set(declaration, declarationInstantiations);
+	return next;
+}
+
+function getAliasInstantiationKey(
+	declaration: ts.TypeAliasDeclaration,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	checker: ts.TypeChecker,
+): string | undefined {
+	if (!declaration.typeParameters?.length) {
+		return undefined;
+	}
+	return declaration.typeParameters
+		.map((parameter) => {
+			const symbol = checker.getSymbolAtLocation(parameter.name);
+			const typeNode = symbol ? substitutions?.get(symbol) : undefined;
+			return typeNode
+				? `${typeNode.getSourceFile().fileName}:${typeNode.pos}:${typeNode.end}`
+				: '<unbound>';
+		})
+		.join('|');
 }
 
 /**

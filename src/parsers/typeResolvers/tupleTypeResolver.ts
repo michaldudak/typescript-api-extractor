@@ -89,7 +89,7 @@ function resolveTupleElementSyntax(
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>,
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
-	seenTupleSources: Set<ts.TupleTypeNode> = new Set(),
+	seenTupleSourceInstantiations: Map<ts.TupleTypeNode, Set<string>> = new Map(),
 ): TupleElementSyntax | undefined {
 	let element = selection?.typeNode;
 	let isRest = false;
@@ -115,7 +115,11 @@ function resolveTupleElementSyntax(
 			includeExternalTypes,
 		);
 		if (tupleSource && selection?.restSemanticIndex != null) {
-			if (seenTupleSources.has(tupleSource.typeNode)) {
+			const instantiationKey = getTupleSourceInstantiationKey(
+				selection,
+				tupleSource.typeParameterTypeNodeSubstitutions,
+			);
+			if (seenTupleSourceInstantiations.get(tupleSource.typeNode)?.has(instantiationKey)) {
 				return undefined;
 			}
 			const nestedPlan = buildTupleElementSelectionPlan(
@@ -134,15 +138,19 @@ function resolveTupleElementSyntax(
 			// A finite rest alias can itself contain several spreads. Reusing the
 			// complete selection plan preserves the exact authored segment instead
 			// of collapsing every middle element onto the first rest node.
-			const nextSeenTupleSources = new Set(seenTupleSources);
-			nextSeenTupleSources.add(tupleSource.typeNode);
+			const nextSeenTupleSourceInstantiations = new Map(seenTupleSourceInstantiations);
+			const sourceInstantiations = new Set(
+				nextSeenTupleSourceInstantiations.get(tupleSource.typeNode),
+			);
+			sourceInstantiations.add(instantiationKey);
+			nextSeenTupleSourceInstantiations.set(tupleSource.typeNode, sourceInstantiations);
 			return resolveTupleElementSyntax(
 				nestedSelection,
 				checker,
 				tupleSource.typeParameterSubstitutions,
 				tupleSource.typeParameterTypeNodeSubstitutions,
 				includeExternalTypes,
-				nextSeenTupleSources,
+				nextSeenTupleSourceInstantiations,
 			);
 		} else {
 			element = substitutedRestType;
@@ -190,6 +198,29 @@ function resolveTupleElementSyntax(
 		typeParameterSubstitutions,
 		typeParameterTypeNodeSubstitutions,
 	};
+}
+
+/**
+ * Identifies one tuple-source traversal by its semantic slot and authored
+ * generic bindings. A declaration-only key would mistake
+ * `Spread<Spread<[T]>>` for a cycle when the second visit carries a narrower
+ * argument, while a true recursive alias eventually repeats the same key.
+ */
+function getTupleSourceInstantiationKey(
+	selection: TupleElementSelection,
+	typeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): string {
+	const bindings = [...(typeNodeSubstitutions ?? [])]
+		.map(([symbol, typeNode]) => {
+			const declaration = symbol.declarations?.[0];
+			const declarationLocation = declaration
+				? `${declaration.getSourceFile().fileName}:${declaration.pos}:${declaration.end}`
+				: symbol.name;
+			return `${declarationLocation}=${typeNode.getSourceFile().fileName}:${typeNode.pos}:${typeNode.end}`;
+		})
+		.sort()
+		.join('|');
+	return `${selection.restSemanticIndex}/${selection.restSemanticElementCount}:${bindings}`;
 }
 
 interface TupleElementSyntax {

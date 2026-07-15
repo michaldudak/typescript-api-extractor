@@ -1029,6 +1029,27 @@ export type Last = Result[2];`,
 	expect(exportByName('Last')?.type).toMatchObject(expectedOperator);
 });
 
+it('distinguishes repeated finite tuple alias instantiations from cycles', () => {
+	const filePath = '/virtual/keyof-repeated-tuple-alias.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params {
+  a: string;
+  b: number;
+}
+
+type Spread<T extends unknown[]> = [...T];
+
+export type Result = Spread<Spread<Spread<[keyof Params]>>>;`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+
+	expect(exportByName('Result')?.type.types).toMatchObject([expectedKeyofOperator()]);
+});
+
 it('preserves keyof through nested generic wrapper arguments', () => {
 	const filePath = '/virtual/keyof-nested-generic-wrappers.ts';
 	const moduleDefinition = parseSerializedModule(
