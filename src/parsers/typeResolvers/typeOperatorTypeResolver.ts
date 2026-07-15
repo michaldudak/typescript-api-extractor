@@ -676,11 +676,7 @@ function getFixedTupleConditionalDecision(
 	}
 
 	const unresolvedFlags =
-		ts.TypeFlags.Any |
-		ts.TypeFlags.Never |
-		ts.TypeFlags.TypeParameter |
-		ts.TypeFlags.Conditional |
-		ts.TypeFlags.Substitution;
+		ts.TypeFlags.TypeParameter | ts.TypeFlags.Conditional | ts.TypeFlags.Substitution;
 	for (let index = 0; index < checkTuple.elements.length; index += 1) {
 		const checkElementNode = unwrapTupleElementSyntax(checkTuple.elements[index]!).typeNode;
 		const extendsElementNode = unwrapTupleElementSyntax(extendsTuple.elements[index]!).typeNode;

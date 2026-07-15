@@ -993,12 +993,20 @@ type SelectArray<T> = [T[]] extends [string[]]
   : keyof { arrayFalse: 1 };
 interface ReadonlyTrueTarget { same: string }
 interface ReadonlyFalseTarget { same: number }
+interface ConcreteTrueTarget { same: string }
+interface ConcreteFalseTarget { same: number }
 type SelectReadonly<T> = readonly [T] extends readonly [string]
   ? keyof ReadonlyTrueTarget
   : keyof ReadonlyFalseTarget;
 type SelectReadonlyToMutable<T> = readonly [T] extends [T]
   ? keyof ReadonlyTrueTarget
   : keyof ReadonlyFalseTarget;
+type SelectConcrete<T> = [T] extends [string]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
+type SelectNever<T> = [T] extends [never]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
 
 export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
@@ -1009,7 +1017,11 @@ export type NestedTrueKeyof = SelectNested<string>;
 export type ArrayTrueKeyof = SelectArray<string>;
 export type ReadonlyTrueKeyof = SelectReadonly<string>;
 export type ReadonlyFalseKeyof = SelectReadonly<number>;
-export type ReadonlyMutableMismatchKeyof = SelectReadonlyToMutable<string>;`,
+export type ReadonlyMutableMismatchKeyof = SelectReadonlyToMutable<string>;
+export type AnyTrueKeyof = SelectConcrete<any>;
+export type NeverTrueKeyof = SelectNever<never>;
+export type NeverFalseKeyof = SelectNever<string>;
+export type AnyNeverFalseKeyof = SelectNever<any>;`,
 		),
 	);
 
@@ -1066,6 +1078,22 @@ export type ReadonlyMutableMismatchKeyof = SelectReadonlyToMutable<string>;`,
 		type: { typeName: { name: 'ReadonlyFalseTarget' } },
 		resolvedType: { kind: 'literal', value: '"same"' },
 	});
+	for (const name of ['AnyTrueKeyof', 'NeverTrueKeyof']) {
+		expect(exportByName(name)?.type, name).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'ConcreteTrueTarget' } },
+			resolvedType: { kind: 'literal', value: '"same"' },
+		});
+	}
+	for (const name of ['NeverFalseKeyof', 'AnyNeverFalseKeyof']) {
+		expect(exportByName(name)?.type, name).toMatchObject({
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { typeName: { name: 'ConcreteFalseTarget' } },
+			resolvedType: { kind: 'literal', value: '"same"' },
+		});
+	}
 });
 
 it('preserves keyof through generic container aliases and declaration defaults', () => {
