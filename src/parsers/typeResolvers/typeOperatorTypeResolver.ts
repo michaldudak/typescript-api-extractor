@@ -24,6 +24,7 @@ import {
 	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
 	getIndexedAccessKeyofSourceTypeNode,
+	getIndexedAccessSourceTypeNode,
 	getKeyofTypeOperatorNode,
 	substituteTypeParameterTypeNode,
 	unwrapParenthesizedTypeNode,
@@ -188,6 +189,17 @@ function getIndexedAccessTypeParameterBindings(
 	const authoredObject = unwrapParenthesizedTypeNode(typeNode.objectType);
 	if (ts.isIndexedAccessTypeNode(authoredObject)) {
 		bindings = getIndexedAccessTypeParameterBindings(authoredObject, session, bindings) ?? bindings;
+		const selectedObjectSource = getIndexedAccessSourceTypeNode(
+			authoredObject,
+			checker,
+			session.context.includeExternalTypes,
+			bindings?.typeNodes,
+		);
+		if (selectedObjectSource) {
+			bindings =
+				getIndexedAccessAliasChainBindings(selectedObjectSource, checker, bindings, new Set()) ??
+				bindings;
+		}
 		return bindings;
 	}
 
@@ -251,7 +263,30 @@ function getIndexedAccessAliasChainBindings(
 ): TypeParameterBindings | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, baseBindings?.typeNodes);
 	const declaration = getReferencedTypeAliasDeclaration(substituted, checker);
-	if (!declaration || seenAliases.has(declaration)) {
+	if (!declaration) {
+		const genericDeclaration = getReferencedGenericObjectDeclaration(substituted, checker);
+		if (!genericDeclaration?.typeParameters?.length) {
+			return baseBindings;
+		}
+		const typeArguments = ts.isTypeReferenceNode(substituted)
+			? substituted.typeArguments
+			: ts.isImportTypeNode(substituted)
+				? substituted.typeArguments
+				: undefined;
+		return (
+			deriveTypeParameterBindings({
+				checker,
+				declarations: genericDeclaration.typeParameters,
+				authoredArguments: typeArguments,
+				baseTypes: baseBindings?.types,
+				baseTypeNodes: baseBindings?.typeNodes,
+				useDeclarationDefaults: true,
+				substituteArgumentTypes: true,
+				bodyForFreshSymbols: genericDeclaration,
+			}) ?? baseBindings
+		);
+	}
+	if (seenAliases.has(declaration)) {
 		return baseBindings;
 	}
 	const typeArguments =
@@ -289,6 +324,32 @@ function resolveAuthoredUnion(
 				getCollapsedUnionOperatorResult(type, memberTypeNode, typeNode, session),
 			),
 		),
+	);
+}
+
+/**
+ * Finds a generic interface or class referenced by authored syntax, following
+ * import aliases. Alias declarations are handled by the recursive chain walker
+ * before this terminal lookup.
+ */
+function getReferencedGenericObjectDeclaration(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): ts.InterfaceDeclaration | ts.ClassDeclaration | undefined {
+	const location = ts.isTypeReferenceNode(typeNode)
+		? typeNode.typeName
+		: ts.isImportTypeNode(typeNode)
+			? typeNode.qualifier
+			: undefined;
+	if (!location) {
+		return undefined;
+	}
+	const symbol = checker.getSymbolAtLocation(location);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return targetSymbol?.declarations?.find(
+		(declaration): declaration is ts.InterfaceDeclaration | ts.ClassDeclaration =>
+			ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration),
 	);
 }
 

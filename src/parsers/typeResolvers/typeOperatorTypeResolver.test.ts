@@ -675,6 +675,13 @@ type OuterNestedTuple<T> = NestedTuple<T>;
 type OuterKeyBox<T> = KeyBox<T>;
 type OuterNestedBox<T> = NestedBox<T>;
 type DeepBox<T> = { inner: { keys: T } };
+type IntermediateBox<T> = { inner: NestedBox<T> };
+type IntermediateKeyBox<T> = { inner: NestedBox<keyof T> };
+interface InterfaceBox<T> {
+  keys: T;
+}
+type InterfaceAlias<T> = InterfaceBox<T>;
+type InterfaceKeyAlias<T> = InterfaceBox<keyof T>;
 
 export type TupleKey = KeyTuple<Params>[0];
 export type NestedTupleKey = NestedTuple<keyof Params>[0];
@@ -684,7 +691,11 @@ export type ChainedTupleKey = OuterKeyTuple<Params>[0];
 export type ChainedNestedTupleKey = OuterNestedTuple<keyof Params>[0];
 export type ChainedObjectKey = OuterKeyBox<Params>['keys'];
 export type ChainedNestedObjectKey = OuterNestedBox<keyof Params>['keys'];
-export type DeepObjectKey = DeepBox<keyof Params>['inner']['keys'];`,
+export type DeepObjectKey = DeepBox<keyof Params>['inner']['keys'];
+export type IntermediateObjectKey = IntermediateBox<keyof Params>['inner']['keys'];
+export type IntermediateWrappedObjectKey = IntermediateKeyBox<Params>['inner']['keys'];
+export type InterfaceAliasKey = InterfaceAlias<keyof Params>['keys'];
+export type InterfaceWrappedAliasKey = InterfaceKeyAlias<Params>['keys'];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -700,6 +711,10 @@ export type DeepObjectKey = DeepBox<keyof Params>['inner']['keys'];`,
 		'ChainedObjectKey',
 		'ChainedNestedObjectKey',
 		'DeepObjectKey',
+		'IntermediateObjectKey',
+		'IntermediateWrappedObjectKey',
+		'InterfaceAliasKey',
+		'InterfaceWrappedAliasKey',
 	]) {
 		expect(exportByName(name)?.type).toMatchObject(expectedOperator);
 	}
