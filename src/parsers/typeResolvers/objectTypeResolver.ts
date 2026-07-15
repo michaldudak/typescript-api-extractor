@@ -19,6 +19,7 @@ import {
 } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
 import {
+	getMappedPropertyKeyType,
 	getMappedTypeParameterSubstitutions,
 	substituteTypeParameter,
 } from './mappedTypeSubstitutions';
@@ -321,34 +322,41 @@ interface MappedPropertyKeyBinding {
 }
 
 /**
- * Reconstructs the per-property binding of a non-remapped mapped key. The
- * checker exposes the outer mapped-type mapper but not the concrete `K` used
- * for each generated property, so the emitted property name supplies that
- * final binding while its template is replayed.
+ * Reconstructs the per-property binding of a mapped key. Remapped properties
+ * use TypeScript's retained original `keyType`; ordinary generated properties
+ * fall back to their emitted name. Only literal keys receive synthetic authored
+ * nodes, so unsupported symbol metadata cannot manufacture misleading syntax.
  *
  * @param mappedNode - Authored mapped type that generated the property.
  * @param propertySymbol - Concrete generated property being resolved.
  * @param checker - Checker used to resolve the mapped parameter symbol and key type.
- * @returns The semantic and authored key binding, or `undefined` for remapped/symbol keys.
+ * @returns The semantic and authored key binding, or `undefined` for unsupported symbol keys.
  */
 function getMappedPropertyKeyBinding(
 	mappedNode: ts.MappedTypeNode,
 	propertySymbol: ts.Symbol,
 	checker: ts.TypeChecker,
 ): MappedPropertyKeyBinding | undefined {
-	if (mappedNode.nameType) {
-		return undefined;
-	}
 	const symbol = checker.getSymbolAtLocation(mappedNode.typeParameter.name);
 	const propertyName = propertySymbol.getName();
-	if (!symbol || propertyName.startsWith('__@')) {
+	const keyType = getMappedPropertyKeyType(propertySymbol);
+	if (!symbol || (!keyType && propertyName.startsWith('__@'))) {
+		return undefined;
+	}
+	const resolvedKeyType = keyType ?? checker.getStringLiteralType(propertyName);
+	const keyTypeNode = resolvedKeyType.isStringLiteral()
+		? ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(resolvedKeyType.value))
+		: resolvedKeyType.isNumberLiteral()
+			? ts.factory.createLiteralTypeNode(ts.factory.createNumericLiteral(resolvedKeyType.value))
+			: undefined;
+	if (!keyTypeNode) {
 		return undefined;
 	}
 
 	return {
 		symbol,
-		type: checker.getStringLiteralType(propertyName),
-		typeNode: ts.factory.createLiteralTypeNode(ts.factory.createStringLiteral(propertyName)),
+		type: resolvedKeyType,
+		typeNode: keyTypeNode,
 	};
 }
 

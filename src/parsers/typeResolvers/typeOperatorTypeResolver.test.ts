@@ -1672,11 +1672,9 @@ export type NestedCompositeDefault = CompositeKeyDefault<Params>;`,
 
 it('preserves keyof mapped-value syntax after mapped type instantiation', () => {
 	const filePath = '/virtual/keyof-instantiated-mapped-values.ts';
-	const moduleDefinition = parseSerializedModule(
+	const program = createInMemoryProgram(
 		filePath,
-		createInMemoryProgram(
-			filePath,
-			`interface Params {
+		`interface Params {
   a: string;
   b: number;
 }
@@ -1693,14 +1691,22 @@ type KeysOfValues<T> = {
   [K in keyof T]: keyof T[K];
 };
 
+type RemappedKeys<T> = {
+  [K in keyof T as \`get\${Capitalize<K & string>}\`]: keyof T[K];
+};
+
 export type Dictionary = Mapped<string>;
 export type Finite = Mapped<'value'>;
 export type GenericDictionary = ValueDictionary<keyof Params>;
 export type KeyDependent = KeysOfValues<{
   left: { x: string };
   right: { y: number };
-}>;`,
-		),
+}>;
+export type Remapped = RemappedKeys<{ left: { x: string } }>;`,
+	);
+	const moduleDefinition = parseSerializedModule(filePath, program);
+	const syntaxOnlyDefinition = JSON.parse(
+		JSON.stringify(parseFromProgram(filePath, program, { typeOperatorOutput: 'syntaxOnly' })),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
 	const expectedOperator = expectedKeyofOperator();
@@ -1735,6 +1741,26 @@ export type KeyDependent = KeysOfValues<{
 				resolvedType: { kind: 'literal', value: '"y"' },
 			},
 		},
+	]);
+	const expectedRemappedProperty = {
+		name: 'getLeft',
+		type: {
+			kind: 'typeOperator',
+			operator: 'keyof',
+			type: { kind: 'object', properties: [{ name: 'x' }] },
+		},
+	};
+	expect(exportByName('Remapped')?.type.properties).toMatchObject([
+		{
+			...expectedRemappedProperty,
+			type: {
+				...expectedRemappedProperty.type,
+				resolvedType: { kind: 'literal', value: '"x"' },
+			},
+		},
+	]);
+	expect(createExportLookup(syntaxOnlyDefinition)('Remapped')?.type.properties).toMatchObject([
+		expectedRemappedProperty,
 	]);
 });
 
