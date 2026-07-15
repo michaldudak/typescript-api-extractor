@@ -50,6 +50,15 @@ export function resolveExternalType(
 	const { checker, includeExternalTypes } = session.context;
 	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
 
+	// Generic parameters inherit the declaration path of the alias that owns
+	// them. For example, React's ComponentPropsWithRef expands through a `Props`
+	// parameter declared in @types/react. The path makes that parameter look
+	// external, but it is still generic syntax and must reach the type-parameter
+	// resolver so callers see `Props` rather than an invented `React.Props` type.
+	if (type.flags & ts.TypeFlags.TypeParameter) {
+		return undefined;
+	}
+
 	if (includeExternalTypes || (!isTypeExternal(type, checker) && !authoredExternalAliasName)) {
 		return undefined;
 	}
