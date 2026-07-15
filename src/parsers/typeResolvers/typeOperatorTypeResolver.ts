@@ -14,7 +14,11 @@ import { type ScopedParserContext } from '../../parserContext';
 import { getFullName } from '../common';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
-import { getKeyofTypeForOperand, getTypeId } from '../typeResolutionUtils';
+import {
+	areSemanticTypesEquivalent,
+	getKeyofTypeForOperand,
+	getTypeId,
+} from '../typeResolutionUtils';
 import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
 import { resolveAuthoredKeyofAlias } from './authoredTypeAlias';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
@@ -237,8 +241,8 @@ function resolveCollapsedConditional(
 
 	const trueType = getAuthoredTypeNodeType(typeNode.trueType, session);
 	const falseType = getAuthoredTypeNodeType(typeNode.falseType, session);
-	const trueMatches = typesAreEquivalent(type, trueType, checker);
-	const falseMatches = typesAreEquivalent(type, falseType, checker);
+	const trueMatches = areSemanticTypesEquivalent(type, trueType, checker, 'exact');
+	const falseMatches = areSemanticTypesEquivalent(type, falseType, checker, 'exact');
 	if (trueMatches && !falseMatches) {
 		return resolveAuthoredTypeNode(typeNode.trueType, session, type);
 	}
@@ -284,13 +288,6 @@ function getAuthoredTypeNodeType(typeNode: ts.TypeNode, session: TypeResolutionS
 	return operatorNode
 		? getKeyofResultTypeFromSyntax(operatorNode, session.context)
 		: session.context.checker.getTypeFromTypeNode(typeNode);
-}
-
-function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
-	if (type1.flags & ts.TypeFlags.Any || type2.flags & ts.TypeFlags.Any) {
-		return Boolean(type1.flags & ts.TypeFlags.Any) && Boolean(type2.flags & ts.TypeFlags.Any);
-	}
-	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
 }
 
 function isDistributiveConditionalInstantiation(

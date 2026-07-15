@@ -27,6 +27,24 @@ export function includesCompositeFlag(type: ts.Type, flag: number) {
 	return (type.flags & flag) !== 0;
 }
 
+/**
+ * Compares checker types by mutual assignability. Most resolution matching can
+ * use TypeScript's normal assignability semantics, while collapsed conditional
+ * branches need `any` to match only another `any`.
+ */
+export function areSemanticTypesEquivalent(
+	type1: ts.Type,
+	type2: ts.Type,
+	checker: ts.TypeChecker,
+	anyPolicy: 'assignable' | 'exact' = 'assignable',
+): boolean {
+	if (anyPolicy === 'exact' && (type1.flags & ts.TypeFlags.Any || type2.flags & ts.TypeFlags.Any)) {
+		return Boolean(type1.flags & ts.TypeFlags.Any) && Boolean(type2.flags & ts.TypeFlags.Any);
+	}
+
+	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
+}
+
 export function getTypeId(type: ts.Type): number | undefined {
 	// TypeScript keeps stable per-program type identities behind a private field.
 	// The parser already depends on this internal identity for cache keys and

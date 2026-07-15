@@ -7,6 +7,7 @@ import {
 	type TypeResolutionRequest,
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
+import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	getIndexedAccessSourceTypeNode,
@@ -356,7 +357,7 @@ function resolvePreservedCompositeMember(
 	const containsMember = (memberType: ts.Type) =>
 		unionMembers
 			? unionMembers.has(memberType)
-			: typesAreEquivalent(nodeType, memberType, context.checker);
+			: areSemanticTypesEquivalent(nodeType, memberType, context.checker);
 
 	// `memberTypes` may come from TypeScript's union origin and omit an authored
 	// subset such as `keyof Narrow`. Validate against the normalized union instead.
@@ -366,7 +367,7 @@ function resolvePreservedCompositeMember(
 
 	for (const memberType of memberTypes) {
 		const covered = memberType.isUnion()
-			? typesAreEquivalent(nodeType, memberType, context.checker)
+			? areSemanticTypesEquivalent(nodeType, memberType, context.checker)
 			: containsMember(memberType);
 		if (!covered) {
 			continue;
@@ -376,8 +377,4 @@ function resolvePreservedCompositeMember(
 	}
 
 	return resolve(nodeType, typeNode, context);
-}
-
-function typesAreEquivalent(type1: ts.Type, type2: ts.Type, checker: ts.TypeChecker): boolean {
-	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
 }

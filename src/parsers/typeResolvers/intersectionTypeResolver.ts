@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { IntersectionNode, ObjectNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
+import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import { resolveCallableType } from './functionTypeResolver';
 import { resolveObjectLikeType } from './objectTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
@@ -80,7 +81,11 @@ function matchIntersectionMemberTypeNodes(
 		let nodeIndex = memberTypeNodes.findIndex(
 			(node, index) =>
 				!usedNodeIndexes.has(index) &&
-				typesAreEquivalent(memberType, getTypeForIntersectionMemberNode(node, session), session),
+				areSemanticTypesEquivalent(
+					memberType,
+					getTypeForIntersectionMemberNode(node, session),
+					session.context.checker,
+				),
 		);
 		if (nodeIndex === -1) {
 			nodeIndex = memberTypeNodes.findIndex((_, index) => !usedNodeIndexes.has(index));
@@ -106,13 +111,4 @@ function getTypeForIntersectionMemberNode(
 	const type = session.context.checker.getTypeFromTypeNode(typeNode);
 	const substitutions = session.context.typeParameterSubstitutions;
 	return substitutions ? substituteTypeParameter(type, substitutions) : type;
-}
-
-function typesAreEquivalent(
-	type1: ts.Type,
-	type2: ts.Type,
-	session: TypeResolutionSession,
-): boolean {
-	const { checker } = session.context;
-	return checker.isTypeAssignableTo(type1, type2) && checker.isTypeAssignableTo(type2, type1);
 }

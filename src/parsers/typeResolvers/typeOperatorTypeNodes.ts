@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 
 /** Unwraps syntax that is transparent to type-operator resolution. */
 export function unwrapParenthesizedTypeNode(typeNode: ts.TypeNode): ts.TypeNode {
@@ -363,9 +364,7 @@ export function getPropertyTypeNode(
 		}
 		const candidateType = checker.getTypeFromTypeNode(candidate);
 		return (
-			candidateType === firstType ||
-			(checker.isTypeAssignableTo(candidateType, firstType) &&
-				checker.isTypeAssignableTo(firstType, candidateType))
+			candidateType === firstType || areSemanticTypesEquivalent(candidateType, firstType, checker)
 		);
 	})
 		? first
