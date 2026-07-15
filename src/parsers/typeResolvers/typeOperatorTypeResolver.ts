@@ -700,6 +700,21 @@ function getFixedTupleConditionalDecision(
 	for (let index = 0; index < checkTuple.elements.length; index += 1) {
 		const checkElementNode = unwrapTupleElementSyntax(checkTuple.elements[index]!).typeNode;
 		const extendsElementNode = unwrapTupleElementSyntax(extendsTuple.elements[index]!).typeNode;
+		const functionDecision = getFunctionConditionalElementDecision(
+			checkElementNode,
+			extendsElementNode,
+			checker,
+			checkTupleSyntax.typeParameterSubstitutions,
+			checkTupleSyntax.typeParameterTypeNodeSubstitutions,
+			extendsTupleSyntax.typeParameterSubstitutions,
+			extendsTupleSyntax.typeParameterTypeNodeSubstitutions,
+		);
+		if (functionDecision != null) {
+			if (!functionDecision) {
+				return false;
+			}
+			continue;
+		}
 		const checkType = getInstantiatedConditionalElementType(
 			checkElementNode,
 			checker,
@@ -725,6 +740,94 @@ function getFixedTupleConditionalDecision(
 		}
 	}
 	return true;
+}
+
+/**
+ * Compares direct function-type tuple elements under their active bindings.
+ * Function objects are anonymous semantic types, so TypeScript does not expose
+ * reference arguments for the generic-instantiation path below. Comparing
+ * their authored parameters contravariantly and returns covariantly preserves
+ * the checker relation without cloning internal signature symbols.
+ *
+ * @param checkTypeNode - Function syntax from the conditional check tuple.
+ * @param extendsTypeNode - Function syntax from the conditional extends tuple.
+ * @param checker - Checker used for semantic assignability.
+ * @param checkSubstitutions - Semantic bindings for the check tuple.
+ * @param checkTypeNodeSubstitutions - Authored bindings for the check tuple.
+ * @param extendsSubstitutions - Semantic bindings for the extends tuple.
+ * @param extendsTypeNodeSubstitutions - Authored bindings for the extends tuple.
+ * @returns A definite relation, or `undefined` for non-functions and unsupported signatures.
+ */
+function getFunctionConditionalElementDecision(
+	checkTypeNode: ts.TypeNode,
+	extendsTypeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	checkSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	checkTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	extendsSubstitutions: Map<ts.Symbol, ts.Type> | undefined,
+	extendsTypeNodeSubstitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+): boolean | undefined {
+	const checkFunction = unwrapParenthesizedTypeNode(checkTypeNode);
+	const extendsFunction = unwrapParenthesizedTypeNode(extendsTypeNode);
+	if (!ts.isFunctionTypeNode(checkFunction) || !ts.isFunctionTypeNode(extendsFunction)) {
+		return undefined;
+	}
+	if (
+		checkFunction.typeParameters?.length ||
+		extendsFunction.typeParameters?.length ||
+		checkFunction.parameters.length !== extendsFunction.parameters.length
+	) {
+		return undefined;
+	}
+
+	for (let index = 0; index < checkFunction.parameters.length; index += 1) {
+		const checkParameter = checkFunction.parameters[index]!;
+		const extendsParameter = extendsFunction.parameters[index]!;
+		if (
+			Boolean(checkParameter.questionToken) !== Boolean(extendsParameter.questionToken) ||
+			Boolean(checkParameter.dotDotDotToken) !== Boolean(extendsParameter.dotDotDotToken) ||
+			!checkParameter.type ||
+			!extendsParameter.type
+		) {
+			return undefined;
+		}
+		const checkParameterType = getInstantiatedConditionalElementType(
+			checkParameter.type,
+			checker,
+			checkSubstitutions,
+			checkTypeNodeSubstitutions,
+		);
+		const extendsParameterType = getInstantiatedConditionalElementType(
+			extendsParameter.type,
+			checker,
+			extendsSubstitutions,
+			extendsTypeNodeSubstitutions,
+		);
+		if (!checkParameterType || !extendsParameterType) {
+			return undefined;
+		}
+		if (
+			!getConditionalElementAssignableDecision(extendsParameterType, checkParameterType, checker)
+		) {
+			return false;
+		}
+	}
+
+	const checkReturnType = getInstantiatedConditionalElementType(
+		checkFunction.type,
+		checker,
+		checkSubstitutions,
+		checkTypeNodeSubstitutions,
+	);
+	const extendsReturnType = getInstantiatedConditionalElementType(
+		extendsFunction.type,
+		checker,
+		extendsSubstitutions,
+		extendsTypeNodeSubstitutions,
+	);
+	return checkReturnType && extendsReturnType
+		? getConditionalElementAssignableDecision(checkReturnType, extendsReturnType, checker)
+		: undefined;
 }
 
 function getConditionalElementAssignableDecision(

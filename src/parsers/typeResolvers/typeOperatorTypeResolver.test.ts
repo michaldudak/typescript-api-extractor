@@ -1032,6 +1032,9 @@ type SelectContravariant<T> = [Contravariant<T>] extends [Contravariant<string>]
 type SelectPhantom<T> = [Phantom<T>] extends [Phantom<string>]
   ? keyof ConcreteTrueTarget
   : keyof ConcreteFalseTarget;
+type SelectFunction<T> = [(value: T) => void] extends [(value: string) => void]
+  ? keyof ConcreteTrueTarget
+  : keyof ConcreteFalseTarget;
 
 export type Result = Select<string, 'x'>;
 export type IndistinguishableBranches = Select<string, 'n'>;
@@ -1057,7 +1060,9 @@ export type ArraySameTrueKeyof = SelectArraySameKey<string>;
 export type ArraySameFalseKeyof = SelectArraySameKey<number>;
 export type ContravariantTrueKeyof = SelectContravariant<unknown>;
 export type ContravariantFalseKeyof = SelectContravariant<number>;
-export type PhantomTrueKeyof = SelectPhantom<number>;`,
+export type PhantomTrueKeyof = SelectPhantom<number>;
+export type FunctionTrueKeyof = SelectFunction<unknown>;
+export type FunctionFalseKeyof = SelectFunction<number>;`,
 		),
 	);
 
@@ -1123,6 +1128,7 @@ export type PhantomTrueKeyof = SelectPhantom<number>;`,
 		'ArraySameTrueKeyof',
 		'ContravariantTrueKeyof',
 		'PhantomTrueKeyof',
+		'FunctionTrueKeyof',
 	]) {
 		expect(exportByName(name)?.type, name).toMatchObject({
 			kind: 'typeOperator',
@@ -1139,6 +1145,7 @@ export type PhantomTrueKeyof = SelectPhantom<number>;`,
 		'NestedSameFalseKeyof',
 		'ArraySameFalseKeyof',
 		'ContravariantFalseKeyof',
+		'FunctionFalseKeyof',
 	]) {
 		expect(exportByName(name)?.type, name).toMatchObject({
 			kind: 'typeOperator',
