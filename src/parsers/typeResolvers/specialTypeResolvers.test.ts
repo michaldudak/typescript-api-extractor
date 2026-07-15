@@ -133,3 +133,30 @@ export type Keys = keyof Params;`,
 		defaultValue: expectedOperator,
 	});
 });
+
+it('preserves expanded external keyof aliases in conditional branches', () => {
+	const filePath = '/virtual/external-keyof-conditional-consumer.ts';
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(
+				filePath,
+				createInMemoryProgram(
+					{
+						[filePath]: `import type { Keys } from 'external-keyof-conditional-package';
+
+export type Maybe<T> = T extends unknown ? Keys<T> : never;`,
+						'/virtual/node_modules/external-keyof-conditional-package/index.d.ts':
+							'export type Keys<T> = keyof T;',
+					},
+					{ noLib: true },
+				),
+				{ includeExternalTypes: true },
+			),
+		),
+	);
+
+	expect(moduleDefinition.exports[0]?.type.types[0]).toMatchObject({
+		kind: 'typeOperator',
+		operator: 'keyof',
+	});
+});

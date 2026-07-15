@@ -140,34 +140,29 @@ export function resolveConditionalType(
 	const conditionalTypeNode = getConditionalTypeNode(typeNode);
 	const trueTypeNode = conditionalTypeNode?.trueType;
 	const falseTypeNode = conditionalTypeNode?.falseType;
+	const preservableBranchTypeNode = (branchTypeNode: ts.TypeNode | undefined) =>
+		containsKeyofTypeOperatorOrAlias(
+			branchTypeNode,
+			session.context.checker,
+			new Set(),
+			session.context.includeExternalTypes,
+		)
+			? branchTypeNode
+			: undefined;
 	if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
 		return new UnionNode(undefined, [
-			session.resolve(
-				conditionalType.resolvedTrueType,
-				containsKeyofTypeOperatorOrAlias(trueTypeNode, session.context.checker)
-					? trueTypeNode
-					: undefined,
-			),
-			session.resolve(
-				conditionalType.resolvedFalseType,
-				containsKeyofTypeOperatorOrAlias(falseTypeNode, session.context.checker)
-					? falseTypeNode
-					: undefined,
-			),
+			session.resolve(conditionalType.resolvedTrueType, preservableBranchTypeNode(trueTypeNode)),
+			session.resolve(conditionalType.resolvedFalseType, preservableBranchTypeNode(falseTypeNode)),
 		]);
 	} else if (conditionalType.resolvedTrueType) {
 		return session.resolve(
 			conditionalType.resolvedTrueType,
-			containsKeyofTypeOperatorOrAlias(trueTypeNode, session.context.checker)
-				? trueTypeNode
-				: undefined,
+			preservableBranchTypeNode(trueTypeNode),
 		);
 	} else if (conditionalType.resolvedFalseType) {
 		return session.resolve(
 			conditionalType.resolvedFalseType,
-			containsKeyofTypeOperatorOrAlias(falseTypeNode, session.context.checker)
-				? falseTypeNode
-				: undefined,
+			preservableBranchTypeNode(falseTypeNode),
 		);
 	}
 
