@@ -1,9 +1,5 @@
 import ts from 'typescript';
-import {
-	getBuiltInArrayReferenceName,
-	isRestTupleElementNode,
-	unwrapTupleElementSyntax,
-} from '../typeContainerUtils';
+import { getBuiltInArrayReferenceName, unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import {
 	declarationHasNodeModulesPathSegment,
@@ -348,9 +344,49 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
-		return Boolean(
-			getIndexedAccessKeyofSourceTypeNode(unwrapped, checker, includeExternalTypes, substitutions),
+		const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
+		let sourceTypeNodes = getIndexedAccessSourceTypeNodes(
+			unwrapped,
+			checker,
+			includeExternalTypes,
+			substitutions,
 		);
+		if (!sourceTypeNodes && indexType.flags & ts.TypeFlags.Number) {
+			sourceTypeNodes = getTupleNumberIndexedTypeNodes(
+				unwrapped.objectType,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			)?.map((source) => source.typeNode);
+		}
+		if (!sourceTypeNodes && indexType.isNumberLiteral()) {
+			sourceTypeNodes = getTupleLiteralIndexedSourceTypeNodes(
+				unwrapped.objectType,
+				indexType.value,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			);
+		}
+		return sourceTypeNodes
+			? sourceTypeNodes.some((sourceTypeNode) =>
+					Boolean(
+						followTypeAliasToKeyofSource(
+							sourceTypeNode,
+							checker,
+							includeExternalTypes,
+							substitutions,
+						),
+					),
+				)
+			: Boolean(
+					getIndexedAccessKeyofSourceTypeNode(
+						unwrapped,
+						checker,
+						includeExternalTypes,
+						substitutions,
+					),
+				);
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
@@ -681,15 +717,15 @@ export function getIndexedAccessSourceTypeNode(
 		);
 	}
 	if (indexType.flags & ts.TypeFlags.Number) {
-		const tupleElementTypeNodes = getTupleNumberIndexedTypeNodes(
+		const tupleElementSources = getTupleNumberIndexedTypeNodes(
 			unwrapped.objectType,
 			checker,
 			includeExternalTypes,
 			substitutions,
 		);
 		const elementTypeNode =
-			tupleElementTypeNodes?.length === 1
-				? tupleElementTypeNodes[0]
+			tupleElementSources?.length === 1 && !tupleElementSources[0]!.includesUndefined
+				? tupleElementSources[0]!.typeNode
 				: getArrayIndexedElementTypeNode(
 						unwrapped.objectType,
 						checker,
@@ -732,6 +768,59 @@ export function getIndexedAccessSourceTypeNode(
 }
 
 /**
+ * Returns the authored property sources selected by a union of string literals.
+ * The index syntax, rather than the checker union, supplies the order so two
+ * semantically reduced `keyof` properties remain distinguishable in output.
+ *
+ * @param typeNode - Authored indexed access to inspect.
+ * @param checker - Checker used to resolve its object, keys, and properties.
+ * @param includeExternalTypes - Whether selected properties may come from external declarations.
+ * @param substitutions - Active authored generic substitutions.
+ * @returns Selected property type nodes in authored key order, or `undefined` for other indexes.
+ */
+export function getIndexedAccessSourceTypeNodes(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+): readonly ts.TypeNode[] | undefined {
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	const unwrapped = unwrapParenthesizedTypeNode(substituted);
+	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
+		return undefined;
+	}
+	const authoredIndex = unwrapParenthesizedTypeNode(unwrapped.indexType);
+	if (!ts.isUnionTypeNode(authoredIndex)) {
+		return undefined;
+	}
+
+	const objectType = checker.getTypeFromTypeNode(unwrapped.objectType);
+	const sources: ts.TypeNode[] = [];
+	for (const indexMember of authoredIndex.types) {
+		const indexType = checker.getTypeFromTypeNode(indexMember);
+		if (!indexType.isStringLiteral()) {
+			return undefined;
+		}
+		const propertyTypeNode = getPropertyTypeNode(objectType.getProperty(indexType.value), checker);
+		if (
+			!propertyTypeNode ||
+			(!includeExternalTypes && hasNodeModulesPathSegment(propertyTypeNode.getSourceFile()))
+		) {
+			return undefined;
+		}
+		sources.push(
+			getIndexedAccessSourceTypeNode(
+				propertyTypeNode,
+				checker,
+				includeExternalTypes,
+				substitutions,
+			) ?? propertyTypeNode,
+		);
+	}
+	return sources.length > 1 ? sources : undefined;
+}
+
+/**
  * Checks whether a root type or one of its explicit union members is an indexed access.
  * These are the syntax shapes the union resolver can use to reconstruct authored
  * member order without treating unrelated nested indexed accesses as root sources.
@@ -753,40 +842,113 @@ export function containsIndexedAccessUnionSource(typeNode: ts.TypeNode | undefin
 }
 
 /**
- * Returns the fixed authored tuple members selected by a `number` index.
- * Optional and rest members are excluded because their undefined/element
- * semantics cannot be reconstructed by resolving the wrapper node directly.
+ * One authored source selected by a tuple `number` index.
+ *
+ * `includesUndefined` records optional-element semantics separately from the
+ * inner syntax so the resolver can emit both the operator and `undefined`.
+ */
+export interface TupleNumberIndexedSource {
+	/** Authored element syntax after rest or optional wrappers are removed. */
+	typeNode: ts.TypeNode;
+	/** Whether selecting this optional element can also produce `undefined`. */
+	includesUndefined: boolean;
+}
+
+/**
+ * Returns every authored tuple source selected by a `number` index. Fixed,
+ * optional, finite-spread, and open-rest members are expanded in source order.
  *
  * @param typeNode - Authored tuple syntax or alias reference.
  * @param checker - Checker used to follow aliases and substitutions.
  * @param includeExternalTypes - Whether tuple aliases may come from external declarations.
  * @param substitutions - Active authored generic substitutions.
- * @returns Fixed tuple member nodes, or `undefined` for non-fixed/non-tuple inputs.
+ * @returns Selected tuple sources, or `undefined` for non-tuple or unresolved inputs.
  */
 export function getTupleNumberIndexedTypeNodes(
 	typeNode: ts.TypeNode,
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
-): readonly ts.TypeNode[] | undefined {
-	const tupleTypeNode = getTupleSourceTypeNode(
+): readonly TupleNumberIndexedSource[] | undefined {
+	const tupleSource = getBoundTupleSourceTypeNode(
 		typeNode,
 		checker,
 		includeExternalTypes,
 		substitutions,
 	);
-	if (
-		!tupleTypeNode ||
-		tupleTypeNode.elements.some(
-			(element) =>
-				isRestTupleElementNode(element) ||
-				ts.isOptionalTypeNode(element) ||
-				(ts.isNamedTupleMember(element) && element.questionToken != null),
-		)
-	) {
+	if (!tupleSource) {
 		return undefined;
 	}
-	return tupleTypeNode.elements.map((element) => unwrapTupleElementSyntax(element).typeNode);
+	return getTupleNumberIndexedSourcesFromTuple(
+		tupleSource.typeNode,
+		checker,
+		includeExternalTypes,
+		tupleSource.substitutions,
+		[tupleSource],
+	);
+}
+
+function getTupleNumberIndexedSourcesFromTuple(
+	tupleTypeNode: ts.TupleTypeNode,
+	checker: ts.TypeChecker,
+	includeExternalTypes: boolean,
+	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenTupleSources: readonly BoundTupleSourceTypeNode[] = [],
+): readonly TupleNumberIndexedSource[] | undefined {
+	const sources: TupleNumberIndexedSource[] = [];
+	for (const element of tupleTypeNode.elements) {
+		const syntax = unwrapTupleElementSyntax(element);
+		const elementTypeNode = substituteTypeParameterTypeNode(
+			syntax.typeNode,
+			checker,
+			substitutions,
+		);
+		if (!syntax.isRest) {
+			sources.push({
+				typeNode: elementTypeNode,
+				includesUndefined:
+					ts.isOptionalTypeNode(element) ||
+					(ts.isNamedTupleMember(element) && element.questionToken != null),
+			});
+			continue;
+		}
+
+		const tupleSource = getBoundTupleSourceTypeNode(
+			elementTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (tupleSource) {
+			if (hasTupleSourceFrame(seenTupleSources, tupleSource)) {
+				return undefined;
+			}
+			const nestedSources = getTupleNumberIndexedSourcesFromTuple(
+				tupleSource.typeNode,
+				checker,
+				includeExternalTypes,
+				tupleSource.substitutions,
+				[...seenTupleSources, tupleSource],
+			);
+			if (!nestedSources) {
+				return undefined;
+			}
+			sources.push(...nestedSources);
+			continue;
+		}
+
+		const arrayElementTypeNode = getArrayIndexedElementTypeNode(
+			elementTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		);
+		if (!arrayElementTypeNode) {
+			return undefined;
+		}
+		sources.push({ typeNode: arrayElementTypeNode, includesUndefined: false });
+	}
+	return sources;
 }
 
 /**
@@ -1189,24 +1351,6 @@ export function getPropertyTypeNode(
 	})
 		? first
 		: undefined;
-}
-
-function getTupleSourceTypeNode(
-	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-	includeExternalTypes: boolean,
-	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
-	seen: Set<ts.TypeAliasDeclaration> = new Set(),
-): ts.TupleTypeNode | undefined {
-	return followBoundTupleTypeNode(
-		typeNode,
-		checker,
-		undefined,
-		substitutions,
-		includeExternalTypes,
-		seen,
-		false,
-	)?.typeNode;
 }
 
 interface BoundTupleSourceTypeNode {

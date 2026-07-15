@@ -1030,6 +1030,56 @@ export type WrappedMultiple = WrappedMixed<keyof Params>[number];`,
 	expect(wrappedMultipleOperator?.resolvedType).not.toHaveProperty('typeName');
 });
 
+it('reconstructs non-singleton indexed access sources', () => {
+	const filePath = '/virtual/keyof-non-singleton-indexed-access.ts';
+	const moduleDefinition = parseSerializedModule(
+		filePath,
+		createInMemoryProgram(
+			filePath,
+			`interface Params { a: string; b: number }
+interface Left { left: string }
+interface Right { right: number }
+type Open<T> = [...number[], keyof T][number];
+type Optional<T> = [value?: keyof T][number];
+interface Fields {
+  a: keyof Left;
+  b: keyof Right;
+}
+
+export type OpenResult = Open<Params>;
+export type OptionalResult = Optional<Params>;
+export type SelectedFields = Fields['a' | 'b'];`,
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+	const operatorFor = (name: 'Params' | 'Left' | 'Right', values: string[]) => ({
+		kind: 'typeOperator',
+		operator: 'keyof',
+		type: { typeName: { name } },
+		resolvedType:
+			values.length === 1
+				? { kind: 'literal', value: `"${values[0]}"` }
+				: {
+						kind: 'union',
+						types: values.map((value) => ({ kind: 'literal', value: `"${value}"` })),
+					},
+	});
+	const paramsOperator = operatorFor('Params', ['a', 'b']);
+
+	expect(exportByName('OpenResult')?.type).toMatchObject({
+		kind: 'union',
+		types: [{ kind: 'intrinsic', intrinsic: 'number' }, paramsOperator],
+	});
+	expect(exportByName('OptionalResult')?.type).toMatchObject({
+		kind: 'union',
+		types: [paramsOperator, { kind: 'intrinsic', intrinsic: 'undefined' }],
+	});
+	expect(exportByName('SelectedFields')?.type).toMatchObject({
+		kind: 'union',
+		types: [operatorFor('Left', ['left']), operatorFor('Right', ['right'])],
+	});
+});
+
 it('keeps the semantic result for distributed conditional keyof aliases', () => {
 	const filePath = '/virtual/keyof-distributed-conditional.ts';
 	const moduleDefinition = parseSerializedModule(
