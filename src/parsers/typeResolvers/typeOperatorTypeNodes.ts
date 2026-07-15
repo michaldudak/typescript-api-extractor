@@ -694,11 +694,7 @@ function getArrayIndexedElementTypeNode(
 	if (ts.isArrayTypeNode(unwrapped)) {
 		return substituteTypeParameterTypeNode(unwrapped.elementType, checker, substitutions);
 	}
-	if (
-		ts.isTypeReferenceNode(unwrapped) &&
-		ts.isIdentifier(unwrapped.typeName) &&
-		(unwrapped.typeName.text === 'Array' || unwrapped.typeName.text === 'ReadonlyArray')
-	) {
+	if (isBuiltInArrayTypeReference(unwrapped, checker)) {
 		const elementTypeNode = unwrapped.typeArguments?.[0];
 		return elementTypeNode
 			? substituteTypeParameterTypeNode(elementTypeNode, checker, substitutions)
@@ -731,6 +727,42 @@ function getArrayIndexedElementTypeNode(
 		includeExternalTypes,
 		aliasSubstitutions,
 		nextSeenAliases,
+	);
+}
+
+/**
+ * Checks whether a reference resolves to TypeScript's global array interfaces.
+ * Projects may shadow `Array` and `ReadonlyArray`, so textual names alone are
+ * insufficient when replaying authored indexed-access syntax.
+ *
+ * @param typeNode - Candidate array reference.
+ * @param checker - Checker used to resolve the referenced symbol.
+ * @returns Whether the reference is a built-in array with one element argument.
+ */
+function isBuiltInArrayTypeReference(
+	typeNode: ts.TypeNode,
+	checker: ts.TypeChecker,
+): typeNode is ts.TypeReferenceNode & { typeArguments: ts.NodeArray<ts.TypeNode> } {
+	if (
+		!ts.isTypeReferenceNode(typeNode) ||
+		!ts.isIdentifier(typeNode.typeName) ||
+		typeNode.typeArguments?.length !== 1 ||
+		(typeNode.typeName.text !== 'Array' && typeNode.typeName.text !== 'ReadonlyArray')
+	) {
+		return false;
+	}
+
+	const referenceName = typeNode.typeName.text;
+	const symbol = checker.getSymbolAtLocation(typeNode.typeName);
+	const targetSymbol =
+		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return Boolean(
+		targetSymbol?.declarations?.some(
+			(declaration) =>
+				ts.isInterfaceDeclaration(declaration) &&
+				declaration.name.text === referenceName &&
+				/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		),
 	);
 }
 

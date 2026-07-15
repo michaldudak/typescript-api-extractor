@@ -3203,7 +3203,9 @@ type Readonly<Ignored> = boolean[];
 
 export type Mutable = Array<keyof Params>;
 export type ReadonlyValues = ReadonlyArray<keyof Params>;
-export type ShadowedUtility = Readonly<keyof Params>;`,
+export type ShadowedUtility = Readonly<keyof Params>;
+export type MutableElement = Array<keyof Params>[number];
+export type ReadonlyElement = ReadonlyArray<keyof Params>[number];`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -3223,6 +3225,14 @@ export type ShadowedUtility = Readonly<keyof Params>;`,
 		elementType: { kind: 'intrinsic', intrinsic: 'boolean' },
 	});
 	expect(exportByName('ShadowedUtility')?.type).not.toHaveProperty('isReadonly');
+	expect(exportByName('MutableElement')?.type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+	expect(exportByName('ReadonlyElement')?.type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'number',
+	});
 });
 
 it('does not change unrelated tuple member aliases when a sibling uses keyof', () => {
