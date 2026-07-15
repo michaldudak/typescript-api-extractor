@@ -22,7 +22,9 @@ import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
 import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
 import {
+	allCompoundMembersContainKeyofReferenceArgumentsInSource,
 	containsKeyofTypeOperatorOrAlias,
+	containsKeyofTypeOperator,
 	flattenIntersectionTypeNodes,
 	getBoundTupleTypeNode,
 	getIndexedAccessKeyofSourceTypeNode,
@@ -235,7 +237,10 @@ function resolveCollapsedTypeOperatorSyntax(
 				: resolveSource();
 		}
 	}
+	const replaysCompoundReferenceArgument =
+		allCompoundMembersContainKeyofReferenceArgumentsInSource(unwrapped);
 	if (
+		!replaysCompoundReferenceArgument &&
 		!containsKeyofTypeOperatorOrAlias(
 			unwrapped,
 			session.context.checker,
@@ -556,10 +561,10 @@ function resolveAuthoredTypeNode(
 ): AnyType {
 	const type = typeOverride ?? getAuthoredTypeNodeType(typeNode, session);
 	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
-	if (
-		session.isTypeActive(type) &&
-		(ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped))
-	) {
+	const referenceContainsKeyofArgument =
+		(ts.isTypeReferenceNode(unwrapped) || ts.isImportTypeNode(unwrapped)) &&
+		unwrapped.typeArguments?.some((argument) => containsKeyofTypeOperator(argument));
+	if (session.isTypeActive(type) && referenceContainsKeyofArgument) {
 		// Equivalent compound members can share the exact checker identity with
 		// their already-active collapsed parent. Dispatching the authored reference
 		// directly avoids replacing each recovered member with a shallow cycle

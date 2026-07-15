@@ -347,18 +347,6 @@ export function containsKeyofTypeOperatorOrAlias(
 		);
 	}
 	if (ts.isImportTypeNode(unwrapped)) {
-		if (
-			typeArgumentsContainReplayableKeyof(
-				unwrapped.typeArguments,
-				checker,
-				seenAliases,
-				includeExternalTypes,
-				substitutions,
-				seenAliasInstantiations,
-			)
-		) {
-			return true;
-		}
 		const declaration = getReferencedTypeAliasDeclaration(unwrapped, checker);
 		const aliasSubstitutions = declaration
 			? getAliasTypeNodeSubstitutions(declaration, unwrapped.typeArguments, checker, substitutions)
@@ -393,17 +381,20 @@ export function containsKeyofTypeOperatorOrAlias(
 		return false;
 	}
 
-	if (
-		typeArgumentsContainReplayableKeyof(
-			unwrapped.typeArguments,
-			checker,
-			seenAliases,
-			includeExternalTypes,
-			substitutions,
-			seenAliasInstantiations,
-		)
-	) {
-		return true;
+	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
+	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
+		return (
+			unwrapped.typeArguments?.some((argument) =>
+				containsKeyofTypeOperatorOrAlias(
+					argument,
+					checker,
+					seenAliases,
+					includeExternalTypes,
+					substitutions,
+					seenAliasInstantiations,
+				),
+			) ?? false
+		);
 	}
 
 	const declaration =
@@ -440,39 +431,45 @@ export function containsKeyofTypeOperatorOrAlias(
 }
 
 /**
- * Checks reference arguments before following the referenced declaration.
- * Interfaces and classes are not transparent alias bodies, but their authored
- * type arguments still appear in the public `TypeName` and can therefore replay
- * operators that TypeScript erased while collapsing an outer compound.
+ * Detects a collapsed compound whose every authored member carries `keyof` in
+ * a generic reference argument. Requiring all members keeps this recovery path
+ * away from ordinary unions such as `ExternalAlias | undefined`, whose legacy
+ * alias and optionality normalization must remain semantic.
  *
- * @param typeArguments - Authored generic arguments on a reference or import type.
- * @param checker - Checker used to follow aliases inside those arguments.
- * @param seenAliases - Alias declarations already visited by the current traversal.
- * @param includeExternalTypes - Whether traversal may enter external aliases.
- * @param substitutions - Active authored arguments for generic alias parameters.
- * @param seenAliasInstantiations - Generic alias bindings already visited on this path.
- * @returns Whether any argument contains replayable `keyof` syntax.
+ * The probe is source-only so it cannot perturb TypeScript's lazy checker caches.
+ *
+ * @param typeNode - Authored union or intersection syntax to inspect.
+ * @returns Whether every compound member contains a keyed reference argument.
  */
-function typeArgumentsContainReplayableKeyof(
-	typeArguments: ts.NodeArray<ts.TypeNode> | undefined,
-	checker: ts.TypeChecker,
-	seenAliases: Set<ts.TypeAliasDeclaration>,
-	includeExternalTypes: boolean,
-	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
-	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>>,
+export function allCompoundMembersContainKeyofReferenceArgumentsInSource(
+	typeNode: ts.TypeNode | undefined,
 ): boolean {
+	if (!typeNode) {
+		return false;
+	}
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
 	return (
-		typeArguments?.some((argument) =>
-			containsKeyofTypeOperatorOrAlias(
-				argument,
-				checker,
-				seenAliases,
-				includeExternalTypes,
-				substitutions,
-				seenAliasInstantiations,
-			),
-		) ?? false
+		(ts.isUnionTypeNode(unwrapped) || ts.isIntersectionTypeNode(unwrapped)) &&
+		unwrapped.types.length > 1 &&
+		unwrapped.types.every((member) => containsKeyofTypeReferenceArgumentInSource(member))
 	);
+}
+
+function containsKeyofTypeReferenceArgumentInSource(typeNode: ts.TypeNode): boolean {
+	if (
+		(ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode)) &&
+		typeNode.typeArguments?.some((argument) => containsKeyofTypeOperator(argument))
+	) {
+		return true;
+	}
+
+	let found = false;
+	ts.forEachChild(typeNode, (child) => {
+		if (!found && ts.isTypeNode(child)) {
+			found = containsKeyofTypeReferenceArgumentInSource(child);
+		}
+	});
+	return found;
 }
 
 function hasSeenAliasInstantiation(

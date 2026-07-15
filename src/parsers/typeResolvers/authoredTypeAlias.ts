@@ -5,6 +5,7 @@ import { declarationHasNodeModulesPathSegment } from '../sourceFileUtils';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import {
+	allCompoundMembersContainKeyofReferenceArgumentsInSource,
 	containsKeyofTypeOperator,
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeNodeSubstitution,
@@ -267,14 +268,6 @@ function typeNodeReplaysKeyofInSource(
 			typeNodeReplaysKeyofInSource(typeNode.falseType, seen)
 		);
 	}
-	if (
-		(ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode)) &&
-		typeNode.typeArguments?.some((argument) => typeNodeReplaysKeyofInSource(argument, seen))
-	) {
-		// Generic object declarations are opaque to this checker-free pass, but
-		// their authored arguments remain visible in the emitted TypeName.
-		return true;
-	}
 
 	const referencedDeclaration = findLocalTypeAliasDeclaration(typeNode);
 	return referencedDeclaration ? typeAliasReplaysKeyofInSource(referencedDeclaration, seen) : false;
@@ -444,14 +437,21 @@ function analyzeCheckerAliasReplay(
 		checker,
 		includeExternalTypes,
 	);
+	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
+	const replaysCompoundReferenceArgument =
+		allCompoundMembersContainKeyofReferenceArgumentsInSource(typeNode);
 	const containsKeyof =
 		replaysConcreteArgument ||
+		replaysCompoundReferenceArgument ||
 		containsKeyofTypeOperatorOrAlias(declaration.type, checker, new Set(), includeExternalTypes);
-	if (replaysConcreteArgument || (containsKeyofTypeOperator(declaration.type) && containsKeyof)) {
+	if (
+		replaysConcreteArgument ||
+		replaysCompoundReferenceArgument ||
+		(containsKeyofTypeOperator(declaration.type) && containsKeyof)
+	) {
 		return { containsKeyof, replayable: true };
 	}
 
-	const typeNode = unwrapReadonlyContainerTypeNode(declaration.type);
 	const referencedDeclaration = getReferencedTypeAliasDeclaration(typeNode, checker);
 	if (referencedDeclaration) {
 		if (!includeExternalTypes && declarationHasNodeModulesPathSegment(referencedDeclaration)) {
