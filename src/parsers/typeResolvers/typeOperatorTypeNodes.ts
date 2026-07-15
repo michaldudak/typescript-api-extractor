@@ -250,6 +250,12 @@ export function getPreservableKeyofTypeNode(
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
 	return containsKeyofTypeOperator(substituted) ||
 		containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes) ||
+		containsKeyofTypeReferenceArgumentOrAlias(
+			substituted,
+			checker,
+			includeExternalTypes,
+			substitutions,
+		) ||
 		containsKeyofTypeNodeSubstitution(substituted, checker, substitutions, includeExternalTypes)
 		? substituted
 		: undefined;
@@ -428,6 +434,54 @@ export function containsKeyofTypeOperatorOrAlias(
 		aliasSubstitutions,
 		nextSeenAliasInstantiations,
 	);
+}
+
+/**
+ * Checks generic reference arguments for direct or alias-reachable `keyof`.
+ * The general alias traversal intentionally treats interfaces and classes as
+ * opaque; this separate boundary probe preserves their public type arguments
+ * without making every reference transparent to container replay.
+ *
+ * @param typeNode - Authored syntax whose nested reference arguments should be inspected.
+ * @param checker - Checker used to resolve aliases inside the arguments.
+ * @param includeExternalTypes - Whether argument alias traversal may enter external declarations.
+ * @param substitutions - Active authored generic substitutions.
+ * @returns Whether a reference argument contains preservable `keyof` syntax.
+ */
+export function containsKeyofTypeReferenceArgumentOrAlias(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+	includeExternalTypes = false,
+	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+): boolean {
+	if (!typeNode) {
+		return false;
+	}
+
+	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	let found = false;
+	const visit = (node: ts.Node): void => {
+		if (found) {
+			return;
+		}
+		if (ts.isTypeReferenceNode(node) || ts.isImportTypeNode(node)) {
+			found =
+				node.typeArguments?.some((argument) =>
+					containsKeyofTypeOperatorOrAlias(
+						argument,
+						checker,
+						new Set(),
+						includeExternalTypes,
+						substitutions,
+					),
+				) ?? false;
+		}
+		if (!found) {
+			ts.forEachChild(node, visit);
+		}
+	};
+	visit(substituted);
+	return found;
 }
 
 /**

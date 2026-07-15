@@ -555,9 +555,13 @@ it('preserves equivalent generic wrapper compounds with distinct keyof syntax', 
 			`interface Left { same: string }
 interface Right { same: number }
 interface Box<T> { value: T }
+type LeftKeys = keyof Left;
+type RightKeys = keyof Right;
 
 export type Union = Box<keyof Left> | Box<keyof Right>;
-export type Intersection = Box<keyof Left> & Box<keyof Right>;`,
+export type Intersection = Box<keyof Left> & Box<keyof Right>;
+export type AliasUnion = Box<LeftKeys> | Box<RightKeys>;
+export type AliasIntersection = Box<LeftKeys> & Box<RightKeys>;`,
 		),
 	);
 	const exportByName = createExportLookup(moduleDefinition);
@@ -592,6 +596,14 @@ export type Intersection = Box<keyof Left> & Box<keyof Right>;`,
 		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
 	});
 	expect(exportByName('Intersection')?.type).toMatchObject({
+		kind: 'intersection',
+		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
+	});
+	expect(exportByName('AliasUnion')?.type).toMatchObject({
+		kind: 'union',
+		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
+	});
+	expect(exportByName('AliasIntersection')?.type).toMatchObject({
 		kind: 'intersection',
 		types: [wrappedOperatorFor('Left'), wrappedOperatorFor('Right')],
 	});
@@ -1802,15 +1814,24 @@ it('preserves nested generic keyof arguments in returns and class properties', (
 interface Box<T> {
   value: T;
 }
+type Keys = keyof Params;
 
 export function getBox(): Box<keyof Params> {
+  throw new Error();
+}
+export function getAliasedBox(): Box<Keys> {
   throw new Error();
 }
 
 export class Example {
   value!: Box<keyof Params>;
+  aliasedValue!: Box<Keys>;
 
   getBox(): Box<keyof Params> {
+    throw new Error();
+  }
+
+  getAliasedBox(): Box<Keys> {
     throw new Error();
   }
 }`,
@@ -1823,16 +1844,29 @@ export class Example {
 
 	const functionReturn = exportByName('getBox')?.type.callSignatures[0].returnValueType;
 	expect(boxArgument(functionReturn)).toMatchObject(expectedOperator);
+	const aliasedFunctionReturn =
+		exportByName('getAliasedBox')?.type.callSignatures[0].returnValueType;
+	expect(boxArgument(aliasedFunctionReturn)).toMatchObject(expectedOperator);
+	expect(aliasedFunctionReturn.properties[0].type).toMatchObject(expectedOperator);
 
 	const exampleType = exportByName('Example')?.type;
 	const propertyType = exampleType.properties.find(
 		(property: { name: string }) => property.name === 'value',
 	)?.type;
 	expect(boxArgument(propertyType)).toMatchObject(expectedOperator);
+	const aliasedPropertyType = exampleType.properties.find(
+		(property: { name: string }) => property.name === 'aliasedValue',
+	)?.type;
+	expect(boxArgument(aliasedPropertyType)).toMatchObject(expectedOperator);
+	expect(aliasedPropertyType.properties[0].type).toMatchObject(expectedOperator);
 	const methodReturn = exampleType.methods.find(
 		(method: { name: string }) => method.name === 'getBox',
 	)?.callSignatures[0].returnValueType;
 	expect(boxArgument(methodReturn)).toMatchObject(expectedOperator);
+	const aliasedMethodReturn = exampleType.methods.find(
+		(method: { name: string }) => method.name === 'getAliasedBox',
+	)?.callSignatures[0].returnValueType;
+	expect(boxArgument(aliasedMethodReturn)).toMatchObject(expectedOperator);
 });
 
 it('preserves authored keyof arguments on import type references', () => {

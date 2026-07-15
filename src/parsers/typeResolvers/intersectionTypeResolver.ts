@@ -6,8 +6,8 @@ import { resolveCallableType } from './functionTypeResolver';
 import { resolveObjectLikeType } from './objectTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import {
-	containsKeyofTypeOperatorOrAlias,
 	flattenIntersectionTypeNodes,
+	getPreservableKeyofTypeNode,
 	getKeyofTypeOperatorNode,
 } from './typeOperatorTypeNodes';
 import { getKeyofResultTypeFromSyntax } from './typeOperatorTypeResolver';
@@ -42,10 +42,10 @@ export function resolveIntersectionType(
 		const memberTypeNode = matchedMemberTypeNodes?.[index];
 		return session.resolve(
 			memberType,
-			containsKeyofTypeOperatorOrAlias(
+			getPreservableKeyofTypeNode(
 				memberTypeNode,
 				session.context.checker,
-				new Set(),
+				session.context.typeParameterTypeNodeSubstitutions,
 				session.context.includeExternalTypes,
 			)
 				? memberTypeNode
