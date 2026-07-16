@@ -1,58 +1,8 @@
 import ts from 'typescript';
 import { expect, it } from 'vitest';
-import { type ScopedParserContext } from '../parserContext';
 import { resolveExportDescriptors } from './exportDescriptors';
 import { createInMemoryProgram } from '../../test/support/inMemoryProgram';
-
-function createDescriptorContext(filePath: string, program: ts.Program): ScopedParserContext {
-	const sourceFile = program.getSourceFile(filePath);
-	if (!sourceFile) {
-		throw new Error(`Missing source file: ${filePath}`);
-	}
-
-	const parsedSymbolStack: string[] = [];
-	const sourceNodeStack: ts.Node[] = [sourceFile];
-	const context = {
-		checker: program.getTypeChecker(),
-		sourceFile,
-		typeStack: [],
-		compilerOptions: program.getCompilerOptions(),
-		parsedSymbolStack,
-		sourceNodeStack,
-		program,
-		resolvedTypeCache: new Map(),
-		shouldInclude: () => true,
-		shouldResolveObject: () => true,
-		includeExternalTypes: false,
-		onWarning: () => {},
-		runWithSymbolScope: <T>(symbolName: string, callback: () => T): T => {
-			parsedSymbolStack.push(symbolName);
-			try {
-				return callback();
-			} finally {
-				parsedSymbolStack.pop();
-			}
-		},
-		runWithSourceNodeScope: <T>(sourceNode: ts.Node | undefined, callback: () => T): T => {
-			if (sourceNode) {
-				sourceNodeStack.push(sourceNode);
-			}
-			try {
-				return callback();
-			} finally {
-				if (sourceNode) {
-					sourceNodeStack.pop();
-				}
-			}
-		},
-		runWithTypeParameterSubstitutionScope: <T>(
-			_substitutions: Map<ts.Symbol, ts.Type>,
-			callback: () => T,
-		): T => callback(),
-	} as ScopedParserContext;
-
-	return context;
-}
+import { createTestParserContext } from '../../test/support/parserContext';
 
 function getModuleExport(program: ts.Program, filePath: string, exportName: string): ts.Symbol {
 	const sourceFile = program.getSourceFile(filePath);
@@ -88,7 +38,7 @@ export namespace ComponentRoot {
   }
 }`,
 	});
-	const context = createDescriptorContext(inputPath, program);
+	const { context } = createTestParserContext(program, inputPath);
 	const exportSymbol = getModuleExport(program, inputPath, 'Root');
 
 	const descriptors = resolveExportDescriptors(exportSymbol, context);

@@ -80,7 +80,9 @@ Parses a single TypeScript file and returns the extracted API information.
   - `filePath`: Path to the TypeScript file to parse
   - `options`: TypeScript compiler options
   - `parserOptions`: Optional parser configuration
-- **Returns:** `ModuleNode`
+- **Returns:** `ResolvedModuleNode` by default, or `SyntaxOnlyModuleNode` when
+  `parserOptions.typeOperatorOutput` is the literal `'syntaxOnly'`. A dynamic
+  `ParserOptions` value returns their union.
 
 ### `parseFromProgram(filePath: string, program: Program, parserOptions?: ParserOptions)`
 
@@ -90,7 +92,9 @@ Parses a file from an existing TypeScript program for better performance when pa
   - `filePath`: Path to the file to parse
   - `program`: TypeScript program instance
   - `parserOptions`: Optional parser configuration
-- **Returns:** `ModuleNode`
+- **Returns:** `ResolvedModuleNode` by default, or `SyntaxOnlyModuleNode` when
+  `parserOptions.typeOperatorOutput` is the literal `'syntaxOnly'`. A dynamic
+  `ParserOptions` value returns their union.
 
 ## Configuration Options
 
@@ -105,6 +109,7 @@ interface ParserOptions {
 		depth: number;
 	}) => boolean | undefined;
 	includeExternalTypes?: boolean;
+	typeOperatorOutput?: 'resolved' | 'syntaxOnly';
 	onWarning?: (warning: ParserWarning) => void;
 }
 
@@ -144,7 +149,10 @@ When `onWarning` is omitted, recoverable parser warnings are printed with
 
 ## Output Format
 
-The parser returns a `ModuleNode` object with the following structure:
+The parser returns a module object with the following structure. The default
+`ResolvedModuleNode` and opt-in `SyntaxOnlyModuleNode` types are recursively
+mode-aware versions of `ModuleNode`; both remain structurally compatible with
+the runtime model.
 
 ```typescript
 interface ModuleNode {
@@ -160,6 +168,95 @@ interface ExportNode {
 ```
 
 `TypeNode` represents a TypeScript type. There are multiple classes of types. See the contents of the `src/models/types` directory to discover them.
+
+### Type Operators
+
+Authored `keyof` expressions are represented without expanding away their syntax:
+
+```typescript
+interface TypeOperatorNode {
+	kind: 'typeOperator';
+	operator: 'keyof';
+	type: TypeNode;
+	resolvedType?: TypeNode;
+	resolutionKind?: 'exact' | 'baseConstraint' | 'fallback';
+}
+
+type ResolvedTypeOperatorNode = Omit<TypeOperatorNode, 'resolvedType' | 'resolutionKind'> & {
+	resolvedType: TypeNode;
+	resolutionKind: 'exact' | 'baseConstraint' | 'fallback';
+};
+
+type SyntaxOnlyTypeOperatorNode = Omit<TypeOperatorNode, 'resolvedType' | 'resolutionKind'> & {
+	resolvedType?: never;
+	resolutionKind?: never;
+};
+```
+
+The exported `TypeOperatorNode` class represents both runtime modes, so its
+payload fields are optional. Parser entry points correlate them recursively:
+default and literal `'resolved'` calls return `ResolvedModuleNode`, literal
+`'syntaxOnly'` calls return `SyntaxOnlyModuleNode`, and a dynamic mode returns
+their union.
+
+Type-query operands retain their authored expression without expanding the
+queried value shape:
+
+```typescript
+interface TypeQueryNode {
+	kind: 'typeQuery';
+	expressionName: string;
+}
+```
+
+For example, the `type` of `keyof typeof value` is a `TypeQueryNode` whose
+`expressionName` is `value`.
+
+Readonly arrays and tuples expose `isReadonly: true` in their public output,
+including when they are nested inside a preserved operator:
+
+```typescript
+interface ArrayNode {
+	kind: 'array';
+	typeName?: TypeName;
+	elementType: TypeNode;
+	isReadonly?: true;
+}
+
+interface TupleNode {
+	kind: 'tuple';
+	typeName?: TypeName;
+	types: TypeNode[];
+	isReadonly?: true;
+}
+```
+
+The optional field is omitted for mutable containers and serialized as `true`
+for readonly containers. This keeps rendered operands and their resolved key
+sets consistent.
+
+- `type` is the authored operand. Named object operands are intentionally shallow
+  references because expanding their properties does not change the operator or
+  its key result.
+- `resolvedType` is the checker result used to describe the keys available from
+  the operator. Set `typeOperatorOutput: 'syntaxOnly'` to omit this potentially
+  large payload together with `resolutionKind`; the default is `'resolved'`.
+- `resolutionKind: 'exact'` means `resolvedType` is the concrete result.
+- `resolutionKind: 'baseConstraint'` means the operand is still generic, so
+  `resolvedType` is the best available base constraint rather than its eventual
+  instantiated result. For example, `keyof T` commonly resolves to
+  `string | number | symbol` at extraction time.
+- `resolutionKind: 'fallback'` means the checker exposed neither a usable
+  constraint nor a result the model can represent exactly; unsupported concrete
+  results are represented by `any` and emit an `unsupported-type-fallback`
+  warning.
+
+Preservation follows authored operators through the supported reference,
+container, mapped, indexed-access, conditional-branch, and heritage paths. It
+does not reconstruct operators after TypeScript selector or inference utilities
+have erased their source syntax. For example, `ReturnType`, `Parameters`,
+`Awaited`, `ConstructorParameters`, `ThisParameterType`, and user-authored
+conditional `infer` selectors can expose only their reduced semantic result.
 
 ### Example Output
 
@@ -263,6 +360,9 @@ substructures that are reused across multiple type classes.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.
+- `src/parserContextFactory.ts` constructs the scoped parser context shared by
+  production entry points and focused parser tests, including balanced
+  diagnostic and substitution scopes.
 
 ### Type Resolution
 
@@ -282,13 +382,32 @@ substructures that are reused across multiple type classes.
   warnings, including source-location selection and TypeScript flag formatting.
 - `src/parsers/typeResolutionUtils.ts` isolates TypeScript internal API access,
   such as private type IDs and shallow cycle placeholders.
+- `src/parsers/authoredTypeReferenceBindings.ts` derives shared authored and
+  semantic generic bindings across references and interface/class heritage so
+  member, signature, and container resolution use the same specialization.
+- `src/parsers/typeParameterBindings.ts` pairs semantic arguments and authored
+  argument nodes with every checker symbol that can represent a generic
+  parameter during nested resolution.
+- `src/parsers/typeContainerUtils.ts` centralizes compiler-backed array and tuple
+  identity, readonly-state, and tuple-element syntax helpers shared by container
+  resolvers.
+- `src/parsers/sourceFileUtils.ts` owns the deliberately distinct broad and
+  path-segment-based `node_modules` policies used by semantic and authored-syntax
+  traversal.
 
 ### Type-Class Resolvers
 
 All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 
 - `index.ts` is the ordered resolver registry. Resolver order is meaningful:
-  specific shapes should appear before broader fallbacks.
+  syntax-first operators and specific shapes should appear before semantic
+  fallbacks that would discard authored syntax.
+- `authoredTypeAlias.ts` replays alias bodies whose supported syntax contains
+  `keyof`, carries generic substitutions across local and relative-import alias
+  chains, and preserves source-only preflight checks where export normalization
+  must not perturb TypeScript's lazy caches.
+- `referencedTypeAlias.ts` centralizes type-alias lookup for ordinary references
+  and `import()` type references used by container and operator helpers.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
 - `classTypeResolver.ts` handles class detection, constructor model assembly,
   constructor documentation, class members, static members, and class type
@@ -305,8 +424,14 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 - `objectTypeResolver.ts` handles object-like types, object properties, index
   signatures, mapped-type index signatures, and object-keyword fallback.
 - `tupleTypeResolver.ts` handles tuple element resolution and tuple arity.
+- `typeOperatorTypeResolver.ts` preserves authored `keyof` syntax, resolves its
+  operand and semantic result separately, and records whether that result is
+  exact, a base constraint, or a fallback.
+- `typeOperatorTypeNodes.ts` contains the shared syntax helpers used to find and
+  propagate authored `keyof` nodes through parenthesized and nested type syntax.
 - `unionTypeResolver.ts` owns union-specific behavior, including preserving
-  authored union member order from `TypeNode`s.
+  authored union member order and overlapping type-operator members from
+  `TypeNode`s.
 - `specialTypeResolvers.ts` handles TypeScript-internal or context-sensitive
   shapes such as type parameters, conditional types, indexed access types, and
   substitution fallbacks.

@@ -27,6 +27,21 @@ export function getMappedTypeParameterSubstitutions(type: ts.Type): Map<ts.Symbo
 }
 
 /**
+ * Reads the original mapped key retained on a generated property's internal
+ * symbol links. Remapped properties have no declaration and expose only their
+ * public name through stable APIs, so this optional probe is the sole way to
+ * distinguish `getLeft` from the authored key `left`. Callers fall back when
+ * TypeScript changes or omits this private metadata.
+ *
+ * @param property - Generated mapped property whose original key is needed.
+ * @returns The retained semantic key type, or `undefined` when unavailable.
+ */
+export function getMappedPropertyKeyType(property: ts.Symbol): ts.Type | undefined {
+	const keyType = (property as { links?: { keyType?: unknown } }).links?.keyType;
+	return isType(keyType) ? keyType : undefined;
+}
+
+/**
  * Resolves a type parameter through the collected substitutions, following
  * chains while guarding against self-references and cycles.
  */

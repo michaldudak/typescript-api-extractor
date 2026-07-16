@@ -4,6 +4,7 @@ import { FunctionNode } from './types/function';
 import { IntrinsicNode } from './types/intrinsic';
 import { ObjectNode } from './types/object';
 import { TupleNode } from './types/tuple';
+import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
 import { type AnyType } from './node';
 
@@ -24,9 +25,42 @@ type EquivalentTypeName = {
  * concrete signature over a duplicate fallback signature containing `any`.
  */
 class TypeEquivalence {
+	/**
+	 * Compares model types while treating an unaliased `any` as a wildcard.
+	 *
+	 * @param type1 - First model type to compare.
+	 * @param type2 - Second model type to compare.
+	 * @param typeParamRenames - Optional right-to-left generic parameter renames.
+	 * @returns Whether the types are equivalent under wildcard-`any` semantics.
+	 */
 	areEquivalentIgnoringAny(
 		type1: AnyType,
 		type2: AnyType,
+		typeParamRenames?: TypeParameterRenameMap,
+	): boolean {
+		return this.areEquivalent(type1, type2, true, typeParamRenames);
+	}
+
+	/**
+	 * Compares model types without wildcard matching.
+	 *
+	 * @param type1 - First model type to compare.
+	 * @param type2 - Second model type to compare.
+	 * @param typeParamRenames - Optional right-to-left generic parameter renames.
+	 * @returns Whether the types are structurally equivalent.
+	 */
+	areEquivalentStrictly(
+		type1: AnyType,
+		type2: AnyType,
+		typeParamRenames?: TypeParameterRenameMap,
+	): boolean {
+		return this.areEquivalent(type1, type2, false, typeParamRenames);
+	}
+
+	private areEquivalent(
+		type1: AnyType,
+		type2: AnyType,
+		anyIsWildcard: boolean,
 		typeParamRenames?: TypeParameterRenameMap,
 	): boolean {
 		// If either side is an unaliased `any` (no typeName), it matches any type.
@@ -34,7 +68,7 @@ class TypeEquivalence {
 		const type2IsAny = type2 instanceof IntrinsicNode && type2.intrinsic === 'any';
 		const type1IsUnaliasedAny = type1IsAny && !type1.typeName;
 		const type2IsUnaliasedAny = type2IsAny && !type2.typeName;
-		if (type1IsUnaliasedAny || type2IsUnaliasedAny) {
+		if (anyIsWildcard && (type1IsUnaliasedAny || type2IsUnaliasedAny)) {
 			return true;
 		}
 
@@ -58,6 +92,12 @@ class TypeEquivalence {
 			if (
 				!(type1 instanceof FunctionNode) &&
 				!(type2 instanceof FunctionNode) &&
+				!(type1 instanceof TypeOperatorNode) &&
+				!(type2 instanceof TypeOperatorNode) &&
+				type1.kind !== 'union' &&
+				type2.kind !== 'union' &&
+				type1.kind !== 'intersection' &&
+				type2.kind !== 'intersection' &&
 				type1.toString() === type2.toString()
 			) {
 				return true;
@@ -70,46 +110,81 @@ class TypeEquivalence {
 		const tn2 = 'typeName' in type2 ? type2.typeName : undefined;
 		if (tn1 || tn2) {
 			if (tn1 && tn2) {
-				return this.typeNamesAreEquivalentIgnoringAny(tn1, tn2, typeParamRenames);
+				return this.typeNamesAreEquivalent(tn1, tn2, anyIsWildcard, typeParamRenames);
 			}
 			return false;
 		}
 
 		if (type1 instanceof FunctionNode && type2 instanceof FunctionNode) {
-			return this.areFunctionsEquivalentIgnoringAny(type1, type2, typeParamRenames);
+			return this.areFunctionsEquivalent(type1, type2, anyIsWildcard, typeParamRenames);
 		}
 
 		if (type1.kind === 'union' && type2.kind === 'union') {
-			return this.membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
-		}
-
-		if (type1.kind === 'intersection' && type2.kind === 'intersection') {
-			return this.membersAreEquivalentUnordered(type1.types, type2.types, typeParamRenames);
-		}
-
-		if (type1 instanceof ArrayNode && type2 instanceof ArrayNode) {
-			return this.areEquivalentIgnoringAny(type1.elementType, type2.elementType, typeParamRenames);
-		}
-
-		if (type1 instanceof TupleNode && type2 instanceof TupleNode) {
-			if (type1.types.length !== type2.types.length) {
-				return false;
-			}
-			return type1.types.every((t1, index) =>
-				this.areEquivalentIgnoringAny(t1, type2.types[index], typeParamRenames),
+			return this.membersAreEquivalentUnordered(
+				type1.types,
+				type2.types,
+				anyIsWildcard,
+				typeParamRenames,
 			);
 		}
 
+		if (type1.kind === 'intersection' && type2.kind === 'intersection') {
+			return this.membersAreEquivalentUnordered(
+				type1.types,
+				type2.types,
+				anyIsWildcard,
+				typeParamRenames,
+			);
+		}
+
+		if (type1 instanceof ArrayNode && type2 instanceof ArrayNode) {
+			return (
+				this.areEquivalent(type1.elementType, type2.elementType, anyIsWildcard, typeParamRenames) &&
+				type1.isReadonly === type2.isReadonly
+			);
+		}
+
+		if (type1 instanceof TupleNode && type2 instanceof TupleNode) {
+			if (type1.types.length !== type2.types.length || type1.isReadonly !== type2.isReadonly) {
+				return false;
+			}
+			return type1.types.every((t1, index) =>
+				this.areEquivalent(t1, type2.types[index], anyIsWildcard, typeParamRenames),
+			);
+		}
+
+		if (type1 instanceof TypeOperatorNode && type2 instanceof TypeOperatorNode) {
+			// Resolved operator payloads can contain hundreds of keys and this comparison
+			// runs pairwise during union canonicalization. Reject different authored
+			// operators and operands before traversing that potentially large result.
+			if (
+				type1.operator !== type2.operator ||
+				type1.resolutionKind !== type2.resolutionKind ||
+				// `any` inside authored operator syntax is semantic (`keyof any`), not
+				// a generated fallback that may wildcard-match another operand.
+				!this.areEquivalent(type1.type, type2.type, false, typeParamRenames)
+			) {
+				return false;
+			}
+
+			const resolvedTypesAreEquivalent =
+				type1.resolvedType && type2.resolvedType
+					? this.areEquivalent(type1.resolvedType, type2.resolvedType, false, typeParamRenames)
+					: type1.resolvedType === type2.resolvedType;
+			return resolvedTypesAreEquivalent;
+		}
+
 		if (type1 instanceof ExternalTypeNode && type2 instanceof ExternalTypeNode) {
-			return this.typeNamesAreEquivalentIgnoringAny(
+			return this.typeNamesAreEquivalent(
 				type1.typeName,
 				type2.typeName,
+				anyIsWildcard,
 				typeParamRenames,
 			);
 		}
 
 		if (type1 instanceof ObjectNode && type2 instanceof ObjectNode) {
-			return this.objectTypesAreEquivalentIgnoringAny(type1, type2, typeParamRenames);
+			return this.objectTypesAreEquivalent(type1, type2, anyIsWildcard, typeParamRenames);
 		}
 
 		// Leaf model nodes that do not contain nested type parameters can safely
@@ -121,10 +196,24 @@ class TypeEquivalence {
 	 * Compares function signatures, including generic constraints/defaults.
 	 * Handles examples like `<T>(value: T) => T` and `<U>(value: U) => U` as
 	 * equivalent while rejecting different aliases or parameter optionality.
+	 *
+	 * @param func1 - First function model to compare.
+	 * @param func2 - Second function model to compare.
+	 * @param outerTypeParamRenames - Generic parameter renames inherited from an outer scope.
+	 * @returns Whether the signatures are equivalent under wildcard-`any` semantics.
 	 */
 	areFunctionsEquivalentIgnoringAny(
 		func1: FunctionNode,
 		func2: FunctionNode,
+		outerTypeParamRenames?: TypeParameterRenameMap,
+	): boolean {
+		return this.areFunctionsEquivalent(func1, func2, true, outerTypeParamRenames);
+	}
+
+	private areFunctionsEquivalent(
+		func1: FunctionNode,
+		func2: FunctionNode,
+		anyIsWildcard: boolean,
 		outerTypeParamRenames?: TypeParameterRenameMap,
 	): boolean {
 		const typeName1 = func1.typeName;
@@ -135,7 +224,7 @@ class TypeEquivalence {
 		if (
 			typeName1 &&
 			typeName2 &&
-			!this.typeNamesAreEquivalentIgnoringAny(typeName1, typeName2, outerTypeParamRenames)
+			!this.typeNamesAreEquivalent(typeName1, typeName2, anyIsWildcard, outerTypeParamRenames)
 		) {
 			return false;
 		}
@@ -163,7 +252,7 @@ class TypeEquivalence {
 				const c1 = tp1[k].constraint;
 				const c2 = tp2[k].constraint;
 				if (c1 && c2) {
-					if (!this.areEquivalentIgnoringAny(c1, c2, typeParamRenames)) {
+					if (!this.areEquivalent(c1, c2, anyIsWildcard, typeParamRenames)) {
 						return false;
 					}
 				} else if (c1 || c2) {
@@ -173,7 +262,7 @@ class TypeEquivalence {
 				const d1 = tp1[k].defaultValue;
 				const d2 = tp2[k].defaultValue;
 				if (d1 && d2) {
-					if (!this.areEquivalentIgnoringAny(d1, d2, typeParamRenames)) {
+					if (!this.areEquivalent(d1, d2, anyIsWildcard, typeParamRenames)) {
 						return false;
 					}
 				} else if (d1 || d2) {
@@ -186,7 +275,12 @@ class TypeEquivalence {
 			}
 
 			if (
-				!this.areEquivalentIgnoringAny(sig1.returnValueType, sig2.returnValueType, typeParamRenames)
+				!this.areEquivalent(
+					sig1.returnValueType,
+					sig2.returnValueType,
+					anyIsWildcard,
+					typeParamRenames,
+				)
 			) {
 				return false;
 			}
@@ -199,7 +293,7 @@ class TypeEquivalence {
 					return false;
 				}
 
-				if (!this.areEquivalentIgnoringAny(param1.type, param2.type, typeParamRenames)) {
+				if (!this.areEquivalent(param1.type, param2.type, anyIsWildcard, typeParamRenames)) {
 					return false;
 				}
 			}
@@ -211,6 +305,9 @@ class TypeEquivalence {
 	/**
 	 * Detects whether a type contains `any` directly or in nested signatures,
 	 * members, properties, constraints, or default type parameters.
+	 *
+	 * @param type - Model type to inspect recursively.
+	 * @returns Whether an intrinsic `any` occurs in the model.
 	 */
 	containsAny(type: AnyType): boolean {
 		if (type instanceof IntrinsicNode && type.intrinsic === 'any') {
@@ -242,6 +339,13 @@ class TypeEquivalence {
 			return type.types.some((member) => this.containsAny(member));
 		}
 
+		if (type instanceof TypeOperatorNode) {
+			return (
+				this.containsAny(type.type) ||
+				(type.resolvedType !== undefined && this.containsAny(type.resolvedType))
+			);
+		}
+
 		if (type instanceof ObjectNode) {
 			return (
 				type.properties.some((property) => this.containsAny(property.type)) ||
@@ -257,9 +361,10 @@ class TypeEquivalence {
 		return false;
 	}
 
-	private typeNamesAreEquivalentIgnoringAny(
+	private typeNamesAreEquivalent(
 		typeName1: EquivalentTypeName,
 		typeName2: EquivalentTypeName,
+		anyIsWildcard: boolean,
 		typeParamRenames?: TypeParameterRenameMap,
 	): boolean {
 		if (typeName1.name !== typeName2.name) {
@@ -282,13 +387,14 @@ class TypeEquivalence {
 		}
 
 		return args1.every((arg, index) =>
-			this.areEquivalentIgnoringAny(arg.type, args2[index].type, typeParamRenames),
+			this.areEquivalent(arg.type, args2[index].type, anyIsWildcard, typeParamRenames),
 		);
 	}
 
 	private membersAreEquivalentUnordered(
 		types1: readonly AnyType[],
 		types2: readonly AnyType[],
+		anyIsWildcard: boolean,
 		typeParamRenames?: TypeParameterRenameMap,
 	): boolean {
 		const n = types1.length;
@@ -299,11 +405,28 @@ class TypeEquivalence {
 			return true;
 		}
 
+		// Canonicalized unions and intersections normally retain the same stable
+		// member order on both sides. Prove that common case in O(n) before
+		// constructing the bipartite graph needed for genuinely reordered or
+		// wildcard-compatible members.
+		let matchesInOrder = true;
+		for (let index = 0; index < n; index += 1) {
+			if (!this.areEquivalent(types1[index], types2[index], anyIsWildcard, typeParamRenames)) {
+				matchesInOrder = false;
+				break;
+			}
+		}
+		if (matchesInOrder) {
+			return true;
+		}
+
 		// Use a cheap key multiset pre-check before the O(n^3) bipartite match,
 		// but skip it when wildcard `any` or rename maps would make keys unsafe.
-		const hasAnyWildcard = [...types1, ...types2].some(
-			(type) => type instanceof IntrinsicNode && type.intrinsic === 'any' && !type.typeName,
-		);
+		const hasAnyWildcard =
+			anyIsWildcard &&
+			[...types1, ...types2].some(
+				(type) => type instanceof IntrinsicNode && type.intrinsic === 'any' && !type.typeName,
+			);
 		const hasTypeParamRenames = typeParamRenames != null && typeParamRenames.size > 0;
 		if (!hasAnyWildcard && !hasTypeParamRenames) {
 			if (!this.structuralKeyMultisetsMatch(types1, types2)) {
@@ -315,7 +438,7 @@ class TypeEquivalence {
 		for (let j = 0; j < n; j++) {
 			adjacency[j] = [];
 			for (let i = 0; i < n; i++) {
-				if (this.areEquivalentIgnoringAny(types1[j], types2[i], typeParamRenames)) {
+				if (this.areEquivalent(types1[j], types2[i], anyIsWildcard, typeParamRenames)) {
 					adjacency[j].push(i);
 				}
 			}
@@ -345,9 +468,10 @@ class TypeEquivalence {
 		return true;
 	}
 
-	private objectTypesAreEquivalentIgnoringAny(
+	private objectTypesAreEquivalent(
 		type1: ObjectNode,
 		type2: ObjectNode,
+		anyIsWildcard: boolean,
 		typeParamRenames?: TypeParameterRenameMap,
 	): boolean {
 		if (type1.properties.length !== type2.properties.length) {
@@ -359,7 +483,7 @@ class TypeEquivalence {
 		if (index1 && index2) {
 			if (
 				index1.keyType !== index2.keyType ||
-				!this.areEquivalentIgnoringAny(index1.valueType, index2.valueType, typeParamRenames)
+				!this.areEquivalent(index1.valueType, index2.valueType, anyIsWildcard, typeParamRenames)
 			) {
 				return false;
 			}
@@ -376,7 +500,7 @@ class TypeEquivalence {
 			const property2 = propMap.get(`${property1.name}:${property1.optional}`);
 			return (
 				property2 != null &&
-				this.areEquivalentIgnoringAny(property1.type, property2.type, typeParamRenames)
+				this.areEquivalent(property1.type, property2.type, anyIsWildcard, typeParamRenames)
 			);
 		});
 	}
@@ -439,4 +563,5 @@ class TypeEquivalence {
 	}
 }
 
+/** Shared structural-equivalence service used by compound canonicalization. */
 export const typeEquivalenceChecker = new TypeEquivalence();

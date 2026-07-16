@@ -1,4 +1,4 @@
-import { expect, it } from 'vitest';
+import { expect, expectTypeOf, it } from 'vitest';
 import {
 	CallSignature,
 	ComponentNode,
@@ -19,6 +19,10 @@ import { applyExportTransforms } from './exportTransforms';
 const parserContext = {
 	compilerOptions: {},
 } as ParserContext;
+
+it('keeps typeOperatorOutput optional on the public parser context', () => {
+	expectTypeOf({}).toMatchTypeOf<Pick<ParserContext, 'typeOperatorOutput'>>();
+});
 
 function createFunctionNode(
 	returnValueType: AnyType = new ExternalTypeNode(new TypeName('ReactElement')),

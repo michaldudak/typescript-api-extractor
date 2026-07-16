@@ -1,5 +1,6 @@
 import { type TypeResolver } from '../typeResolutionTypes';
 import { resolveArrayType } from './arrayTypeResolver';
+import { resolveAuthoredKeyofAlias } from './authoredTypeAlias';
 import { resolveClassType } from './classTypeResolver';
 import { resolveEnumLikeType } from './enumTypeResolver';
 import { resolveCallableType } from './functionTypeResolver';
@@ -14,21 +15,32 @@ import {
 } from './specialTypeResolvers';
 import { resolveExternalType } from './externalTypeResolver';
 import { resolveTupleType } from './tupleTypeResolver';
+import { resolveTypeOperatorType } from './typeOperatorTypeResolver';
 import { resolveUnionTypeNode } from './unionTypeResolver';
 
-// Registry note: ordered from the most specific TS type shapes to broader
-// fallbacks. Keep this list explicit so adding support for a new TypeScript
-// shape does not require editing one long branch chain, and so resolver
-// precedence is visible.
+/**
+ * Ordered type-resolution strategies, from authored/specific shapes to broad fallbacks.
+ *
+ * The order is observable: TypeScript frequently exposes `keyof`, arrays,
+ * callables, and classes as object-like semantic types. Keeping the registry
+ * explicit prevents a broad resolver from silently consuming a shape before
+ * its syntax-aware resolver can preserve public output.
+ */
 export const typeResolvers: TypeResolver[] = [
-	{ name: 'type-parameter', resolve: resolveTypeParameterType },
-	{ name: 'array', resolve: resolveArrayType },
+	{
+		name: 'authored-keyof-alias',
+		replaysAuthoredSyntax: true,
+		resolve: resolveAuthoredKeyofAlias,
+	},
+	{ name: 'type-operator', replaysAuthoredSyntax: true, resolve: resolveTypeOperatorType },
 	{ name: 'external', resolve: resolveExternalType },
+	{ name: 'type-parameter', resolve: resolveTypeParameterType },
+	{ name: 'array', replaysAuthoredSyntax: true, resolve: resolveArrayType },
 	{ name: 'intrinsic', resolve: resolveIntrinsicType },
 	{ name: 'enum', resolve: resolveEnumLikeType },
 	{ name: 'union', resolve: resolveUnionTypeNode },
 	{ name: 'intersection', resolve: resolveIntersectionType },
-	{ name: 'tuple', resolve: resolveTupleType },
+	{ name: 'tuple', replaysAuthoredSyntax: true, resolve: resolveTupleType },
 	{ name: 'literal', resolve: resolveLiteralType },
 	{ name: 'callable', resolve: resolveCallableType },
 	{ name: 'class', resolve: resolveClassType },

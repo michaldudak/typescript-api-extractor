@@ -1,15 +1,81 @@
 import ts from 'typescript';
-import { ModuleNode, type AnyType } from './models';
+import {
+	ModuleNode,
+	type AnyType,
+	type ExportNode,
+	type TypeOperatorNode,
+	type TypeOperatorResolutionKind,
+} from './models';
 import { parseModule } from './parsers/moduleParser';
-import { type ScopedParserContext } from './parserContext';
+import { createParserContext } from './parserContextFactory';
+
+// Type operators can occur anywhere AnyType is nested, including alias type
+// arguments. Mirror the complete model graph so literal parser modes expose a
+// correlated payload shape. ExportNode needs an explicit branch because its
+// withType method accepts and returns model types that must use the same mode.
+type ParserOutput<T, TMode extends TypeOperatorOutputMode> = T extends TypeOperatorNode
+	? Omit<T, 'typeName' | 'type' | 'resolvedType' | 'resolutionKind'> & {
+			readonly typeName: ParserOutput<T['typeName'], TMode>;
+			readonly type: ParserOutput<AnyType, TMode>;
+		} & (TMode extends 'resolved'
+				? {
+						readonly resolvedType: ParserOutput<AnyType, TMode>;
+						readonly resolutionKind: TypeOperatorResolutionKind;
+					}
+				: {
+						readonly resolvedType?: never;
+						readonly resolutionKind?: never;
+					})
+	: T extends ExportNode
+		? Omit<T, 'type' | 'withType'> & {
+				type: ParserOutput<AnyType, TMode>;
+				withType(type: ParserOutput<AnyType, TMode>): ParserOutput<ExportNode, TMode>;
+			}
+		: T extends (...args: never[]) => unknown
+			? T
+			: T extends (infer TItem)[]
+				? ParserOutput<TItem, TMode>[]
+				: T extends readonly (infer TItem)[]
+					? readonly ParserOutput<TItem, TMode>[]
+					: T extends object
+						? { [TKey in keyof T]: ParserOutput<T[TKey], TMode> }
+						: T;
+
+/** Extracted module shape whose preserved type operators have resolved payloads. */
+export type ResolvedModuleNode = ParserOutput<ModuleNode, 'resolved'>;
 
 /**
- * Creates a program, parses the specified file and returns the PropTypes as an AST, if you need to parse more than one file
- * use `createProgram` and `parseFromProgram` for better performance
- * @param filePath The file to parse
- * @param options The options from `loadConfig`
- * @param parserOptions Options that specify how the parser should act
+ * Extracted module shape returned by syntax-only type-operator output.
+ * Nested model containers are transformed recursively because a preserved
+ * operator may appear in a property, signature, tuple, or type argument.
  */
+export type SyntaxOnlyModuleNode = ParserOutput<ModuleNode, 'syntaxOnly'>;
+
+/**
+ * Creates a TypeScript program and extracts the public API of one source file.
+ * Use `createProgram` and `parseFromProgram` when extracting multiple files so
+ * they can share the same checker and compiler caches.
+ *
+ * @param filePath - Source file to extract.
+ * @param options - Compiler options returned by `loadConfig` or supplied directly.
+ * @param parserOptions - Optional extraction policy and warning callbacks.
+ * @returns The extracted module model for the requested file.
+ */
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions: ParserOptions & { typeOperatorOutput: 'syntaxOnly' },
+): SyntaxOnlyModuleNode;
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions?: ParserOptions & { typeOperatorOutput?: 'resolved' },
+): ResolvedModuleNode;
+export function parseFile(
+	filePath: string,
+	options: ts.CompilerOptions,
+	parserOptions?: ParserOptions,
+): ResolvedModuleNode | SyntaxOnlyModuleNode;
 export function parseFile(
 	filePath: string,
 	options: ts.CompilerOptions,
@@ -20,11 +86,28 @@ export function parseFile(
 }
 
 /**
- * Parses the specified file and returns the PropTypes as an AST
- * @param filePath The file to get the PropTypes from
- * @param program The program object returned by `createProgram`
- * @param parserOptions Options that specify how the parser should act
+ * Extracts the public API of one source file from an existing TypeScript program.
+ *
+ * @param filePath - Source file already included in `program`.
+ * @param program - Program whose checker owns the source file.
+ * @param parserOptions - Optional extraction policy and warning callbacks.
+ * @returns The extracted module model for the requested program source file.
  */
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions: ParserOptions & { typeOperatorOutput: 'syntaxOnly' },
+): SyntaxOnlyModuleNode;
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions?: ParserOptions & { typeOperatorOutput?: 'resolved' },
+): ResolvedModuleNode;
+export function parseFromProgram(
+	filePath: string,
+	program: ts.Program,
+	parserOptions?: ParserOptions,
+): ResolvedModuleNode | SyntaxOnlyModuleNode;
 export function parseFromProgram(
 	filePath: string,
 	program: ts.Program,
@@ -37,118 +120,52 @@ export function parseFromProgram(
 		throw new Error(`Program doesn't contain file: "${filePath}"`);
 	}
 
-	const parserContext = createParserContext(checker, sourceFile, program, parserOptions ?? {});
+	const parserContext = createParserContext(checker, sourceFile, program, parserOptions);
 
 	return parseModule(sourceFile, parserContext);
 }
 
-function createParserContext(
-	checker: ts.TypeChecker,
-	sourceFile: ts.SourceFile,
-	program: ts.Program,
-	parserOptions: ParserOptions,
-): ScopedParserContext {
-	const parsedSymbolStack: string[] = [];
-	const sourceNodeStack: ts.Node[] = [sourceFile];
-
-	const context: ScopedParserContext = {
-		checker,
-		sourceFile,
-		typeStack: [],
-		compilerOptions: program.getCompilerOptions(),
-		parsedSymbolStack,
-		sourceNodeStack,
-		program,
-		resolvedTypeCache: new Map<string, AnyType>(),
-		...getParserOptions(parserOptions),
-		runWithSymbolScope: (symbolName, callback) =>
-			runWithStackEntryScope(parsedSymbolStack, symbolName, callback),
-		runWithSourceNodeScope: (sourceNode, callback) => {
-			if (!sourceNode) {
-				return callback();
-			}
-
-			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
-		},
-		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
-			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
-			context.typeParameterSubstitutions = typeParameterSubstitutions;
-
-			try {
-				return callback();
-			} finally {
-				if (previousTypeParameterSubstitutions) {
-					context.typeParameterSubstitutions = previousTypeParameterSubstitutions;
-				} else {
-					delete context.typeParameterSubstitutions;
-				}
-			}
-		},
-	};
-
-	return context;
-}
-
-function runWithStackEntryScope<T, TEntry>(stack: TEntry[], entry: TEntry, callback: () => T): T {
-	stack.push(entry);
-
-	try {
-		return callback();
-	} finally {
-		stack.pop();
-	}
-}
-
-function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
-	const shouldInclude: ResolvedParserOptions['shouldInclude'] = (data) => {
-		if (parserOptions.shouldInclude) {
-			const result = parserOptions.shouldInclude(data);
-			if (result !== undefined) {
-				return result;
-			}
-		}
-
-		return true;
-	};
-
-	const shouldResolveObject: ResolvedParserOptions['shouldResolveObject'] = (data) => {
-		if (parserOptions.shouldResolveObject) {
-			const result = parserOptions.shouldResolveObject(data);
-			if (result !== undefined) {
-				return result;
-			}
-		}
-
-		return data.propertyCount <= 50 && data.depth <= 10;
-	};
-
-	return {
-		shouldInclude,
-		shouldResolveObject,
-		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
-		onWarning:
-			parserOptions.onWarning ??
-			((warning) => {
-				console.warn(warning.message);
-			}),
-	};
-}
-
-interface ResolvedParserOptions {
+/** Mutable parser state and resolved policy callbacks shared by nested resolvers. */
+export interface ParserContext {
+	/**
+	 * Decides whether an object property should be included at the current depth.
+	 *
+	 * @param data - Property name and current resolution depth.
+	 * @returns Whether the property should be included.
+	 */
 	shouldInclude: (data: { name: string; depth: number }) => boolean;
+	/**
+	 * Decides whether an object's properties should be expanded.
+	 *
+	 * @param data - Object name, property count, and current resolution depth.
+	 * @returns Whether the object shape should be resolved.
+	 */
 	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
+	/** Whether declarations from external libraries may be expanded. */
 	includeExternalTypes: boolean;
+	/** Controls whether preserved type operators include their checker-resolved result. */
+	typeOperatorOutput?: TypeOperatorOutputMode;
+	/**
+	 * Receives recoverable parser warnings.
+	 *
+	 * @param warning - Structured warning emitted by a recoverable fallback.
+	 */
 	onWarning: (warning: ParserWarning) => void;
-}
-
-export interface ParserContext extends ResolvedParserOptions {
+	/** TypeScript checker used for all semantic queries. */
 	checker: ts.TypeChecker;
+	/** Root source file currently being extracted. */
 	sourceFile: ts.SourceFile;
+	/** Active internal type IDs used for recursion detection. */
 	typeStack: number[];
+	/** Compiler options of the owning program. */
 	compilerOptions: ts.CompilerOptions;
+	/** Active exported-symbol path included in warning metadata. */
 	parsedSymbolStack: string[];
+	/** Active authored nodes used to locate recoverable warnings. */
 	sourceNodeStack: ts.Node[];
+	/** Program that owns the checker and source file. */
 	program: ts.Program;
+	/** Active semantic substitutions for generic type parameters. */
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
 	/**
 	 * Cache for resolved types to avoid resolving the same type multiple times.
@@ -165,12 +182,16 @@ export interface ParserContext extends ResolvedParserOptions {
 export interface ParserOptions {
 	/**
 	 * Called before a property is added to an object type.
+	 *
+	 * @param data - Property name and current resolution depth.
+	 * @returns `true` to include, `false` to omit, or `undefined` for the default policy.
 	 */
 	shouldInclude?: (data: { name: string; depth: number }) => boolean | undefined;
 	/**
 	 * Called before the shape of an object is resolved
-	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
-	 * use the default behaviour
+	 *
+	 * @param data - Object name, property count, and current resolution depth.
+	 * @returns `true` to resolve the shape, `false` for an opaque object, or `undefined` for the default.
 	 * @default propertyCount <= 50 && depth <= 10
 	 */
 	shouldResolveObject?: (data: {
@@ -184,38 +205,69 @@ export interface ParserOptions {
 	 */
 	includeExternalTypes?: boolean;
 	/**
+	 * Controls whether preserved type operators include their checker-resolved result.
+	 * Use `syntaxOnly` when consumers only need the authored operator and want to
+	 * avoid storing large key unions such as `keyof React.JSX.IntrinsicElements`.
+	 *
+	 * @default 'resolved'
+	 */
+	typeOperatorOutput?: TypeOperatorOutputMode;
+	/**
 	 * Called when the parser recovers from a non-fatal issue.
 	 * If not provided, warnings are printed with console.warn.
+	 *
+	 * @param warning - Structured warning describing the recovery.
 	 */
 	onWarning?: (warning: ParserWarning) => void;
 }
 
+/** Output policy for the checker-resolved payload of preserved type operators. */
+export type TypeOperatorOutputMode = 'resolved' | 'syntaxOnly';
+
+/** Recoverable warning emitted while extracting an otherwise usable module model. */
 export type ParserWarning =
 	| UnsupportedTypeFallbackWarning
 	| MissingEnumDeclarationWarning
 	| MissingDefaultExportSymbolWarning;
 
+/** Source location and symbol context shared by every recoverable parser warning. */
 export interface ParserWarningBase {
+	/** Human-readable warning text used by the default console reporter. */
 	message: string;
+	/** Source file associated with the recovery. */
 	filePath: string;
+	/** One-based source line. */
 	line: number;
+	/** One-based source column. */
 	column: number;
+	/** Export and nested member scopes active when the warning was emitted. */
 	parsedSymbolStack: string[];
 }
 
+/** Warning emitted when an unsupported semantic type is represented by `any`. */
 export interface UnsupportedTypeFallbackWarning extends ParserWarningBase {
+	/** Stable warning discriminator. */
 	code: 'unsupported-type-fallback';
+	/** TypeScript flag names present on the unsupported checker type. */
 	typeFlags: string[];
+	/** Checker-rendered text for the unsupported type. */
 	typeText: string;
+	/** Authored syntax selected as the most precise diagnostic source, when available. */
 	sourceText?: string;
 }
 
+/** Warning emitted when an enum-like type has no recoverable enum declaration. */
 export interface MissingEnumDeclarationWarning extends ParserWarningBase {
+	/** Stable warning discriminator. */
 	code: 'missing-enum-declaration';
+	/** Name of the enum-like type that could not be located. */
 	enumName: string;
 }
 
+/** Warning emitted when TypeScript exposes a default export without a target symbol. */
 export interface MissingDefaultExportSymbolWarning extends ParserWarningBase {
+	/** Stable warning discriminator. */
 	code: 'missing-default-export-symbol';
+	/** Authored default-export text used to identify the failing declaration. */
 	sourceText: string;
 }

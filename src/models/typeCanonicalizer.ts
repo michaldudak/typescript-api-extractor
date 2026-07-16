@@ -4,6 +4,7 @@ import { FunctionNode } from './types/function';
 import { IntrinsicNode } from './types/intrinsic';
 import { LiteralNode } from './types/literal';
 import { ExternalTypeNode } from './types/external';
+import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
 
 // UnionNode and IntersectionNode are matched by `kind` rather than imported and
@@ -17,6 +18,12 @@ import { TypeParameterNode } from './types/typeParameter';
  * overload signatures that differ only by `any` fallback members.
  */
 class TypeCanonicalizer {
+	/**
+	 * Canonicalizes members before constructing a union model.
+	 *
+	 * @param types - Union members in authored or checker-provided order.
+	 * @returns Flattened, simplified, stably ordered, and deduplicated members.
+	 */
 	canonicalizeUnionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'union');
 		this.sanitizeBooleanLiterals(flatTypes);
@@ -25,6 +32,12 @@ class TypeCanonicalizer {
 		return this.deduplicateMemberTypes(flatTypes);
 	}
 
+	/**
+	 * Canonicalizes members before constructing an intersection model.
+	 *
+	 * @param types - Intersection members in authored or checker-provided order.
+	 * @returns Flattened, stably ordered, and deduplicated members.
+	 */
 	canonicalizeIntersectionMembers(types: readonly AnyType[]): AnyType[] {
 		const flatTypes = this.flattenTypes(types, 'intersection');
 		this.sortMemberTypes(flatTypes);
@@ -34,6 +47,10 @@ class TypeCanonicalizer {
 	/**
 	 * Flattens nested, unaliased compound nodes. Aliased compounds are preserved
 	 * because their TypeName is part of the public API identity.
+	 *
+	 * @param nodes - Compound members that may themselves contain the same compound kind.
+	 * @param kind - Compound kind whose unaliased nested members should be flattened.
+	 * @returns A new flat member array in source order.
 	 */
 	flattenTypes(nodes: readonly AnyType[], kind: 'union' | 'intersection'): AnyType[] {
 		let flatTypes: AnyType[] = [];
@@ -50,68 +67,73 @@ class TypeCanonicalizer {
 
 	/**
 	 * Removes structurally duplicate members while preserving original order.
-	 * Function members use the equivalence checker so concrete overload
-	 * signatures win over otherwise identical signatures containing `any`
-	 * fallbacks.
+	 * Function and type-operator members use the equivalence checker; concrete
+	 * overload signatures win over otherwise identical signatures containing
+	 * `any` fallbacks.
+	 *
+	 * The three indexes deliberately share the `deduplicated` array. A function
+	 * wildcard can therefore be replaced in place without moving surrounding
+	 * members, while scalar model nodes use cheap stable keys and complex model
+	 * nodes retain identity-based deduplication.
+	 *
+	 * @param types - Members after flattening and kind-specific simplification.
+	 * @returns Members with redundant equivalents removed.
 	 */
 	deduplicateMemberTypes(types: readonly AnyType[]): AnyType[] {
-		const functionTypes: { index: number; func: FunctionNode }[] = [];
-		const nonFunctionTypes: { index: number; type: AnyType }[] = [];
-
-		for (let i = 0; i < types.length; i++) {
-			const type = types[i];
-			if (type instanceof FunctionNode) {
-				functionTypes.push({ index: i, func: type });
-			} else {
-				nonFunctionTypes.push({ index: i, type });
-			}
-		}
-
-		const deduplicatedFunctions: { index: number; func: FunctionNode }[] = [];
-		for (const { index, func } of functionTypes) {
-			const existingIndex = deduplicatedFunctions.findIndex((existing) =>
-				typeEquivalenceChecker.areFunctionsEquivalentIgnoringAny(existing.func, func),
-			);
-
-			if (existingIndex === -1) {
-				deduplicatedFunctions.push({ index, func });
-			} else {
-				const existing = deduplicatedFunctions[existingIndex];
-				if (
-					typeEquivalenceChecker.containsAny(existing.func) &&
-					!typeEquivalenceChecker.containsAny(func)
-				) {
-					deduplicatedFunctions[existingIndex] = { index: existing.index, func };
-				}
-			}
-		}
-
+		const deduplicated: AnyType[] = [];
+		const functionIndexes: number[] = [];
+		const typeOperatorIndexes: number[] = [];
 		const seenNonFunctionKeys = new Set<unknown>();
-		const deduplicatedNonFunctions: { index: number; type: AnyType }[] = [];
-		for (const { index, type } of nonFunctionTypes) {
-			const uniqueKey = this.getNonFunctionMemberKey(type);
 
+		for (const type of types) {
+			if (type instanceof FunctionNode) {
+				const existingIndex = functionIndexes.find((index) =>
+					typeEquivalenceChecker.areFunctionsEquivalentIgnoringAny(
+						deduplicated[index] as FunctionNode,
+						type,
+					),
+				);
+				if (existingIndex === undefined) {
+					functionIndexes.push(deduplicated.length);
+					deduplicated.push(type);
+				} else if (
+					typeEquivalenceChecker.containsAny(deduplicated[existingIndex]) &&
+					!typeEquivalenceChecker.containsAny(type)
+				) {
+					deduplicated[existingIndex] = type;
+				}
+				continue;
+			}
+
+			if (type instanceof TypeOperatorNode) {
+				const alreadyIncluded = typeOperatorIndexes.some((index) =>
+					typeEquivalenceChecker.areEquivalentStrictly(
+						deduplicated[index] as TypeOperatorNode,
+						type,
+					),
+				);
+				if (!alreadyIncluded) {
+					typeOperatorIndexes.push(deduplicated.length);
+					deduplicated.push(type);
+				}
+				continue;
+			}
+
+			const uniqueKey = this.getNonFunctionMemberKey(type);
 			if (!seenNonFunctionKeys.has(uniqueKey)) {
 				seenNonFunctionKeys.add(uniqueKey);
-				deduplicatedNonFunctions.push({ index, type });
+				deduplicated.push(type);
 			}
 		}
 
-		const combined = [
-			...deduplicatedFunctions.map((entry) => ({
-				index: entry.index,
-				type: entry.func as AnyType,
-			})),
-			...deduplicatedNonFunctions,
-		];
-		combined.sort((a, b) => a.index - b.index);
-
-		return combined.map((item) => item.type);
+		return deduplicated;
 	}
 
 	/**
 	 * Keeps `null` and `undefined` at the end of compound member lists for stable
 	 * rendering while leaving authored order of the remaining members intact.
+	 *
+	 * @param members - Mutable member list to reorder in place.
 	 */
 	sortMemberTypes(members: AnyType[]): void {
 		const nullIndex = members.findIndex(
@@ -172,6 +194,15 @@ class TypeCanonicalizer {
 	}
 
 	private getNonFunctionMemberKey(type: AnyType): unknown {
+		const scalarKey = this.getScalarMemberKey(type);
+		if (scalarKey !== undefined) {
+			return scalarKey;
+		}
+
+		return type;
+	}
+
+	private getScalarMemberKey(type: AnyType): string | undefined {
 		if (type instanceof LiteralNode) {
 			return `literal:${type.value}`;
 		}
@@ -185,8 +216,9 @@ class TypeCanonicalizer {
 			return `intrinsic:${type.typeName?.toString() ?? type.intrinsic}`;
 		}
 
-		return type;
+		return undefined;
 	}
 }
 
+/** Shared compound-type normalization policy used by union and intersection DTOs. */
 export const typeCanonicalizer = new TypeCanonicalizer();

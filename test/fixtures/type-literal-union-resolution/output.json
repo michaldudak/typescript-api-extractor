@@ -481,37 +481,49 @@
 						"parameters": [
 							{
 								"type": {
-									"kind": "union",
-									"types": [
-										{
-											"kind": "literal",
-											"value": "\"inlineStringUnion\""
+									"operator": "keyof",
+									"type": {
+										"kind": "object",
+										"typeName": {
+											"name": "Params"
 										},
-										{
-											"kind": "literal",
-											"value": "\"inlineNumberUnion\""
-										},
-										{
-											"kind": "literal",
-											"value": "\"referencedStringUnion\""
-										},
-										{
-											"kind": "literal",
-											"value": "\"referencedNumberUnion\""
-										},
-										{
-											"kind": "literal",
-											"value": "\"callback\""
-										},
-										{
-											"kind": "literal",
-											"value": "\"unionOfUnions\""
-										},
-										{
-											"kind": "literal",
-											"value": "\"indirectUnion\""
-										}
-									]
+										"properties": []
+									},
+									"resolvedType": {
+										"kind": "union",
+										"types": [
+											{
+												"kind": "literal",
+												"value": "\"inlineStringUnion\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"inlineNumberUnion\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"referencedStringUnion\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"referencedNumberUnion\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"callback\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"unionOfUnions\""
+											},
+											{
+												"kind": "literal",
+												"value": "\"indirectUnion\""
+											}
+										]
+									},
+									"resolutionKind": "exact",
+									"kind": "typeOperator"
 								},
 								"name": "prop",
 								"optional": false

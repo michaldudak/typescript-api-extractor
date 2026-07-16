@@ -2,6 +2,12 @@ import ts from 'typescript';
 import { IntrinsicNode, TypeParameterNode, UnionNode, type AnyType } from '../../models';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 import { hasExactFlag } from '../typeResolutionUtils';
+import {
+	containsKeyofTypeOperator,
+	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
+	unwrapParenthesizedTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Special resolvers cover TypeScript-internal or context-sensitive
 // shapes that do not map directly to one public model node. They either
@@ -29,7 +35,27 @@ export function resolveTypeParameterType(
 		substitution !== type &&
 		(!(substitution.flags & ts.TypeFlags.TypeParameter) || substitution.symbol !== type.symbol)
 	) {
-		return session.resolve(substitution, undefined);
+		const directTypeNodeSubstitution = session.context.typeParameterTypeNodeSubstitutions?.get(
+			type.symbol,
+		);
+		const substitutedTypeNode = typeNode
+			? substituteTypeParameterTypeNode(
+					typeNode,
+					checker,
+					session.context.typeParameterTypeNodeSubstitutions,
+				)
+			: directTypeNodeSubstitution;
+		const shouldCarrySubstitutionSyntax =
+			substitutedTypeNode != null &&
+			(containsKeyofTypeOperator(substitutedTypeNode) || isKeyofOperandTypeNode(typeNode));
+		return session.resolve(
+			substitution,
+			shouldCarrySubstitutionSyntax
+				? substitutedTypeNode !== typeNode
+					? substitutedTypeNode
+					: directTypeNodeSubstitution
+				: undefined,
+		);
 	}
 
 	// If we have a typeNode, check if it resolves to a more concrete type than the TypeParameter.
@@ -46,16 +72,54 @@ export function resolveTypeParameterType(
 	}
 
 	const declaration = type.symbol.declarations?.[0] as ts.TypeParameterDeclaration | undefined;
-	const constraintType = declaration?.constraint
-		? checker.getBaseConstraintOfType(type)
-		: undefined;
+	let constraint: AnyType | undefined;
+	if (declaration?.constraint) {
+		const shouldPreserveConstraintSyntax = containsKeyofTypeOperatorOrAlias(
+			declaration.constraint,
+			checker,
+			new Set(),
+			session.context.includeExternalTypes,
+		);
+		const constraintType = shouldPreserveConstraintSyntax
+			? checker.getTypeAtLocation(declaration.constraint)
+			: checker.getBaseConstraintOfType(type);
+
+		constraint = constraintType
+			? session.resolve(
+					constraintType,
+					shouldPreserveConstraintSyntax ? declaration.constraint : undefined,
+				)
+			: undefined;
+	}
 
 	return new TypeParameterNode(
 		type.symbol.name,
-		constraintType ? session.resolve(constraintType, undefined) : undefined,
+		constraint,
 		declaration?.default
-			? session.resolve(checker.getTypeAtLocation(declaration.default), undefined)
+			? session.resolve(
+					checker.getTypeAtLocation(declaration.default),
+					containsKeyofTypeOperatorOrAlias(
+						declaration.default,
+						checker,
+						new Set(),
+						session.context.includeExternalTypes,
+					)
+						? declaration.default
+						: undefined,
+				)
 			: undefined,
+	);
+}
+
+function isKeyofOperandTypeNode(typeNode: ts.TypeNode | undefined): boolean {
+	let current = typeNode;
+	while (current?.parent && ts.isParenthesizedTypeNode(current.parent)) {
+		current = current.parent;
+	}
+	return Boolean(
+		current?.parent &&
+		ts.isTypeOperatorNode(current.parent) &&
+		current.parent.operator === ts.SyntaxKind.KeyOfKeyword,
 	);
 }
 
@@ -65,7 +129,7 @@ export function resolveTypeParameterType(
  * a union (or the single branch TypeScript managed to resolve).
  */
 export function resolveConditionalType(
-	{ type }: TypeResolutionRequest,
+	{ type, typeNode }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	if (!hasExactFlag(type, ts.TypeFlags.Conditional)) {
@@ -73,25 +137,53 @@ export function resolveConditionalType(
 	}
 
 	const conditionalType = type as ts.ConditionalType;
+	const conditionalTypeNode = getConditionalTypeNode(typeNode);
+	const trueTypeNode = conditionalTypeNode?.trueType;
+	const falseTypeNode = conditionalTypeNode?.falseType;
+	const preservableBranchTypeNode = (branchTypeNode: ts.TypeNode | undefined) =>
+		containsKeyofTypeOperatorOrAlias(
+			branchTypeNode,
+			session.context.checker,
+			new Set(),
+			session.context.includeExternalTypes,
+		)
+			? branchTypeNode
+			: undefined;
 	if (conditionalType.resolvedTrueType && conditionalType.resolvedFalseType) {
 		return new UnionNode(undefined, [
-			// TODO: Pass TypeNode here to resolve aliases correctly.
-			session.resolve(conditionalType.resolvedTrueType, undefined),
-			session.resolve(conditionalType.resolvedFalseType, undefined),
+			session.resolve(conditionalType.resolvedTrueType, preservableBranchTypeNode(trueTypeNode)),
+			session.resolve(conditionalType.resolvedFalseType, preservableBranchTypeNode(falseTypeNode)),
 		]);
 	} else if (conditionalType.resolvedTrueType) {
-		return session.resolve(conditionalType.resolvedTrueType, undefined);
+		return session.resolve(
+			conditionalType.resolvedTrueType,
+			preservableBranchTypeNode(trueTypeNode),
+		);
 	} else if (conditionalType.resolvedFalseType) {
-		return session.resolve(conditionalType.resolvedFalseType, undefined);
+		return session.resolve(
+			conditionalType.resolvedFalseType,
+			preservableBranchTypeNode(falseTypeNode),
+		);
 	}
 
 	return undefined;
 }
 
+function getConditionalTypeNode(
+	typeNode: ts.TypeNode | undefined,
+): ts.ConditionalTypeNode | undefined {
+	if (!typeNode) {
+		return undefined;
+	}
+
+	const unwrapped = unwrapParenthesizedTypeNode(typeNode);
+	return ts.isConditionalTypeNode(unwrapped) ? unwrapped : undefined;
+}
+
 /**
- * Resolves `keyof T` and indexed-access `T[K]` types, which have no direct model
- * representation, by expanding their base constraint. Falls back to `any` when the
- * constraint is unavailable (e.g. unresolved type parameters) — an expected limit.
+ * Resolves index-like types without useful authored syntax by expanding their
+ * base constraint. Falls back to `any` when the constraint is unavailable
+ * (e.g. unresolved indexed access types) — an expected limit.
  */
 export function resolveIndexLikeType(
 	{ type, typeName }: TypeResolutionRequest,
@@ -101,8 +193,9 @@ export function resolveIndexLikeType(
 		return undefined;
 	}
 
-	// Index (keyof T) and IndexedAccess (T[K]) types can't be represented directly.
-	// Expand them via getBaseConstraintOfType to a representable form.
+	// Checker-internal Index and IndexedAccess shapes that reach this fallback no
+	// longer have authored syntax the earlier resolvers can preserve. Expand them
+	// via getBaseConstraintOfType to a representable form.
 	// When the base constraint is unavailable (e.g., T[K] with unresolved type parameters),
 	// fall back to 'any' silently. This is an expected limitation, not a parser bug.
 	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);

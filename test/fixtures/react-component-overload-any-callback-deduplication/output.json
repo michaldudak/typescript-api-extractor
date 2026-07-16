@@ -186,6 +186,7 @@
 								{
 									"name": "Items",
 									"constraint": {
+										"isReadonly": true,
 										"kind": "array",
 										"elementType": {
 											"kind": "object",
@@ -193,6 +194,7 @@
 												{
 													"name": "items",
 													"type": {
+														"isReadonly": true,
 														"kind": "array",
 														"elementType": {
 															"kind": "intrinsic",
@@ -207,6 +209,7 @@
 									"kind": "typeParameter"
 								},
 								{
+									"isReadonly": true,
 									"kind": "array",
 									"elementType": {
 										"name": "ItemValue",

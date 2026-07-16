@@ -2,6 +2,10 @@ import ts from 'typescript';
 import { TypeArgument, TypeName } from '../models/typeName';
 import { resolveType } from './typeResolver';
 import { type ScopedParserContext } from '../parserContext';
+import {
+	containsKeyofTypeOperatorOrAlias,
+	substituteTypeParameterTypeNode,
+} from './typeResolvers/typeOperatorTypeNodes';
 
 /**
  * Known TypeScript compiler-generated internal symbol names.
@@ -214,10 +218,25 @@ function getTypeArguments(
 ): TypeArgument[] {
 	let typeArguments: TypeArgument[] = [];
 
-	const nodeTypeArguments =
-		typeNode && ts.isTypeReferenceNode(typeNode)
-			? ((typeNode as ts.TypeReferenceNode).typeArguments ?? [])
+	const authoredTypeArguments =
+		typeNode && (ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode))
+			? (typeNode.typeArguments ?? [])
 			: [];
+	const nodeTypeArguments = authoredTypeArguments.map((argument) => {
+		const substituted = substituteTypeParameterTypeNode(
+			argument,
+			context.checker,
+			context.typeParameterTypeNodeSubstitutions,
+		);
+		return containsKeyofTypeOperatorOrAlias(
+			substituted,
+			context.checker,
+			new Set(),
+			context.includeExternalTypes,
+		)
+			? substituted
+			: argument;
+	});
 
 	// When the type name comes from the typeNode symbol (e.g., `TabsLikeDetails` from the authored
 	// source) rather than from TypeScript's resolved type, the aliasSymbol/aliasTypeArguments may
