@@ -60,6 +60,43 @@ export function resolveTypeParameterType(
 }
 
 /**
+ * Resolves TypeScript's built-in `Extract<T, U>` utility through the base
+ * constraint computed by the checker. For unresolved inputs, TypeScript exposes
+ * the true branch as a narrowing intersection (for example,
+ * `string & keyof T`), while the base constraint is the representable result
+ * bound (`string` in that example).
+ */
+export function resolveExtractUtilityType(
+	{ type }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (!hasExactFlag(type, ts.TypeFlags.Conditional)) {
+		return undefined;
+	}
+
+	const conditionalType = type as ts.ConditionalType;
+	if (!isBuiltInExtractSymbol(conditionalType.root.aliasSymbol)) {
+		return undefined;
+	}
+
+	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);
+	if (!baseConstraint || baseConstraint === type) {
+		return undefined;
+	}
+
+	return session.resolve(baseConstraint, undefined);
+}
+
+function isBuiltInExtractSymbol(symbol: ts.Symbol | undefined): boolean {
+	return (
+		symbol?.getName() === 'Extract' &&
+		symbol.declarations?.some((declaration) =>
+			/[\\/]typescript[\\/]lib[\\/]lib\.[^\\/]+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		) === true
+	);
+}
+
+/**
  * Resolves a conditional type `T extends X ? A : B`. Since the parser cannot
  * evaluate the condition in the general case, it emits both resolved branches as
  * a union (or the single branch TypeScript managed to resolve).
