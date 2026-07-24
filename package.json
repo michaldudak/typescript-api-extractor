@@ -37,7 +37,7 @@
 	},
 	"dependencies": {
 		"es-toolkit": "^1.49.0",
-		"typescript": "^5.8 || ^6.0"
+		"typescript": "^5.8 || ^6.0 || ^7.0.0"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
