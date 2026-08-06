@@ -60,6 +60,58 @@ export function resolveTypeParameterType(
 }
 
 /**
+ * Resolves TypeScript's built-in `Extract<T, U>` utility over an index-like
+ * check type (`Extract<keyof T, string>`, `Extract<T[K], string>`) through the
+ * base constraint computed by the checker. For those inputs, TypeScript exposes
+ * the true branch as a narrowing intersection (for example,
+ * `string & keyof T`), while the base constraint is the representable result
+ * bound (`string` in that example).
+ *
+ * The shortcut is deliberately limited to index-like check types, which
+ * `resolveIndexLikeType` already collapses to their base constraint, so the
+ * genericity lost here would have been lost anyway. `Extract` over a naked type
+ * parameter is exactly that parameter (`Extract<T, string>` with
+ * `T extends string` is `T`), and the conditional fallback keeps it as a
+ * TypeParameterNode, so those must not take this path.
+ */
+export function resolveExtractUtilityType(
+	{ type }: TypeResolutionRequest,
+	session: TypeResolutionSession,
+): AnyType | undefined {
+	if (!hasExactFlag(type, ts.TypeFlags.Conditional)) {
+		return undefined;
+	}
+
+	const conditionalType = type as ts.ConditionalType;
+	if (
+		!isBuiltInExtractSymbol(conditionalType.root.aliasSymbol) ||
+		!isIndexLikeType(conditionalType.checkType)
+	) {
+		return undefined;
+	}
+
+	const baseConstraint = session.context.checker.getBaseConstraintOfType(type);
+	if (!baseConstraint || baseConstraint === type) {
+		return undefined;
+	}
+
+	return session.resolve(baseConstraint, undefined);
+}
+
+function isIndexLikeType(type: ts.Type): boolean {
+	return hasExactFlag(type, ts.TypeFlags.Index) || hasExactFlag(type, ts.TypeFlags.IndexedAccess);
+}
+
+function isBuiltInExtractSymbol(symbol: ts.Symbol | undefined): boolean {
+	return (
+		symbol?.getName() === 'Extract' &&
+		symbol.declarations?.some((declaration) =>
+			/[\\/]typescript[\\/]lib[\\/]lib\.[^\\/]+\.d\.ts$/.test(declaration.getSourceFile().fileName),
+		) === true
+	);
+}
+
+/**
  * Resolves a conditional type `T extends X ? A : B`. Since the parser cannot
  * evaluate the condition in the general case, it emits both resolved branches as
  * a union (or the single branch TypeScript managed to resolve).
@@ -97,7 +149,7 @@ export function resolveIndexLikeType(
 	{ type, typeName }: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
-	if (!hasExactFlag(type, ts.TypeFlags.Index) && !hasExactFlag(type, ts.TypeFlags.IndexedAccess)) {
+	if (!isIndexLikeType(type)) {
 		return undefined;
 	}
 

@@ -1,0 +1,35 @@
+{
+	"name": "test/fixtures/type-extract-utility-resolution/input",
+	"exports": [
+		{
+			"name": "StringKeys",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "string"
+			}
+		},
+		{
+			"name": "StringValues",
+			"type": {
+				"kind": "intrinsic",
+				"intrinsic": "string"
+			}
+		},
+		{
+			"name": "KeepStrings",
+			"type": {
+				"kind": "union",
+				"types": [
+					{
+						"name": "T",
+						"constraint": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"kind": "typeParameter"
+					}
+				]
+			}
+		}
+	]
+}

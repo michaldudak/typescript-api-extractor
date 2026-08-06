@@ -9,6 +9,7 @@ import { resolveLiteralType } from './literalTypeResolver';
 import { resolveObjectLikeType } from './objectTypeResolver';
 import {
 	resolveConditionalType,
+	resolveExtractUtilityType,
 	resolveIndexLikeType,
 	resolveTypeParameterType,
 } from './specialTypeResolvers';
@@ -33,6 +34,11 @@ export const typeResolvers: TypeResolver[] = [
 	{ name: 'callable', resolve: resolveCallableType },
 	{ name: 'class', resolve: resolveClassType },
 	{ name: 'object', resolve: resolveObjectLikeType },
+	{
+		name: 'extract-utility',
+		replayNameResolutionWarnings: false,
+		resolve: resolveExtractUtilityType,
+	},
 	{
 		name: 'conditional',
 		replayNameResolutionWarnings: false,
