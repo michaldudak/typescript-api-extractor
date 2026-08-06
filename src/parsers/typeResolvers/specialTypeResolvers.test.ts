@@ -8,6 +8,8 @@ const substitutionTypeWithUnsupportedConstraintSource =
 const substitutionObjectTypeWithUnsupportedConstraintSource =
 	'export type X<T extends `prefix-${string}`> = T extends string ? { v: T } : never;';
 const extractUtilitySource = 'export type StringKeys<T> = Extract<keyof T, string>;';
+const constrainedExtractUtilitySource =
+	'export type KeepStrings<T extends string> = Extract<T, string>;';
 const shadowedExtractSource = `type Extract<T, U> = T extends U ? T : number;
 export type ShadowedExtract<T> = Extract<T, string>;`;
 
@@ -22,6 +24,32 @@ it('resolves the built-in Extract utility from its base constraint', () => {
 	expect(moduleDefinition.exports[0]?.type).toMatchObject({
 		kind: 'intrinsic',
 		intrinsic: 'string',
+	});
+});
+
+it('keeps the type parameter when Extract narrows a constrained type parameter', () => {
+	const filePath = '/virtual/constrained-extract-utility.ts';
+
+	// `Extract<T, string>` with `T extends string` is exactly `T`, so it must
+	// resolve like the equivalent `T extends string ? T : never` conditional
+	// instead of collapsing to the `string` base constraint.
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, constrainedExtractUtilitySource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeParameter',
+				name: 'T',
+				constraint: {
+					kind: 'intrinsic',
+					intrinsic: 'string',
+				},
+			},
+		],
 	});
 });
 
