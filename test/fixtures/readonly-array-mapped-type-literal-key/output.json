@@ -4,7 +4,6 @@
 		{
 			"name": "DirectData",
 			"type": {
-				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "DirectData",
@@ -55,13 +54,13 @@
 							"optional": true
 						}
 					]
-				}
+				},
+				"isReadonly": true
 			}
 		},
 		{
 			"name": "ParametricData",
 			"type": {
-				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "ParametricData",
@@ -78,7 +77,8 @@
 				"elementType": {
 					"kind": "object",
 					"properties": []
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]

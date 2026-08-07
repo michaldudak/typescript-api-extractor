@@ -481,6 +481,7 @@
 						"parameters": [
 							{
 								"type": {
+									"kind": "typeOperator",
 									"operator": "keyof",
 									"type": {
 										"kind": "object",
@@ -522,8 +523,7 @@
 											}
 										]
 									},
-									"resolutionKind": "exact",
-									"kind": "typeOperator"
+									"resolutionKind": "exact"
 								},
 								"name": "prop",
 								"optional": false

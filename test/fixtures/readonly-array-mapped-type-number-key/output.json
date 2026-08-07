@@ -4,7 +4,6 @@
 		{
 			"name": "Data",
 			"type": {
-				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "Data",
@@ -63,7 +62,8 @@
 							]
 						}
 					}
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]

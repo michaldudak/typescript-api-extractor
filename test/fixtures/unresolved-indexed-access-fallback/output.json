@@ -28,6 +28,7 @@
 												"type": {
 													"name": "K",
 													"constraint": {
+														"kind": "typeOperator",
 														"operator": "keyof",
 														"type": {
 															"name": "T",
@@ -50,8 +51,7 @@
 																}
 															]
 														},
-														"resolutionKind": "baseConstraint",
-														"kind": "typeOperator"
+														"resolutionKind": "baseConstraint"
 													},
 													"kind": "typeParameter"
 												},
@@ -77,6 +77,7 @@
 							{
 								"name": "K",
 								"constraint": {
+									"kind": "typeOperator",
 									"operator": "keyof",
 									"type": {
 										"name": "T",
@@ -99,8 +100,7 @@
 											}
 										]
 									},
-									"resolutionKind": "baseConstraint",
-									"kind": "typeOperator"
+									"resolutionKind": "baseConstraint"
 								},
 								"kind": "typeParameter"
 							}

@@ -186,7 +186,6 @@
 								{
 									"name": "Items",
 									"constraint": {
-										"isReadonly": true,
 										"kind": "array",
 										"elementType": {
 											"kind": "object",
@@ -194,27 +193,28 @@
 												{
 													"name": "items",
 													"type": {
-														"isReadonly": true,
 														"kind": "array",
 														"elementType": {
 															"kind": "intrinsic",
 															"intrinsic": "any"
-														}
+														},
+														"isReadonly": true
 													},
 													"optional": false
 												}
 											]
-										}
+										},
+										"isReadonly": true
 									},
 									"kind": "typeParameter"
 								},
 								{
-									"isReadonly": true,
 									"kind": "array",
 									"elementType": {
 										"name": "ItemValue",
 										"kind": "typeParameter"
-									}
+									},
+									"isReadonly": true
 								},
 								{
 									"kind": "intrinsic",

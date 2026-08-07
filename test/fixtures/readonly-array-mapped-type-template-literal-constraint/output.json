@@ -4,7 +4,6 @@
 		{
 			"name": "Data",
 			"type": {
-				"isReadonly": true,
 				"kind": "array",
 				"typeName": {
 					"name": "Data",
@@ -21,7 +20,8 @@
 				"elementType": {
 					"kind": "object",
 					"properties": []
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]
