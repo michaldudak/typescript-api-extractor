@@ -20,7 +20,8 @@
 				"elementType": {
 					"kind": "object",
 					"properties": []
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]

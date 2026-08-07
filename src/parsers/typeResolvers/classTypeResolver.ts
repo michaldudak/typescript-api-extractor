@@ -17,15 +17,25 @@ import {
 	type TypeResolutionSession,
 } from '../typeResolutionTypes';
 import { parseCallSignature, parseParameter } from './signatureParser';
+import {
+	containsIndexedAccessUnionSource,
+	getPreservableKeyofTypeNode,
+	getPropertyTypeNode,
+	substituteTypeParameterTypeNode,
+} from './typeOperatorTypeNodes';
 
-// Class type handling lives in one resolver module. The exported
-// resolver owns class-shape selection, while private helpers build the ClassNode
-// and its members with the active resolution session.
-
+/**
+ * Resolves class constructor types and their instance/static API members.
+ *
+ * @param request - Semantic class candidate; authored syntax is handled by nested member parsers.
+ * @param session - Active resolution session shared by constructors, methods, and properties.
+ * @returns A class model for actual class declarations/expressions, otherwise `undefined`.
+ */
 export function resolveClassType(
-	{ type }: TypeResolutionRequest,
+	request: TypeResolutionRequest,
 	session: TypeResolutionSession,
 ): AnyType | undefined {
+	const { type } = request;
 	if (type.getConstructSignatures().length < 1) {
 		return undefined;
 	}
@@ -182,14 +192,26 @@ function extractMembers(
 			methods.push(new ClassMethod(member.name, signatures, memberDoc, isStatic));
 		} else {
 			// It's a property
-			const propertyTypeNode =
-				(ts.isPropertyDeclaration(memberDeclaration) ||
-					ts.isPropertySignature(memberDeclaration)) &&
-				memberDeclaration.type
-					? memberDeclaration.type
-					: undefined;
+			const propertyTypeNode = getPropertyTypeNode(member, checker);
+			const substitutedPropertyTypeNode = propertyTypeNode
+				? substituteTypeParameterTypeNode(
+						propertyTypeNode,
+						checker,
+						context.typeParameterTypeNodeSubstitutions,
+					)
+				: undefined;
+			const resolutionTypeNode =
+				getPreservableKeyofTypeNode(
+					substitutedPropertyTypeNode,
+					checker,
+					context.typeParameterTypeNodeSubstitutions,
+					context.includeExternalTypes,
+				) ??
+				(containsIndexedAccessUnionSource(substitutedPropertyTypeNode)
+					? substitutedPropertyTypeNode
+					: undefined);
 			const resolvedType = context.runWithSourceNodeScope(propertyTypeNode, () =>
-				resolveTypeReference(memberType, undefined, context),
+				resolveTypeReference(memberType, resolutionTypeNode, context),
 			);
 			const isOptional = (member.flags & ts.SymbolFlags.Optional) !== 0;
 

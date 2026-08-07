@@ -49,7 +49,7 @@ export function buildSignatureTypeParameterNodes(
 
 			// If the model couldn't faithfully represent the constraint (degraded to 'any'
 			// but the source constraint isn't actually 'any'), fall back to the base constraint
-			// which may expand to a representable form (e.g., 'keyof T' -> string | number | symbol).
+			// which may expand a checker-internal indexed-access shape to a representable form.
 			if (
 				constraint.kind === 'intrinsic' &&
 				constraint.intrinsic === 'any' &&

@@ -118,7 +118,8 @@
 							"optional": false
 						}
 					]
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]

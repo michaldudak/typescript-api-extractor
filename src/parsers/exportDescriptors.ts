@@ -3,6 +3,8 @@ import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
+import { declarationHasNodeModulesPathSegment } from './sourceFileUtils';
+import { analyzeTypeAliasSource } from './typeResolvers/authoredTypeAlias';
 
 interface ExportDescriptorResolutionState {
 	nextTypeResolutionOrder: number;
@@ -38,6 +40,8 @@ export interface ExportDescriptor {
 	 * an `ExportNode`. This is deliberately not evaluated during normalization:
 	 * `checker.getTypeAtLocation` mutates TypeScript's lazy internal caches, and
 	 * batched upfront type queries can change observable union/property order.
+	 *
+	 * @returns The semantic type owned by this descriptor's target declaration.
 	 */
 	getType: () => ts.Type;
 	/** Public namespace path applied when this descriptor came from a namespace export. */
@@ -53,7 +57,9 @@ export interface ExportDescriptor {
 	symbolScope: string[];
 	/** Authored type node, when it affects alias or union preservation during type resolution. */
 	typeNode?: ts.TypeNode;
+	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
+	/** Interface or class heritage metadata attached to the export. */
 	extendsTypes?: ExtendsTypeInfo[];
 }
 
@@ -69,6 +75,7 @@ export interface ExportDescriptor {
  * @param parentNamespaces Namespace path inherited from enclosing namespace exports, prefixed onto the public name.
  * @param parentSymbolScope Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata.
  * @param resolutionState Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order.
+ * @returns One or more normalized descriptors, or `undefined` when the symbol has no extractable declaration.
  */
 export function resolveExportDescriptors(
 	exportSymbol: ts.Symbol,
@@ -187,7 +194,8 @@ function resolveExportSpecifierDescriptors(
 	const isReExport = isModuleReExportSpecifier(exportDeclaration);
 	const reexportedFrom =
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
-
+	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
+	const targetTypeNode = targetTypeAlias?.type;
 	return withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
@@ -197,9 +205,57 @@ function resolveExportSpecifierDescriptors(
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
+			typeNode:
+				targetTypeAlias &&
+				shouldPreserveTypeAliasNode(targetTypeAlias, reexportedFrom, context.includeExternalTypes)
+					? targetTypeNode
+					: undefined,
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);
+}
+
+function shouldPreserveTypeAliasNode(
+	declaration: ts.TypeAliasDeclaration,
+	reexportedFrom: string | undefined,
+	includeExternalTypes: boolean,
+): boolean {
+	const isExternal = declarationHasNodeModulesPathSegment(declaration);
+	if (isExternal && !reexportedFrom) {
+		return true;
+	}
+
+	const analysis = analyzeTypeAliasSource(declaration, includeExternalTypes);
+	return (
+		(isExternal && analysis.replaysKeyof) ||
+		analysis.referencesProjectImport ||
+		analysis.containsKeyof
+	);
+}
+
+function findAliasedTypeAliasDeclaration(
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+	seen: Set<ts.Symbol> = new Set(),
+): ts.TypeAliasDeclaration | undefined {
+	if (seen.has(symbol)) {
+		return undefined;
+	}
+	seen.add(symbol);
+
+	const declaration = symbol.declarations?.find(ts.isTypeAliasDeclaration);
+	if (declaration) {
+		return declaration;
+	}
+
+	if (!(symbol.flags & ts.SymbolFlags.Alias)) {
+		return undefined;
+	}
+
+	const aliasedSymbol = checker.getAliasedSymbol(symbol);
+	return aliasedSymbol && aliasedSymbol !== symbol
+		? findAliasedTypeAliasDeclaration(aliasedSymbol, checker, seen)
+		: undefined;
 }
 
 /**

@@ -1,6 +1,7 @@
 import ts from 'typescript';
 import { expect, it } from 'vitest';
 import { IntrinsicNode, ObjectNode } from '../index';
+import { parseFromProgram } from '../index';
 import { resolveType } from './typeResolver';
 import { createInMemoryProgram } from '../../test/support/inMemoryProgram';
 import { createTestParserContext } from '../../test/support/parserContext';
@@ -96,4 +97,28 @@ it('does not warn for fully supported types', () => {
 	resolveType(type, undefined, context);
 
 	expect(warnings).toHaveLength(0);
+});
+
+it('terminates authored syntax replay that selects the node being replayed', () => {
+	// `Foo['a' | 'b']` selects both properties. One of them is annotated with the
+	// very same indexed access, so replaying the keyof-bearing sibling walks back
+	// into the node the replay started from. Cycle detection on the semantic path
+	// never sees this, because a successful replay returns before reaching it.
+	const replayFilePath = '/virtual/authored-syntax-replay-cycle.ts';
+	const program = createInMemoryProgram({
+		[replayFilePath]: `export interface Source {
+  x: string;
+  y: number;
+}
+
+export interface Foo {
+  a: Foo['a' | 'b'];
+  b: keyof Source;
+}
+
+export type Result = Foo['a' | 'b'];
+`,
+	});
+
+	expect(() => parseFromProgram(replayFilePath, program)).not.toThrow();
 });

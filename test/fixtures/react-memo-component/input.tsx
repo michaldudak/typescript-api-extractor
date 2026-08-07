@@ -3,7 +3,7 @@ import * as React from 'react';
 /**
  * A test component
  */
-export const TestComponent = React.memo(function TestComponent(props: Props) {
+export const TestComponent = React.memo<Props>(function TestComponent(props: Props) {
 	return <div {...props} />;
 });
 

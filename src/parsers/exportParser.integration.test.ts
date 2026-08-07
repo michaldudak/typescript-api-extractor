@@ -25,3 +25,22 @@ it('preserves namespace type names when anonymous external members are namespace
 		},
 	});
 });
+
+it('preserves the historical external-source policy for paths containing node_modules', () => {
+	const filePath = '/virtual/external-substring.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: "export { type Data } from './my_node_modules/pkg';",
+			'/virtual/my_node_modules/pkg.ts': 'export interface Data { value: string; }',
+		}),
+	);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'Data',
+		type: {
+			kind: 'external',
+			typeName: { name: 'Data' },
+		},
+	});
+});
