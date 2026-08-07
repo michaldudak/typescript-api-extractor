@@ -228,13 +228,35 @@ function getTupleSourceBindingsKey(
 	return [...(typeNodeSubstitutions ?? [])]
 		.map(([symbol, typeNode]) => {
 			const declaration = symbol.declarations?.[0];
-			const declarationLocation = declaration
-				? `${declaration.getSourceFile().fileName}:${declaration.pos}:${declaration.end}`
-				: symbol.name;
-			return `${declarationLocation}=${typeNode.getSourceFile().fileName}:${typeNode.pos}:${typeNode.end}`;
+			const declarationLocation = declaration ? getNodeIdentityKey(declaration) : symbol.name;
+			return `${declarationLocation}=${getNodeIdentityKey(typeNode)}`;
 		})
 		.sort()
 		.join('|');
+}
+
+/**
+ * Identifies a node for binding keys. Source positions identify authored nodes,
+ * but mapped-property replay binds synthetic literal nodes built with
+ * `ts.factory` (see `getMappedPropertyKeyBinding` in `objectTypeResolver.ts`).
+ * Those carry no parent chain, so `getSourceFile()` yields `undefined` and every
+ * synthetic node shares the same `-1` positions. Literal text distinguishes
+ * them, which keeps distinct mapped keys from colliding into a false cycle.
+ */
+function getNodeIdentityKey(node: ts.Node): string {
+	const sourceFile = node.getSourceFile() as ts.SourceFile | undefined;
+	if (sourceFile) {
+		return `${sourceFile.fileName}:${node.pos}:${node.end}`;
+	}
+	if (ts.isLiteralTypeNode(node)) {
+		const literal = node.literal;
+		const text =
+			ts.isStringLiteral(literal) || ts.isNumericLiteral(literal)
+				? literal.text
+				: (ts.tokenToString(literal.kind) ?? '');
+		return `synthetic:${literal.kind}:${text}`;
+	}
+	return `synthetic:${node.kind}`;
 }
 
 interface TupleElementSyntax {
@@ -318,9 +340,7 @@ function getTupleSourceSemanticBindingsKey(
 				cache.semanticTypeIds.set(type, typeId);
 			}
 			const declaration = symbol.declarations?.[0];
-			const symbolLocation = declaration
-				? `${declaration.getSourceFile().fileName}:${declaration.pos}:${declaration.end}`
-				: symbol.name;
+			const symbolLocation = declaration ? getNodeIdentityKey(declaration) : symbol.name;
 			return `${symbolLocation}=${typeId}`;
 		})
 		.sort()
