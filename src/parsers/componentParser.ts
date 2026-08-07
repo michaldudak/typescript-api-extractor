@@ -217,6 +217,16 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 		usedPropsPerSignature.push(usedProps);
 	});
 
+	// A signature that takes no props at all uses none of the props gathered above, so it
+	// contributes an empty set. It is dropped from `propsFromCallSignatures` (there is no
+	// props parameter to read a shape from), and without this the props of the remaining
+	// signatures would stay required even though one form of the component rejects them.
+	for (const signature of callSignatures) {
+		if (signature.parameters.length === 0) {
+			usedPropsPerSignature.push(new Set());
+		}
+	}
+
 	// If a prop is used in some signatures, but not in others, we need to mark it as optional.
 	return [...props.entries()].map(([name, property]) => {
 		const onlyUsedInSomeSignatures = usedPropsPerSignature.some((props) => !props.has(name));

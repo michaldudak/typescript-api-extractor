@@ -116,6 +116,22 @@ it('merges the props of every union member into one component', () => {
 	expect(componentNode.typeName).toBeUndefined();
 });
 
+it('marks props as optional when a union member accepts no props', () => {
+	const componentUnion = new UnionNode(undefined, [
+		createFunctionNode(undefined, 'ToolbarStandalone', []),
+		createFunctionNode(undefined, 'ToolbarWithProps', ['id']),
+	]);
+	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+
+	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
+		.type as ComponentNode;
+
+	expect(componentNode).toBeInstanceOf(ComponentNode);
+	expect(componentNode.props.map((prop) => prop.name)).toEqual(['id']);
+	// The parameterless member accepts no props, so `id` only applies to the other form.
+	expect(componentNode.props[0]!.optional).toBe(true);
+});
+
 it('keeps the shared type name when every union member agrees on it', () => {
 	const componentUnion = new UnionNode(undefined, [
 		createFunctionNode(undefined, 'Toolbar', ['children']),
