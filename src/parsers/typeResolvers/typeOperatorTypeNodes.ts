@@ -191,6 +191,7 @@ export function substituteTypeParameterTypeNode(
  * @param checker - Checker used to resolve type-parameter symbols and alias declarations.
  * @param substitutions - Active authored type-parameter arguments.
  * @param includeExternalTypes - Whether alias traversal may enter external declarations.
+ * @param seenIndexedAccesses - Indexed-access syntax already expanded on this path.
  * @returns Whether substituting any referenced parameter exposes preservable `keyof` syntax.
  */
 export function containsKeyofTypeNodeSubstitution(
@@ -198,6 +199,7 @@ export function containsKeyofTypeNodeSubstitution(
 	checker: ts.TypeChecker,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	includeExternalTypes = false,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): boolean {
 	if (!typeNode || !substitutions?.size) {
 		return false;
@@ -212,7 +214,15 @@ export function containsKeyofTypeNodeSubstitution(
 			const substituted = substituteTypeParameterTypeNode(node, checker, substitutions);
 			if (
 				substituted !== node &&
-				containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes)
+				containsKeyofTypeOperatorOrAlias(
+					substituted,
+					checker,
+					new Set(),
+					includeExternalTypes,
+					substitutions,
+					undefined,
+					seenIndexedAccesses,
+				)
 			) {
 				found = true;
 				return;
@@ -231,6 +241,7 @@ export function containsKeyofTypeNodeSubstitution(
  * @param checker - Checker used for parameter and alias lookups.
  * @param substitutions - Active authored generic substitutions.
  * @param includeExternalTypes - Whether alias traversal may enter external declarations.
+ * @param seenIndexedAccesses - Indexed-access syntax already expanded on this path.
  * @returns Preservable substituted syntax, or `undefined` when semantic resolution is sufficient.
  */
 export function getPreservableKeyofTypeNode(
@@ -238,21 +249,41 @@ export function getPreservableKeyofTypeNode(
 	checker: ts.TypeChecker,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
 	includeExternalTypes = false,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
 	if (!typeNode) {
 		return undefined;
 	}
 
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
+	// `substituteTypeParameterTypeNode` only rewrites a bare root reference, so
+	// nested parameters survive in the returned syntax (`T['value']` keeps its
+	// `T`). The active arguments have to travel with the traversal for those to
+	// resolve, exactly as they do for the sibling probes below.
 	return containsKeyofTypeOperator(substituted) ||
-		containsKeyofTypeOperatorOrAlias(substituted, checker, new Set(), includeExternalTypes) ||
+		containsKeyofTypeOperatorOrAlias(
+			substituted,
+			checker,
+			new Set(),
+			includeExternalTypes,
+			substitutions,
+			undefined,
+			seenIndexedAccesses,
+		) ||
 		containsKeyofTypeReferenceArgumentOrAlias(
 			substituted,
 			checker,
 			includeExternalTypes,
 			substitutions,
+			seenIndexedAccesses,
 		) ||
-		containsKeyofTypeNodeSubstitution(substituted, checker, substitutions, includeExternalTypes)
+		containsKeyofTypeNodeSubstitution(
+			substituted,
+			checker,
+			substitutions,
+			includeExternalTypes,
+			seenIndexedAccesses,
+		)
 		? substituted
 		: undefined;
 }
@@ -270,6 +301,7 @@ export function getPreservableKeyofTypeNode(
  * @param includeExternalTypes - Whether traversal may enter external aliases.
  * @param substitutions - Active authored arguments for generic alias parameters.
  * @param seenAliasInstantiations - Generic alias bindings already visited on this path.
+ * @param seenIndexedAccesses - Indexed-access syntax already expanded on this path.
  * @returns Whether replayable `keyof` syntax is reachable.
  */
 export function containsKeyofTypeOperatorOrAlias(
@@ -279,6 +311,7 @@ export function containsKeyofTypeOperatorOrAlias(
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
 	seenAliasInstantiations: Map<ts.TypeAliasDeclaration, Set<string>> = new Map(),
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): boolean {
 	if (!typeNode) {
 		return false;
@@ -297,6 +330,7 @@ export function containsKeyofTypeOperatorOrAlias(
 			includeExternalTypes,
 			substitutions,
 			seenAliasInstantiations,
+			seenIndexedAccesses,
 		);
 	}
 	if (ts.isTupleTypeNode(unwrapped)) {
@@ -308,6 +342,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				includeExternalTypes,
 				substitutions,
 				seenAliasInstantiations,
+				seenIndexedAccesses,
 			),
 		);
 	}
@@ -320,6 +355,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				includeExternalTypes,
 				substitutions,
 				seenAliasInstantiations,
+				seenIndexedAccesses,
 			),
 		);
 	}
@@ -332,6 +368,7 @@ export function containsKeyofTypeOperatorOrAlias(
 				includeExternalTypes,
 				substitutions,
 				seenAliasInstantiations,
+				seenIndexedAccesses,
 			) ||
 			containsKeyofTypeOperatorOrAlias(
 				unwrapped.falseType,
@@ -340,10 +377,21 @@ export function containsKeyofTypeOperatorOrAlias(
 				includeExternalTypes,
 				substitutions,
 				seenAliasInstantiations,
+				seenIndexedAccesses,
 			)
 		);
 	}
 	if (ts.isIndexedAccessTypeNode(unwrapped)) {
+		// Expanding an indexed access resolves the selected property back to
+		// authored syntax, which may itself be an indexed access that selects the
+		// original property (`interface Foo { a: Foo['a'] }`, or the same loop
+		// spread across two interfaces). Following such a chain never reaches
+		// terminal syntax, so a repeat visit means no `keyof` is replayable here.
+		if (seenIndexedAccesses.has(unwrapped)) {
+			return false;
+		}
+		const nextSeenIndexedAccesses = new Set(seenIndexedAccesses).add(unwrapped);
+
 		const indexType = checker.getTypeFromTypeNode(unwrapped.indexType);
 		let sourceTypeNodes = getIndexedAccessSourceTypeNodes(
 			unwrapped,
@@ -376,6 +424,8 @@ export function containsKeyofTypeOperatorOrAlias(
 							checker,
 							includeExternalTypes,
 							substitutions,
+							new Set(),
+							nextSeenIndexedAccesses,
 						),
 					),
 				)
@@ -385,6 +435,7 @@ export function containsKeyofTypeOperatorOrAlias(
 						checker,
 						includeExternalTypes,
 						substitutions,
+						nextSeenIndexedAccesses,
 					),
 				);
 	}
@@ -417,6 +468,7 @@ export function containsKeyofTypeOperatorOrAlias(
 			includeExternalTypes,
 			aliasSubstitutions,
 			nextSeenAliasInstantiations,
+			seenIndexedAccesses,
 		);
 	}
 	if (!ts.isTypeReferenceNode(unwrapped)) {
@@ -434,6 +486,7 @@ export function containsKeyofTypeOperatorOrAlias(
 					includeExternalTypes,
 					substitutions,
 					seenAliasInstantiations,
+					seenIndexedAccesses,
 				),
 			) ?? false
 		);
@@ -469,6 +522,7 @@ export function containsKeyofTypeOperatorOrAlias(
 		includeExternalTypes,
 		aliasSubstitutions,
 		nextSeenAliasInstantiations,
+		seenIndexedAccesses,
 	);
 }
 
@@ -482,6 +536,7 @@ export function containsKeyofTypeOperatorOrAlias(
  * @param checker - Checker used to resolve aliases inside the arguments.
  * @param includeExternalTypes - Whether argument alias traversal may enter external declarations.
  * @param substitutions - Active authored generic substitutions.
+ * @param seenIndexedAccesses - Indexed-access syntax already expanded on this path.
  * @returns Whether a reference argument contains preservable `keyof` syntax.
  */
 export function containsKeyofTypeReferenceArgumentOrAlias(
@@ -489,6 +544,7 @@ export function containsKeyofTypeReferenceArgumentOrAlias(
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): boolean {
 	if (!typeNode) {
 		return false;
@@ -509,6 +565,8 @@ export function containsKeyofTypeReferenceArgumentOrAlias(
 						new Set(),
 						includeExternalTypes,
 						substitutions,
+						undefined,
+						seenIndexedAccesses,
 					),
 				) ?? false;
 		}
@@ -690,6 +748,7 @@ export function flattenIntersectionTypeNodes(
  * @param checker - Checker used to resolve the object, index, and property symbols.
  * @param includeExternalTypes - Whether selected syntax may come from external declarations.
  * @param substitutions - Active authored generic substitutions.
+ * @param seenIndexedAccesses - Indexed-access syntax already followed on this path.
  * @returns The terminal selected type node, or `undefined` when the access is not statically known.
  */
 export function getIndexedAccessSourceTypeNode(
@@ -697,12 +756,22 @@ export function getIndexedAccessSourceTypeNode(
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
 	const unwrapped = unwrapParenthesizedTypeNode(substituted);
 	if (!ts.isIndexedAccessTypeNode(unwrapped)) {
 		return undefined;
 	}
+
+	// A self-referential access such as `interface Foo { a: Foo['a'] }` resolves
+	// back to the same syntax on every hop. `substitutions` is threaded unchanged
+	// through this traversal, so revisiting a node means the arguments repeat
+	// exactly and the access has no statically known terminal syntax.
+	if (seenIndexedAccesses.has(unwrapped)) {
+		return undefined;
+	}
+	const nextSeenIndexedAccesses = new Set(seenIndexedAccesses).add(unwrapped);
 
 	const objectTypeNode = substituteTypeParameterTypeNode(
 		unwrapped.objectType,
@@ -753,6 +822,7 @@ export function getIndexedAccessSourceTypeNode(
 				checker,
 				includeExternalTypes,
 				substitutions,
+				nextSeenIndexedAccesses,
 			) ?? elementTypeNode
 		);
 	}
@@ -779,6 +849,7 @@ export function getIndexedAccessSourceTypeNode(
 					checker,
 					includeExternalTypes,
 					substitutions,
+					nextSeenIndexedAccesses,
 				) ?? elementTypeNode
 			);
 		}
@@ -787,6 +858,7 @@ export function getIndexedAccessSourceTypeNode(
 			checker,
 			includeExternalTypes,
 			substitutions,
+			nextSeenIndexedAccesses,
 		);
 	}
 
@@ -796,6 +868,7 @@ export function getIndexedAccessSourceTypeNode(
 			checker,
 			includeExternalTypes,
 			substitutions,
+			nextSeenIndexedAccesses,
 		);
 	}
 	if (indexType.flags & ts.TypeFlags.ESSymbol) {
@@ -804,6 +877,7 @@ export function getIndexedAccessSourceTypeNode(
 			checker,
 			includeExternalTypes,
 			substitutions,
+			nextSeenIndexedAccesses,
 		);
 	}
 	const property = indexType.isStringLiteral()
@@ -825,6 +899,7 @@ export function getIndexedAccessSourceTypeNode(
 			checker,
 			includeExternalTypes,
 			substitutions,
+			nextSeenIndexedAccesses,
 		) ?? propertyTypeNode
 	);
 }
@@ -838,6 +913,7 @@ export function getIndexedAccessSourceTypeNode(
  * @param checker - Checker used to follow nested indexed value sources.
  * @param includeExternalTypes - Whether external index declarations may be followed.
  * @param substitutions - Active authored generic substitutions.
+ * @param seenIndexedAccesses - Indexed-access syntax already followed on this path.
  * @returns The terminal authored value source, or `undefined` when unavailable.
  */
 function getIndexInfoSourceTypeNode(
@@ -845,6 +921,7 @@ function getIndexInfoSourceTypeNode(
 	checker: ts.TypeChecker,
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
 	const declaration = indexInfo?.declaration;
 	const valueTypeNode =
@@ -856,8 +933,13 @@ function getIndexInfoSourceTypeNode(
 		return undefined;
 	}
 	return (
-		getIndexedAccessSourceTypeNode(valueTypeNode, checker, includeExternalTypes, substitutions) ??
-		valueTypeNode
+		getIndexedAccessSourceTypeNode(
+			valueTypeNode,
+			checker,
+			includeExternalTypes,
+			substitutions,
+			seenIndexedAccesses,
+		) ?? valueTypeNode
 	);
 }
 
@@ -1461,6 +1543,7 @@ function areTypeNodeSubstitutionsIdentical(
  * @param checker - Checker used for property and alias resolution.
  * @param includeExternalTypes - Whether tracing may enter external declarations.
  * @param substitutions - Active authored generic substitutions.
+ * @param seenIndexedAccesses - Indexed-access syntax already expanded on this path.
  * @returns The terminal syntax containing `keyof`, or `undefined` when none is reachable.
  */
 export function getIndexedAccessKeyofSourceTypeNode(
@@ -1468,6 +1551,7 @@ export function getIndexedAccessKeyofSourceTypeNode(
 	checker: ts.TypeChecker,
 	includeExternalTypes = false,
 	substitutions?: Map<ts.Symbol, ts.TypeNode>,
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
 	const sourceTypeNode = getIndexedAccessSourceTypeNode(
 		typeNode,
@@ -1476,7 +1560,14 @@ export function getIndexedAccessKeyofSourceTypeNode(
 		substitutions,
 	);
 	return sourceTypeNode
-		? followTypeAliasToKeyofSource(sourceTypeNode, checker, includeExternalTypes, substitutions)
+		? followTypeAliasToKeyofSource(
+				sourceTypeNode,
+				checker,
+				includeExternalTypes,
+				substitutions,
+				new Set(),
+				seenIndexedAccesses,
+			)
 		: undefined;
 }
 
@@ -1698,6 +1789,7 @@ function followTypeAliasToKeyofSource(
 	includeExternalTypes: boolean,
 	substitutions: Map<ts.Symbol, ts.TypeNode> | undefined,
 	seen: Set<ts.TypeAliasDeclaration> = new Set(),
+	seenIndexedAccesses: ReadonlySet<ts.IndexedAccessTypeNode> = new Set(),
 ): ts.TypeNode | undefined {
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, substitutions);
 	if (!includeExternalTypes && hasNodeModulesPathSegment(substituted.getSourceFile())) {
@@ -1708,6 +1800,7 @@ function followTypeAliasToKeyofSource(
 		checker,
 		substitutions,
 		includeExternalTypes,
+		seenIndexedAccesses,
 	);
 	if (preservableTypeNode) {
 		return preservableTypeNode;
@@ -1729,6 +1822,7 @@ function followTypeAliasToKeyofSource(
 		includeExternalTypes,
 		substitutions,
 		seen,
+		seenIndexedAccesses,
 	);
 }
 
