@@ -117,13 +117,26 @@ function buildIndexSignatureNode(
 	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): IndexSignatureNode | undefined {
-	const { checker } = context;
-
 	// Only check index signatures on actual object types
 	// Conditional types and other non-object types may report index signatures incorrectly
 	if (!isObjectType(type)) {
 		return undefined;
 	}
+
+	// The value type sits behind an (open-ended) property of this object, so it
+	// resolves one property level deeper than the object itself.
+	return context.runWithPropertyValueScope(() =>
+		buildIndexSignatureNodeCore(type, context, resolveValueType),
+	);
+}
+
+function buildIndexSignatureNodeCore(
+	type: ts.ObjectType,
+	context: ScopedParserContext,
+	resolveValueType: ResolveTypeInContext,
+): IndexSignatureNode | undefined {
+	const { checker } = context;
+
 	const mappedNode =
 		type.objectFlags & ts.ObjectFlags.Mapped
 			? type.symbol?.declarations?.find(ts.isMappedTypeNode)
@@ -368,7 +381,8 @@ function buildObjectNodeFromType(
 	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): ObjectNode | undefined {
-	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
+	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, propertyDepth } =
+		context;
 	const mappedNode =
 		isObjectType(type) && type.objectFlags & ts.ObjectFlags.Mapped
 			? type.symbol?.declarations?.find(ts.isMappedTypeNode)
@@ -389,6 +403,7 @@ function buildObjectNodeFromType(
 				name: typeName?.name ?? '',
 				propertyCount: properties.length,
 				depth: typeStack.length,
+				propertyDepth,
 			})
 		) {
 			let filteredProperties: ts.Symbol[];
@@ -530,7 +545,10 @@ function buildPropertyNodeFromSymbol(
 								context.typeParameterTypeNodeSubstitutions,
 							)
 						: undefined;
-				const parsedType =
+				// A property's value type sits one property level below the object
+				// being described, which is what `shouldResolveObject` reads to tell
+				// the requested shape from the nested details of that shape.
+				const parsedType = context.runWithPropertyValueScope(() =>
 					mappedNode && mappedTemplateTypeNode && mappedSubstitutions
 						? resolveTemplateValueType(
 								type,
@@ -540,7 +558,8 @@ function buildPropertyNodeFromSymbol(
 								mappedSubstitutions,
 								getMappedPropertyKeyBinding(mappedNode, propertySymbol, checker),
 							)
-						: resolvePropertyType(type, resolvedPropertyTypeNode, context);
+						: resolvePropertyType(type, resolvedPropertyTypeNode, context),
+				);
 
 				// Typechecker only gives the type "any" if it's present in a union.
 				// This means the type of `a` in `{ a?: any }` isn't `any | undefined`.

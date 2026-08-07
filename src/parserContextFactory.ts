@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { type ParserOptions } from './parser';
+import { type ParserOptions, type ShouldResolveObjectData } from './parser';
 import { type ScopedParserContext } from './parserContext';
 
 /**
@@ -31,12 +31,22 @@ export function createParserContext(
 		parsedSymbolStack,
 		sourceNodeStack,
 		program,
+		propertyDepth: 0,
 		resolvedTypeCache: new Map(),
 		...resolveParserOptions(parserOptions),
 		runWithSymbolScope: (symbolName, callback) =>
 			runWithStackEntryScope(parsedSymbolStack, symbolName, callback),
 		runWithSourceNodeScope: (sourceNode, callback) =>
 			sourceNode ? runWithStackEntryScope(sourceNodeStack, sourceNode, callback) : callback(),
+		runWithPropertyValueScope: (callback) => {
+			context.propertyDepth += 1;
+
+			try {
+				return callback();
+			} finally {
+				context.propertyDepth -= 1;
+			}
+		},
 		runWithTypeParameterSubstitutionScope: (
 			typeParameterSubstitutions,
 			callback,
@@ -67,8 +77,9 @@ function resolveParserOptions(parserOptions: ParserOptions) {
 	return {
 		shouldInclude: (data: { name: string; depth: number }) =>
 			parserOptions.shouldInclude?.(data) ?? true,
-		shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) =>
-			parserOptions.shouldResolveObject?.(data) ?? (data.propertyCount <= 50 && data.depth <= 10),
+		shouldResolveObject: (data: ShouldResolveObjectData) =>
+			parserOptions.shouldResolveObject?.(data) ??
+			((data.propertyDepth === 0 || data.propertyCount <= 50) && data.depth <= 10),
 		includeExternalTypes: parserOptions.includeExternalTypes ?? false,
 		typeOperatorOutput: parserOptions.typeOperatorOutput ?? 'resolved',
 		onWarning:

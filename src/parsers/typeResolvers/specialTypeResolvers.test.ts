@@ -7,6 +7,74 @@ const substitutionTypeWithUnsupportedConstraintSource =
 	'export type X<T extends `prefix-${string}`> = T extends string ? T : never;';
 const substitutionObjectTypeWithUnsupportedConstraintSource =
 	'export type X<T extends `prefix-${string}`> = T extends string ? { v: T } : never;';
+const extractUtilitySource = 'export type StringKeys<T> = Extract<keyof T, string>;';
+const constrainedExtractUtilitySource =
+	'export type KeepStrings<T extends string> = Extract<T, string>;';
+const shadowedExtractSource = `type Extract<T, U> = T extends U ? T : number;
+export type ShadowedExtract<T> = Extract<T, string>;`;
+
+it('resolves the built-in Extract utility from its base constraint', () => {
+	const filePath = '/virtual/extract-utility.ts';
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, extractUtilitySource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'intrinsic',
+		intrinsic: 'string',
+	});
+});
+
+it('keeps the type parameter when Extract narrows a constrained type parameter', () => {
+	const filePath = '/virtual/constrained-extract-utility.ts';
+
+	// `Extract<T, string>` with `T extends string` is exactly `T`, so it must
+	// resolve like the equivalent `T extends string ? T : never` conditional
+	// instead of collapsing to the `string` base constraint.
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, constrainedExtractUtilitySource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeParameter',
+				name: 'T',
+				constraint: {
+					kind: 'intrinsic',
+					intrinsic: 'string',
+				},
+			},
+		],
+	});
+});
+
+it('does not treat a local Extract alias as the built-in utility', () => {
+	const filePath = '/virtual/shadowed-extract.ts';
+
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, shadowedExtractSource),
+	);
+
+	expect(moduleDefinition.exports[0]?.type).toMatchObject({
+		kind: 'union',
+		types: [
+			{
+				kind: 'typeParameter',
+				name: 'T',
+			},
+			{
+				kind: 'intrinsic',
+				intrinsic: 'number',
+			},
+		],
+	});
+});
 
 it('resolves substitution types from representable base types', () => {
 	const filePath = '/virtual/substitution-fallback.ts';

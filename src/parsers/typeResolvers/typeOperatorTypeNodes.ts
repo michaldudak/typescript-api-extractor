@@ -1833,19 +1833,37 @@ function followTypeAliasToKeyofSource(
 	);
 }
 
+/**
+ * Top-level type aliases per source file, keyed by name. Built once per file
+ * because this lookup runs for every type reference the checker could not
+ * resolve to an alias, and declaration files can hold thousands of statements.
+ * Only the first declaration of a name is kept, matching a linear scan.
+ */
+const localTypeAliasDeclarations = new WeakMap<
+	ts.SourceFile,
+	Map<string, ts.TypeAliasDeclaration>
+>();
+
 function findLocalTypeAliasDeclaration(
 	typeNode: ts.TypeReferenceNode,
 ): ts.TypeAliasDeclaration | undefined {
 	if (!ts.isIdentifier(typeNode.typeName)) {
 		return undefined;
 	}
-	const referencedName = typeNode.typeName.text;
-	return typeNode
-		.getSourceFile()
-		.statements.find(
-			(statement): statement is ts.TypeAliasDeclaration =>
-				ts.isTypeAliasDeclaration(statement) && statement.name.text === referencedName,
-		);
+
+	const sourceFile = typeNode.getSourceFile();
+	let declarations = localTypeAliasDeclarations.get(sourceFile);
+	if (!declarations) {
+		declarations = new Map();
+		for (const statement of sourceFile.statements) {
+			if (ts.isTypeAliasDeclaration(statement) && !declarations.has(statement.name.text)) {
+				declarations.set(statement.name.text, statement);
+			}
+		}
+		localTypeAliasDeclarations.set(sourceFile, declarations);
+	}
+
+	return declarations.get(typeNode.typeName.text);
 }
 
 /**

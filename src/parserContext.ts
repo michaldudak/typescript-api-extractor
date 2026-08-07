@@ -23,6 +23,13 @@ export interface ScopedParserContext extends ParserContext {
 	 */
 	runWithSourceNodeScope<T>(sourceNode: ts.Node | undefined, callback: () => T): T;
 	/**
+	 * Runs resolver work one property level deeper, for the value type of a
+	 * property or index signature. `shouldResolveObject` reads the resulting
+	 * `propertyDepth` to tell the shape a caller asked about from the nested
+	 * details of that shape.
+	 */
+	runWithPropertyValueScope<T>(callback: () => T): T;
+	/**
 	 * Runs resolver work in a temporary type-parameter substitution scope for
 	 * mapped/instantiated type expansion. The previous substitution map is
 	 * always restored.

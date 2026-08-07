@@ -137,10 +137,10 @@ export interface ParserContext {
 	/**
 	 * Decides whether an object's properties should be expanded.
 	 *
-	 * @param data - Object name, property count, and current resolution depth.
+	 * @param data - Object name, property count, and resolution/property depth.
 	 * @returns Whether the object shape should be resolved.
 	 */
-	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
+	shouldResolveObject: (data: ShouldResolveObjectData) => boolean;
 	/** Whether declarations from external libraries may be expanded. */
 	includeExternalTypes: boolean;
 	/** Controls whether preserved type operators include their checker-resolved result. */
@@ -168,12 +168,39 @@ export interface ParserContext {
 	/** Active semantic substitutions for generic type parameters. */
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
 	/**
+	 * How many property (or index signature) values were traversed to reach the
+	 * type currently being resolved. See `ShouldResolveObjectData.propertyDepth`.
+	 */
+	propertyDepth: number;
+	/**
 	 * Cache for resolved types to avoid resolving the same type multiple times.
-	 * The key encodes both the type ID and the current stack depth, because
-	 * depth-dependent options (`shouldResolveObject`, `shouldInclude`) can
-	 * produce different results for the same type at different depths.
+	 * The key encodes the type ID together with the current stack and property
+	 * depths, because depth-dependent options (`shouldResolveObject`,
+	 * `shouldInclude`) can produce different results for the same type at
+	 * different depths.
 	 */
 	resolvedTypeCache: Map<string, AnyType>;
+}
+
+/**
+ * Describes the object whose shape is about to be resolved.
+ */
+export interface ShouldResolveObjectData {
+	/** Name of the object's type, or an empty string for anonymous shapes. */
+	name: string;
+	/** Number of properties the object would contribute to the output. */
+	propertyCount: number;
+	/** Depth of the type-resolution stack, counting every intermediate type. */
+	depth: number;
+	/**
+	 * How many property (or index signature) values were traversed to reach this
+	 * object. It is 0 for the export's own type and for everything reached from
+	 * it through type composition alone - aliases, unions, intersections, and the
+	 * parameter and return types of its call signatures. In other words, a
+	 * `propertyDepth` of 0 marks the shapes the caller directly asked about,
+	 * while anything above 0 is a nested detail of one of them.
+	 */
+	propertyDepth: number;
 }
 
 /**
@@ -190,15 +217,11 @@ export interface ParserOptions {
 	/**
 	 * Called before the shape of an object is resolved
 	 *
-	 * @param data - Object name, property count, and current resolution depth.
+	 * @param data - Object name, property count, and resolution/property depth.
 	 * @returns `true` to resolve the shape, `false` for an opaque object, or `undefined` for the default.
-	 * @default propertyCount <= 50 && depth <= 10
+	 * @default (propertyDepth === 0 || propertyCount <= 50) && depth <= 10
 	 */
-	shouldResolveObject?: (data: {
-		name: string;
-		propertyCount: number;
-		depth: number;
-	}) => boolean | undefined;
+	shouldResolveObject?: (data: ShouldResolveObjectData) => boolean | undefined;
 	/**
 	 * Control if external types and members should be included in the output.
 	 * @default false
