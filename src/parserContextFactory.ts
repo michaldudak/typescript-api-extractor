@@ -26,6 +26,7 @@ export function createParserContext(
 		checker,
 		sourceFile,
 		typeStack: [],
+		authoredSyntaxStack: [],
 		compilerOptions: program.getCompilerOptions(),
 		parsedSymbolStack,
 		sourceNodeStack,

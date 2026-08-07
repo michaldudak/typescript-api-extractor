@@ -34,4 +34,10 @@ export interface ScopedParserContext extends ParserContext {
 	): T;
 	/** Authored type arguments paired with the active semantic substitutions. */
 	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
+	/**
+	 * Authored syntax nodes whose replay is currently in progress. The semantic
+	 * `typeStack` cannot cover these: a successful syntax replay returns before
+	 * reaching the frame that stack is pushed in.
+	 */
+	authoredSyntaxStack: ts.TypeNode[];
 }

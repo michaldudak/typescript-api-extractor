@@ -104,10 +104,33 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 	 * @returns The replayed model or the normal resolution fallback.
 	 */
 	resolveAuthoredSyntax(request: TypeResolutionRequest): AnyType {
-		return (
-			this.dispatch(request, (resolver) => resolver.replaysAuthoredSyntax === true)?.resolvedType ??
-			this.resolve(request.type, request.typeNode)
-		);
+		const { authoredSyntaxStack } = this.context;
+		const { typeNode } = request;
+
+		// Replayed syntax can select a source that is the node being replayed, as
+		// in `interface Foo { a: Foo['a' | 'b'] }`. Cycle detection lives in the
+		// semantic path, which a successful replay returns before reaching, so the
+		// replay chain carries its own frame. Re-entry drops the node rather than
+		// passing it on: every replaying resolver keys off authored syntax, so
+		// keeping it would route straight back into the same cycle. The checker's
+		// own expansion of the type stands in instead.
+		if (typeNode && authoredSyntaxStack.includes(typeNode)) {
+			return this.resolve(request.type, undefined);
+		}
+
+		if (typeNode) {
+			authoredSyntaxStack.push(typeNode);
+		}
+		try {
+			return (
+				this.dispatch(request, (resolver) => resolver.replaysAuthoredSyntax === true)
+					?.resolvedType ?? this.resolve(request.type, request.typeNode)
+			);
+		} finally {
+			if (typeNode) {
+				authoredSyntaxStack.pop();
+			}
+		}
 	}
 
 	/**
