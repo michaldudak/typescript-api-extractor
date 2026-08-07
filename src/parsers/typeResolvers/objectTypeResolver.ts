@@ -62,13 +62,25 @@ function buildIndexSignatureNode(
 	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): IndexSignatureNode | undefined {
-	const { checker } = context;
-
 	// Only check index signatures on actual object types
 	// Conditional types and other non-object types may report index signatures incorrectly
 	if (!isObjectType(type)) {
 		return undefined;
 	}
+
+	// The value type sits behind an (open-ended) property of this object, so it
+	// resolves one property level deeper than the object itself.
+	return context.runWithPropertyValueScope(() =>
+		buildIndexSignatureNodeCore(type, context, resolveValueType),
+	);
+}
+
+function buildIndexSignatureNodeCore(
+	type: ts.ObjectType,
+	context: ScopedParserContext,
+	resolveValueType: ResolveTypeInContext,
+): IndexSignatureNode | undefined {
+	const { checker } = context;
 
 	// Helper to extract key parameter name from index signature declaration
 	const getKeyName = (indexInfo: ts.IndexInfo): string | undefined => {
@@ -207,7 +219,8 @@ function buildObjectNodeFromType(
 	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
 ): ObjectNode | undefined {
-	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes } = context;
+	const { shouldInclude, shouldResolveObject, typeStack, includeExternalTypes, propertyDepth } =
+		context;
 
 	const properties = type
 		.getProperties()
@@ -223,6 +236,7 @@ function buildObjectNodeFromType(
 				name: typeName?.name ?? '',
 				propertyCount: properties.length,
 				depth: typeStack.length,
+				propertyDepth,
 			})
 		) {
 			let filteredProperties: ts.Symbol[];
@@ -335,10 +349,12 @@ function buildPropertyNodeFromSymbol(
 					type = checker.getTypeOfSymbol(propertySymbol);
 				}
 
-				const parsedType = resolvePropertyType(
-					type,
-					isTypeParameterLike(type) ? undefined : propertySignature?.type,
-					context,
+				const parsedType = context.runWithPropertyValueScope(() =>
+					resolvePropertyType(
+						type,
+						isTypeParameterLike(type) ? undefined : propertySignature?.type,
+						context,
+					),
 				);
 
 				// Typechecker only gives the type "any" if it's present in a union.

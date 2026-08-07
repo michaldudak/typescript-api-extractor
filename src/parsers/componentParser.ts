@@ -6,55 +6,141 @@ import {
 	IntrinsicNode,
 	PropertyNode,
 	ObjectNode,
-	ExternalTypeNode,
 	UnionNode,
 	IntersectionNode,
+	type AnyType,
 } from '../models';
 import { TypeName } from '../models/typeName';
 import { ParserContext } from '../parser';
 
-const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
+// The names React uses for what a component renders. Detection goes by name
+// rather than by node kind: the same return type surfaces as an ExternalTypeNode
+// when external types are summarized and as an object or union when
+// `includeExternalTypes` expands them, so the kind says nothing about whether
+// the type is React's. Names match exactly, which keeps unrelated types that
+// merely end in `Element` - a local `ListElement`, or the DOM's `HTMLElement` -
+// from turning every function returning one into a component.
+const componentReturnTypeNames = new Set(['Element', 'ReactElement', 'ReactNode']);
 
-type FunctionExportNode = ExportNode & { type: FunctionNode };
+type ComponentExportNode = ExportNode & { type: FunctionNode | UnionNode };
 
-function isReactReturnType(type: ExternalTypeNode) {
-	return componentReturnTypes.some((regex) => regex.test(type.typeName?.name ?? ''));
+function isReactReturnType(type: AnyType): boolean {
+	const typeName = 'typeName' in type ? type.typeName : undefined;
+	if (typeName && componentReturnTypeNames.has(typeName.name)) {
+		return true;
+	}
+
+	// Return types like `JSX.Element | null` describe a component through one of
+	// their members.
+	return type instanceof UnionNode && type.types.some(isReactReturnType);
 }
 
 /**
- * Rewrites a function export into a ComponentNode when it looks like a React
- * component (see `isComponentExport`), squashing the props parameter of every
- * call signature into one merged prop list. Non-component exports pass through.
+ * Rewrites an export into a ComponentNode when it looks like a React component
+ * (see `isComponentExport`), squashing the props parameter of every call
+ * signature into one merged prop list. Non-component exports pass through.
  */
 export function transformComponentExport(node: ExportNode, context: ParserContext): ExportNode {
-	if (!isComponentExport(node)) {
+	const componentFunctions = getComponentFunctions(node);
+	if (!componentFunctions) {
 		return node;
 	}
 
-	return node.withType(createComponentNode(node.type, context));
+	return node.withType(createComponentNode(node.type, componentFunctions, context));
 }
 
 /**
- * Heuristic for whether an export is a React component: a function whose name is
- * capitalized (or `default`) and whose return type looks like a React node.
+ * Heuristic for whether an export is a React component: its name is capitalized
+ * (or `default`) and its type is a function returning something React-node-like,
+ * or a union of such functions.
  */
-export function isComponentExport(node: ExportNode): node is FunctionExportNode {
-	return (
-		node.type instanceof FunctionNode &&
-		isComponentExportName(node.name) &&
-		hasReactNodeLikeReturnType(node.type)
-	);
+export function isComponentExport(node: ExportNode): node is ComponentExportNode {
+	return getComponentFunctions(node) !== undefined;
 }
 
 function isComponentExportName(name: string): boolean {
 	return /^[A-Z]/.test(name) || name === 'default';
 }
 
-function createComponentNode(type: FunctionNode, context: ParserContext): ComponentNode {
+/**
+ * Collects the function nodes holding a component's call signatures, or returns
+ * undefined when the export is not a component.
+ */
+function getComponentFunctions(node: ExportNode): FunctionNode[] | undefined {
+	if (!isComponentExportName(node.name)) {
+		return undefined;
+	}
+
+	return collectComponentFunctions(node.type);
+}
+
+function collectComponentFunctions(type: AnyType): FunctionNode[] | undefined {
+	if (type instanceof FunctionNode) {
+		return hasReactNodeLikeReturnType(type) ? [type] : undefined;
+	}
+
+	// A component can surface as a union of function types rather than a single
+	// one - for instance when a polymorphic component declares a separate arm per
+	// `render` prop form. Treat it as one component only when every arm is itself
+	// component-like, so unions that merely happen to contain a component (say
+	// `Button | undefined`) keep their union shape.
+	if (type instanceof UnionNode) {
+		const componentFunctions: FunctionNode[] = [];
+		for (const member of type.types) {
+			const memberFunctions = collectComponentFunctions(member);
+			if (!memberFunctions) {
+				return undefined;
+			}
+
+			componentFunctions.push(...memberFunctions);
+		}
+
+		return componentFunctions.length > 0 ? componentFunctions : undefined;
+	}
+
+	return undefined;
+}
+
+function createComponentNode(
+	type: AnyType,
+	componentFunctions: FunctionNode[],
+	context: ParserContext,
+): ComponentNode {
+	// Arms of a union describe the same component under different prop forms, so
+	// their signatures squash together into one prop list. Props missing from some
+	// arms come out optional, which is what `squashComponentProps` already does
+	// for overloads.
+	const callSignatures = componentFunctions.flatMap((fn) => fn.callSignatures);
+
 	return new ComponentNode(
-		cloneTypeName(type.typeName),
-		squashComponentProps(type.callSignatures, context),
+		cloneTypeName(getComponentTypeName(type, componentFunctions)),
+		squashComponentProps(callSignatures, context),
 	);
+}
+
+/**
+ * An aliased union names the component directly. An unaliased one only gets a
+ * name when every arm agrees on it, because no single arm's name describes the
+ * merged result.
+ */
+function getComponentTypeName(
+	type: AnyType,
+	componentFunctions: FunctionNode[],
+): TypeName | undefined {
+	const ownTypeName = 'typeName' in type ? type.typeName : undefined;
+	if (ownTypeName) {
+		return ownTypeName;
+	}
+
+	const [firstFunction, ...remainingFunctions] = componentFunctions;
+	const firstTypeName = firstFunction?.typeName;
+	if (!firstTypeName) {
+		return undefined;
+	}
+
+	return remainingFunctions.every((fn) => fn.typeName?.toString() === firstTypeName.toString())
+		? firstTypeName
+		: undefined;
 }
 
 function cloneTypeName(typeName: TypeName | undefined): TypeName | undefined {
@@ -66,15 +152,7 @@ function cloneTypeName(typeName: TypeName | undefined): TypeName | undefined {
 }
 
 function hasReactNodeLikeReturnType(type: FunctionNode) {
-	return type.callSignatures.some(
-		(signature) =>
-			(signature.returnValueType instanceof ExternalTypeNode &&
-				isReactReturnType(signature.returnValueType)) ||
-			(signature.returnValueType instanceof UnionNode &&
-				signature.returnValueType.types.some(
-					(type) => type instanceof ExternalTypeNode && isReactReturnType(type),
-				)),
-	);
+	return type.callSignatures.some((signature) => isReactReturnType(signature.returnValueType));
 }
 
 function squashComponentProps(callSignatures: CallSignature[], context: ParserContext) {
@@ -138,6 +216,16 @@ function squashComponentProps(callSignatures: CallSignature[], context: ParserCo
 
 		usedPropsPerSignature.push(usedProps);
 	});
+
+	// A signature that takes no props at all uses none of the props gathered above, so it
+	// contributes an empty set. It is dropped from `propsFromCallSignatures` (there is no
+	// props parameter to read a shape from), and without this the props of the remaining
+	// signatures would stay required even though one form of the component rejects them.
+	for (const signature of callSignatures) {
+		if (signature.parameters.length === 0) {
+			usedPropsPerSignature.push(new Set());
+		}
+	}
 
 	// If a prop is used in some signatures, but not in others, we need to mark it as optional.
 	return [...props.entries()].map(([name, property]) => {

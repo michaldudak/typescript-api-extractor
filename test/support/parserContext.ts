@@ -32,6 +32,7 @@ export function createTestParserContext(program: ts.Program, filePath: string): 
 		parsedSymbolStack,
 		sourceNodeStack,
 		program,
+		propertyDepth: 0,
 		resolvedTypeCache: new Map<string, AnyType>(),
 		shouldInclude: () => true,
 		shouldResolveObject: () => true,
@@ -47,6 +48,15 @@ export function createTestParserContext(program: ts.Program, filePath: string): 
 			}
 
 			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
+		},
+		runWithPropertyValueScope: (callback) => {
+			context.propertyDepth += 1;
+
+			try {
+				return callback();
+			} finally {
+				context.propertyDepth -= 1;
+			}
 		},
 		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
 			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
