@@ -38,13 +38,16 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 	};
 
 	resolve(type: ts.Type, typeNode: ts.TypeNode | undefined): AnyType {
-		const { resolvedTypeCache, typeStack } = this.context;
+		const { resolvedTypeCache, typeStack, propertyDepth } = this.context;
 
 		const typeId = getTypeId(type);
 
-		// Build a cache key that incorporates both the type identity and the current
-		// stack depth, because shouldResolveObject / shouldInclude are depth-sensitive.
-		const cacheKey = typeId !== undefined ? `${typeId}@${typeStack.length}` : undefined;
+		// Build a cache key that incorporates the type identity and both depth
+		// counters, because shouldResolveObject / shouldInclude are depth-sensitive:
+		// the same type resolves to a different shape as an export's own type than
+		// it does nested under someone's property.
+		const cacheKey =
+			typeId !== undefined ? `${typeId}@${typeStack.length}:${propertyDepth}` : undefined;
 
 		if (
 			cacheKey !== undefined &&

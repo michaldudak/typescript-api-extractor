@@ -103,6 +103,7 @@ interface ParserOptions {
 		name: string;
 		propertyCount: number;
 		depth: number;
+		propertyDepth: number;
 	}) => boolean | undefined;
 	includeExternalTypes?: boolean;
 	onWarning?: (warning: ParserWarning) => void;
@@ -138,6 +139,18 @@ interface MissingDefaultExportSymbolWarning extends ParserWarningBase {
 	sourceText: string;
 }
 ```
+
+`shouldResolveObject` decides whether an object's shape is expanded or reduced to
+a bare object. Returning `undefined` falls back to
+`(propertyDepth === 0 || propertyCount <= 50) && depth <= 10`.
+
+`depth` counts every type on the resolution stack, while `propertyDepth` counts
+only the property (and index signature) values traversed to reach the object. A
+`propertyDepth` of `0` means the object is the export's own type or something
+reached from it through composition alone - aliases, unions, intersections, and
+the parameter and return types of its call signatures. The default rule applies
+the property-count limit only above that, so a large component prop list is
+reported in full while its individual props stay bounded.
 
 When `onWarning` is omitted, recoverable parser warnings are printed with
 `console.warn`. Provide `onWarning` to collect or format them yourself.
@@ -259,7 +272,9 @@ substructures that are reused across multiple type classes.
   export nodes are built. Today it runs the React component transform from
   `componentParser.ts`.
 - `src/parsers/componentParser.ts` contains React component-specific extraction
-  and should remain a transform policy rather than a generic export parser.
+  and should remain a transform policy rather than a generic export parser. It
+  recognizes both a single function type and a union of them, so a polymorphic
+  component whose arms differ per prop form still reports one merged prop list.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.

@@ -20,6 +20,7 @@ function createDescriptorContext(filePath: string, program: ts.Program): ScopedP
 		parsedSymbolStack,
 		sourceNodeStack,
 		program,
+		propertyDepth: 0,
 		resolvedTypeCache: new Map(),
 		shouldInclude: () => true,
 		shouldResolveObject: () => true,
@@ -45,6 +46,7 @@ function createDescriptorContext(filePath: string, program: ts.Program): ScopedP
 				}
 			}
 		},
+		runWithPropertyValueScope: <T>(callback: () => T): T => callback(),
 		runWithTypeParameterSubstitutionScope: <T>(
 			_substitutions: Map<ts.Symbol, ts.Type>,
 			callback: () => T,

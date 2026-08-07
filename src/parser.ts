@@ -59,6 +59,7 @@ function createParserContext(
 		parsedSymbolStack,
 		sourceNodeStack,
 		program,
+		propertyDepth: 0,
 		resolvedTypeCache: new Map<string, AnyType>(),
 		...getParserOptions(parserOptions),
 		runWithSymbolScope: (symbolName, callback) =>
@@ -69,6 +70,15 @@ function createParserContext(
 			}
 
 			return runWithStackEntryScope(sourceNodeStack, sourceNode, callback);
+		},
+		runWithPropertyValueScope: (callback) => {
+			context.propertyDepth += 1;
+
+			try {
+				return callback();
+			} finally {
+				context.propertyDepth -= 1;
+			}
 		},
 		runWithTypeParameterSubstitutionScope: (typeParameterSubstitutions, callback) => {
 			const previousTypeParameterSubstitutions = context.typeParameterSubstitutions;
@@ -119,7 +129,13 @@ function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
 			}
 		}
 
-		return data.propertyCount <= 50 && data.depth <= 10;
+		// The property-count limit guards against expanding huge shapes that a
+		// consumer never asked about. It must not apply at `propertyDepth === 0`:
+		// that is the export's own type and everything reached from it through
+		// type composition alone, so capping there erases the very shape being
+		// documented (e.g. a component's whole prop list) instead of trimming a
+		// nested detail. The depth limit still bounds recursion everywhere.
+		return (data.propertyDepth === 0 || data.propertyCount <= 50) && data.depth <= 10;
 	};
 
 	return {
@@ -136,7 +152,7 @@ function getParserOptions(parserOptions: ParserOptions): ResolvedParserOptions {
 
 interface ResolvedParserOptions {
 	shouldInclude: (data: { name: string; depth: number }) => boolean;
-	shouldResolveObject: (data: { name: string; propertyCount: number; depth: number }) => boolean;
+	shouldResolveObject: (data: ShouldResolveObjectData) => boolean;
 	includeExternalTypes: boolean;
 	onWarning: (warning: ParserWarning) => void;
 }
@@ -151,12 +167,39 @@ export interface ParserContext extends ResolvedParserOptions {
 	program: ts.Program;
 	typeParameterSubstitutions?: Map<ts.Symbol, ts.Type>;
 	/**
+	 * How many property (or index signature) values were traversed to reach the
+	 * type currently being resolved. See `ShouldResolveObjectData.propertyDepth`.
+	 */
+	propertyDepth: number;
+	/**
 	 * Cache for resolved types to avoid resolving the same type multiple times.
-	 * The key encodes both the type ID and the current stack depth, because
-	 * depth-dependent options (`shouldResolveObject`, `shouldInclude`) can
-	 * produce different results for the same type at different depths.
+	 * The key encodes the type ID together with the current stack and property
+	 * depths, because depth-dependent options (`shouldResolveObject`,
+	 * `shouldInclude`) can produce different results for the same type at
+	 * different depths.
 	 */
 	resolvedTypeCache: Map<string, AnyType>;
+}
+
+/**
+ * Describes the object whose shape is about to be resolved.
+ */
+export interface ShouldResolveObjectData {
+	/** Name of the object's type, or an empty string for anonymous shapes. */
+	name: string;
+	/** Number of properties the object would contribute to the output. */
+	propertyCount: number;
+	/** Depth of the type-resolution stack, counting every intermediate type. */
+	depth: number;
+	/**
+	 * How many property (or index signature) values were traversed to reach this
+	 * object. It is 0 for the export's own type and for everything reached from
+	 * it through type composition alone - aliases, unions, intersections, and the
+	 * parameter and return types of its call signatures. In other words, a
+	 * `propertyDepth` of 0 marks the shapes the caller directly asked about,
+	 * while anything above 0 is a nested detail of one of them.
+	 */
+	propertyDepth: number;
 }
 
 /**
@@ -171,13 +214,9 @@ export interface ParserOptions {
 	 * Called before the shape of an object is resolved
 	 * @return true to resolve the shape of the object, false to just use a object, or undefined to
 	 * use the default behaviour
-	 * @default propertyCount <= 50 && depth <= 10
+	 * @default (propertyDepth === 0 || propertyCount <= 50) && depth <= 10
 	 */
-	shouldResolveObject?: (data: {
-		name: string;
-		propertyCount: number;
-		depth: number;
-	}) => boolean | undefined;
+	shouldResolveObject?: (data: ShouldResolveObjectData) => boolean | undefined;
 	/**
 	 * Control if external types and members should be included in the output.
 	 * @default false
