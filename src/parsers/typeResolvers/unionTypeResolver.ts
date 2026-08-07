@@ -73,10 +73,7 @@ function flattenUnionTypeNode(
 
 	for (const member of typeNode.types) {
 		// Unwrap parenthesized types like `(string | number)`
-		let unwrapped = member;
-		while (ts.isParenthesizedTypeNode(unwrapped)) {
-			unwrapped = unwrapped.type;
-		}
+		const unwrapped = unwrapParenthesizedTypeNode(member);
 
 		// If the unwrapped type is a union, recursively flatten it
 		if (ts.isUnionTypeNode(unwrapped)) {

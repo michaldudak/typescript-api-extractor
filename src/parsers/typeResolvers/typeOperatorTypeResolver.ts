@@ -20,7 +20,10 @@ import { areSemanticTypesEquivalent, getKeyofTypeForOperand } from '../typeResol
 import { isExternalTypeNode, resolveExternalType } from './externalTypeResolver';
 import { substituteTypeParameter } from './mappedTypeSubstitutions';
 import { canResolveObjectTypeShallowly, resolveShallowObjectLikeType } from './objectTypeResolver';
-import { getReferencedTypeAliasDeclaration } from './referencedTypeAlias';
+import {
+	getReferencedInterfaceOrClassDeclaration,
+	getReferencedTypeAliasDeclaration,
+} from './referencedTypeAlias';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeOperator,
@@ -542,7 +545,7 @@ function getIndexedAccessAliasChainBindings(
 	const substituted = substituteTypeParameterTypeNode(typeNode, checker, baseBindings?.typeNodes);
 	const declaration = getReferencedTypeAliasDeclaration(substituted, checker);
 	if (!declaration) {
-		const genericDeclaration = getReferencedGenericObjectDeclaration(substituted, checker);
+		const genericDeclaration = getReferencedInterfaceOrClassDeclaration(substituted, checker);
 		if (!genericDeclaration?.typeParameters?.length) {
 			return baseBindings;
 		}
@@ -604,32 +607,6 @@ function resolveAuthoredUnion(
 				replayActiveReferences,
 			),
 		),
-	);
-}
-
-/**
- * Finds a generic interface or class referenced by authored syntax, following
- * import aliases. Alias declarations are handled by the recursive chain walker
- * before this terminal lookup.
- */
-function getReferencedGenericObjectDeclaration(
-	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-): ts.InterfaceDeclaration | ts.ClassDeclaration | undefined {
-	const location = ts.isTypeReferenceNode(typeNode)
-		? typeNode.typeName
-		: ts.isImportTypeNode(typeNode)
-			? typeNode.qualifier
-			: undefined;
-	if (!location) {
-		return undefined;
-	}
-	const symbol = checker.getSymbolAtLocation(location);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(
-		(declaration): declaration is ts.InterfaceDeclaration | ts.ClassDeclaration =>
-			ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration),
 	);
 }
 

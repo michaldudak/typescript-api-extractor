@@ -194,15 +194,6 @@ class TypeCanonicalizer {
 	}
 
 	private getNonFunctionMemberKey(type: AnyType): unknown {
-		const scalarKey = this.getScalarMemberKey(type);
-		if (scalarKey !== undefined) {
-			return scalarKey;
-		}
-
-		return type;
-	}
-
-	private getScalarMemberKey(type: AnyType): string | undefined {
 		if (type instanceof LiteralNode) {
 			return `literal:${type.value}`;
 		}
@@ -216,7 +207,8 @@ class TypeCanonicalizer {
 			return `intrinsic:${type.typeName?.toString() ?? type.intrinsic}`;
 		}
 
-		return undefined;
+		// Everything else dedups by identity.
+		return type;
 	}
 }
 

@@ -1,5 +1,9 @@
 import ts from 'typescript';
-import { getBuiltInArrayReferenceName, unwrapTupleElementSyntax } from '../typeContainerUtils';
+import {
+	getBuiltInArrayReferenceName,
+	isTypeScriptLibDeclaration,
+	unwrapTupleElementSyntax,
+} from '../typeContainerUtils';
 import { areSemanticTypesEquivalent } from '../typeResolutionUtils';
 import {
 	declarationHasNodeModulesPathSegment,
@@ -92,7 +96,7 @@ export function isBuiltInReadonlyUtilityDeclaration(
 	return (
 		ts.isTypeAliasDeclaration(declaration) &&
 		declaration.name.text === 'Readonly' &&
-		/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName)
+		isTypeScriptLibDeclaration(declaration)
 	);
 }
 
@@ -475,8 +479,10 @@ export function containsKeyofTypeOperatorOrAlias(
 		return false;
 	}
 
-	const referenceName = ts.isIdentifier(unwrapped.typeName) ? unwrapped.typeName.text : undefined;
-	if (referenceName === 'Array' || referenceName === 'ReadonlyArray') {
+	// Resolve the reference rather than matching its name: a project may declare
+	// its own `Array`/`ReadonlyArray`, and interfaces are opaque to this
+	// traversal unless they really are the transparent built-in containers.
+	if (getBuiltInArrayReferenceName(unwrapped, checker)) {
 		return (
 			unwrapped.typeArguments?.some((argument) =>
 				containsKeyofTypeOperatorOrAlias(
@@ -1635,8 +1641,9 @@ export function getPropertyTypeNode(
 		return undefined;
 	}
 	const firstType = checker.getTypeFromTypeNode(first);
+	const firstText = first.getText();
 	return candidates.every((candidate) => {
-		if (candidate.getText() !== first.getText()) {
+		if (candidate.getText() !== firstText) {
 			return false;
 		}
 		const candidateType = checker.getTypeFromTypeNode(candidate);

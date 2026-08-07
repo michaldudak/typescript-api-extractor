@@ -88,20 +88,13 @@ class TypeEquivalence {
 		// Fast-path simple non-function types when no rename context is active.
 		// FunctionNode is excluded because TypeParameterNode.toString() omits
 		// constraints/defaults, which would collapse distinct generic signatures.
-		if (!typeParamRenames || typeParamRenames.size === 0) {
-			if (
-				!(type1 instanceof FunctionNode) &&
-				!(type2 instanceof FunctionNode) &&
-				!(type1 instanceof TypeOperatorNode) &&
-				!(type2 instanceof TypeOperatorNode) &&
-				type1.kind !== 'union' &&
-				type2.kind !== 'union' &&
-				type1.kind !== 'intersection' &&
-				type2.kind !== 'intersection' &&
-				type1.toString() === type2.toString()
-			) {
-				return true;
-			}
+		if (
+			(!typeParamRenames || typeParamRenames.size === 0) &&
+			!isToStringFastPathExcluded(type1) &&
+			!isToStringFastPathExcluded(type2) &&
+			type1.toString() === type2.toString()
+		) {
+			return true;
 		}
 
 		// Alias identity wins over shape. Two aliases with equal names and type
@@ -561,6 +554,20 @@ class TypeEquivalence {
 
 		return `${kind}|${name}|${value}`;
 	}
+}
+
+/**
+ * Kinds whose `toString()` is lossy enough that equal text does not imply
+ * equivalence: function signatures omit constraints/defaults, and compounds
+ * plus type operators carry member identity the rendered form flattens away.
+ */
+function isToStringFastPathExcluded(type: AnyType): boolean {
+	return (
+		type instanceof FunctionNode ||
+		type instanceof TypeOperatorNode ||
+		type.kind === 'union' ||
+		type.kind === 'intersection'
+	);
 }
 
 /** Shared structural-equivalence service used by compound canonicalization. */

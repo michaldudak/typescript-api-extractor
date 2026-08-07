@@ -1,6 +1,18 @@
 import ts from 'typescript';
 
 /**
+ * Checks whether a declaration comes from TypeScript's bundled library
+ * definitions. Built-in detection relies on this because a symbol name alone
+ * cannot distinguish a lib type from a project type that shadows it.
+ *
+ * @param declaration - Declaration whose source file should be inspected.
+ * @returns Whether the declaration is part of TypeScript's bundled libs.
+ */
+export function isTypeScriptLibDeclaration(declaration: ts.Declaration): boolean {
+	return /[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName);
+}
+
+/**
  * Identifies an authored reference to TypeScript's built-in array interfaces.
  *
  * The symbol name alone is insufficient because projects may shadow `Array`
@@ -26,10 +38,7 @@ export function getBuiltInArrayReferenceName(
 		return undefined;
 	}
 
-	const isBuiltIn =
-		targetSymbol.declarations?.some((declaration) =>
-			/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-		) ?? false;
+	const isBuiltIn = targetSymbol.declarations?.some(isTypeScriptLibDeclaration) ?? false;
 	return isBuiltIn ? (targetSymbol.getName() as 'Array' | 'ReadonlyArray') : undefined;
 }
 
@@ -49,11 +58,7 @@ export function isSemanticallyReadonlyArray(type: ts.Type): boolean {
 			: undefined;
 	return (
 		targetSymbol?.name === 'ReadonlyArray' &&
-		Boolean(
-			targetSymbol.declarations?.some((declaration) =>
-				/[\\/]typescript[\\/]lib[\\/]lib\..+\.d\.ts$/.test(declaration.getSourceFile().fileName),
-			),
-		)
+		Boolean(targetSymbol.declarations?.some(isTypeScriptLibDeclaration))
 	);
 }
 

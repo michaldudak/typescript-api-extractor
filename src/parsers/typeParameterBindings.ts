@@ -26,8 +26,6 @@ interface DeriveTypeParameterBindingsOptions {
 	baseTypeNodes?: ReadonlyMap<ts.Symbol, ts.TypeNode>;
 	/** Uses declaration defaults when no explicit argument is available. */
 	useDeclarationDefaults?: boolean;
-	/** Skips parameters that have no authored argument node. */
-	requireAuthoredArguments?: boolean;
 	/** Applies bindings accumulated so far to each semantic argument. */
 	substituteArgumentTypes?: boolean;
 	/** Syntax subtree searched for fresh checker symbols representing the same parameter. */
@@ -58,7 +56,6 @@ export function deriveTypeParameterBindings(
 		baseTypes,
 		baseTypeNodes,
 		useDeclarationDefaults = false,
-		requireAuthoredArguments = false,
 		substituteArgumentTypes = false,
 		bodyForFreshSymbols,
 	} = options;
@@ -80,9 +77,6 @@ export function deriveTypeParameterBindings(
 
 		if (!argumentNode && !argumentType && useDeclarationDefaults) {
 			argumentNode = declaration?.default;
-		}
-		if (requireAuthoredArguments && !argumentNode) {
-			continue;
 		}
 		if (!argumentType && argumentNode) {
 			argumentType = checker.getTypeFromTypeNode(argumentNode);

@@ -144,12 +144,11 @@ function resolveTupleElementSyntax(
 			// A finite rest alias can itself contain several spreads. Reusing the
 			// complete selection plan preserves the exact authored segment instead
 			// of collapsing every middle element onto the first rest node.
-			const nextSeenTupleSourceInstantiations = new Map(seenTupleSourceInstantiations);
-			const sourceInstantiations = new Set(
-				nextSeenTupleSourceInstantiations.get(tupleSource.typeNode),
+			const nextSeenTupleSourceInstantiations = markTupleSourceInstantiationSeen(
+				seenTupleSourceInstantiations,
+				tupleSource.typeNode,
+				instantiationKey,
 			);
-			sourceInstantiations.add(instantiationKey);
-			nextSeenTupleSourceInstantiations.set(tupleSource.typeNode, sourceInstantiations);
 			return resolveTupleElementSyntax(
 				nestedSelection,
 				checker,
@@ -185,7 +184,7 @@ function resolveTupleElementSyntax(
 	if (!element) {
 		return undefined;
 	}
-	if (element && isRest) {
+	if (isRest) {
 		const restTypeNode =
 			getArrayElementTypeNode(
 				element,
@@ -220,6 +219,28 @@ function getTupleSourceInstantiationKey(
 	return `${selection.restSemanticIndex}/${selection.restSemanticElementCount}:${getTupleSourceBindingsKey(
 		typeNodeSubstitutions,
 	)}`;
+}
+
+/**
+ * Records one tuple-source instantiation on a copy of the caller's seen map.
+ * Copying keeps the record path-sensitive: sibling elements must each be free
+ * to visit the same source under their own bindings.
+ *
+ * @param seenTupleSourceInstantiations - Instantiations already visited on this path.
+ * @param tupleTypeNode - Tuple source being entered.
+ * @param instantiationKey - Key identifying the source's authored bindings.
+ * @returns A copy that also contains the supplied instantiation.
+ */
+function markTupleSourceInstantiationSeen(
+	seenTupleSourceInstantiations: Map<ts.TupleTypeNode, Set<string>>,
+	tupleTypeNode: ts.TupleTypeNode,
+	instantiationKey: string,
+): Map<ts.TupleTypeNode, Set<string>> {
+	const next = new Map(seenTupleSourceInstantiations);
+	const sourceInstantiations = new Set(next.get(tupleTypeNode));
+	sourceInstantiations.add(instantiationKey);
+	next.set(tupleTypeNode, sourceInstantiations);
+	return next;
 }
 
 function getTupleSourceBindingsKey(
@@ -478,12 +499,11 @@ function getKnownTupleElementWidth(
 	if (seenTupleSourceInstantiations.get(tupleSource.typeNode)?.has(instantiationKey)) {
 		return undefined;
 	}
-	const nestedSeenTupleSourceInstantiations = new Map(seenTupleSourceInstantiations);
-	const sourceInstantiations = new Set(
-		nestedSeenTupleSourceInstantiations.get(tupleSource.typeNode),
+	const nestedSeenTupleSourceInstantiations = markTupleSourceInstantiationSeen(
+		seenTupleSourceInstantiations,
+		tupleSource.typeNode,
+		instantiationKey,
 	);
-	sourceInstantiations.add(instantiationKey);
-	nestedSeenTupleSourceInstantiations.set(tupleSource.typeNode, sourceInstantiations);
 	const widths = tupleSource.typeNode.elements.map((element) =>
 		getKnownTupleElementWidth(
 			element,

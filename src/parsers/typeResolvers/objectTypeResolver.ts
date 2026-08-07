@@ -131,15 +131,15 @@ function buildIndexSignatureNode(
 	const mappedSubstitutions = mappedNode ? getMappedTypeParameterSubstitutions(type) : undefined;
 	const stringIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.String);
 	const numberIndexInfo = checker.getIndexInfoOfType(type, ts.IndexKind.Number);
-	const mappedTemplateContainsKeyof = Boolean(
-		mappedNode?.type &&
-		getPreservableKeyofTypeNode(
-			mappedNode.type,
-			checker,
-			context.typeParameterTypeNodeSubstitutions,
-			context.includeExternalTypes,
-		),
-	);
+	const mappedTemplateTypeNode = mappedNode?.type
+		? getPreservableKeyofTypeNode(
+				mappedNode.type,
+				checker,
+				context.typeParameterTypeNodeSubstitutions,
+				context.includeExternalTypes,
+			)
+		: undefined;
+	const mappedTemplateContainsKeyof = Boolean(mappedTemplateTypeNode);
 	const mappedIndexSignature =
 		mappedNode &&
 		mappedSubstitutions &&
@@ -150,6 +150,7 @@ function buildIndexSignatureNode(
 					mappedSubstitutions,
 					context,
 					resolveValueType,
+					mappedTemplateTypeNode,
 				)
 			: undefined;
 	if (mappedIndexSignature) {
@@ -204,6 +205,7 @@ function buildMappedIndexSignatureNode(
 	substitutions: Map<ts.Symbol, ts.Type>,
 	context: ScopedParserContext,
 	resolveValueType: ResolveTypeInContext,
+	templateTypeNode: ts.TypeNode | undefined,
 ): IndexSignatureNode | undefined {
 	const { checker } = context;
 	// `as` clauses rename keys (e.g. `[K in keyof T as `prefix_${K}`]`); the resulting
@@ -234,12 +236,6 @@ function buildMappedIndexSignatureNode(
 		keyType === 'string' ? ts.IndexKind.String : ts.IndexKind.Number,
 	);
 	const templateType = indexInfo?.type ?? checker.getTypeAtLocation(mappedNode.type);
-	const templateTypeNode = getPreservableKeyofTypeNode(
-		mappedNode.type,
-		checker,
-		context.typeParameterTypeNodeSubstitutions,
-		context.includeExternalTypes,
-	);
 	let valueType = resolveTemplateValueType(
 		templateType,
 		templateTypeNode,

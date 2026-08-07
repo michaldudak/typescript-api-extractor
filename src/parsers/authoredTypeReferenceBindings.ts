@@ -1,7 +1,10 @@
 import ts from 'typescript';
 import { declarationHasNodeModulesPathSegment } from './sourceFileUtils';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from './typeParameterBindings';
-import { getReferencedTypeAliasDeclaration } from './typeResolvers/referencedTypeAlias';
+import {
+	getReferencedInterfaceOrClassDeclaration,
+	getReferencedTypeAliasDeclaration,
+} from './typeResolvers/referencedTypeAlias';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	getPreservableKeyofTypeNode,
@@ -35,7 +38,7 @@ export function getAuthoredTypeReferenceBindings(
 	const typeArguments = getReferenceTypeArguments(reference);
 	const referencedDeclaration =
 		getReferencedTypeAliasDeclaration(reference, checker) ??
-		getReferencedGenericDeclaration(reference, checker);
+		getReferencedInterfaceOrClassDeclaration(reference, checker);
 	const declarationArgumentContainsKeyof = declarationArgumentsContainKeyof(
 		typeArguments,
 		referencedDeclaration?.typeParameters,
@@ -155,7 +158,7 @@ function followAuthoredTypeReferenceBindings(
 		);
 	}
 
-	const genericDeclaration = getReferencedGenericDeclaration(substituted, checker);
+	const genericDeclaration = getReferencedInterfaceOrClassDeclaration(substituted, checker);
 	if (
 		!genericDeclaration ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(genericDeclaration))
@@ -389,7 +392,7 @@ function referencedDeclarationMembersContainKeyof(
 		);
 	}
 
-	const genericDeclaration = getReferencedGenericDeclaration(substituted, checker);
+	const genericDeclaration = getReferencedInterfaceOrClassDeclaration(substituted, checker);
 	if (
 		!genericDeclaration ||
 		(!includeExternalTypes && declarationHasNodeModulesPathSegment(genericDeclaration))
@@ -487,26 +490,4 @@ function getReferenceTypeArguments(typeNode: ts.TypeNode): readonly ts.TypeNode[
 	return ts.isTypeReferenceNode(typeNode) || ts.isImportTypeNode(typeNode)
 		? typeNode.typeArguments
 		: undefined;
-}
-
-function getReferencedGenericDeclaration(
-	typeNode: ts.TypeNode,
-	checker: ts.TypeChecker,
-): ts.InterfaceDeclaration | ts.ClassDeclaration | undefined {
-	const location = ts.isTypeReferenceNode(typeNode)
-		? typeNode.typeName
-		: ts.isImportTypeNode(typeNode)
-			? typeNode.qualifier
-			: undefined;
-	if (!location) {
-		return undefined;
-	}
-
-	const symbol = checker.getSymbolAtLocation(location);
-	const targetSymbol =
-		symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return targetSymbol?.declarations?.find(
-		(declaration): declaration is ts.InterfaceDeclaration | ts.ClassDeclaration =>
-			ts.isInterfaceDeclaration(declaration) || ts.isClassDeclaration(declaration),
-	);
 }
