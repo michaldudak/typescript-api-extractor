@@ -1,0 +1,286 @@
+{
+	"name": "test/fixtures/react-component-return-types/input",
+	"exports": [
+		{
+			"name": "NamespacedElement",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "NamespacedElement"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "BareElement",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "BareElement"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "GenericElement",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "GenericElement"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "BareNode",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "BareNode"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "NullableElement",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "NullableElement"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "InferredElement",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "InferredElement"
+				},
+				"props": [
+					{
+						"name": "a",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "LocalElementType",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "LocalElementType"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"properties": [
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "object",
+							"typeName": {
+								"name": "ListElement"
+							},
+							"properties": [
+								{
+									"name": "tag",
+									"type": {
+										"kind": "intrinsic",
+										"intrinsic": "string"
+									},
+									"optional": false
+								}
+							]
+						}
+					}
+				]
+			},
+			"documentation": {
+				"description": "A local type whose name merely ends in `Element` does not make a component.",
+				"tags": []
+			}
+		},
+		{
+			"name": "DomElementType",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "DomElementType"
+				},
+				"callSignatures": [
+					{
+						"parameters": [
+							{
+								"type": {
+									"kind": "object",
+									"properties": [
+										{
+											"name": "a",
+											"type": {
+												"kind": "union",
+												"types": [
+													{
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													{
+														"kind": "intrinsic",
+														"intrinsic": "undefined"
+													}
+												]
+											},
+											"optional": true
+										}
+									]
+								},
+								"name": "props",
+								"optional": false
+							}
+						],
+						"returnValueType": {
+							"kind": "external",
+							"typeName": {
+								"name": "HTMLElement"
+							}
+						}
+					}
+				]
+			},
+			"documentation": {
+				"description": "Neither does a DOM element.",
+				"tags": []
+			}
+		}
+	],
+	"imports": ["react", "react"]
+}

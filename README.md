@@ -275,6 +275,9 @@ substructures that are reused across multiple type classes.
   and should remain a transform policy rather than a generic export parser. It
   recognizes both a single function type and a union of them, so a polymorphic
   component whose arms differ per prop form still reports one merged prop list.
+  Return types are matched by name rather than by resolved node kind, so
+  `includeExternalTypes` changes how much detail the output carries without
+  changing what counts as a component.
 - `src/parsers/typeResolver.ts` is the public type-resolution facade used by the
   rest of the parser. It should stay small; the resolver implementation lives in
   the session and resolver modules.

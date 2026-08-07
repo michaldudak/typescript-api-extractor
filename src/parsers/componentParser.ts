@@ -6,7 +6,6 @@ import {
 	IntrinsicNode,
 	PropertyNode,
 	ObjectNode,
-	ExternalTypeNode,
 	UnionNode,
 	IntersectionNode,
 	type AnyType,
@@ -14,12 +13,26 @@ import {
 import { TypeName } from '../models/typeName';
 import { ParserContext } from '../parser';
 
-const componentReturnTypes = [/Element/, /ReactNode/, /ReactElement(<.*>)?/];
+// The names React uses for what a component renders. Detection goes by name
+// rather than by node kind: the same return type surfaces as an ExternalTypeNode
+// when external types are summarized and as an object or union when
+// `includeExternalTypes` expands them, so the kind says nothing about whether
+// the type is React's. Names match exactly, which keeps unrelated types that
+// merely end in `Element` - a local `ListElement`, or the DOM's `HTMLElement` -
+// from turning every function returning one into a component.
+const componentReturnTypeNames = new Set(['Element', 'ReactElement', 'ReactNode']);
 
 type ComponentExportNode = ExportNode & { type: FunctionNode | UnionNode };
 
-function isReactReturnType(type: ExternalTypeNode) {
-	return componentReturnTypes.some((regex) => regex.test(type.typeName?.name ?? ''));
+function isReactReturnType(type: AnyType): boolean {
+	const typeName = 'typeName' in type ? type.typeName : undefined;
+	if (typeName && componentReturnTypeNames.has(typeName.name)) {
+		return true;
+	}
+
+	// Return types like `JSX.Element | null` describe a component through one of
+	// their members.
+	return type instanceof UnionNode && type.types.some(isReactReturnType);
 }
 
 /**
@@ -139,15 +152,7 @@ function cloneTypeName(typeName: TypeName | undefined): TypeName | undefined {
 }
 
 function hasReactNodeLikeReturnType(type: FunctionNode) {
-	return type.callSignatures.some(
-		(signature) =>
-			(signature.returnValueType instanceof ExternalTypeNode &&
-				isReactReturnType(signature.returnValueType)) ||
-			(signature.returnValueType instanceof UnionNode &&
-				signature.returnValueType.types.some(
-					(type) => type instanceof ExternalTypeNode && isReactReturnType(type),
-				)),
-	);
+	return type.callSignatures.some((signature) => isReactReturnType(signature.returnValueType));
 }
 
 function squashComponentProps(callSignatures: CallSignature[], context: ParserContext) {
