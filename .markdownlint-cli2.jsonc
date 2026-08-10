@@ -37,5 +37,5 @@
 	},
 	"globs": ["**/*.md"],
 	// CLAUDE.md only holds an `@AGENTS.md` include directive, not prose.
-	"ignores": ["node_modules", "dist", "CLAUDE.md"],
+	"ignores": ["**/node_modules/**", "**/dist/**", "CLAUDE.md"],
 }
