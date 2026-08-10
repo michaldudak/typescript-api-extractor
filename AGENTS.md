@@ -1,8 +1,9 @@
 # Agent Notes
 
-Read `README.md` before making parser or model changes. It contains the public
-API, output shape, and the current architecture map; do not duplicate that
-material here.
+Read the docs under `docs/` before making parser or model changes:
+`docs/api-reference.md` (public API), `docs/output-format.md` (output shape), and
+`docs/architecture.md` (current architecture map). `README.md` links to all of
+them. Do not duplicate that material here.
 
 ## Project Basics
 
@@ -30,6 +31,26 @@ pnpm test:regen
 ```
 
 Review generated fixture diffs carefully; they are part of the behavior contract.
+
+## Documentation
+
+Docs under `docs/` are part of the change, not a follow-up. Update them in the
+same commit as the code they describe.
+
+- `docs/api-reference.md` - the exported functions, `ParserOptions`, and the
+  `ParserWarning` shapes. Update it whenever the public surface in
+  `src/index.ts`, `src/parser.ts`, or `src/config.ts` changes.
+- `docs/output-format.md` - the emitted model. Update it for new or renamed
+  `TypeNode` kinds, new node fields, and changes to what a field carries.
+- `docs/architecture.md` - the layer and module map. Update it when modules are
+  added, moved, renamed, or given a different responsibility, and when resolver
+  ordering constraints change.
+- `docs/usage.md` - task-oriented examples. Update it when a change alters how
+  callers drive the parser or adds an option worth demonstrating.
+- `README.md` stays a landing page: features, installation, quick start, and
+  links. Detail belongs in `docs/`.
+
+`pnpm lint` checks the docs too, via Prettier and `markdownlint-cli2`.
 
 ## Architecture Guardrails
 
