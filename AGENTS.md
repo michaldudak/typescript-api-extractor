@@ -1,8 +1,9 @@
 # Agent Notes
 
-Read `README.md` before making parser or model changes. It contains the public
-API, output shape, and the current architecture map; do not duplicate that
-material here.
+Read the docs under `docs/` before making parser or model changes:
+`docs/api-reference.md` (public API), `docs/output-format.md` (output shape), and
+`docs/architecture.md` (current architecture map). `README.md` links to all of
+them. Do not duplicate that material here.
 
 ## Project Basics
 
