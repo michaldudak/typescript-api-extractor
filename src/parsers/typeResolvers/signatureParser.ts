@@ -5,6 +5,11 @@ import { ParserError } from '../../ParserError';
 import { getParameterDocumentationFromSymbol } from '../documentationParser';
 import { type ResolveTypeInContext } from '../typeResolutionTypes';
 import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes';
+import {
+	containsIndexedAccessUnionSource,
+	getPreservableKeyofTypeNode,
+	substituteTypeParameterTypeNode,
+} from './typeOperatorTypeNodes';
 
 // Function-like signature parsing lives here so free functions, constructors,
 // and class methods do not drift on parameter docs, defaults, or return types.
@@ -13,6 +18,11 @@ import { buildSignatureTypeParameterNodes } from './signatureTypeParameterNodes'
  * Parses a TypeScript call signature into the API model. Handles function
  * declarations like `fn(value: string): number` and class methods like
  * `instance.update(value = 1): void`.
+ *
+ * @param signature - Checker signature to convert.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for nested parameter and return types.
+ * @returns The extracted call-signature model.
  */
 export function parseCallSignature(
 	signature: ts.Signature,
@@ -32,6 +42,11 @@ export function parseCallSignature(
  * Parses a signature parameter and its local metadata. Handles examples like
  * `value?: string`, `options = { dense: true }`, and JSDoc `@param` comments
  * attached to either function parameters or class method parameters.
+ *
+ * @param parameterSymbol - Checker symbol for the signature parameter.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for the parameter type.
+ * @returns The extracted parameter model, including docs and default value.
  */
 export function parseParameter(
 	parameterSymbol: ts.Symbol,
@@ -43,15 +58,22 @@ export function parseParameter(
 	return context.runWithSymbolScope(`parameter: ${parameterSymbol.name}`, () => {
 		try {
 			const parameterDeclaration = getParameterDeclaration(parameterSymbol);
+			const parameterTypeNode = parameterDeclaration?.type
+				? substituteTypeParameterTypeNode(
+						parameterDeclaration.type,
+						checker,
+						context.typeParameterTypeNodeSubstitutions,
+					)
+				: undefined;
 			const parameterSourceNode =
-				parameterDeclaration?.type ?? parameterDeclaration ?? parameterSymbol.valueDeclaration;
+				parameterTypeNode ?? parameterDeclaration ?? parameterSymbol.valueDeclaration;
 			const typeLocation =
 				parameterSymbol.valueDeclaration ?? parameterSymbol.declarations?.[0] ?? context.sourceFile;
 
 			return context.runWithSourceNodeScope(parameterSourceNode, () => {
 				const parameterType = resolveTypeReference(
 					checker.getTypeOfSymbolAtLocation(parameterSymbol, typeLocation),
-					parameterDeclaration?.type,
+					parameterTypeNode,
 					context,
 				);
 				const documentation = getParameterDocumentationFromSymbol(parameterSymbol, checker);
@@ -80,18 +102,38 @@ export function parseParameter(
 
 /**
  * Parses a signature return type. Handles examples like `(): Promise<Result>`
- * while using the explicit return annotation only as diagnostic source context,
- * not as a forced type node override.
+ * while always using the explicit return annotation as diagnostic source
+ * context. An annotation that contains or references preservable `keyof`
+ * syntax also steers type resolution so the authored operator is not lost.
+ *
+ * @param signature - Checker signature whose return type should be resolved.
+ * @param context - Active scoped parser context.
+ * @param resolveTypeReference - Session-aware resolver used for the return type.
+ * @returns The extracted return-type model.
  */
 export function parseReturnType(
 	signature: ts.Signature,
 	context: ScopedParserContext,
 	resolveTypeReference: ResolveTypeInContext,
 ): AnyType {
-	const returnTypeNode = getReturnTypeNode(signature);
+	const authoredReturnTypeNode = getReturnTypeNode(signature);
+	const returnTypeNode = authoredReturnTypeNode
+		? substituteTypeParameterTypeNode(
+				authoredReturnTypeNode,
+				context.checker,
+				context.typeParameterTypeNodeSubstitutions,
+			)
+		: undefined;
+	const resolutionTypeNode =
+		getPreservableKeyofTypeNode(
+			returnTypeNode,
+			context.checker,
+			context.typeParameterTypeNodeSubstitutions,
+			context.includeExternalTypes,
+		) ?? (containsIndexedAccessUnionSource(returnTypeNode) ? returnTypeNode : undefined);
 
 	return context.runWithSourceNodeScope(returnTypeNode, () =>
-		resolveTypeReference(signature.getReturnType(), undefined, context),
+		resolveTypeReference(signature.getReturnType(), resolutionTypeNode, context),
 	);
 }
 

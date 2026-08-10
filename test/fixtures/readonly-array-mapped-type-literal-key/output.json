@@ -54,7 +54,8 @@
 							"optional": true
 						}
 					]
-				}
+				},
+				"isReadonly": true
 			}
 		},
 		{
@@ -76,7 +77,8 @@
 				"elementType": {
 					"kind": "object",
 					"properties": []
-				}
+				},
+				"isReadonly": true
 			}
 		}
 	]

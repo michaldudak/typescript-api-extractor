@@ -1,6 +1,16 @@
 import ts from 'typescript';
-import { afterEach, expect, it, vi } from 'vitest';
-import { parseFromProgram, type ParserOptions, type ParserWarning } from './index';
+import { afterEach, expect, expectTypeOf, it, vi } from 'vitest';
+import {
+	parseFile,
+	parseFromProgram,
+	TypeOperatorNode,
+	type ModuleNode,
+	type ParserOptions,
+	type ParserWarning,
+	type ResolvedModuleNode,
+	type SyntaxOnlyModuleNode,
+	type TypeOperatorResolutionKind,
+} from './index';
 import { type ScopedParserContext } from './parserContext';
 import { parseExport } from './parsers/exportParser';
 import { createInMemoryProgram } from '../test/support/inMemoryProgram';
@@ -42,6 +52,9 @@ export class ClassWarnings {
     \`return-\${string}\` {
     return undefined as any;
   }
+
+  property:
+    \`property-\${string}\`;
 }`;
 const sourceNodeRestorationSource = `export function withReturn():
   \`return-\${string}\` {
@@ -74,6 +87,16 @@ export function useFixed<P = void>(
 ): Result<string | null> {
   return useThing<string | null, P>(null, options);
 }`;
+
+function expectKind<TNode extends { kind: string }, TKind extends TNode['kind']>(
+	node: TNode,
+	kind: TKind,
+): asserts node is Extract<TNode, { kind: TKind }> {
+	expect(node.kind).toBe(kind);
+	if (node.kind !== kind) {
+		throw new Error(`Expected node kind "${kind}", received "${node.kind}"`);
+	}
+}
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
 	return `Type extraction warning: Unable to handle type "\`prefix-\${string}\`" with flag "TemplateLiteral" at "${filePath}:1:17". Using any instead.`;
@@ -228,7 +251,7 @@ it('reports implicit class parameter fallback locations at the parameter site', 
 	});
 });
 
-it('reports precise type locations in function and class signatures', () => {
+it('reports precise type locations in functions, class signatures, and class properties', () => {
 	const filePath = '/virtual/precise-warning-locations.ts';
 	const warnings: ParserWarning[] = [];
 
@@ -242,6 +265,7 @@ it('reports precise type locations in function and class signatures', () => {
 		(warning) => warning.code === 'unsupported-type-fallback',
 	);
 
+	expect(unsupportedWarnings).toHaveLength(4);
 	expect(unsupportedWarnings).toEqual(
 		expect.arrayContaining([
 			expect.objectContaining({
@@ -261,6 +285,14 @@ it('reports precise type locations in function and class signatures', () => {
 				column: 5,
 				sourceText: '`return-${string}`',
 				parsedSymbolStack: [filePath, 'ClassWarnings'],
+			}),
+			expect.objectContaining({
+				line: 17,
+				column: 5,
+				sourceText: '`property-${string}`',
+				parsedSymbolStack: [filePath, 'ClassWarnings'],
+				typeFlags: ['TemplateLiteral'],
+				typeText: '`property-${string}`',
 			}),
 		]),
 	);
@@ -322,6 +354,159 @@ it('parses generic aliases whose resolved types expose extra type arguments', ()
 			},
 		},
 	]);
+});
+
+it('correlates type operator payloads with the selected output mode', () => {
+	const filePath = '/virtual/type-operator-output-types.ts';
+	const source = `export interface Props { key: keyof { value: string } }
+interface Box<T> { value: T }
+export function useBox(value: Box<keyof Props>): void {}`;
+	const program = createInMemoryProgram(filePath, source);
+
+	const resolvedModule = parseFromProgram(filePath, program);
+	const compatibleModule: ModuleNode = resolvedModule;
+	const resolvedType = resolvedModule.exports.find(
+		(parsedExport) => parsedExport.name === 'Props',
+	)!.type;
+	expectKind(resolvedType, 'object');
+	const resolvedOperator = resolvedType.properties[0]!.type;
+	expectKind(resolvedOperator, 'typeOperator');
+	expect(resolvedOperator.resolvedType.kind).toBeDefined();
+	const resolutionKind: TypeOperatorResolutionKind = resolvedOperator.resolutionKind;
+	expect(resolutionKind).toBe('exact');
+
+	const explicitResolvedModule = parseFromProgram(filePath, program, {
+		typeOperatorOutput: 'resolved',
+	});
+	const explicitResolvedType = explicitResolvedModule.exports.find(
+		(parsedExport) => parsedExport.name === 'Props',
+	)!.type;
+	expectKind(explicitResolvedType, 'object');
+	const explicitResolvedOperator = explicitResolvedType.properties[0]!.type;
+	expectKind(explicitResolvedOperator, 'typeOperator');
+	expect(explicitResolvedOperator.resolvedType.kind).toBeDefined();
+
+	const syntaxOnlyModule = parseFromProgram(filePath, program, {
+		typeOperatorOutput: 'syntaxOnly',
+	});
+	const compatibleSyntaxOnlyModule: ModuleNode = syntaxOnlyModule;
+	const syntaxOnlyType = syntaxOnlyModule.exports.find(
+		(parsedExport) => parsedExport.name === 'Props',
+	)!.type;
+	expectKind(syntaxOnlyType, 'object');
+	const syntaxOnlyOperator = syntaxOnlyType.properties[0]!.type;
+	expectKind(syntaxOnlyOperator, 'typeOperator');
+	expect(syntaxOnlyOperator).toBeInstanceOf(TypeOperatorNode);
+	expectTypeOf(syntaxOnlyOperator.resolvedType).toEqualTypeOf<undefined>();
+	expect(syntaxOnlyOperator).not.toHaveProperty('resolvedType');
+	if (syntaxOnlyOperator instanceof TypeOperatorNode) {
+		expectTypeOf(syntaxOnlyOperator.resolvedType).toEqualTypeOf<undefined>();
+	}
+
+	const syntaxOnlyFunction = syntaxOnlyModule.exports.find(
+		(parsedExport) => parsedExport.name === 'useBox',
+	)!.type;
+	expectKind(syntaxOnlyFunction, 'function');
+	const parameterType = syntaxOnlyFunction.callSignatures[0]!.parameters[0]!.type;
+	expectKind(parameterType, 'object');
+	const typeArgument = parameterType.typeName?.typeArguments?.[0]?.type;
+	if (!typeArgument) {
+		throw new Error('Expected the Box type argument to preserve its operator');
+	}
+	expectKind(typeArgument, 'typeOperator');
+	expectTypeOf(typeArgument.resolvedType).toEqualTypeOf<undefined>();
+
+	const syntaxOnlyCopy = syntaxOnlyModule.exports
+		.find((parsedExport) => parsedExport.name === 'useBox')!
+		.withType(syntaxOnlyFunction);
+	expectKind(syntaxOnlyCopy.type, 'function');
+	const copiedParameterType = syntaxOnlyCopy.type.callSignatures[0]!.parameters[0]!.type;
+	expectKind(copiedParameterType, 'object');
+	const copiedTypeArgument = copiedParameterType.typeName?.typeArguments?.[0]?.type;
+	if (!copiedTypeArgument) {
+		throw new Error('Expected the copied type argument to preserve its operator');
+	}
+	expectKind(copiedTypeArgument, 'typeOperator');
+	expectTypeOf(copiedTypeArgument.resolvedType).toEqualTypeOf<undefined>();
+
+	const dynamicOptions: ParserOptions = { typeOperatorOutput: 'syntaxOnly' };
+	const dynamicModule = parseFromProgram(filePath, program, dynamicOptions);
+	const dynamicType = dynamicModule.exports.find(
+		(parsedExport) => parsedExport.name === 'Props',
+	)!.type;
+	expectKind(dynamicType, 'object');
+	const dynamicOperator = dynamicType.properties[0]!.type;
+	expectKind(dynamicOperator, 'typeOperator');
+	expect(dynamicOperator).toBeInstanceOf(TypeOperatorNode);
+	type DynamicPayloadCanBeUndefined = undefined extends typeof dynamicOperator.resolvedType
+		? true
+		: false;
+	expectTypeOf<DynamicPayloadCanBeUndefined>().toEqualTypeOf<true>();
+	if (dynamicOperator instanceof TypeOperatorNode) {
+		type InstancePayloadCanBeUndefined = undefined extends typeof dynamicOperator.resolvedType
+			? true
+			: false;
+		expectTypeOf<InstancePayloadCanBeUndefined>().toEqualTypeOf<true>();
+	}
+	if (dynamicOperator.resolvedType) {
+		expect(dynamicOperator.resolvedType.kind).toBeDefined();
+	}
+	expect(dynamicOperator.resolvedType).toBeUndefined();
+
+	expect(compatibleModule.exports[0]).toBeDefined();
+	expect(compatibleSyntaxOnlyModule.exports[0]).toBeDefined();
+	expect(resolvedModule.exports[0]).toBeDefined();
+	expect(syntaxOnlyModule.exports[0]).toBeDefined();
+});
+
+it('correlates parseFile return types with literal and dynamic output modes', () => {
+	const filePath = new URL(
+		'../test/fixtures/type-literal-union-resolution/input.ts',
+		import.meta.url,
+	).pathname;
+	const compilerOptions = {
+		rootDir: new URL('../test/fixtures/type-literal-union-resolution', import.meta.url).pathname,
+		strict: true,
+		target: ts.ScriptTarget.ESNext,
+	};
+
+	const defaultModule = parseFile(filePath, compilerOptions);
+	expectTypeOf(defaultModule).toEqualTypeOf<ResolvedModuleNode>();
+	const resolvedModule = parseFile(filePath, compilerOptions, {
+		typeOperatorOutput: 'resolved',
+	});
+	expectTypeOf(resolvedModule).toEqualTypeOf<ResolvedModuleNode>();
+	const syntaxOnlyModule = parseFile(filePath, compilerOptions, {
+		typeOperatorOutput: 'syntaxOnly',
+	});
+	expectTypeOf(syntaxOnlyModule).toEqualTypeOf<SyntaxOnlyModuleNode>();
+	const dynamicOptions: ParserOptions = { typeOperatorOutput: 'syntaxOnly' };
+	const dynamicModule = parseFile(filePath, compilerOptions, dynamicOptions);
+	expectTypeOf(dynamicModule).toEqualTypeOf<ResolvedModuleNode | SyntaxOnlyModuleNode>();
+
+	const getKeyofOperator = (module: ResolvedModuleNode | SyntaxOnlyModuleNode) => {
+		const functionType = module.exports.find(
+			(parsedExport) => parsedExport.name === 'acceptsKeyofProp',
+		)!.type;
+		expectKind(functionType, 'function');
+		const parameterType = functionType.callSignatures[0]!.parameters[0]!.type;
+		expectKind(parameterType, 'typeOperator');
+		return parameterType;
+	};
+	const defaultOperator = getKeyofOperator(defaultModule);
+	const resolvedOperator = getKeyofOperator(resolvedModule);
+	const syntaxOnlyOperator = getKeyofOperator(syntaxOnlyModule);
+	const dynamicOperator = getKeyofOperator(dynamicModule);
+
+	expect(defaultOperator).toHaveProperty('resolvedType');
+	expect(resolvedOperator).toHaveProperty('resolvedType');
+	expect(syntaxOnlyOperator).not.toHaveProperty('resolvedType');
+	expect(dynamicOperator).not.toHaveProperty('resolvedType');
+
+	expect(defaultModule.exports).not.toHaveLength(0);
+	expect(resolvedModule.exports).not.toHaveLength(0);
+	expect(syntaxOnlyModule.exports).not.toHaveLength(0);
+	expect(dynamicModule.exports).not.toHaveLength(0);
 });
 
 it('reports missing enum declarations through onWarning', () => {

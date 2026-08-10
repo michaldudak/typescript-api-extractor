@@ -1,5 +1,5 @@
 import type ts from 'typescript';
-import { type ParserContext } from './parser';
+import { type ParserContext, type TypeOperatorOutputMode } from './parser';
 
 /**
  * Internal parser context used by parser implementation modules. The public
@@ -8,6 +8,8 @@ import { type ParserContext } from './parser';
  * reference the exported public type.
  */
 export interface ScopedParserContext extends ParserContext {
+	/** Normalized type-operator output mode used by internal resolvers. */
+	typeOperatorOutput: TypeOperatorOutputMode;
 	/**
 	 * Runs parser work in a scoped diagnostic symbol context. The symbol is
 	 * visible to warning/error metadata only while the callback runs, and the
@@ -35,5 +37,14 @@ export interface ScopedParserContext extends ParserContext {
 	runWithTypeParameterSubstitutionScope<T>(
 		typeParameterSubstitutions: Map<ts.Symbol, ts.Type>,
 		callback: () => T,
+		typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>,
 	): T;
+	/** Authored type arguments paired with the active semantic substitutions. */
+	typeParameterTypeNodeSubstitutions?: Map<ts.Symbol, ts.TypeNode>;
+	/**
+	 * Authored syntax nodes whose replay is currently in progress. The semantic
+	 * `typeStack` cannot cover these: a successful syntax replay returns before
+	 * reaching the frame that stack is pushed in.
+	 */
+	authoredSyntaxStack: ts.TypeNode[];
 }

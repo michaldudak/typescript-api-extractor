@@ -18,5 +18,7 @@ export * from './types/literal';
 export * from './types/object';
 export * from './types/external';
 export * from './types/tuple';
+export * from './types/typeOperator';
 export * from './types/typeParameter';
+export * from './types/typeQuery';
 export * from './types/union';

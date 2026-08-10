@@ -197,12 +197,14 @@
 														"elementType": {
 															"kind": "intrinsic",
 															"intrinsic": "any"
-														}
+														},
+														"isReadonly": true
 													},
 													"optional": false
 												}
 											]
-										}
+										},
+										"isReadonly": true
 									},
 									"kind": "typeParameter"
 								},
@@ -211,7 +213,8 @@
 									"elementType": {
 										"name": "ItemValue",
 										"kind": "typeParameter"
-									}
+									},
+									"isReadonly": true
 								},
 								{
 									"kind": "intrinsic",
