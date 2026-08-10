@@ -1,0 +1,41 @@
+{
+	"config": {
+		// Formatting is owned by Prettier. These are the rules that would fight it,
+		// inlined from markdownlint's own `style/prettier.json` preset (that file
+		// can't be referenced directly because `extends` takes a filesystem path
+		// and pnpm does not hoist `markdownlint` to the top level).
+		"blanks-around-fences": false,
+		"blanks-around-headings": false,
+		"blanks-around-lists": false,
+		"code-fence-style": false,
+		"emphasis-style": false,
+		"heading-start-left": false,
+		"heading-style": false,
+		"hr-style": false,
+		"line-length": false,
+		"list-indent": false,
+		"list-marker-space": false,
+		"no-blanks-blockquote": false,
+		"no-hard-tabs": false,
+		"no-missing-space-atx": false,
+		"no-missing-space-closed-atx": false,
+		"no-multiple-blanks": false,
+		"no-multiple-space-atx": false,
+		"no-multiple-space-blockquote": false,
+		"no-multiple-space-closed-atx": false,
+		"no-trailing-spaces": false,
+		"ol-prefix": false,
+		"strong-style": false,
+		"ul-indent": false,
+
+		// The changelog repeats "Breaking changes", "Bug fixes", and friends under
+		// every release heading, which is the point of the format.
+		"no-duplicate-heading": { "siblings_only": true },
+		// Each changelog release puts its date in emphasis under the version
+		// heading. That line is metadata, not a section of its own.
+		"no-emphasis-as-heading": false,
+	},
+	"globs": ["**/*.md"],
+	// CLAUDE.md only holds an `@AGENTS.md` include directive, not prose.
+	"ignores": ["node_modules", "dist", "CLAUDE.md"],
+}
