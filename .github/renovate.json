@@ -11,6 +11,7 @@
 	"rangeStrategy": "bump",
 	"minimumReleaseAge": "3 days",
 	"lockFileMaintenance": {
+		"enabled": true,
 		"schedule": "* 0-4 1 * *"
 	},
 	"packageRules": [
