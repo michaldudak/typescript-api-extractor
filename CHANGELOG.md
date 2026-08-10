@@ -16,10 +16,12 @@ breaking changes below before upgrading.
 
   ```ts
   case 'typeOperator':
-  	return format(node.resolvedType);
+  	return node.resolvedType ? format(node.resolvedType) : `${node.operator} ${format(node.type)}`;
   case 'typeQuery':
   	return `typeof ${node.expressionName}`;
   ```
+
+  The exported `TypeOperatorNode` class describes both output modes, so `resolvedType` is optional on it and a formatter typed against `TypeNode` needs the guard above. Output typed as `ResolvedModuleNode` - what default and literal `'resolved'` calls return - always carries the field, so `format(node.resolvedType)` alone typechecks there.
 
   To adopt the preserved syntax - which is what collapses, say, a 178-member `keyof React.JSX.IntrinsicElements` union into one readable line - format the operator itself:
 
@@ -28,11 +30,11 @@ breaking changes below before upgrading.
   	return `${node.operator} ${format(node.type)}`;
   ```
 
-  `resolutionKind` tells you how far to trust `resolvedType`: `exact` is equivalent to the operator, `baseConstraint` is a still-generic operand's constraint rather than its eventual instantiated result (`keyof T` commonly resolves to `string | number | symbol` at extraction time), and `fallback` is a recoverable degradation. Every model node also implements `toString()`, so `String(node)` renders `keyof React.JSX.IntrinsicElements` without touching your switch at all.
+  `resolutionKind` tells you how far to trust `resolvedType`: `exact` is equivalent to the operator, `baseConstraint` is a still-generic operand's constraint rather than its eventual instantiated result (`keyof T` commonly resolves to `string | number | symbol` at extraction time), and `fallback` is a recoverable degradation. Every type node also implements `toString()`, so `String(node)` renders `keyof React.JSX.IntrinsicElements` without touching your switch at all.
 
 - Some exports change their `kind` as a result of the React component detection fixes. An export whose type is a union of React-returning functions is now a `component` with one merged prop list instead of a `union`. Conversely, a capitalized function whose return type merely ends in `Element` - a local `ListElement`, or the DOM's `HTMLElement` - is now a `function` instead of a `component`, because return types are matched exactly against `Element`, `ReactElement`, and `ReactNode`. Under `includeExternalTypes: true`, exports that were `function` become `component`, since no component was detected in that mode at all before. If you branch on `ExportNode.type.kind`, review the `union` and `function` branches, and confirm nothing depended on a non-React `*Element` return type being classified as a component. [#212](https://github.com/michaldudak/typescript-api-extractor/pull/212)
 
-- Objects with more than 50 properties now report their properties instead of collapsing to an empty object, wherever they sit at `propertyDepth` 0. Output grows accordingly for affected inputs; regenerate and review any snapshots. If you pass a `shouldResolveObject` that restates the old default, it keeps the old collapsing behavior, because an explicit return always wins over the default. [#212](https://github.com/michaldudak/typescript-api-extractor/pull/212)
+- Objects with more than 50 properties now report their properties instead of collapsing to an empty object when they sit at `propertyDepth` 0. Only the property-count limit is lifted there; the `depth <= 10` limit on the resolution stack is unchanged, so a shape reached through more than ten composition frames still collapses. Output grows accordingly for affected inputs; regenerate and review any snapshots. If you pass a `shouldResolveObject` that restates the old default, it keeps the old collapsing behavior, because an explicit return always wins over the default. [#212](https://github.com/michaldudak/typescript-api-extractor/pull/212)
 
   Add the property-depth exemption to pick up the fix:
 
