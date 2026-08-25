@@ -210,8 +210,7 @@ function resolveExportSpecifierDescriptors(
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
-			isTypeOnlyExport:
-				exportDeclaration.isTypeOnly || exportDeclaration.parent.parent.isTypeOnly || undefined,
+			isTypeOnlyExport: ts.isTypeOnlyExportDeclaration(exportDeclaration),
 			typeNode:
 				targetTypeAlias &&
 				shouldPreserveTypeAliasNode(targetTypeAlias, reexportedFrom, context.includeExternalTypes)

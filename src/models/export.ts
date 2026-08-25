@@ -47,11 +47,11 @@ export interface DeclarationSpaces {
 
 export class ExportNode {
 	/** See {@link DeclarationSpaces.isValue}. */
-	public isValue: boolean;
+	public readonly isValue: boolean;
 	/** See {@link DeclarationSpaces.isType}. */
-	public isType: boolean;
+	public readonly isType: boolean;
 	/** See {@link DeclarationSpaces.isNamespace}. */
-	public isNamespace: boolean;
+	public readonly isNamespace: boolean;
 
 	constructor(
 		public name: string,
@@ -85,7 +85,7 @@ export class ExportNode {
 			this.name,
 			type,
 			this.documentation,
-			{ isValue: this.isValue, isType: this.isType, isNamespace: this.isNamespace },
+			this,
 			this.reexportedFrom,
 			this.extendsTypes,
 		);

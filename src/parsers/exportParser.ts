@@ -23,6 +23,7 @@ export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ScopedParserContext,
 	parentNamespaces: string[] = [],
+	isTypeOnlyExport = false,
 ): ExportNode[] | undefined {
 	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, parentNamespaces);
 	if (!descriptors) {
@@ -31,7 +32,10 @@ export function parseExport(
 
 	const nodesByDescriptor = new Map<ExportDescriptor, ExportNode[] | undefined>();
 	for (const descriptor of getTypeResolutionOrderedDescriptors(descriptors)) {
-		nodesByDescriptor.set(descriptor, createExportNodesFromDescriptor(descriptor, parserContext));
+		nodesByDescriptor.set(
+			descriptor,
+			createExportNodesFromDescriptor(descriptor, parserContext, isTypeOnlyExport),
+		);
 	}
 
 	// Descriptor order is the emitted API order. Type-resolution order is kept
@@ -64,6 +68,7 @@ function getTypeResolutionOrderedDescriptors(descriptors: ExportDescriptor[]): E
 function createExportNodesFromDescriptor(
 	descriptor: ExportDescriptor,
 	parserContext: ScopedParserContext,
+	isTypeOnlyExport: boolean,
 ): ExportNode[] | undefined {
 	return runWithSymbolScopes(parserContext, descriptor.symbolScope, () => {
 		try {
@@ -82,9 +87,10 @@ function createExportNodesFromDescriptor(
 						: descriptor.name;
 
 				const declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
-				if (descriptor.isTypeOnlyExport) {
-					// A type-only export re-exports only the type meaning of its target;
-					// the runtime value does not cross the export site.
+				if (descriptor.isTypeOnlyExport || isTypeOnlyExport) {
+					// A type-only export (`export type { X }`, `export type * from`)
+					// re-exports only the type meaning of its target; the runtime value
+					// does not cross the export site.
 					declarationSpaces.isValue = false;
 				}
 
@@ -110,27 +116,28 @@ function createExportNodesFromDescriptor(
 }
 
 /**
- * Determines which of TypeScript's declaration spaces an export occupies.
+ * Determines which declaration spaces an export occupies. See
+ * {@link DeclarationSpaces} for the semantics.
  *
- * Example: `export const x = 'x'` is a value, `export type X = 'x'` is a type,
- * and a class or a merged `interface X {}` + `const X: X` declaration is both.
- * A namespace containing only types occupies just the namespace space. Alias
- * symbols (re-exported imports) resolve to their targets, keeping the alias
- * symbol's own flags too: an alias merged with a local declaration occupies
- * the spaces of both. Namespaces are recognized by an actual namespace or
- * module declaration rather than `SymbolFlags.Module`, because the binder also
- * sets that flag for expando assignments (`fn.extra = ...`).
+ * Alias symbols (re-exported imports) resolve to their targets, keeping the
+ * alias symbol's own flags too: an alias merged with a local declaration
+ * occupies the spaces of both. Namespaces are recognized by an actual
+ * namespace or module declaration rather than `SymbolFlags.Module`, because
+ * the binder also sets that flag for expando assignments (`fn.extra = ...`).
  */
 function getDeclarationSpaces(symbol: ts.Symbol, checker: ts.TypeChecker): DeclarationSpaces {
 	const resolvedSymbol =
 		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 	const flags = symbol.flags | resolvedSymbol.flags;
-	const declarations = [...(symbol.declarations ?? []), ...(resolvedSymbol.declarations ?? [])];
+	const hasNamespaceDeclaration = (candidate: ts.Symbol) =>
+		candidate.declarations?.some(ts.isModuleDeclaration) ?? false;
 
 	return {
 		isValue: (flags & ts.SymbolFlags.Value) !== 0,
 		isType: (flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace: declarations.some(ts.isModuleDeclaration),
+		isNamespace:
+			hasNamespaceDeclaration(symbol) ||
+			(resolvedSymbol !== symbol && hasNamespaceDeclaration(resolvedSymbol)),
 	};
 }
 

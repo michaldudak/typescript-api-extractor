@@ -125,17 +125,9 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 					}
 				}
 
-				const parsedExports = parseExport(exportedSymbol, context);
+				const parsedExports = parseExport(exportedSymbol, context, [], isTypeOnlyStarExport);
 				if (!parsedExports) {
 					continue;
-				}
-				if (isTypeOnlyStarExport) {
-					// The surviving pure types can include enums, which occupy the value
-					// space at their declaration - but `export type *` only re-exports
-					// their type meaning.
-					for (const parsedExport of parsedExports) {
-						parsedExport.isValue = false;
-					}
 				}
 				parsedModuleExports.push(...parsedExports);
 			}
