@@ -65,7 +65,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["./source"]

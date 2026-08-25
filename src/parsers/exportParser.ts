@@ -75,11 +75,16 @@ function createExportNodesFromDescriptor(
 						? [...descriptor.parentNamespaces, descriptor.name].join('.')
 						: descriptor.name;
 
+				const declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
+
 				return [
 					new ExportNode(
 						exportName,
 						parsedType,
 						getDocumentationFromSymbol(descriptor.symbol, parserContext.checker),
+						declarationSpaces.isValue,
+						declarationSpaces.isType,
+						declarationSpaces.isNamespace,
 						descriptor.reexportedFrom,
 						descriptor.extendsTypes,
 					),
@@ -93,6 +98,29 @@ function createExportNodesFromDescriptor(
 			throw error;
 		}
 	});
+}
+
+/**
+ * Determines which of TypeScript's declaration spaces an export occupies.
+ *
+ * Example: `export const x = 'x'` is a value, `export type X = 'x'` is a type,
+ * and a class or a merged `interface X {}` + `const X: X` declaration is both.
+ * A namespace containing only types occupies just the namespace space. Alias
+ * symbols (re-exported imports) are resolved to their targets first so the
+ * flags reflect the original declaration.
+ */
+function getDeclarationSpaces(
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): { isValue: boolean; isType: boolean; isNamespace: boolean } {
+	const resolvedSymbol =
+		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+
+	return {
+		isValue: (resolvedSymbol.flags & ts.SymbolFlags.Value) !== 0,
+		isType: (resolvedSymbol.flags & ts.SymbolFlags.Type) !== 0,
+		isNamespace: (resolvedSymbol.flags & ts.SymbolFlags.Module) !== 0,
+	};
 }
 
 /**

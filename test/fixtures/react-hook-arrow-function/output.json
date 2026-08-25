@@ -141,7 +141,10 @@
 				"description": "A hook defined as an arrow function.",
 				"visibility": "internal",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

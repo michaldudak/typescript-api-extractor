@@ -235,6 +235,9 @@
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true,
 			"reexportedFrom": "ComponentRoot"
 		},
 		{
@@ -271,7 +274,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Component.Root.Props",
@@ -502,7 +508,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Component.Root.ChangeEventDetails",
@@ -594,7 +603,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Component.Part",
@@ -659,6 +671,9 @@
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true,
 			"reexportedFrom": "ComponentPart"
 		},
 		{
@@ -695,7 +710,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Component.Part.Props",
@@ -755,7 +773,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Component.Handle",
@@ -888,6 +909,9 @@
 				"description": "A handle to control a Component imperatively.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false,
 			"reexportedFrom": "ComponentHandle"
 		},
 		{
@@ -994,6 +1018,9 @@
 				"description": "Creates a new handle to connect a Component.Root with detached triggers.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false,
 			"reexportedFrom": "createComponentHandle"
 		},
 		{
@@ -1125,7 +1152,10 @@
 			"documentation": {
 				"description": "A handle to control a Component imperatively.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentRootState",
@@ -1160,7 +1190,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentRootChangeEventDetails",
@@ -1251,7 +1284,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentRootProps",
@@ -1481,7 +1517,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentPartState",
@@ -1516,7 +1555,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentPartProps",
@@ -1575,7 +1617,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

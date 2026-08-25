@@ -84,7 +84,10 @@
 			"documentation": {
 				"description": "Nested generic function types where inner signatures reuse the same\ntype parameter name as an outer mapping. Inner T should shadow outer T\nand not incorrectly resolve via the outer rename map.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

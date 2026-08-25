@@ -2182,7 +2182,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		},
 		{
 			"name": "BaseUIComponent1.Props",
@@ -2723,6 +2726,9 @@
 					}
 				]
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseUIComponentProps"
@@ -2747,7 +2753,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent1.Actions",
@@ -2775,7 +2784,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent1.Value",
@@ -2786,7 +2798,10 @@
 					"namespaces": ["BaseUIComponent1"]
 				},
 				"intrinsic": "any"
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent1Value",
@@ -2802,7 +2817,10 @@
 						"intrinsic": "null"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent2",
@@ -4477,7 +4495,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		},
 		{
 			"name": "BaseUIComponent2.Props",
@@ -4891,6 +4912,9 @@
 					}
 				]
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseUIComponentProps"
@@ -4906,7 +4930,10 @@
 					"namespaces": ["BaseUIComponent2"]
 				},
 				"properties": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentRenderFn",
@@ -4932,7 +4959,10 @@
 					]
 				},
 				"props": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

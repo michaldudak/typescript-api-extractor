@@ -90,6 +90,9 @@
 				"description": "The root component for an alert dialog.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true,
 			"reexportedFrom": "AlertDialogRoot"
 		},
 		{
@@ -177,6 +180,9 @@
 					}
 				]
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "AlertDialogRootProps"
@@ -234,6 +240,9 @@
 				"description": "A button that opens the dialog.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true,
 			"reexportedFrom": "DialogTrigger"
 		},
 		{
@@ -283,6 +292,9 @@
 					}
 				]
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "DialogTriggerProps"
@@ -325,6 +337,9 @@
 				"description": "An overlay that covers the page behind the dialog.",
 				"tags": []
 			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true,
 			"reexportedFrom": "DialogBackdrop"
 		},
 		{
@@ -359,6 +374,9 @@
 					}
 				]
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "DialogBackdropProps"

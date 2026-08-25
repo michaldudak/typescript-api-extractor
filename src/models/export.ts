@@ -17,6 +17,31 @@ export class ExportNode {
 		public type: AnyType,
 		public documentation: Documentation | undefined,
 		/**
+		 * Whether the export occupies TypeScript's value declaration space, i.e.
+		 * exists at runtime.
+		 *
+		 * For example, `export const x = 'x'`, functions, classes, and enums are
+		 * values, while `export type X = 'x'` and lone interfaces are not. Merged
+		 * declarations such as `interface X {}` + `const X: X` are values.
+		 */
+		public isValue: boolean,
+		/**
+		 * Whether the export occupies TypeScript's type declaration space, i.e.
+		 * names a type.
+		 *
+		 * For example, type aliases, interfaces, classes, and enums are types,
+		 * while `export const x = 'x'` and plain functions are not.
+		 */
+		public isType: boolean,
+		/**
+		 * Whether the export occupies TypeScript's namespace declaration space.
+		 *
+		 * For example, `export namespace N {}` declares a namespace, possibly
+		 * merged with a function or class of the same name. A namespace
+		 * containing only types is neither a value nor a type, only a namespace.
+		 */
+		public isNamespace: boolean,
+		/**
 		 * The full original name when this export is a re-export with a different name.
 		 *
 		 * For example, `export { DialogTrigger as Trigger }` would have
@@ -39,6 +64,9 @@ export class ExportNode {
 			this.name,
 			type,
 			this.documentation,
+			this.isValue,
+			this.isType,
+			this.isNamespace,
 			this.reexportedFrom,
 			this.extendsTypes,
 		);

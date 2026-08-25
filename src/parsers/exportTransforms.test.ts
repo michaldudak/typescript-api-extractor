@@ -52,8 +52,16 @@ function createFunctionNode(
 }
 
 it('classifies component exports separately from export transformation', () => {
-	expect(isComponentExport(new ExportNode('Button', createFunctionNode(), undefined))).toBe(true);
-	expect(isComponentExport(new ExportNode('default', createFunctionNode(), undefined))).toBe(true);
+	expect(
+		isComponentExport(
+			new ExportNode('Button', createFunctionNode(), undefined, true, false, false),
+		),
+	).toBe(true);
+	expect(
+		isComponentExport(
+			new ExportNode('default', createFunctionNode(), undefined, true, false, false),
+		),
+	).toBe(true);
 	expect(
 		isComponentExport(
 			new ExportNode(
@@ -65,13 +73,27 @@ it('classifies component exports separately from export transformation', () => {
 					]),
 				),
 				undefined,
+				true,
+				false,
+				false,
 			),
 		),
 	).toBe(true);
-	expect(isComponentExport(new ExportNode('button', createFunctionNode(), undefined))).toBe(false);
 	expect(
 		isComponentExport(
-			new ExportNode('Button', createFunctionNode(new IntrinsicNode('string')), undefined),
+			new ExportNode('button', createFunctionNode(), undefined, true, false, false),
+		),
+	).toBe(false);
+	expect(
+		isComponentExport(
+			new ExportNode(
+				'Button',
+				createFunctionNode(new IntrinsicNode('string')),
+				undefined,
+				true,
+				false,
+				false,
+			),
 		),
 	).toBe(false);
 });
@@ -82,7 +104,9 @@ it('classifies a union of component-like functions as a component export', () =>
 		createFunctionNode(undefined, 'ToolbarWithRender', ['render']),
 	]);
 
-	expect(isComponentExport(new ExportNode('Toolbar', componentUnion, undefined))).toBe(true);
+	expect(
+		isComponentExport(new ExportNode('Toolbar', componentUnion, undefined, true, false, false)),
+	).toBe(true);
 });
 
 it('keeps unions with a non-component member out of the component classification', () => {
@@ -91,7 +115,9 @@ it('keeps unions with a non-component member out of the component classification
 		new IntrinsicNode('undefined'),
 	]);
 
-	expect(isComponentExport(new ExportNode('Toolbar', partialUnion, undefined))).toBe(false);
+	expect(
+		isComponentExport(new ExportNode('Toolbar', partialUnion, undefined, true, false, false)),
+	).toBe(false);
 });
 
 it('merges the props of every union member into one component', () => {
@@ -99,7 +125,7 @@ it('merges the props of every union member into one component', () => {
 		createFunctionNode(undefined, 'ToolbarRoot', ['children', 'className']),
 		createFunctionNode(undefined, 'ToolbarWithRender', ['render', 'className']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = new ExportNode('Toolbar', componentUnion, undefined, true, false, false);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -125,7 +151,7 @@ it('marks props as optional when a union member accepts no props', () => {
 		createFunctionNode(undefined, 'ToolbarStandalone', []),
 		createFunctionNode(undefined, 'ToolbarWithProps', ['id']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = new ExportNode('Toolbar', componentUnion, undefined, true, false, false);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -141,7 +167,7 @@ it('keeps the shared type name when every union member agrees on it', () => {
 		createFunctionNode(undefined, 'Toolbar', ['children']),
 		createFunctionNode(undefined, 'Toolbar', ['render']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = new ExportNode('Toolbar', componentUnion, undefined, true, false, false);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -156,6 +182,9 @@ it('applies component transforms without losing export metadata', () => {
 		'Button',
 		createFunctionNode(),
 		documentation,
+		true,
+		false,
+		false,
 		'InternalButton',
 		extendsTypes,
 	);
@@ -168,10 +197,13 @@ it('applies component transforms without losing export metadata', () => {
 	expect(transformedNode.documentation).toBe(documentation);
 	expect(transformedNode.reexportedFrom).toBe('InternalButton');
 	expect(transformedNode.extendsTypes).toBe(extendsTypes);
+	expect(transformedNode.isValue).toBe(true);
+	expect(transformedNode.isType).toBe(false);
+	expect(transformedNode.isNamespace).toBe(false);
 });
 
 it('keeps non-component exports unchanged', () => {
-	const exportNode = new ExportNode('button', createFunctionNode(), undefined);
+	const exportNode = new ExportNode('button', createFunctionNode(), undefined, true, false, false);
 
 	expect(applyExportTransforms([exportNode], parserContext)[0]).toBe(exportNode);
 });

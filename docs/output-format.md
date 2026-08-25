@@ -15,11 +15,32 @@ interface ExportNode {
 	name: string;
 	type: TypeNode;
 	documentation?: DocumentationNode;
+	isValue: boolean;
+	isType: boolean;
+	isNamespace: boolean;
 }
 ```
 
 `TypeNode` represents a TypeScript type. There are multiple classes of types. See
 the contents of the `src/models/types` directory to discover them.
+
+## Declaration Spaces
+
+`isValue`, `isType`, and `isNamespace` report which of TypeScript's declaration
+spaces the export occupies. `type` describes the resolved type shape, which does
+not identify the declaration form: `export type X = 'x'` and
+`export const x: X = 'x'` both resolve to the same literal type, and only the
+declaration spaces tell them apart.
+
+- `isValue`: the export exists at runtime — variables, functions, classes, enums.
+- `isType`: the export names a type — type aliases, interfaces, classes, enums.
+- `isNamespace`: the export declares a namespace or module.
+
+Merged declarations occupy every space their declarations occupy: a class is
+both a value and a type, `interface X {}` merged with `const X: X` is both, and
+a namespace containing only types is neither a value nor a type, only a
+namespace. Renamed and re-exported aliases report the spaces of the declaration
+they resolve to.
 
 ## Type Operators
 

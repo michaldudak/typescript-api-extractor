@@ -1,0 +1,182 @@
+{
+	"name": "test/fixtures/export-declaration-spaces/input",
+	"exports": [
+		{
+			"name": "plainFunction",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "plainFunction"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "PlainAlias",
+			"type": {
+				"kind": "literal",
+				"value": "\"alias\""
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "annotatedConstant",
+			"type": {
+				"kind": "literal",
+				"value": "\"alias\""
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "plainConstant",
+			"type": {
+				"kind": "literal",
+				"value": "\"constant\""
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "PlainClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "PlainClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "PlainEnum",
+			"type": {
+				"typeName": {
+					"name": "PlainEnum"
+				},
+				"members": [
+					{
+						"name": "member",
+						"value": "member"
+					}
+				],
+				"kind": "enum"
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "PlainInterface",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "PlainInterface"
+				},
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "Merged",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "Merged"
+				},
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "TypesNamespace.Nested",
+			"type": {
+				"kind": "literal",
+				"value": "\"nested\"",
+				"typeName": {
+					"name": "Nested",
+					"namespaces": ["TypesNamespace"]
+				}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "ReexportedAlias",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\""
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "reexportedValue",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\""
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		}
+	]
+}

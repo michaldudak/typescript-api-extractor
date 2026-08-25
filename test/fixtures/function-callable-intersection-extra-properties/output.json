@@ -23,7 +23,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		},
 		{
 			"name": "TestComponent",
@@ -39,7 +42,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		}
 	],
 	"imports": ["react"]

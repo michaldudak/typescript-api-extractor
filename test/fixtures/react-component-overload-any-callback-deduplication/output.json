@@ -229,7 +229,10 @@
 			"documentation": {
 				"description": "Component with overloads where one overload results in `any` for ItemValue\nand the other results in a concrete type.\nTests that callbacks with `any` params are deduplicated in favor of concrete types.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

@@ -89,7 +89,10 @@
 				"description": "A hook defined as a function.",
 				"visibility": "internal",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }

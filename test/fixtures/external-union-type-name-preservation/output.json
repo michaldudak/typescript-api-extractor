@@ -39,7 +39,10 @@
 			"documentation": {
 				"description": "A boundary can be the clipping ancestors, an element, or a Rect.\nThe Rect type should be preserved as \"Rect\" not expanded to its underlying type.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Anchor",
@@ -66,7 +69,10 @@
 			"documentation": {
 				"description": "An anchor can be an element or a Point.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Padding",
@@ -79,7 +85,10 @@
 			"documentation": {
 				"description": "Padding can be a number or a partial side object.\nThis is a UNION type that should be EXPANDED (not collapsed to just \"Padding\").",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "NestedRect",
@@ -93,6 +102,9 @@
 				"description": "A rectangle with x, y coordinates and width, height dimensions.\n\nTypeScript will resolve this to Prettify<Coords & Dimensions>,\nbut consumers should see \"Rect\" in their type information.",
 				"tags": []
 			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false,
 			"reexportedFrom": "Rect"
 		},
 		{
@@ -251,7 +263,10 @@
 			"documentation": {
 				"description": "Props that use external types in unions.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["external-lib", "external-lib-wrapper"]

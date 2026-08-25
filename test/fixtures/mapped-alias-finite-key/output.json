@@ -54,7 +54,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Specialized",
@@ -99,7 +102,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "LiteralWrapped",
@@ -131,7 +137,10 @@
 					]
 				},
 				"properties": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

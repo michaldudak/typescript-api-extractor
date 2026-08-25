@@ -54,7 +54,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Middle",
@@ -109,7 +112,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Outer",
@@ -164,7 +170,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "UseOuter",
@@ -204,7 +213,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }
