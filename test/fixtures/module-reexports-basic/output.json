@@ -65,10 +65,10 @@
 					}
 				]
 			},
+			"reexportedFrom": "RootComponent",
 			"isValue": true,
 			"isType": false,
-			"isNamespace": true,
-			"reexportedFrom": "RootComponent"
+			"isNamespace": true
 		},
 		{
 			"name": "Root.Props",

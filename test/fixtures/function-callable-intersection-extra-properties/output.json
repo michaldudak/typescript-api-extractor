@@ -26,7 +26,7 @@
 			},
 			"isValue": true,
 			"isType": false,
-			"isNamespace": true
+			"isNamespace": false
 		},
 		{
 			"name": "TestComponent",
@@ -45,7 +45,7 @@
 			},
 			"isValue": true,
 			"isType": false,
-			"isNamespace": true
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

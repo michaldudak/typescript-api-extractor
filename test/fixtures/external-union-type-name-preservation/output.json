@@ -102,10 +102,10 @@
 				"description": "A rectangle with x, y coordinates and width, height dimensions.\n\nTypeScript will resolve this to Prettify<Coords & Dimensions>,\nbut consumers should see \"Rect\" in their type information.",
 				"tags": []
 			},
+			"reexportedFrom": "Rect",
 			"isValue": false,
 			"isType": true,
-			"isNamespace": false,
-			"reexportedFrom": "Rect"
+			"isNamespace": false
 		},
 		{
 			"name": "PositioningProps",

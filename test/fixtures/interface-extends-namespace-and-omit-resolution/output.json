@@ -1088,15 +1088,15 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "DialogRoot.Props",
 					"resolvedName": "DialogRootProps"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "AlertDialogRootActions",

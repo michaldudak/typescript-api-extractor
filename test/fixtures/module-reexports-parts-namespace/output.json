@@ -235,10 +235,10 @@
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
 			},
+			"reexportedFrom": "ComponentRoot",
 			"isValue": true,
 			"isType": false,
-			"isNamespace": true,
-			"reexportedFrom": "ComponentRoot"
+			"isNamespace": true
 		},
 		{
 			"name": "Component.Root.State",
@@ -671,10 +671,10 @@
 				"description": "A simple component that displays a title and optional children.",
 				"tags": []
 			},
+			"reexportedFrom": "ComponentPart",
 			"isValue": true,
 			"isType": false,
-			"isNamespace": true,
-			"reexportedFrom": "ComponentPart"
+			"isNamespace": true
 		},
 		{
 			"name": "Component.Part.State",
@@ -909,10 +909,10 @@
 				"description": "A handle to control a Component imperatively.",
 				"tags": []
 			},
+			"reexportedFrom": "ComponentHandle",
 			"isValue": true,
 			"isType": true,
-			"isNamespace": false,
-			"reexportedFrom": "ComponentHandle"
+			"isNamespace": false
 		},
 		{
 			"name": "Component.createHandle",
@@ -1018,10 +1018,10 @@
 				"description": "Creates a new handle to connect a Component.Root with detached triggers.",
 				"tags": []
 			},
+			"reexportedFrom": "createComponentHandle",
 			"isValue": true,
 			"isType": false,
-			"isNamespace": false,
-			"reexportedFrom": "createComponentHandle"
+			"isNamespace": false
 		},
 		{
 			"name": "ComponentHandle",
@@ -1153,7 +1153,7 @@
 				"description": "A handle to control a Component imperatively.",
 				"tags": []
 			},
-			"isValue": true,
+			"isValue": false,
 			"isType": true,
 			"isNamespace": false
 		},

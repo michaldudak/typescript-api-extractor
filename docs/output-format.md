@@ -32,15 +32,23 @@ not identify the declaration form: `export type X = 'x'` and
 `export const x: X = 'x'` both resolve to the same literal type, and only the
 declaration spaces tell them apart.
 
-- `isValue`: the export exists at runtime — variables, functions, classes, enums.
+- `isValue`: the export occupies the value space — variables, functions,
+  classes, enums. Note that `const enum` members are inlined by default
+  (`preserveConstEnums: false`), so a value export does not guarantee a runtime
+  binding in the emitted output.
 - `isType`: the export names a type — type aliases, interfaces, classes, enums.
-- `isNamespace`: the export declares a namespace or module.
+- `isNamespace`: the export declares a namespace or module. Expando assignments
+  (`fn.extra = ...`) do not count.
 
 Merged declarations occupy every space their declarations occupy: a class is
 both a value and a type, `interface X {}` merged with `const X: X` is both, and
 a namespace containing only types is neither a value nor a type, only a
 namespace. Renamed and re-exported aliases report the spaces of the declaration
-they resolve to.
+they resolve to, combined with any local declarations merged onto the alias. A
+type-only re-export (`export type { X }`, `export type * from '...'`) never
+occupies the value space, whatever its target is. The flags come from the
+checker, so a re-export from an unresolvable module surfaces with the checker's
+fallback classification (a value of type `any`).
 
 ## Type Operators
 

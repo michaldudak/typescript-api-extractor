@@ -114,9 +114,11 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				// Check if this symbol comes from a type-only star export module
 				// If so, skip it if it's not a pure type
 				const declarations = exportedSymbol.declarations;
+				let isTypeOnlyStarExport = false;
 				if (declarations && declarations.length > 0) {
 					const symbolSourceFile = declarations[0].getSourceFile();
-					if (typeOnlySourceFiles.has(symbolSourceFile) && !isPureType(exportedSymbol)) {
+					isTypeOnlyStarExport = typeOnlySourceFiles.has(symbolSourceFile);
+					if (isTypeOnlyStarExport && !isPureType(exportedSymbol)) {
 						// This is a value (like a function with merged namespace) from a type-only export
 						// Skip it - TypeScript doesn't actually export it
 						continue;
@@ -126,6 +128,14 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				const parsedExports = parseExport(exportedSymbol, context);
 				if (!parsedExports) {
 					continue;
+				}
+				if (isTypeOnlyStarExport) {
+					// The surviving pure types can include enums, which occupy the value
+					// space at their declaration - but `export type *` only re-exports
+					// their type meaning.
+					for (const parsedExport of parsedExports) {
+						parsedExport.isValue = false;
+					}
 				}
 				parsedModuleExports.push(...parsedExports);
 			}

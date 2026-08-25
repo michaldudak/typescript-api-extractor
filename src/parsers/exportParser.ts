@@ -1,5 +1,11 @@
 import ts from 'typescript';
-import { ExportNode, TypeName, withTypeName, type AnyType } from '../models';
+import {
+	ExportNode,
+	TypeName,
+	withTypeName,
+	type AnyType,
+	type DeclarationSpaces,
+} from '../models';
 import { ParserError } from '../ParserError';
 import { type ScopedParserContext } from '../parserContext';
 import { isInternalSymbolName } from './common';
@@ -76,15 +82,18 @@ function createExportNodesFromDescriptor(
 						: descriptor.name;
 
 				const declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
+				if (descriptor.isTypeOnlyExport) {
+					// A type-only export re-exports only the type meaning of its target;
+					// the runtime value does not cross the export site.
+					declarationSpaces.isValue = false;
+				}
 
 				return [
 					new ExportNode(
 						exportName,
 						parsedType,
 						getDocumentationFromSymbol(descriptor.symbol, parserContext.checker),
-						declarationSpaces.isValue,
-						declarationSpaces.isType,
-						declarationSpaces.isNamespace,
+						declarationSpaces,
 						descriptor.reexportedFrom,
 						descriptor.extendsTypes,
 					),
@@ -106,20 +115,22 @@ function createExportNodesFromDescriptor(
  * Example: `export const x = 'x'` is a value, `export type X = 'x'` is a type,
  * and a class or a merged `interface X {}` + `const X: X` declaration is both.
  * A namespace containing only types occupies just the namespace space. Alias
- * symbols (re-exported imports) are resolved to their targets first so the
- * flags reflect the original declaration.
+ * symbols (re-exported imports) resolve to their targets, keeping the alias
+ * symbol's own flags too: an alias merged with a local declaration occupies
+ * the spaces of both. Namespaces are recognized by an actual namespace or
+ * module declaration rather than `SymbolFlags.Module`, because the binder also
+ * sets that flag for expando assignments (`fn.extra = ...`).
  */
-function getDeclarationSpaces(
-	symbol: ts.Symbol,
-	checker: ts.TypeChecker,
-): { isValue: boolean; isType: boolean; isNamespace: boolean } {
+function getDeclarationSpaces(symbol: ts.Symbol, checker: ts.TypeChecker): DeclarationSpaces {
 	const resolvedSymbol =
 		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	const flags = symbol.flags | resolvedSymbol.flags;
+	const declarations = [...(symbol.declarations ?? []), ...(resolvedSymbol.declarations ?? [])];
 
 	return {
-		isValue: (resolvedSymbol.flags & ts.SymbolFlags.Value) !== 0,
-		isType: (resolvedSymbol.flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace: (resolvedSymbol.flags & ts.SymbolFlags.Module) !== 0,
+		isValue: (flags & ts.SymbolFlags.Value) !== 0,
+		isType: (flags & ts.SymbolFlags.Type) !== 0,
+		isNamespace: declarations.some(ts.isModuleDeclaration),
 	};
 }
 

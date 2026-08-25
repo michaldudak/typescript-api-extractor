@@ -59,6 +59,11 @@ export interface ExportDescriptor {
 	typeNode?: ts.TypeNode;
 	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
+	/**
+	 * Whether the export is type-only (`export type { X }`). A type-only export
+	 * re-exports only the type meaning of its target, never the runtime value.
+	 */
+	isTypeOnlyExport?: boolean;
 	/** Interface or class heritage metadata attached to the export. */
 	extendsTypes?: ExtendsTypeInfo[];
 }
@@ -205,6 +210,8 @@ function resolveExportSpecifierDescriptors(
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
+			isTypeOnlyExport:
+				exportDeclaration.isTypeOnly || exportDeclaration.parent.parent.isTypeOnly || undefined,
 			typeNode:
 				targetTypeAlias &&
 				shouldPreserveTypeAliasNode(targetTypeAlias, reexportedFrom, context.includeExternalTypes)

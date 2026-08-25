@@ -2726,14 +2726,14 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseUIComponentProps"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent1.State",
@@ -4912,14 +4912,14 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseUIComponentProps"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "BaseUIComponent2.State",

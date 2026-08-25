@@ -27,14 +27,14 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseProps"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "MultiExtendedProps",
@@ -70,9 +70,6 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "BaseProps"
@@ -80,7 +77,10 @@
 				{
 					"name": "AnotherBase"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "AlertDialogProps",
@@ -108,15 +108,15 @@
 					}
 				]
 			},
-			"isValue": false,
-			"isType": true,
-			"isNamespace": false,
 			"extendsTypes": [
 				{
 					"name": "Dialog.Props",
 					"resolvedName": "DialogProps"
 				}
-			]
+			],
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Dialog",
