@@ -44,6 +44,41 @@
 			"isNamespace": false
 		},
 		{
+			"name": "fnWithNs",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "fnWithNs"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
+		},
+		{
+			"name": "fnWithNs.Nested",
+			"type": {
+				"kind": "literal",
+				"value": "\"nested\"",
+				"typeName": {
+					"name": "Nested",
+					"namespaces": ["fnWithNs"]
+				}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "PlainAlias",
 			"type": {
 				"kind": "literal",
@@ -211,6 +246,62 @@
 			"isNamespace": false
 		},
 		{
+			"name": "nsFn",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "nsFn"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": true
+		},
+		{
+			"name": "nsFn.inner",
+			"type": {
+				"kind": "literal",
+				"value": "\"inner\"",
+				"typeName": {
+					"name": "inner",
+					"namespaces": ["nsFn"]
+				}
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "typeOnlyImported",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "typeOnlyImported"
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
 			"name": "ReexportedAlias",
 			"type": {
 				"kind": "literal",
@@ -261,6 +352,36 @@
 			"isNamespace": false
 		},
 		{
+			"name": "default",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "default"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "StarEnum",
 			"type": {
 				"typeName": {
@@ -279,5 +400,5 @@
 			"isNamespace": false
 		}
 	],
-	"imports": ["./helpers"]
+	"imports": ["./helpers", "./helpers"]
 }

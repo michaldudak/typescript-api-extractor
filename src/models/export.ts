@@ -26,14 +26,14 @@ export interface DeclarationSpaces {
 	 * enum` members are inlined by default (`preserveConstEnums: false`), so a
 	 * value export does not guarantee a runtime binding in the emitted output.
 	 */
-	isValue: boolean;
+	readonly isValue: boolean;
 	/**
 	 * Whether the export occupies the type declaration space, i.e. names a type.
 	 *
 	 * For example, type aliases, interfaces, classes, and enums are types,
 	 * while `export const x = 'x'` and plain functions are not.
 	 */
-	isType: boolean;
+	readonly isType: boolean;
 	/**
 	 * Whether the export declares a namespace or module.
 	 *
@@ -42,10 +42,10 @@ export interface DeclarationSpaces {
 	 * value nor a type, only a namespace. Expando assignments
 	 * (`fn.extra = ...`) do not make an export a namespace.
 	 */
-	isNamespace: boolean;
+	readonly isNamespace: boolean;
 }
 
-export class ExportNode {
+export class ExportNode implements DeclarationSpaces {
 	/** See {@link DeclarationSpaces.isValue}. */
 	public readonly isValue: boolean;
 	/** See {@link DeclarationSpaces.isType}. */

@@ -1,4 +1,5 @@
 import { mergedTarget } from './helpers';
+import type { typeOnlyImported } from './helpers';
 
 // A type alias and a constant annotated with it resolve to the same literal
 // type; only the declaration spaces tell them apart.
@@ -54,6 +55,31 @@ namespace TypesNamespace {
 
 export type { TypesNamespace };
 
+// A function merged with a namespace occupies the value and namespace spaces.
+export function fnWithNs(): string {
+	return 'fn-with-ns';
+}
+
+export namespace fnWithNs {
+	export type Nested = 'nested';
+}
+
+// A type-only export of a merged namespace masks the value space of its
+// members too: nothing crosses the export site at runtime.
+function nsFn(): string {
+	return 'ns-fn';
+}
+
+namespace nsFn {
+	export const inner = 'inner';
+}
+
+export type { nsFn };
+
+// A value re-exported through a type-only import has no runtime binding,
+// even though the export specifier itself is not type-only.
+export { typeOnlyImported };
+
 // Type-only re-exports never occupy the value space, whatever their target is.
 export type { ReexportedAlias, ReexportedClass } from './helpers';
 
@@ -61,3 +87,8 @@ export { reexportedValue } from './helpers';
 
 // An enum survives a type-only star export as a type, not as a value.
 export type * from './enums';
+
+// A default-exported class occupies the value and type spaces like any class.
+export default class DefaultClass {
+	id: string = 'default';
+}

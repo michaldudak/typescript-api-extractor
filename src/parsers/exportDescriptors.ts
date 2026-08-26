@@ -201,7 +201,8 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
-	return withNamespaceDescriptors(
+	const isTypeOnlyExport = isTypeOnlyAliasChain(exportSymbol, context.checker);
+	const descriptors = withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
 			symbol: targetSymbol,
@@ -210,7 +211,7 @@ function resolveExportSpecifierDescriptors(
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
 			symbolScope,
 			reexportedFrom,
-			isTypeOnlyExport: ts.isTypeOnlyExportDeclaration(exportDeclaration),
+			isTypeOnlyExport,
 			typeNode:
 				targetTypeAlias &&
 				shouldPreserveTypeAliasNode(targetTypeAlias, reexportedFrom, context.includeExternalTypes)
@@ -219,6 +220,31 @@ function resolveExportSpecifierDescriptors(
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);
+
+	// Members of a merged namespace cross the same type-only export site as
+	// their owner, so they lose their runtime binding with it.
+	return isTypeOnlyExport
+		? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
+		: descriptors;
+}
+
+/**
+ * Whether the export symbol's alias chain crosses a type-only import or export
+ * declaration (`export type { X }`, or a re-exported `import type { X }`). A
+ * type-only site strips the runtime value from everything exported through it,
+ * which resolving the alias chain in one jump would not see.
+ */
+function isTypeOnlyAliasChain(exportSymbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const seen = new Set<ts.Symbol>();
+	let current: ts.Symbol | undefined = exportSymbol;
+	while (current && current.flags & ts.SymbolFlags.Alias && !seen.has(current)) {
+		seen.add(current);
+		if (current.declarations?.some(ts.isTypeOnlyImportOrExportDeclaration)) {
+			return true;
+		}
+		current = checker.getImmediateAliasedSymbol(current);
+	}
+	return false;
 }
 
 function shouldPreserveTypeAliasNode(

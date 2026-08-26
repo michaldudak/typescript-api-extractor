@@ -116,6 +116,9 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				const declarations = exportedSymbol.declarations;
 				let isTypeOnlyStarExport = false;
 				if (declarations && declarations.length > 0) {
+					// Type-only-ness is attributed to the declaring file, not the export
+					// path: when the same module is reached by both `export *` and
+					// `export type *`, its exports count as type-only.
 					const symbolSourceFile = declarations[0].getSourceFile();
 					isTypeOnlyStarExport = typeOnlySourceFiles.has(symbolSourceFile);
 					if (isTypeOnlyStarExport && !isPureType(exportedSymbol)) {

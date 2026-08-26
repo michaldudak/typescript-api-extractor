@@ -9,3 +9,7 @@ export class ReexportedClass {
 export function mergedTarget(): string {
 	return 'merged-target';
 }
+
+export function typeOnlyImported(): string {
+	return 'type-only-imported';
+}

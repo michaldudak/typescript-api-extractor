@@ -86,12 +86,12 @@ function createExportNodesFromDescriptor(
 						? [...descriptor.parentNamespaces, descriptor.name].join('.')
 						: descriptor.name;
 
-				const declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
+				let declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
 				if (descriptor.isTypeOnlyExport || isTypeOnlyExport) {
 					// A type-only export (`export type { X }`, `export type * from`)
 					// re-exports only the type meaning of its target; the runtime value
 					// does not cross the export site.
-					declarationSpaces.isValue = false;
+					declarationSpaces = { ...declarationSpaces, isValue: false };
 				}
 
 				return [
@@ -135,9 +135,7 @@ function getDeclarationSpaces(symbol: ts.Symbol, checker: ts.TypeChecker): Decla
 	return {
 		isValue: (flags & ts.SymbolFlags.Value) !== 0,
 		isType: (flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace:
-			hasNamespaceDeclaration(symbol) ||
-			(resolvedSymbol !== symbol && hasNamespaceDeclaration(resolvedSymbol)),
+		isNamespace: hasNamespaceDeclaration(symbol) || hasNamespaceDeclaration(resolvedSymbol),
 	};
 }
 
