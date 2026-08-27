@@ -47,10 +47,11 @@ namespace. Renamed and re-exported aliases report the spaces of the declaration
 they resolve to, combined with any local declarations merged onto the alias. A
 type-only re-export (`export type { X }`, `export type * from '...'`,
 `export type * as N from '...'`) never occupies the value space, whatever its
-target is, though a module also reached by a plain `export *` still exports its
-values through that path. The flags come from the
-checker, so a re-export from an unresolvable module surfaces with the checker's
-fallback classification (a value of type `any`).
+target is. When the same file also star-exports that module without `type`, the
+values still arrive through that path; reachability through a further module's
+star export is not modelled. The flags come from the checker, so a re-export
+from an unresolvable module surfaces with the checker's fallback classification
+(a value of type `any`).
 
 ## Type Operators
 
