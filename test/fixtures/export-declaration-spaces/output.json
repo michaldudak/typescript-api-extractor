@@ -352,6 +352,212 @@
 			"isNamespace": false
 		},
 		{
+			"name": "TypeOnlyNamespace.mergedTarget",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "mergedTarget",
+					"namespaces": ["TypeOnlyNamespace"]
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "TypeOnlyNamespace.typeOnlyImported",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "typeOnlyImported",
+					"namespaces": ["TypeOnlyNamespace"]
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "TypeOnlyNamespace.ReexportedAlias",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\"",
+				"typeName": {
+					"name": "ReexportedAlias",
+					"namespaces": ["TypeOnlyNamespace"]
+				}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "TypeOnlyNamespace.reexportedValue",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\"",
+				"typeName": {
+					"name": "reexportedValue",
+					"namespaces": ["TypeOnlyNamespace"]
+				}
+			},
+			"isValue": false,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "TypeOnlyNamespace.ReexportedClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "ReexportedClass",
+					"namespaces": ["TypeOnlyNamespace"]
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "ValueNamespace.mergedTarget",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "mergedTarget",
+					"namespaces": ["ValueNamespace"]
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "ValueNamespace.typeOnlyImported",
+			"type": {
+				"kind": "function",
+				"typeName": {
+					"name": "typeOnlyImported",
+					"namespaces": ["ValueNamespace"]
+				},
+				"callSignatures": [
+					{
+						"parameters": [],
+						"returnValueType": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						}
+					}
+				]
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "ValueNamespace.ReexportedAlias",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\"",
+				"typeName": {
+					"name": "ReexportedAlias",
+					"namespaces": ["ValueNamespace"]
+				}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "ValueNamespace.reexportedValue",
+			"type": {
+				"kind": "literal",
+				"value": "\"reexported\"",
+				"typeName": {
+					"name": "reexportedValue",
+					"namespaces": ["ValueNamespace"]
+				}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
+		},
+		{
+			"name": "ValueNamespace.ReexportedClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "ReexportedClass",
+					"namespaces": ["ValueNamespace"]
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "default",
 			"type": {
 				"kind": "class",
@@ -396,6 +602,24 @@
 				"kind": "enum"
 			},
 			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "DualStarEnum",
+			"type": {
+				"typeName": {
+					"name": "DualStarEnum"
+				},
+				"members": [
+					{
+						"name": "member",
+						"value": "member"
+					}
+				],
+				"kind": "enum"
+			},
+			"isValue": true,
 			"isType": true,
 			"isNamespace": false
 		}

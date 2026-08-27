@@ -88,6 +88,18 @@ export { reexportedValue } from './helpers';
 // An enum survives a type-only star export as a type, not as a value.
 export type * from './enums';
 
+// Reaching the same module both ways keeps the value space: the plain star export
+// carries the runtime binding regardless of the type-only one.
+export * from './dual-enums';
+export type * from './dual-enums';
+
+// A type-only namespace re-export masks the value space of its members too,
+// like every other type-only export site.
+export type * as TypeOnlyNamespace from './helpers';
+
+// The same re-export without `type` keeps the value space.
+export * as ValueNamespace from './helpers';
+
 // A default-exported class occupies the value and type spaces like any class.
 export default class DefaultClass {
 	id: string = 'default';

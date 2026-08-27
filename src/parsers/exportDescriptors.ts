@@ -162,9 +162,15 @@ function resolveNamespaceExportDescriptors(
 		return;
 	}
 
-	return asNonEmptyDescriptors(
+	const descriptors = asNonEmptyDescriptors(
 		resolveNamespaceMemberDescriptors(aliasedSymbol, exportSymbol.name, scope),
 	);
+
+	// `export type * as Name` is a type-only export site like any other, so nothing
+	// reached through it keeps a runtime binding.
+	return isTypeOnlyAliasChain(exportSymbol, scope.context.checker)
+		? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
+		: descriptors;
 }
 
 /**
@@ -186,9 +192,17 @@ function resolveExportSpecifierDescriptors(
 	namespaceDescriptors: ExportDescriptor[],
 ): ExportDescriptor[] | undefined {
 	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
+	// Read before the unresolved-target return below, so members of a merged namespace
+	// are masked even when the target itself cannot be resolved.
+	const isTypeOnlyExport = isTypeOnlyAliasChain(exportSymbol, context.checker);
+	const maskTypeOnly = (descriptors: ExportDescriptor[] | undefined) =>
+		isTypeOnlyExport
+			? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
+			: descriptors;
+
 	const targetSymbol = resolveExportSpecifierTarget(exportSymbol, exportDeclaration, context);
 	if (!targetSymbol) {
-		return withNamespaceDescriptors(undefined, namespaceDescriptors);
+		return maskTypeOnly(withNamespaceDescriptors(undefined, namespaceDescriptors));
 	}
 
 	const targetNamespaceDescriptors = resolveMergedNamespaceDescriptors(
@@ -201,7 +215,6 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
-	const isTypeOnlyExport = isTypeOnlyAliasChain(exportSymbol, context.checker);
 	const descriptors = withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
@@ -223,9 +236,7 @@ function resolveExportSpecifierDescriptors(
 
 	// Members of a merged namespace cross the same type-only export site as
 	// their owner, so they lose their runtime binding with it.
-	return isTypeOnlyExport
-		? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
-		: descriptors;
+	return maskTypeOnly(descriptors);
 }
 
 /**

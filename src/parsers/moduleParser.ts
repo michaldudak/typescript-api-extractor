@@ -37,25 +37,30 @@ function isPureType(symbol: ts.Symbol): boolean {
 }
 
 /**
- * Builds a set of module specifiers that are re-exported with `export type *`.
- * These modules should only have their type exports included, not values.
+ * Builds the sets of module specifiers re-exported with `export *`, split by whether the
+ * re-export is type-only. A type-only star export contributes only the module's type
+ * exports; a plain one contributes its values too.
  */
-function getTypeOnlyStarExportModules(sourceFile: ts.SourceFile): Set<string> {
-	const typeOnlyModules = new Set<string>();
+function getStarExportModules(sourceFile: ts.SourceFile): {
+	typeOnly: Set<string>;
+	value: Set<string>;
+} {
+	const typeOnly = new Set<string>();
+	const value = new Set<string>();
 
 	for (const statement of sourceFile.statements) {
 		if (
 			ts.isExportDeclaration(statement) &&
-			statement.isTypeOnly &&
 			!statement.exportClause && // Star export (no explicit exports listed)
 			statement.moduleSpecifier &&
 			ts.isStringLiteral(statement.moduleSpecifier)
 		) {
-			typeOnlyModules.add(statement.moduleSpecifier.text);
+			const modules = statement.isTypeOnly ? typeOnly : value;
+			modules.add(statement.moduleSpecifier.text);
 		}
 	}
 
-	return typeOnlyModules;
+	return { typeOnly, value };
 }
 
 /**
@@ -94,15 +99,27 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				throw new Error('Failed to get the source file symbol');
 			}
 
-			// Find modules that are re-exported with `export type *`
-			const typeOnlyStarExportModules = getTypeOnlyStarExportModules(sourceFile);
+			// Find modules that are re-exported with `export *`, type-only or not
+			const starExportModules = getStarExportModules(sourceFile);
+			const program = context.program;
+
+			// Resolve to source files rather than compare specifiers, so two spellings of
+			// the same module are recognized as one.
+			const valueStarSourceFiles = new Set<ts.SourceFile>();
+			for (const moduleSpecifier of starExportModules.value) {
+				const resolved = resolveModuleSpecifier(moduleSpecifier, sourceFile.fileName, program);
+				if (resolved) {
+					valueStarSourceFiles.add(resolved);
+				}
+			}
 
 			// Build a set of source files that correspond to type-only star exports
 			const typeOnlySourceFiles = new Set<ts.SourceFile>();
-			const program = context.program;
-			for (const moduleSpecifier of typeOnlyStarExportModules) {
+			for (const moduleSpecifier of starExportModules.typeOnly) {
 				const resolved = resolveModuleSpecifier(moduleSpecifier, sourceFile.fileName, program);
-				if (resolved) {
+				// A module also reached by a plain `export *` still exports its values, so the
+				// type-only re-export adds nothing to take away.
+				if (resolved && !valueStarSourceFiles.has(resolved)) {
 					typeOnlySourceFiles.add(resolved);
 				}
 			}
