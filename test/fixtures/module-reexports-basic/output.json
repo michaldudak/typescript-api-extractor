@@ -17,7 +17,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root",
@@ -62,7 +65,10 @@
 					}
 				]
 			},
-			"reexportedFrom": "RootComponent"
+			"reexportedFrom": "RootComponent",
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		},
 		{
 			"name": "Root.Props",
@@ -107,7 +113,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.State",
@@ -131,7 +140,10 @@
 						"value": "\"error\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "RootProps",
@@ -175,7 +187,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "RootState",
@@ -198,7 +213,10 @@
 						"value": "\"error\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Source.RootComponent",
@@ -243,7 +261,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": true
 		},
 		{
 			"name": "Source.RootComponent.Props",
@@ -288,7 +309,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Source.RootComponent.State",
@@ -312,7 +336,10 @@
 						"value": "\"error\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Source.RootProps",
@@ -357,7 +384,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Source.RootState",
@@ -381,7 +411,10 @@
 						"value": "\"error\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

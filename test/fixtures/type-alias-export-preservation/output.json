@@ -42,7 +42,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "processWithObjectAlias",
@@ -89,14 +92,20 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "SimpleAlias",
 			"type": {
 				"kind": "intrinsic",
 				"intrinsic": "string"
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "UnionAlias",
@@ -119,7 +128,10 @@
 						"value": "\"c\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ObjectAlias",
@@ -146,7 +158,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "GenericAlias",
@@ -182,7 +197,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ConditionalAlias",
@@ -198,7 +216,10 @@
 						"value": "\"other\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ExtendedAlias",
@@ -256,7 +277,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

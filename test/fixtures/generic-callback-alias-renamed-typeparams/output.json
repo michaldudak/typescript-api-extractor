@@ -66,7 +66,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "AlphaEquivAliasConstrained",
@@ -153,7 +156,10 @@
 			"documentation": {
 				"description": "Same scenario but with constrained type parameters.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "NonEquivAliasDifferentConstraints",
@@ -312,7 +318,10 @@
 			"documentation": {
 				"description": "Non-equivalent: different constraints mean the branches should NOT deduplicate.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

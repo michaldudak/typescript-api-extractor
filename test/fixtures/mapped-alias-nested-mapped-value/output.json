@@ -82,7 +82,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Use",
@@ -157,7 +160,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

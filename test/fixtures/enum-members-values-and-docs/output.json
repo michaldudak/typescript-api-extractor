@@ -34,7 +34,10 @@
 			"documentation": {
 				"description": "Description of the Side enum.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Flags",
@@ -65,7 +68,10 @@
 					}
 				],
 				"kind": "enum"
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "DegenerateN",
@@ -80,7 +86,10 @@
 					}
 				],
 				"kind": "enum"
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "DegenerateS",
@@ -95,7 +104,10 @@
 					}
 				],
 				"kind": "enum"
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

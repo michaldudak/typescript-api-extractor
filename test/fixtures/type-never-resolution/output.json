@@ -26,14 +26,20 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Impossible",
 			"type": {
 				"kind": "intrinsic",
 				"intrinsic": "never"
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

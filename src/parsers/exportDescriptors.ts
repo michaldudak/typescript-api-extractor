@@ -59,6 +59,11 @@ export interface ExportDescriptor {
 	typeNode?: ts.TypeNode;
 	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
+	/**
+	 * Whether the export is type-only (`export type { X }`). A type-only export
+	 * re-exports only the type meaning of its target, never the runtime value.
+	 */
+	isTypeOnlyExport?: boolean;
 	/** Interface or class heritage metadata attached to the export. */
 	extendsTypes?: ExtendsTypeInfo[];
 }
@@ -105,30 +110,29 @@ export function resolveExportDescriptors(
 				scope,
 			);
 
+			let descriptors: ExportDescriptor[] | undefined;
 			if (ts.isModuleDeclaration(exportDeclaration)) {
-				return asNonEmptyDescriptors(namespaceDescriptors);
-			}
-
-			if (ts.isNamespaceExport(exportDeclaration)) {
-				return resolveNamespaceExportDescriptors(exportSymbol, scope);
-			}
-
-			if (ts.isExportSpecifier(exportDeclaration)) {
-				return resolveExportSpecifierDescriptors(
+				descriptors = asNonEmptyDescriptors(namespaceDescriptors);
+			} else if (ts.isNamespaceExport(exportDeclaration)) {
+				descriptors = resolveNamespaceExportDescriptors(exportSymbol, scope);
+			} else if (ts.isExportSpecifier(exportDeclaration)) {
+				descriptors = resolveExportSpecifierDescriptors(
 					exportSymbol,
 					exportDeclaration,
 					scope,
 					namespaceDescriptors,
 				);
+			} else {
+				descriptors = withNamespaceDescriptors(
+					resolveDeclarationExportDescriptor(exportSymbol, exportDeclaration, scope),
+					namespaceDescriptors,
+				);
 			}
 
-			const mainDescriptor = resolveDeclarationExportDescriptor(
-				exportSymbol,
-				exportDeclaration,
-				scope,
-			);
-
-			return withNamespaceDescriptors(mainDescriptor, namespaceDescriptors);
+			// Whichever declaration form carried it here, a symbol reached through a
+			// type-only export site loses its runtime binding — as do the members of any
+			// namespace merged onto it.
+			return withTypeOnlyExport(descriptors, isTypeOnlyAliasChain(exportSymbol, context.checker));
 		} catch (error) {
 			if (!(error instanceof ParserError)) {
 				throw new ParserError(error, context.parsedSymbolStack);
@@ -196,7 +200,7 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
-	return withNamespaceDescriptors(
+	const descriptors = withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
 			symbol: targetSymbol,
@@ -213,6 +217,27 @@ function resolveExportSpecifierDescriptors(
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);
+
+	return descriptors;
+}
+
+/**
+ * Whether the export symbol's alias chain crosses a type-only import or export
+ * declaration (`export type { X }`, or a re-exported `import type { X }`). A
+ * type-only site strips the runtime value from everything exported through it,
+ * which resolving the alias chain in one jump would not see.
+ */
+function isTypeOnlyAliasChain(exportSymbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const seen = new Set<ts.Symbol>();
+	let current: ts.Symbol | undefined = exportSymbol;
+	while (current && current.flags & ts.SymbolFlags.Alias && !seen.has(current)) {
+		seen.add(current);
+		if (current.declarations?.some(ts.isTypeOnlyImportOrExportDeclaration)) {
+			return true;
+		}
+		current = checker.getImmediateAliasedSymbol(current);
+	}
+	return false;
 }
 
 function shouldPreserveTypeAliasNode(
@@ -670,6 +695,22 @@ function withNamespaceDescriptors(
  */
 function asNonEmptyDescriptors(descriptors: ExportDescriptor[]): ExportDescriptor[] | undefined {
 	return descriptors.length > 0 ? descriptors : undefined;
+}
+
+/**
+ * Marks every descriptor as crossing a type-only export site, which strips its runtime
+ * binding. Returns the list unchanged when the export site is not type-only.
+ *
+ * @param descriptors Descriptors produced for one export.
+ * @param isTypeOnlyExport Whether the export site is type-only.
+ */
+function withTypeOnlyExport(
+	descriptors: ExportDescriptor[] | undefined,
+	isTypeOnlyExport: boolean,
+): ExportDescriptor[] | undefined {
+	return isTypeOnlyExport
+		? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
+		: descriptors;
 }
 
 /**
