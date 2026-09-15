@@ -40,7 +40,7 @@ jobs:
           node-version: 24.21.0
 
       - run: pnpm install
-      - run: pnpm add --save-exact --lockfile=false typescript@5.8.3
+      - run: pnpm add --save-exact typescript@5.8.3
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm typecheck:test-inputs
