@@ -19,49 +19,48 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-const unsupportedTypeSource = 'export type X = `prefix-${string}`;';
-const repeatedUnsupportedTypeSource = `type Weird = \`prefix-\${string}\`;
+// Open string unions such as `'small' | (string & {})` suggest known values while still
+// accepting any string. `keyof` cannot resolve their `string & {}` key, so that key falls
+// back to `any` and warns.
+const openUnionKeys = "keyof Record<'small' | 'large' | (string & {}), number>";
+const unsupportedTypeSource = `export type SizeKey = ${openUnionKeys};`;
+const repeatedUnsupportedTypeSource = `type SizeKey = ${openUnionKeys};
 
 export interface Props {
-  a: Weird;
-  b: Weird;
+  a: SizeKey;
+  b: SizeKey;
 }`;
-const symbolStackRestorationSource = `type Weird = \`prefix-\${string}\`;
+const symbolStackRestorationSource = `type SizeKey = ${openUnionKeys};
 
 export interface Props {
-  nested: Weird;
+  nested: SizeKey;
 }
 
-export type AfterProps = Weird;`;
-const implicitClassParameterSource = `export class ClassWarnings {
-  methodImplicit<T extends string>(
-    value = undefined as \`prefix-\${T}\`,
-  ): void {}
-}`;
+export type AfterProps = SizeKey;`;
 const preciseWarningSource = `export function functionReturn():
-  \`function-\${string}\` {
+  keyof Record<'function' | (string & {}), number> {
   return undefined as any;
 }
 
 export class ClassWarnings {
   methodParam(
-    value: \`param-\${string}\`,
+    value: keyof Record<'param' | (string & {}), number>,
   ): void {}
 
   methodReturn():
-    \`return-\${string}\` {
+    keyof Record<'return' | (string & {}), number> {
     return undefined as any;
   }
 
   property:
-    \`property-\${string}\`;
+    keyof Record<'property' | (string & {}), number>;
 }`;
 const sourceNodeRestorationSource = `export function withReturn():
-  \`return-\${string}\` {
+  keyof Record<'return' | (string & {}), number> {
   return undefined as any;
 }
 
-export type AfterReturn = \`alias-\${string}\`;`;
+export type AfterReturn = keyof Record<'alias' | (string & {}), number>;`;
 const aliasWithExtraResolvedTypeArgumentsSource = `interface Extras<T> {
   pending: T;
 }
@@ -99,7 +98,7 @@ function expectKind<TNode extends { kind: string }, TKind extends TNode['kind']>
 }
 
 function getExpectedUnsupportedTypeWarningMessage(filePath: string): string {
-	return `Type extraction warning: Unable to handle type "\`prefix-\${string}\`" with flag "TemplateLiteral" at "${filePath}:1:17". Using any instead.`;
+	return `Type extraction warning: Unable to handle type "string & {}" with flag "Intersection" while resolving "${openUnionKeys}" at "${filePath}:1:23". Using any instead.`;
 }
 
 it('reports unsupported type fallbacks through onWarning', () => {
@@ -120,11 +119,11 @@ it('reports unsupported type fallbacks through onWarning', () => {
 		code: 'unsupported-type-fallback',
 		filePath,
 		line: 1,
-		column: 17,
-		parsedSymbolStack: [filePath, 'X'],
-		typeFlags: ['TemplateLiteral'],
-		typeText: '`prefix-${string}`',
-		sourceText: '`prefix-${string}`',
+		column: 23,
+		parsedSymbolStack: [filePath, 'SizeKey'],
+		typeFlags: ['Intersection'],
+		typeText: 'string & {}',
+		sourceText: openUnionKeys,
 	});
 	expect(warnings[0]!.message).toBe(getExpectedUnsupportedTypeWarningMessage(filePath));
 	expect(warnings[0]!.message).toContain('Type extraction warning:');
@@ -141,7 +140,7 @@ it('logs unsupported type fallbacks by default', () => {
 	expect(warn).toHaveBeenCalledWith(getExpectedUnsupportedTypeWarningMessage(filePath));
 });
 
-it('reports unsupported type fallbacks for repeated cached types', () => {
+it('reports unsupported type fallbacks for every use of a repeated type', () => {
 	const filePath = '/virtual/repeated-unsupported-type-warning.ts';
 	const warnings: ParserWarning[] = [];
 
@@ -158,15 +157,15 @@ it('reports unsupported type fallbacks for repeated cached types', () => {
 	expect(unsupportedWarnings).toHaveLength(2);
 	expect(unsupportedWarnings).toEqual([
 		expect.objectContaining({
-			line: 4,
-			column: 6,
-			sourceText: 'Weird',
+			line: 1,
+			column: 16,
+			sourceText: openUnionKeys,
 			parsedSymbolStack: [filePath, 'Props', 'property: a'],
 		}),
 		expect.objectContaining({
-			line: 5,
-			column: 6,
-			sourceText: 'Weird',
+			line: 1,
+			column: 16,
+			sourceText: openUnionKeys,
 			parsedSymbolStack: [filePath, 'Props', 'property: b'],
 		}),
 	]);
@@ -191,11 +190,11 @@ it('restores parser context after nested property warnings', () => {
 	expect(unsupportedWarnings).toHaveLength(2);
 	expect(unsupportedWarnings).toEqual([
 		expect.objectContaining({
-			sourceText: 'Weird',
+			sourceText: openUnionKeys,
 			parsedSymbolStack: [filePath, 'Props', 'property: nested'],
 		}),
 		expect.objectContaining({
-			sourceText: 'Weird',
+			sourceText: openUnionKeys,
 			parsedSymbolStack: [filePath, 'AfterProps'],
 		}),
 	]);
@@ -219,36 +218,15 @@ it('restores source-node context after nested signature warnings', () => {
 	expect(unsupportedWarnings).toEqual([
 		expect.objectContaining({
 			line: 2,
-			sourceText: '`return-${string}`',
+			sourceText: "keyof Record<'return' | (string & {}), number>",
 			parsedSymbolStack: [filePath, 'withReturn'],
 		}),
 		expect.objectContaining({
 			line: 6,
-			sourceText: '`alias-${string}`',
+			sourceText: "keyof Record<'alias' | (string & {}), number>",
 			parsedSymbolStack: [filePath, 'AfterReturn'],
 		}),
 	]);
-});
-
-it('reports implicit class parameter fallback locations at the parameter site', () => {
-	const filePath = '/virtual/implicit-class-parameter-warning.ts';
-	const warnings: ParserWarning[] = [];
-
-	parseFromProgram(filePath, createInMemoryProgram(filePath, implicitClassParameterSource), {
-		onWarning: (warning) => {
-			warnings.push(warning);
-		},
-	});
-
-	expect(warnings).toHaveLength(1);
-	expect(warnings[0]).toMatchObject({
-		code: 'unsupported-type-fallback',
-		line: 3,
-		column: 5,
-		parsedSymbolStack: [filePath, 'ClassWarnings', 'parameter: value'],
-		typeFlags: ['TemplateLiteral'],
-		typeText: '`prefix-${T}`',
-	});
 });
 
 it('reports precise type locations in functions, class signatures, and class properties', () => {
@@ -271,28 +249,28 @@ it('reports precise type locations in functions, class signatures, and class pro
 			expect.objectContaining({
 				line: 2,
 				column: 3,
-				sourceText: '`function-${string}`',
+				sourceText: "keyof Record<'function' | (string & {}), number>",
 				parsedSymbolStack: [filePath, 'functionReturn'],
 			}),
 			expect.objectContaining({
 				line: 8,
 				column: 12,
-				sourceText: '`param-${string}`',
+				sourceText: "keyof Record<'param' | (string & {}), number>",
 				parsedSymbolStack: [filePath, 'ClassWarnings', 'parameter: value'],
 			}),
 			expect.objectContaining({
 				line: 12,
 				column: 5,
-				sourceText: '`return-${string}`',
+				sourceText: "keyof Record<'return' | (string & {}), number>",
 				parsedSymbolStack: [filePath, 'ClassWarnings'],
 			}),
 			expect.objectContaining({
 				line: 17,
 				column: 5,
-				sourceText: '`property-${string}`',
+				sourceText: "keyof Record<'property' | (string & {}), number>",
 				parsedSymbolStack: [filePath, 'ClassWarnings'],
-				typeFlags: ['TemplateLiteral'],
-				typeText: '`property-${string}`',
+				typeFlags: ['Intersection'],
+				typeText: 'string & {}',
 			}),
 		]),
 	);

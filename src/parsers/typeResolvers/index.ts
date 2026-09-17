@@ -15,6 +15,7 @@ import {
 	resolveTypeParameterType,
 } from './specialTypeResolvers';
 import { resolveExternalType } from './externalTypeResolver';
+import { resolveTemplateLiteralType } from './templateLiteralTypeResolver';
 import { resolveTupleType } from './tupleTypeResolver';
 import { resolveTypeOperatorType } from './typeOperatorTypeResolver';
 import { resolveUnionTypeNode } from './unionTypeResolver';
@@ -43,6 +44,7 @@ export const typeResolvers: TypeResolver[] = [
 	{ name: 'intersection', resolve: resolveIntersectionType },
 	{ name: 'tuple', replaysAuthoredSyntax: true, resolve: resolveTupleType },
 	{ name: 'literal', resolve: resolveLiteralType },
+	{ name: 'template-literal', resolve: resolveTemplateLiteralType },
 	{ name: 'callable', resolve: resolveCallableType },
 	{ name: 'class', resolve: resolveClassType },
 	{ name: 'object', resolve: resolveObjectLikeType },

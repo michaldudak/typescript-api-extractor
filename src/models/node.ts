@@ -9,6 +9,7 @@ import { IntersectionNode } from './types/intersection';
 import { IntrinsicNode } from './types/intrinsic';
 import { LiteralNode } from './types/literal';
 import { ObjectNode } from './types/object';
+import { TemplateLiteralNode } from './types/templateLiteral';
 import { TupleNode } from './types/tuple';
 import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
@@ -31,6 +32,7 @@ export type AnyType =
 	| IntrinsicNode
 	| LiteralNode
 	| ObjectNode
+	| TemplateLiteralNode
 	| TupleNode
 	| TypeOperatorNode
 	| TypeParameterNode

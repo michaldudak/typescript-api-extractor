@@ -110,6 +110,30 @@ have erased their source syntax. For example, `ReturnType`, `Parameters`,
 `Awaited`, `ConstructorParameters`, `ThisParameterType`, and user-authored
 conditional `infer` selectors can expose only their reduced semantic result.
 
+## Template Literals
+
+Template literal types keep their literal text and resolve each placeholder like
+any other type:
+
+```typescript
+interface TemplateLiteralNode {
+	kind: 'templateLiteral';
+	typeName?: TypeName;
+	texts: string[];
+	types: TypeNode[];
+}
+```
+
+`texts` holds the text before, between, and after the placeholders, so it has
+one more entry than `types`. For example, `` `${number}px` `` has
+`texts: ['', 'px']` and a single `number` intrinsic in `types`.
+
+The node describes the type as TypeScript normalizes it. Finite placeholders
+are distributed, so `` `${'top' | 'bottom'}-${number}` `` becomes a union of two
+template literals, and nested template literals are flattened into one. A
+template literal without open-ended placeholders, such as `` `on${'click'}` ``,
+is a plain string literal.
+
 ## Example Output
 
 For a React component like this:

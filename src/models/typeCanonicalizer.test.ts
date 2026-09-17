@@ -6,11 +6,13 @@ import {
 	IntrinsicNode,
 	LiteralNode,
 	Parameter,
+	TemplateLiteralNode,
 	TupleNode,
 	TypeOperatorNode,
 	TypeParameterNode,
 	UnionNode,
 	typeEquivalenceChecker,
+	type AnyType,
 } from '../index';
 
 function createGenericFunction(
@@ -29,7 +31,7 @@ function createGenericFunction(
 	]);
 }
 
-function createUnaryFunction(parameterType: IntrinsicNode): FunctionNode {
+function createUnaryFunction(parameterType: AnyType): FunctionNode {
 	return new FunctionNode(undefined, [
 		new CallSignature(
 			[new Parameter(parameterType, 'value', undefined, false, undefined)],
@@ -123,6 +125,49 @@ it('keeps generic function members with different constraints or defaults', () =
 		stringDefault,
 		numberDefault,
 	]);
+});
+
+it('canonicalizes generic function members whose template literals differ only by type parameter name', () => {
+	const createListener = (typeParameterName: string, prefix: string) => {
+		const typeParameter = new TypeParameterNode(
+			typeParameterName,
+			new IntrinsicNode('string'),
+			undefined,
+		);
+		const event = new TemplateLiteralNode(undefined, [prefix, ''], [typeParameter]);
+
+		return new FunctionNode(undefined, [
+			new CallSignature(
+				[new Parameter(event, 'event', undefined, false, undefined)],
+				new IntrinsicNode('void'),
+				[typeParameter],
+			),
+		]);
+	};
+	const listenerWithT = createListener('T', 'on');
+	const listenerWithU = createListener('U', 'on');
+	const beforeListener = createListener('U', 'before');
+
+	expect(typeEquivalenceChecker.areEquivalentIgnoringAny(listenerWithT, listenerWithU)).toBe(true);
+	expect(typeEquivalenceChecker.areEquivalentIgnoringAny(listenerWithT, beforeListener)).toBe(
+		false,
+	);
+	expect(new UnionNode(undefined, [listenerWithT, listenerWithU, beforeListener]).types).toEqual([
+		listenerWithT,
+		beforeListener,
+	]);
+});
+
+it('prefers concrete template literal placeholders over any fallbacks in duplicate functions', () => {
+	const anyFunction = createUnaryFunction(
+		new TemplateLiteralNode(undefined, ['on', ''], [new IntrinsicNode('any')]),
+	);
+	const stringFunction = createUnaryFunction(
+		new TemplateLiteralNode(undefined, ['on', ''], [new IntrinsicNode('string')]),
+	);
+
+	expect(typeEquivalenceChecker.containsAny(anyFunction)).toBe(true);
+	expect(new UnionNode(undefined, [anyFunction, stringFunction]).types).toEqual([stringFunction]);
 });
 
 it('canonicalizes structurally equivalent type operator members', () => {

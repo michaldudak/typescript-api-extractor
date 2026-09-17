@@ -2619,7 +2619,7 @@ it('replays keyof aliases that semantically collapse to any or unknown', () => {
 }
 
 interface Pattern {
-  [key: \`data-\${string}\`]: number;
+  [key: string & { __brand: 'data' }]: number;
 }
 
 type UnknownKeys = keyof Params | unknown;
@@ -2662,13 +2662,13 @@ export type PatternResult = PatternKeys;`,
 	expect(warnings[0]).toEqual({
 		code: 'unsupported-type-fallback',
 		message:
-			'Type extraction warning: Unable to handle type "`data-${string}`" with flag "TemplateLiteral" while resolving "keyof Pattern" at "/virtual/keyof-top-type-aliases.ts:11:20". Using any instead.',
+			'Type extraction warning: Unable to handle type "string & { __brand: "data"; }" with flag "Intersection" while resolving "keyof Pattern" at "/virtual/keyof-top-type-aliases.ts:11:20". Using any instead.',
 		filePath,
 		line: 11,
 		column: 20,
 		parsedSymbolStack: [filePath, 'PatternResult'],
-		typeFlags: ['TemplateLiteral'],
-		typeText: '`data-${string}`',
+		typeFlags: ['Intersection'],
+		typeText: 'string & { __brand: "data"; }',
 		sourceText: 'keyof Pattern',
 	});
 });
@@ -2873,11 +2873,8 @@ it('marks unsupported single and union result members as fallbacks', () => {
 	const warnings: ParserWarning[] = [];
 	const program = createInMemoryProgram(
 		filePath,
-		`type Pattern = \`pattern-\${string}\`;
-type MixedPattern = \`mixed-\${string}\`;
-
-export type PatternKeys = keyof { [K in Pattern]: unknown };
-export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };`,
+		`export type PatternKeys = keyof { [K in string & { __brand: 'pattern' }]: unknown };
+export type MixedPatternKeys = keyof { [K in (string & { __brand: 'mixed' }) | 'fixed']: unknown };`,
 	);
 	const moduleDefinition = JSON.parse(
 		JSON.stringify(
@@ -2908,24 +2905,66 @@ export type MixedPatternKeys = keyof { [K in MixedPattern | 'fixed']: unknown };
 		{
 			code: 'unsupported-type-fallback',
 			filePath,
-			line: 4,
+			line: 1,
 			column: 27,
 			parsedSymbolStack: [filePath, 'PatternKeys'],
-			typeFlags: ['TemplateLiteral'],
-			typeText: '`pattern-${string}`',
-			sourceText: 'keyof { [K in Pattern]: unknown }',
+			typeFlags: ['Intersection'],
+			typeText: 'string & { __brand: "pattern"; }',
+			sourceText: "keyof { [K in string & { __brand: 'pattern' }]: unknown }",
 		},
 		{
 			code: 'unsupported-type-fallback',
 			filePath,
-			line: 5,
+			line: 2,
 			column: 32,
 			parsedSymbolStack: [filePath, 'MixedPatternKeys'],
-			typeFlags: ['TemplateLiteral'],
-			typeText: '`mixed-${string}`',
-			sourceText: "keyof { [K in MixedPattern | 'fixed']: unknown }",
+			typeFlags: ['Intersection'],
+			typeText: 'string & { __brand: "mixed"; }',
+			sourceText: "keyof { [K in (string & { __brand: 'mixed' }) | 'fixed']: unknown }",
 		},
 	]);
+});
+
+it('resolves template literal keys, using the base constraint for generic ones', () => {
+	const filePath = '/virtual/keyof-template-literal-keys.ts';
+	const warnings: ParserWarning[] = [];
+	const program = createInMemoryProgram(
+		filePath,
+		`interface Attributes {
+  [key: \`data-\${string}\`]: string;
+}
+
+export type AttributeKeys = keyof Attributes;
+export type EventKeys<T extends string> = keyof { [K in \`on\${T}\`]: unknown };`,
+	);
+	const moduleDefinition = JSON.parse(
+		JSON.stringify(
+			parseFromProgram(filePath, program, {
+				onWarning: (warning) => warnings.push(warning),
+			}),
+		),
+	);
+	const exportByName = createExportLookup(moduleDefinition);
+
+	expect(exportByName('AttributeKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		resolvedType: {
+			kind: 'templateLiteral',
+			texts: ['data-', ''],
+			types: [{ kind: 'intrinsic', intrinsic: 'string' }],
+		},
+		resolutionKind: 'exact',
+	});
+	expect(exportByName('EventKeys')?.type).toMatchObject({
+		kind: 'typeOperator',
+		resolvedType: {
+			kind: 'templateLiteral',
+			texts: ['on', ''],
+			types: [{ kind: 'intrinsic', intrinsic: 'string' }],
+		},
+		resolutionKind: 'baseConstraint',
+	});
+	expect(warnings).toEqual([]);
 });
 
 it('attributes nested fallback warnings to re-exported source syntax', () => {
@@ -2934,10 +2973,8 @@ it('attributes nested fallback warnings to re-exported source syntax', () => {
 	const warnings: ParserWarning[] = [];
 	const program = createInMemoryProgram({
 		[entryPath]: `export { Holder, Box } from './keyof-warning-source';`,
-		[sourcePath]: `type Pattern = \`pattern-\${string}\`;
-
-export type PatternKeys = keyof {
-  [K in Pattern]: unknown;
+		[sourcePath]: `export type PatternKeys = keyof {
+  [K in string & { __brand: 'pattern' }]: unknown;
 };
 
 export interface Holder {
@@ -2958,22 +2995,22 @@ export class Box {
 		{
 			code: 'unsupported-type-fallback',
 			filePath: sourcePath,
-			line: 3,
+			line: 1,
 			column: 27,
 			parsedSymbolStack: [entryPath, 'Holder', 'property: value'],
-			typeFlags: ['TemplateLiteral'],
-			typeText: '`pattern-${string}`',
-			sourceText: 'keyof { [K in Pattern]: unknown; }',
+			typeFlags: ['Intersection'],
+			typeText: 'string & { __brand: "pattern"; }',
+			sourceText: "keyof { [K in string & { __brand: 'pattern' }]: unknown; }",
 		},
 		{
 			code: 'unsupported-type-fallback',
 			filePath: sourcePath,
-			line: 3,
+			line: 1,
 			column: 27,
 			parsedSymbolStack: [entryPath, 'Box'],
-			typeFlags: ['TemplateLiteral'],
-			typeText: '`pattern-${string}`',
-			sourceText: 'keyof { [K in Pattern]: unknown; }',
+			typeFlags: ['Intersection'],
+			typeText: 'string & { __brand: "pattern"; }',
+			sourceText: "keyof { [K in string & { __brand: 'pattern' }]: unknown; }",
 		},
 	]);
 });

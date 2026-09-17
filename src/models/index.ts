@@ -17,6 +17,7 @@ export * from './types/intrinsic';
 export * from './types/literal';
 export * from './types/object';
 export * from './types/external';
+export * from './types/templateLiteral';
 export * from './types/tuple';
 export * from './types/typeOperator';
 export * from './types/typeParameter';

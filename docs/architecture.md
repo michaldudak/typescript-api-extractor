@@ -104,6 +104,10 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
 - `intersectionTypeResolver.ts` handles intersection members and any merged
   callable/object shape TypeScript exposes for the intersection.
 - `literalTypeResolver.ts` handles string/number/bigint/boolean literal nodes.
+- `templateLiteralTypeResolver.ts` handles template literal types, keeping their
+  literal text and resolving each placeholder. It runs before the object
+  resolver, which would otherwise expand a template literal into the members of
+  its apparent `String` type.
 - `objectTypeResolver.ts` handles object-like types, object properties, index
   signatures, mapped-type index signatures, and object-keyword fallback.
 - `tupleTypeResolver.ts` handles tuple element resolution and tuple arity.
