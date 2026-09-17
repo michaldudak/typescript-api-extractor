@@ -1,18 +1,14 @@
-import { expect, it, vi } from 'vitest';
+import { expect, it } from 'vitest';
 import { parseFromProgram, type ParserWarning } from '../../index';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
 
-// The fallback tests need a constraint the resolvers cannot represent. Switching
-// off template literal resolution keeps `prefix-${string}` as one.
-vi.mock('./templateLiteralTypeResolver', () => ({
-	resolveTemplateLiteralType: () => undefined,
-}));
-
+// Open string unions such as `'small' | (string & {})` suggest known values while still
+// accepting any string. `keyof` cannot resolve their `string & {}` key, so a constraint
+// over their keys warns.
+const openUnionKeys = "keyof Record<'small' | 'large' | (string & {}), number>";
 const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
-const substitutionTypeWithUnsupportedConstraintSource =
-	'export type X<T extends `prefix-${string}`> = T extends string ? T : never;';
-const substitutionObjectTypeWithUnsupportedConstraintSource =
-	'export type X<T extends `prefix-${string}`> = T extends string ? { v: T } : never;';
+const substitutionTypeWithUnsupportedConstraintSource = `export type X<T extends ${openUnionKeys}> = T extends string ? T : never;`;
+const substitutionObjectTypeWithUnsupportedConstraintSource = `export type X<T extends ${openUnionKeys}> = T extends string ? { v: T } : never;`;
 const extractUtilitySource = 'export type StringKeys<T> = Extract<keyof T, string>;';
 const constrainedExtractUtilitySource =
 	'export type KeepStrings<T extends string> = Extract<T, string>;';
@@ -151,8 +147,9 @@ it('reports conditional name warnings when the resolved type keeps the condition
 						kind: 'typeParameter',
 						name: 'T',
 						constraint: {
-							kind: 'intrinsic',
-							intrinsic: 'any',
+							kind: 'typeOperator',
+							operator: 'keyof',
+							resolutionKind: 'fallback',
 						},
 					},
 				},
@@ -168,8 +165,8 @@ it('reports conditional name warnings when the resolved type keeps the condition
 		expect.arrayContaining([
 			expect.objectContaining({
 				code: 'unsupported-type-fallback',
-				typeFlags: ['TemplateLiteral'],
-				typeText: '`prefix-${string}`',
+				typeFlags: ['Intersection'],
+				typeText: 'string & {}',
 				sourceText: 'T extends string ? { v: T } : never',
 			}),
 		]),

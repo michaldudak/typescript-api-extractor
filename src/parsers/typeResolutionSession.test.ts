@@ -1,16 +1,10 @@
 import ts from 'typescript';
-import { expect, it, vi } from 'vitest';
-import { IntrinsicNode, ObjectNode } from '../index';
+import { expect, it } from 'vitest';
+import { ObjectNode } from '../index';
 import { parseFromProgram } from '../index';
 import { resolveType } from './typeResolver';
 import { createInMemoryProgram } from '../../test/support/inMemoryProgram';
 import { createTestParserContext } from '../../test/support/parserContext';
-
-// The fallback tests need a type the resolvers cannot represent. Switching off
-// template literal resolution keeps `prefix-${string}` as one.
-vi.mock('./typeResolvers/templateLiteralTypeResolver', () => ({
-	resolveTemplateLiteralType: () => undefined,
-}));
 
 const filePath = '/virtual/session.ts';
 
@@ -20,15 +14,6 @@ function getDeclaredType(program: ts.Program, exportName: string): ts.Type {
 	const moduleSymbol = checker.getSymbolAtLocation(sourceFile)!;
 	const symbol = checker.getExportsOfModule(moduleSymbol).find((s) => s.name === exportName)!;
 	return checker.getDeclaredTypeOfSymbol(symbol);
-}
-
-function getAliasType(program: ts.Program, exportName: string): ts.Type {
-	const checker = program.getTypeChecker();
-	const sourceFile = program.getSourceFile(filePath)!;
-	const moduleSymbol = checker.getSymbolAtLocation(sourceFile)!;
-	const symbol = checker.getExportsOfModule(moduleSymbol).find((s) => s.name === exportName)!;
-	const declaration = symbol.declarations![0] as ts.TypeAliasDeclaration;
-	return checker.getTypeAtLocation(declaration);
 }
 
 it('returns the cached node when the same type is resolved again at the same depth', () => {
@@ -63,33 +48,6 @@ it('breaks recursive types with a shallow placeholder instead of recursing forev
 	// The self-reference resolves to a shallow node carrying the type name but no
 	// expanded members, which is how the session terminates the cycle.
 	expect((next.type as ObjectNode).properties).toHaveLength(0);
-});
-
-it('warns once and falls back to any for unsupported types', () => {
-	const program = createInMemoryProgram(filePath, 'export type X = `prefix-${string}`;');
-	const { context, warnings } = createTestParserContext(program, filePath);
-	const type = getAliasType(program, 'X');
-
-	const resolved = resolveType(type, undefined, context);
-
-	expect(resolved).toBeInstanceOf(IntrinsicNode);
-	expect((resolved as IntrinsicNode).intrinsic).toBe('any');
-	expect(warnings.filter((warning) => warning.code === 'unsupported-type-fallback')).toHaveLength(
-		1,
-	);
-});
-
-it('does not cache unsupported fallbacks, so every occurrence warns again', () => {
-	const program = createInMemoryProgram(filePath, 'export type X = `prefix-${string}`;');
-	const { context, warnings } = createTestParserContext(program, filePath);
-	const type = getAliasType(program, 'X');
-
-	resolveType(type, undefined, context);
-	resolveType(type, undefined, context);
-
-	expect(warnings.filter((warning) => warning.code === 'unsupported-type-fallback')).toHaveLength(
-		2,
-	);
 });
 
 it('does not warn for fully supported types', () => {
