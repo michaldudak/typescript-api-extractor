@@ -42,8 +42,8 @@ export class TemplateLiteralNode implements TypeNode {
 	}
 }
 
-// Escapes the characters that would otherwise end the template or start a placeholder,
-// matching how TypeScript prints template literal types.
+// Escapes the characters that would otherwise end the template, start a placeholder or an escape,
+// or be read back as a line feed, matching how TypeScript prints template literal types.
 function escapeTemplateText(text: string): string {
-	return text.replace(/\\|`|\$\{/g, (match) => `\\${match}`);
+	return text.replace(/\\|`|\$\{|\r/g, (match) => (match === '\r' ? '\\r' : `\\${match}`));
 }
