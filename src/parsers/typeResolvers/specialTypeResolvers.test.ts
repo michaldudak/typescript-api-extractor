@@ -1,6 +1,12 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { parseFromProgram, type ParserWarning } from '../../index';
 import { createInMemoryProgram } from '../../../test/support/inMemoryProgram';
+
+// The fallback tests need a constraint the resolvers cannot represent. Switching
+// off template literal resolution keeps `prefix-${string}` as one.
+vi.mock('./templateLiteralTypeResolver', () => ({
+	resolveTemplateLiteralType: () => undefined,
+}));
 
 const substitutionTypeSource = 'export type X<T> = T extends string ? T : never;';
 const substitutionTypeWithUnsupportedConstraintSource =

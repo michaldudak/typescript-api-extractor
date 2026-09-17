@@ -1,10 +1,16 @@
 import ts from 'typescript';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { IntrinsicNode, ObjectNode } from '../index';
 import { parseFromProgram } from '../index';
 import { resolveType } from './typeResolver';
 import { createInMemoryProgram } from '../../test/support/inMemoryProgram';
 import { createTestParserContext } from '../../test/support/parserContext';
+
+// The fallback tests need a type the resolvers cannot represent. Switching off
+// template literal resolution keeps `prefix-${string}` as one.
+vi.mock('./typeResolvers/templateLiteralTypeResolver', () => ({
+	resolveTemplateLiteralType: () => undefined,
+}));
 
 const filePath = '/virtual/session.ts';
 

@@ -15,6 +15,12 @@ import { type ScopedParserContext } from './parserContext';
 import { parseExport } from './parsers/exportParser';
 import { createInMemoryProgram } from '../test/support/inMemoryProgram';
 
+// The warning tests need a type the resolvers cannot represent. Switching off
+// template literal resolution keeps `prefix-${string}` as one.
+vi.mock('./parsers/typeResolvers/templateLiteralTypeResolver', () => ({
+	resolveTemplateLiteralType: () => undefined,
+}));
+
 afterEach(() => {
 	vi.restoreAllMocks();
 });
