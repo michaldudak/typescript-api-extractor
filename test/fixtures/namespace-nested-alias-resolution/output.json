@@ -52,7 +52,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Foo",
@@ -72,7 +75,10 @@
 						"value": "\"b\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Nested.Foo",
@@ -92,7 +98,10 @@
 						"value": "\"b\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Props",
@@ -146,7 +155,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["./types"]

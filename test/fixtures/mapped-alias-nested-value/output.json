@@ -63,7 +63,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Wrapped",
@@ -127,7 +130,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "UseWrapped",
@@ -176,7 +182,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

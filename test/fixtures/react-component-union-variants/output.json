@@ -144,7 +144,10 @@
 			"documentation": {
 				"description": "A toolbar that renders either its own root element or a caller-supplied one.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "OptionalToolbar",
@@ -383,7 +386,10 @@
 			"documentation": {
 				"description": "Not every union of a component is a component: an arm that is not itself\ncomponent-like keeps the export a plain union.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

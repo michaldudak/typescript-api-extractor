@@ -6,14 +6,20 @@
 			"type": {
 				"kind": "intrinsic",
 				"intrinsic": "string"
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "StringValues",
 			"type": {
 				"kind": "intrinsic",
 				"intrinsic": "string"
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "KeepStrings",
@@ -29,7 +35,10 @@
 						"kind": "typeParameter"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

@@ -27,7 +27,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "BareElement",
@@ -55,7 +58,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "GenericElement",
@@ -83,7 +89,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "BareNode",
@@ -111,7 +120,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "NullableElement",
@@ -139,7 +151,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "InferredElement",
@@ -167,7 +182,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "LocalElementType",
@@ -228,7 +246,10 @@
 			"documentation": {
 				"description": "A local type whose name merely ends in `Element` does not make a component.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "DomElementType",
@@ -279,7 +300,10 @@
 			"documentation": {
 				"description": "Neither does a DOM element.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react", "react"]

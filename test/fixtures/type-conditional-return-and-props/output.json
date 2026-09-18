@@ -49,7 +49,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "ConditionalPropsComponent",
@@ -127,7 +130,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }
