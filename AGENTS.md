@@ -8,7 +8,7 @@ them. Do not duplicate that material here.
 ## Project Basics
 
 - Use `pnpm`.
-- Runtime target is Node.js `>=22`.
+- Use a Node.js version supported by `engines.node` in `package.json`.
 - Source lives under `src/`; fixture-based integration inputs live under
   `test/fixtures/`.
 - Treat `dist/` as build output unless the user explicitly asks otherwise.
