@@ -116,7 +116,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "LargeNestedUnionAnyFirst",
@@ -233,7 +236,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "LargeNestedUnionAnySecond",
@@ -350,7 +356,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

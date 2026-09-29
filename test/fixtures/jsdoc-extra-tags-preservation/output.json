@@ -168,7 +168,10 @@
 						"value": "important-functions"
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

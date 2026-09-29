@@ -98,7 +98,10 @@
 			"documentation": {
 				"description": "Union of generic callbacks whose constraints are objects with differing\nindex signatures. These should NOT be deduplicated.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

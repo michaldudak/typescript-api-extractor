@@ -274,7 +274,10 @@
 						"value": "T - The type of items in the container."
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ParameterPropertyClass",
@@ -344,7 +347,10 @@
 			"documentation": {
 				"description": "A class with constructor parameter properties.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "GetterOnlyClass",
@@ -393,7 +399,10 @@
 			"documentation": {
 				"description": "A class with getter-only accessors (readonly by virtue of no setter).",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "OverloadedMethods",
@@ -520,7 +529,10 @@
 			"documentation": {
 				"description": "A class with method overloads.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "FunctionPropertyClass",
@@ -612,7 +624,10 @@
 			"documentation": {
 				"description": "A class with function-typed properties (should be properties, not methods).",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "StaticMembersClass",
@@ -713,7 +728,10 @@
 			"documentation": {
 				"description": "A class with static members (should not appear in instance docs).",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "VisibilityTagsClass",
@@ -772,7 +790,10 @@
 						"value": "members."
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "EcmaPrivateClass",
@@ -825,7 +846,10 @@
 			"documentation": {
 				"description": "A class with ECMAScript private names (#field, #method).\nThese should NOT appear in the output since they are always private.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Constructable",
@@ -839,7 +863,10 @@
 			"documentation": {
 				"description": "This should NOT be parsed as a class - it's an interface with a construct signature.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ConstructableType",
@@ -853,7 +880,10 @@
 			"documentation": {
 				"description": "This should NOT be parsed as a class - it's a type alias with a construct signature.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

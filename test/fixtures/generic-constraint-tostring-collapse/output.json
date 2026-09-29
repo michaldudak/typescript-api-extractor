@@ -76,7 +76,10 @@
 			"documentation": {
 				"description": "Tests that generic functions with different type parameter constraints\nare not incorrectly collapsed by the toString() fast-path.\nTypeParameterNode.toString() returns only the name (e.g. \"T\"), omitting\nconstraints and defaults, so `<T>(x: T) => void` and\n`<T extends string>(x: T) => void` stringify identically.\nBoth overloads must be preserved.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Outer",
@@ -183,7 +186,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

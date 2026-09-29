@@ -37,25 +37,56 @@ function isPureType(symbol: ts.Symbol): boolean {
 }
 
 /**
- * Builds a set of module specifiers that are re-exported with `export type *`.
- * These modules should only have their type exports included, not values.
+ * Source files re-exported with `export type *`, whose exports should therefore contribute
+ * only their types. A module also reached by a plain `export *` is excluded: that path
+ * still carries the values, so the type-only re-export has nothing to take away.
+ *
+ * Only star exports written in this file are considered. A value path reaching the same
+ * module through another module's star export is not modelled.
  */
-function getTypeOnlyStarExportModules(sourceFile: ts.SourceFile): Set<string> {
-	const typeOnlyModules = new Set<string>();
+function getTypeOnlyStarExportSourceFiles(
+	sourceFile: ts.SourceFile,
+	program: ts.Program,
+): Set<ts.SourceFile> {
+	const typeOnlySpecifiers = new Set<string>();
+	const valueSpecifiers = new Set<string>();
 
 	for (const statement of sourceFile.statements) {
 		if (
 			ts.isExportDeclaration(statement) &&
-			statement.isTypeOnly &&
 			!statement.exportClause && // Star export (no explicit exports listed)
 			statement.moduleSpecifier &&
 			ts.isStringLiteral(statement.moduleSpecifier)
 		) {
-			typeOnlyModules.add(statement.moduleSpecifier.text);
+			const specifiers = statement.isTypeOnly ? typeOnlySpecifiers : valueSpecifiers;
+			specifiers.add(statement.moduleSpecifier.text);
 		}
 	}
 
-	return typeOnlyModules;
+	const typeOnlySourceFiles = new Set<ts.SourceFile>();
+	if (typeOnlySpecifiers.size === 0) {
+		// Nothing to mask, so the value specifiers are not worth resolving.
+		return typeOnlySourceFiles;
+	}
+
+	// Resolve rather than compare specifiers, so two spellings of one module are recognized
+	// as the same file.
+	const valueSourceFiles = new Set<ts.SourceFile>();
+	for (const specifier of valueSpecifiers) {
+		const resolved = resolveModuleSpecifier(specifier, sourceFile.fileName, program);
+		if (resolved) {
+			valueSourceFiles.add(resolved);
+		}
+	}
+
+	for (const specifier of typeOnlySpecifiers) {
+		const resolved = resolveModuleSpecifier(specifier, sourceFile.fileName, program);
+		if (resolved && !valueSourceFiles.has(resolved)) {
+			typeOnlySourceFiles.add(resolved);
+		}
+	}
+
+	return typeOnlySourceFiles;
 }
 
 /**
@@ -94,18 +125,7 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				throw new Error('Failed to get the source file symbol');
 			}
 
-			// Find modules that are re-exported with `export type *`
-			const typeOnlyStarExportModules = getTypeOnlyStarExportModules(sourceFile);
-
-			// Build a set of source files that correspond to type-only star exports
-			const typeOnlySourceFiles = new Set<ts.SourceFile>();
-			const program = context.program;
-			for (const moduleSpecifier of typeOnlyStarExportModules) {
-				const resolved = resolveModuleSpecifier(moduleSpecifier, sourceFile.fileName, program);
-				if (resolved) {
-					typeOnlySourceFiles.add(resolved);
-				}
-			}
+			const typeOnlySourceFiles = getTypeOnlyStarExportSourceFiles(sourceFile, context.program);
 
 			let parsedModuleExports: ExportNode[] = [];
 			const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
@@ -114,16 +134,21 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 				// Check if this symbol comes from a type-only star export module
 				// If so, skip it if it's not a pure type
 				const declarations = exportedSymbol.declarations;
+				let isTypeOnlyStarExport = false;
 				if (declarations && declarations.length > 0) {
+					// Type-only-ness is attributed to the declaring file, not the export
+					// path: when the same module is reached by both `export *` and
+					// `export type *`, its exports count as type-only.
 					const symbolSourceFile = declarations[0].getSourceFile();
-					if (typeOnlySourceFiles.has(symbolSourceFile) && !isPureType(exportedSymbol)) {
+					isTypeOnlyStarExport = typeOnlySourceFiles.has(symbolSourceFile);
+					if (isTypeOnlyStarExport && !isPureType(exportedSymbol)) {
 						// This is a value (like a function with merged namespace) from a type-only export
 						// Skip it - TypeScript doesn't actually export it
 						continue;
 					}
 				}
 
-				const parsedExports = parseExport(exportedSymbol, context);
+				const parsedExports = parseExport(exportedSymbol, context, [], isTypeOnlyStarExport);
 				if (!parsedExports) {
 					continue;
 				}

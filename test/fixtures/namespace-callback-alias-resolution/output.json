@@ -57,7 +57,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }

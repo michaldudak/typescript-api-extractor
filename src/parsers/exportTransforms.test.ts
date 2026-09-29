@@ -13,6 +13,7 @@ import {
 	TypeName,
 	UnionNode,
 	type AnyType,
+	type DeclarationSpaces,
 	type ExtendsTypeInfo,
 	type ParserContext,
 } from '../index';
@@ -22,6 +23,12 @@ import { applyExportTransforms } from './exportTransforms';
 const parserContext = {
 	compilerOptions: {},
 } as ParserContext;
+
+const valueSpaces: DeclarationSpaces = { isValue: true, isType: false, isNamespace: false };
+
+function createValueExport(name: string, type: AnyType): ExportNode {
+	return new ExportNode(name, type, undefined, valueSpaces);
+}
 
 it('keeps typeOperatorOutput optional on the public parser context', () => {
 	expectTypeOf({}).toMatchTypeOf<Pick<ParserContext, 'typeOperatorOutput'>>();
@@ -52,11 +59,11 @@ function createFunctionNode(
 }
 
 it('classifies component exports separately from export transformation', () => {
-	expect(isComponentExport(new ExportNode('Button', createFunctionNode(), undefined))).toBe(true);
-	expect(isComponentExport(new ExportNode('default', createFunctionNode(), undefined))).toBe(true);
+	expect(isComponentExport(createValueExport('Button', createFunctionNode()))).toBe(true);
+	expect(isComponentExport(createValueExport('default', createFunctionNode()))).toBe(true);
 	expect(
 		isComponentExport(
-			new ExportNode(
+			createValueExport(
 				'Button',
 				createFunctionNode(
 					new UnionNode(undefined, [
@@ -64,15 +71,12 @@ it('classifies component exports separately from export transformation', () => {
 						new ExternalTypeNode(new TypeName('ReactNode')),
 					]),
 				),
-				undefined,
 			),
 		),
 	).toBe(true);
-	expect(isComponentExport(new ExportNode('button', createFunctionNode(), undefined))).toBe(false);
+	expect(isComponentExport(createValueExport('button', createFunctionNode()))).toBe(false);
 	expect(
-		isComponentExport(
-			new ExportNode('Button', createFunctionNode(new IntrinsicNode('string')), undefined),
-		),
+		isComponentExport(createValueExport('Button', createFunctionNode(new IntrinsicNode('string')))),
 	).toBe(false);
 });
 
@@ -82,7 +86,7 @@ it('classifies a union of component-like functions as a component export', () =>
 		createFunctionNode(undefined, 'ToolbarWithRender', ['render']),
 	]);
 
-	expect(isComponentExport(new ExportNode('Toolbar', componentUnion, undefined))).toBe(true);
+	expect(isComponentExport(createValueExport('Toolbar', componentUnion))).toBe(true);
 });
 
 it('keeps unions with a non-component member out of the component classification', () => {
@@ -91,7 +95,7 @@ it('keeps unions with a non-component member out of the component classification
 		new IntrinsicNode('undefined'),
 	]);
 
-	expect(isComponentExport(new ExportNode('Toolbar', partialUnion, undefined))).toBe(false);
+	expect(isComponentExport(createValueExport('Toolbar', partialUnion))).toBe(false);
 });
 
 it('merges the props of every union member into one component', () => {
@@ -99,7 +103,7 @@ it('merges the props of every union member into one component', () => {
 		createFunctionNode(undefined, 'ToolbarRoot', ['children', 'className']),
 		createFunctionNode(undefined, 'ToolbarWithRender', ['render', 'className']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = createValueExport('Toolbar', componentUnion);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -125,7 +129,7 @@ it('marks props as optional when a union member accepts no props', () => {
 		createFunctionNode(undefined, 'ToolbarStandalone', []),
 		createFunctionNode(undefined, 'ToolbarWithProps', ['id']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = createValueExport('Toolbar', componentUnion);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -141,7 +145,7 @@ it('keeps the shared type name when every union member agrees on it', () => {
 		createFunctionNode(undefined, 'Toolbar', ['children']),
 		createFunctionNode(undefined, 'Toolbar', ['render']),
 	]);
-	const exportNode = new ExportNode('Toolbar', componentUnion, undefined);
+	const exportNode = createValueExport('Toolbar', componentUnion);
 
 	const componentNode = applyExportTransforms([exportNode], parserContext)[0]!
 		.type as ComponentNode;
@@ -156,6 +160,7 @@ it('applies component transforms without losing export metadata', () => {
 		'Button',
 		createFunctionNode(),
 		documentation,
+		valueSpaces,
 		'InternalButton',
 		extendsTypes,
 	);
@@ -168,10 +173,13 @@ it('applies component transforms without losing export metadata', () => {
 	expect(transformedNode.documentation).toBe(documentation);
 	expect(transformedNode.reexportedFrom).toBe('InternalButton');
 	expect(transformedNode.extendsTypes).toBe(extendsTypes);
+	expect(transformedNode.isValue).toBe(true);
+	expect(transformedNode.isType).toBe(false);
+	expect(transformedNode.isNamespace).toBe(false);
 });
 
 it('keeps non-component exports unchanged', () => {
-	const exportNode = new ExportNode('button', createFunctionNode(), undefined);
+	const exportNode = createValueExport('button', createFunctionNode());
 
 	expect(applyExportTransforms([exportNode], parserContext)[0]).toBe(exportNode);
 });

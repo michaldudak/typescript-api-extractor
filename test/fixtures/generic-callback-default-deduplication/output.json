@@ -66,7 +66,10 @@
 			"documentation": {
 				"description": "Union of generic callbacks that differ only by type parameter defaults.\nEach signature should be preserved since they have different defaults.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

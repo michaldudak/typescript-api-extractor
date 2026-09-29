@@ -34,7 +34,10 @@
 						"kind": "typeParameter"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Wrap",
@@ -53,7 +56,10 @@
 					]
 				},
 				"properties": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Result",
@@ -132,7 +138,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }
