@@ -77,7 +77,10 @@
 			"documentation": {
 				"description": "Function with optional parameters",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }

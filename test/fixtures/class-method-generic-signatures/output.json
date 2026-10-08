@@ -260,7 +260,10 @@
 						"name": "T"
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

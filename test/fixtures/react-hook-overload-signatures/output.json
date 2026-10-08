@@ -54,7 +54,10 @@
 			"documentation": {
 				"description": "Returns the input string.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }

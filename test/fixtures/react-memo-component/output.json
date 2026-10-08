@@ -96,7 +96,10 @@
 			"documentation": {
 				"description": "A test component",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

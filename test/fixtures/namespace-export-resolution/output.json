@@ -137,7 +137,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "acceptsNamespacedType",
@@ -177,7 +180,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.rootFunction",
@@ -196,7 +202,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Sub.nestedParams",
@@ -335,7 +344,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Sub.NestedComponent",
@@ -346,7 +358,10 @@
 					"namespaces": ["Root", "Sub"]
 				},
 				"props": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Sub.useHook",
@@ -382,7 +397,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Sub.Params",
@@ -500,7 +518,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.Sub.Grade",
@@ -520,7 +541,10 @@
 					}
 				],
 				"kind": "enum"
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Root.NamespacedType",
@@ -540,7 +564,10 @@
 						"value": "\"two\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Other.Orientation",
@@ -560,7 +587,10 @@
 						"value": "\"vertical\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }
