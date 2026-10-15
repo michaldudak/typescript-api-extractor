@@ -142,3 +142,23 @@ it('keeps the namespace space of an unresolvable namespace import', () => {
 		isNamespace: true,
 	});
 });
+
+it('reads a default import of an `export =` module from the assignment itself', () => {
+	const filePath = '/virtual/export-equals-default.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			{
+				[filePath]: "import legacy from './legacy';\n\nexport { legacy };",
+				'/virtual/c.ts': "export class C {\n  id = 'c';\n}",
+				'/virtual/impl.ts': "import { C } from './c';\n\nexport type { C as default };",
+				'/virtual/legacy.ts': "import * as impl from './impl';\n\nexport = impl;",
+			},
+			{ esModuleInterop: true },
+		),
+	);
+
+	// The synthetic default is the assigned module object, not its own `default`
+	// export, so the type-only `default` member does not apply.
+	expect(moduleDefinition.exports[0]).toMatchObject({ name: 'legacy', isValue: true });
+});

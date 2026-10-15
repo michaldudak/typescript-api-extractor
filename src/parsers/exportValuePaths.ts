@@ -80,6 +80,7 @@ function containerExportHasValuePath(
 				? checker.getAliasedSymbol(exportEquals)
 				: exportEquals;
 		if (
+			exportName !== ts.InternalSymbolName.Default &&
 			assignedSymbol !== containerSymbol &&
 			checker.tryGetMemberInModuleExports(ts.unescapeLeadingUnderscores(exportName), assignedSymbol)
 		) {
