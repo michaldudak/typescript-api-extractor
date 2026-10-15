@@ -1,5 +1,28 @@
 # Changelog
 
+## v1.0.0-beta.7
+
+_September 17, 2026_
+
+This release adds template literal types to the output model.
+
+### Breaking changes
+
+- The type model has a new `templateLiteral` kind. Open-ended template literal types such as `` `${number}px` `` now produce a `TemplateLiteralNode` instead of expanding into an object describing string members or falling back to `any`. Consumers that dispatch on `kind` should handle `templateLiteral`, and output snapshots may need updating. The node stores literal segments in `texts` and placeholder types in `types`, with one more text segment than placeholder types. [#242](https://github.com/michaldudak/typescript-api-extractor/pull/242)
+
+### New features
+
+- Exported `TemplateLiteralNode`, with support for rendering template literal syntax through `toString()` and comparing template literals during union and intersection deduplication. Template literals follow TypeScript's normalization: finite placeholders distribute into unions, nested templates flatten, and fully resolved templates become string literals. See the [output format](./docs/output-format.md#template-literals) for the model shape. [#242](https://github.com/michaldudak/typescript-api-extractor/pull/242)
+
+### Bug fixes
+
+- Concrete template-pattern keys such as `` `data-${string}` `` are now preserved in the resolved result of `keyof` instead of falling back to `any` with an unsupported-type warning. [#242](https://github.com/michaldudak/typescript-api-extractor/pull/242)
+
+### Maintenance
+
+- Split the README into dedicated API reference, output format, usage, and architecture pages, and included the documentation in the published package. [#215](https://github.com/michaldudak/typescript-api-extractor/pull/215)
+- Refreshed runtime, development, and CI dependencies, including `es-toolkit`, ESLint, Vitest, Vite, `tsx`, `typescript-eslint`, pnpm, Node, and GitHub Actions, and updated transitive dependencies in the lockfile.
+
 ## v1.0.0-beta.6
 
 _August 10, 2026_

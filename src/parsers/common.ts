@@ -291,6 +291,21 @@ function getTypeArguments(
 					} satisfies TypeArgument;
 				}) ?? [];
 		}
+
+		// Intrinsic string mappings such as `Capitalize<T>` are neither references nor alias
+		// instantiations, so their only type argument is the mapped type itself.
+		if (
+			!typeArguments.length &&
+			type.flags & ts.TypeFlags.StringMapping &&
+			(!typeSymbol || typeSymbol === type.getSymbol())
+		) {
+			typeArguments = [
+				{
+					type: resolveType((type as ts.StringMappingType).type, nodeTypeArguments[0], context),
+					equalToDefault: false,
+				},
+			];
+		}
 	}
 
 	return typeArguments;

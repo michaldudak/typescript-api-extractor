@@ -3,6 +3,7 @@ import { ExternalTypeNode } from './types/external';
 import { FunctionNode } from './types/function';
 import { IntrinsicNode } from './types/intrinsic';
 import { ObjectNode } from './types/object';
+import { TemplateLiteralNode } from './types/templateLiteral';
 import { TupleNode } from './types/tuple';
 import { TypeOperatorNode } from './types/typeOperator';
 import { TypeParameterNode } from './types/typeParameter';
@@ -139,6 +140,19 @@ class TypeEquivalence {
 
 		if (type1 instanceof TupleNode && type2 instanceof TupleNode) {
 			if (type1.types.length !== type2.types.length || type1.isReadonly !== type2.isReadonly) {
+				return false;
+			}
+			return type1.types.every((t1, index) =>
+				this.areEquivalent(t1, type2.types[index], anyIsWildcard, typeParamRenames),
+			);
+		}
+
+		if (type1 instanceof TemplateLiteralNode && type2 instanceof TemplateLiteralNode) {
+			// Equal text lists also mean equal placeholder counts.
+			if (
+				type1.texts.length !== type2.texts.length ||
+				type1.texts.some((text, index) => text !== type2.texts[index])
+			) {
 				return false;
 			}
 			return type1.types.every((t1, index) =>
@@ -328,7 +342,7 @@ class TypeEquivalence {
 			return this.containsAny(type.elementType);
 		}
 
-		if (type instanceof TupleNode) {
+		if (type instanceof TupleNode || type instanceof TemplateLiteralNode) {
 			return type.types.some((member) => this.containsAny(member));
 		}
 

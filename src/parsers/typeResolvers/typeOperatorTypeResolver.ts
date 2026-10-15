@@ -24,6 +24,7 @@ import {
 	getReferencedInterfaceOrClassDeclaration,
 	getReferencedTypeAliasDeclaration,
 } from './referencedTypeAlias';
+import { resolveTemplateLiteralType } from './templateLiteralTypeResolver';
 import {
 	containsKeyofTypeOperatorOrAlias,
 	containsKeyofTypeOperator,
@@ -1773,6 +1774,16 @@ function resolveConcreteTypeOperatorResult(
 
 	if (type.isLiteral()) {
 		return new LiteralNode(type.isStringLiteral() ? `"${type.value}"` : type.value, typeName);
+	}
+
+	// A pattern key such as `data-${string}` is its own base constraint. A template literal
+	// that still depends on a type parameter is not, so it resolves through that constraint
+	// like any other generic key.
+	if (
+		(type.flags & ts.TypeFlags.TemplateLiteral) !== 0 &&
+		session.context.checker.getBaseConstraintOfType(type) === type
+	) {
+		return resolveTemplateLiteralType({ type, typeNode: undefined, typeName }, session);
 	}
 
 	return undefined;

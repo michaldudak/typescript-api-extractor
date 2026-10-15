@@ -71,7 +71,7 @@ for (const file of config.fileNames) {
 
 ## Requirements
 
-- **Node.js**: >= 22
+- **Node.js**: `^22.12.0 || ^24.0.0 || >=26.0.0`
 
 ## License
 
