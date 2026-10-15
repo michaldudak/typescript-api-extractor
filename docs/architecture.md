@@ -30,6 +30,8 @@ substructures that are reused across multiple type classes.
   `ExportDescriptor` records before any output model nodes are built. It owns
   export-specifier targeting, namespace merging, re-export metadata, export type
   acquisition, and recoverable export warnings.
+- `src/parsers/declarationSpaces.ts` computes the declaration spaces an export
+  occupies from every symbol along its alias chain.
 - `src/parsers/exportValuePaths.ts` decides whether an export keeps its runtime
   value by walking its export paths, alias hops and star exports alike, for
   type-only sites.

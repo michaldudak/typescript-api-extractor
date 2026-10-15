@@ -2,20 +2,27 @@ import path from 'node:path';
 import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
 import { type ScopedParserContext } from '../parserContext';
+import { getAliasChainFlags, getDeclarationSpaces } from './declarationSpaces';
 import { parseExport } from './exportParser';
 import { hasValueExportPath } from './exportValuePaths';
 import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
 
 /**
- * Whether a symbol names a type (interface, type alias, enum, class), judged by the
- * declaration a re-export such as `export type { Props } from './types'` resolves to.
- * A function merged with a namespace does not: the namespace's members are types,
- * the merged symbol is not.
+ * Whether an export reached only through type-only sites still has something to
+ * export: a type meaning anywhere along its alias chain, or a namespace that is
+ * not merged onto a function or variable. A function or variable is dropped
+ * along with any namespace merged onto it, since only its value would remain.
  */
-function hasTypeMeaning(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
-	const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	return ((symbol.flags | target.flags) & ts.SymbolFlags.Type) !== 0;
+function isRetainedWithoutValue(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const declarationSpaces = getDeclarationSpaces(symbol, checker);
+	return (
+		declarationSpaces.isType ||
+		(declarationSpaces.isNamespace &&
+			(getAliasChainFlags(symbol, checker) &
+				(ts.SymbolFlags.Function | ts.SymbolFlags.Variable)) ===
+				0)
+	);
 }
 
 /**
@@ -43,9 +50,9 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 					checker,
 				);
 				const isStarExport = !sourceFileSymbol.exports?.has(exportedSymbol.escapedName);
-				if (isTypeOnlyExport && isStarExport && !hasTypeMeaning(exportedSymbol, checker)) {
-					// A value without a type meaning (like a function with a merged
-					// namespace) reached only through type-only sites exports nothing.
+				if (isTypeOnlyExport && isStarExport && !isRetainedWithoutValue(exportedSymbol, checker)) {
+					// A function or variable (with or without a merged namespace)
+					// reached only through type-only sites exports nothing.
 					continue;
 				}
 

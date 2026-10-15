@@ -1,15 +1,10 @@
 import ts from 'typescript';
-import {
-	ExportNode,
-	TypeName,
-	withTypeName,
-	type AnyType,
-	type DeclarationSpaces,
-} from '../models';
+import { ExportNode, TypeName, withTypeName, type AnyType } from '../models';
 import { ParserError } from '../ParserError';
 import { type ScopedParserContext } from '../parserContext';
 import { isInternalSymbolName } from './common';
 import { getDocumentationFromSymbol } from './documentationParser';
+import { getDeclarationSpaces } from './declarationSpaces';
 import { type ExportDescriptor, resolveExportDescriptors } from './exportDescriptors';
 import { resolveType } from './typeResolver';
 
@@ -86,7 +81,10 @@ function createExportNodesFromDescriptor(
 						? [...descriptor.parentNamespaces, descriptor.name].join('.')
 						: descriptor.name;
 
-				let declarationSpaces = getDeclarationSpaces(descriptor.symbol, parserContext.checker);
+				let declarationSpaces = getDeclarationSpaces(
+					descriptor.declarationSpacesSymbol ?? descriptor.symbol,
+					parserContext.checker,
+				);
 				if (descriptor.isTypeOnlyExport || isTypeOnlyExport) {
 					// A type-only export (`export type { X }`, `export type * from`)
 					// re-exports only the type meaning of its target; the runtime value
@@ -113,40 +111,6 @@ function createExportNodesFromDescriptor(
 			throw error;
 		}
 	});
-}
-
-/**
- * Determines which declaration spaces an export occupies. See
- * {@link DeclarationSpaces} for the semantics.
- *
- * Every symbol on the alias chain contributes its own flags: an alias merged
- * with a local declaration occupies the spaces of both, and each hop of a
- * re-export chain can merge in more. Namespaces are recognized by an actual
- * namespace, module, or source-file declaration rather than
- * `SymbolFlags.Module`, because the binder also sets that flag for expando
- * assignments (`fn.extra = ...`).
- */
-function getDeclarationSpaces(symbol: ts.Symbol, checker: ts.TypeChecker): DeclarationSpaces {
-	let flags: ts.SymbolFlags = ts.SymbolFlags.None;
-	let isNamespace = false;
-	const visited = new Set<ts.Symbol>();
-	let current: ts.Symbol | undefined = symbol;
-	while (current && !visited.has(current)) {
-		visited.add(current);
-		flags |= current.flags;
-		isNamespace ||=
-			current.declarations?.some(
-				(declaration) => ts.isModuleDeclaration(declaration) || ts.isSourceFile(declaration),
-			) ?? false;
-		current =
-			current.flags & ts.SymbolFlags.Alias ? checker.getImmediateAliasedSymbol(current) : undefined;
-	}
-
-	return {
-		isValue: (flags & ts.SymbolFlags.Value) !== 0,
-		isType: (flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace,
-	};
 }
 
 /**

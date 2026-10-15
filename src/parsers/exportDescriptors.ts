@@ -58,6 +58,12 @@ export interface ExportDescriptor {
 	symbolScope: string[];
 	/** Authored type node, when it affects alias or union preservation during type resolution. */
 	typeNode?: ts.TypeNode;
+	/**
+	 * Symbol to read declaration spaces from when it differs from `symbol`: a
+	 * re-export starts from its own export symbol, so declarations merged onto it
+	 * count along with the target's.
+	 */
+	declarationSpacesSymbol?: ts.Symbol;
 	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
 	/**
@@ -205,6 +211,7 @@ function resolveExportSpecifierDescriptors(
 		{
 			name: exportSymbol.name,
 			symbol: targetSymbol,
+			declarationSpacesSymbol: exportSymbol,
 			getType: () => getExportSpecifierType(targetSymbol, exportDeclaration, context),
 			parentNamespaces,
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
