@@ -79,7 +79,10 @@ function containerExportHasValuePath(
 			exportEquals.flags & ts.SymbolFlags.Alias
 				? checker.getAliasedSymbol(exportEquals)
 				: exportEquals;
-		if (assignedSymbol !== containerSymbol && assignedSymbol.exports?.has(exportName)) {
+		if (
+			assignedSymbol !== containerSymbol &&
+			checker.tryGetMemberInModuleExports(ts.unescapeLeadingUnderscores(exportName), assignedSymbol)
+		) {
 			return containerExportHasValuePath(assignedSymbol, exportName, checker, visits);
 		}
 

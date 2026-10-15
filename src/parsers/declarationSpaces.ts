@@ -48,13 +48,15 @@ export function isRetainedWithoutValue(symbol: ts.Symbol, checker: ts.TypeChecke
 /**
  * A source file only declares a namespace through its module symbol. The
  * synthetic `export=` property of a JSON module is declared by the JSON file
- * too, but it is a plain value.
+ * too, but it is a plain value. A namespace import carries namespace meaning
+ * even when its module cannot be resolved.
  */
 function isNamespaceSymbol(symbol: ts.Symbol): boolean {
 	return (
 		symbol.declarations?.some(
 			(declaration) =>
 				ts.isModuleDeclaration(declaration) ||
+				ts.isNamespaceImport(declaration) ||
 				(ts.isSourceFile(declaration) && (symbol.flags & ts.SymbolFlags.Module) !== 0),
 		) ?? false
 	);

@@ -113,3 +113,32 @@ export = Service;`,
 		{ name: 'D', isValue: true, isType: true },
 	]);
 });
+
+it('follows star exports of the module assigned with `export =`', () => {
+	const filePath = '/virtual/export-equals-star.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: "export { C } from './legacy';",
+			'/virtual/c.ts': "export class C {\n  id = 'c';\n}",
+			'/virtual/impl.ts': "export type * from './c';",
+			'/virtual/legacy.ts': "import * as impl from './impl';\n\nexport = impl;",
+		}),
+	);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({ name: 'C', isValue: false, isType: true });
+});
+
+it('keeps the namespace space of an unresolvable namespace import', () => {
+	const filePath = '/virtual/unresolvable-namespace.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, "import * as Missing from './missing';\n\nexport { Missing };"),
+	);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'Missing',
+		isValue: true,
+		isNamespace: true,
+	});
+});
