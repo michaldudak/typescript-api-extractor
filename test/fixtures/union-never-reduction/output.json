@@ -38,7 +38,10 @@
 			"documentation": {
 				"description": "`never` should be removed from unions when other members are present.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "OnValueChange",
@@ -102,7 +105,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

@@ -942,7 +942,10 @@
 			"documentation": {
 				"description": "A component whose props exceed the default property-count limit.",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "ManyComponentProps",
@@ -1918,7 +1921,10 @@
 			"documentation": {
 				"description": "Aggregates more than 50 properties through composition alone. Real-world\ncomponent props reach the same shape through wrappers such as\n`Omit<Partial<ManyProps> & ExtraProps, 'p51'>`.",
 				"tags": []
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

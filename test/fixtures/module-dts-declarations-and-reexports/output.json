@@ -92,7 +92,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "wrapValue",
@@ -181,7 +184,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "FormattedProperty",
@@ -217,7 +223,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "FormattedParameter",
@@ -261,7 +270,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "TypeContainer",
@@ -324,7 +336,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "ProcessingStatus",
@@ -356,7 +371,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "formatType",
@@ -412,7 +430,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "parseParameters",
@@ -479,7 +500,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["./source.js"]

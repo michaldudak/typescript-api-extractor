@@ -104,7 +104,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

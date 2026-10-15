@@ -44,7 +44,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "TestComponent2",
@@ -137,7 +140,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "TestComponent3",
@@ -230,7 +236,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

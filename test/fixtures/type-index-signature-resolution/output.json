@@ -75,7 +75,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "returnsIndexSignature",
@@ -101,7 +104,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "MyComponent",
@@ -154,7 +160,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "StringIndexType",
@@ -172,7 +181,10 @@
 						"intrinsic": "number"
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "NumberIndexType",
@@ -190,7 +202,10 @@
 						"intrinsic": "string"
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "TypeWithCustomKeyName",
@@ -208,7 +223,10 @@
 						"intrinsic": "number"
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "TypeWithNestedCustomKey",
@@ -235,7 +253,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "SimpleIndex",
@@ -253,7 +274,10 @@
 						"intrinsic": "boolean"
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "VariantExtraFiles",
@@ -289,7 +313,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "OuterType",
@@ -316,7 +343,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "MixedType",
@@ -352,7 +382,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "IndexedInterface",
@@ -370,7 +403,10 @@
 						"intrinsic": "unknown"
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "MyType",
@@ -406,7 +442,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "HelperType",
@@ -442,7 +481,10 @@
 						]
 					}
 				}
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "MyInterface",
@@ -490,7 +532,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["./helper"]

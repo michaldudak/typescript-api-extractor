@@ -91,7 +91,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "inlineTypes",
@@ -144,7 +147,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	]
 }

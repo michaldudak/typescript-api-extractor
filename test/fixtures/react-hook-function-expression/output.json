@@ -144,7 +144,10 @@
 				"description": "A hook defined as a function expression.",
 				"visibility": "internal",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

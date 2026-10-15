@@ -15,11 +15,46 @@ interface ExportNode {
 	name: string;
 	type: TypeNode;
 	documentation?: DocumentationNode;
+	isValue: boolean;
+	isType: boolean;
+	isNamespace: boolean;
 }
 ```
 
 `TypeNode` represents a TypeScript type. There are multiple classes of types. See
 the contents of the `src/models/types` directory to discover them.
+
+## Declaration Spaces
+
+`isValue`, `isType`, and `isNamespace` report which of TypeScript's declaration
+spaces the export occupies. `type` describes the resolved type shape, which does
+not identify the declaration form: `export type X = 'x'` and
+`export const x: X = 'x'` both resolve to the same literal type, and only the
+declaration spaces tell them apart.
+
+- `isValue`: the export occupies the value space — variables, functions,
+  classes, enums. Note that `const enum` members are inlined by default
+  (`preserveConstEnums: false`), so a value export does not guarantee a runtime
+  binding in the emitted output.
+- `isType`: the export names a type — type aliases, interfaces, classes, enums.
+- `isNamespace`: the export declares a namespace or module. Expando assignments
+  (`fn.extra = ...`) do not count.
+
+Merged declarations occupy every space their declarations occupy: a class is
+both a value and a type, `interface X {}` merged with `const X: X` is both, and
+a namespace containing only types is neither a value nor a type, only a
+namespace. Renamed and re-exported aliases report the spaces of every symbol
+along their alias chain, so declarations merged onto an alias in any module of
+the chain count. A re-exported namespace import (`import * as N`; `export { N }`)
+is a namespace and a value.
+
+An export keeps the value space only when some path to it crosses no type-only
+site (`import type`, `export type { X }`, `export type *`, `export type * as N`).
+Paths are followed through every alias, import, `export =`, and star export, and
+a local value merged with a type-only import keeps its value. Otherwise the value
+space is masked, and an export left with nothing but a value, such as a function
+or variable with any namespace merged onto it, is omitted. A re-export from an
+unresolvable module gets the checker's fallback: a value of type `any`.
 
 ## Type Operators
 

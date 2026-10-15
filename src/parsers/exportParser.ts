@@ -17,8 +17,12 @@ export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ScopedParserContext,
 	parentNamespaces: string[] = [],
+	containerSymbol?: ts.Symbol,
 ): ExportNode[] | undefined {
-	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, parentNamespaces);
+	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, {
+		parentNamespaces,
+		containerSymbol,
+	});
 	if (!descriptors) {
 		return;
 	}
@@ -80,6 +84,7 @@ function createExportNodesFromDescriptor(
 						exportName,
 						parsedType,
 						getDocumentationFromSymbol(descriptor.symbol, parserContext.checker),
+						descriptor.declarationSpaces,
 						descriptor.reexportedFrom,
 						descriptor.extendsTypes,
 					),

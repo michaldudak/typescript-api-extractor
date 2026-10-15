@@ -188,7 +188,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "AlphaEquiv",
@@ -301,7 +304,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

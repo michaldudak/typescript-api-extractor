@@ -296,7 +296,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

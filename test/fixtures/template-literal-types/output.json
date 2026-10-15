@@ -46,7 +46,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "Fraction",
@@ -59,7 +62,10 @@
 						"intrinsic": "number"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "DataAttribute",
@@ -72,7 +78,10 @@
 						"intrinsic": "string"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "TrackMinimum",
@@ -104,7 +113,10 @@
 						"value": "\"auto\""
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Placement",
@@ -132,7 +144,10 @@
 						]
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Nested",
@@ -145,7 +160,10 @@
 						"intrinsic": "number"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Multiple",
@@ -162,7 +180,10 @@
 						"intrinsic": "number"
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		},
 		{
 			"name": "Props",
@@ -229,7 +250,10 @@
 						"optional": false
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	]
 }

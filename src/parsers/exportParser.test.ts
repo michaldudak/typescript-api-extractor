@@ -45,6 +45,7 @@ function createDescriptor(
 		parentNamespaces,
 		typeResolutionOrder,
 		symbolScope: [...parentNamespaces, name],
+		declarationSpaces: { isValue: true, isType: false, isNamespace: false },
 	};
 }
 

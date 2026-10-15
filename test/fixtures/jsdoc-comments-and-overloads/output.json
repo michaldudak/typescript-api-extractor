@@ -58,7 +58,10 @@
 				"description": "The test component.",
 				"visibility": "internal",
 				"tags": []
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "testFunction",
@@ -169,7 +172,10 @@
 						"value": "testFunction('test', 10);"
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]

@@ -379,7 +379,10 @@
 						}
 					}
 				]
-			}
+			},
+			"isValue": true,
+			"isType": false,
+			"isNamespace": false
 		},
 		{
 			"name": "GenericHTMLProps",
@@ -471,7 +474,10 @@
 						"optional": true
 					}
 				]
-			}
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
 		}
 	],
 	"imports": ["react"]
