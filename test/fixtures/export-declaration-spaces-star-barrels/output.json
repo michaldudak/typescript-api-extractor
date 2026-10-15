@@ -100,6 +100,37 @@
 			"isNamespace": false
 		},
 		{
+			"name": "ValueBarrelNamespace.BarrelClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "BarrelClass",
+					"namespaces": ["ValueBarrelNamespace"]
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": true,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "BarrelEnum",
 			"type": {
 				"typeName": {
@@ -130,6 +161,28 @@
 					}
 				],
 				"kind": "enum"
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "BarrelProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "BarrelProps"
+				},
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
 			},
 			"isValue": false,
 			"isType": true,

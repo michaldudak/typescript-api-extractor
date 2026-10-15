@@ -80,9 +80,6 @@
 			"name": "api",
 			"type": {
 				"kind": "object",
-				"typeName": {
-					"name": "\"/Users/janpotoms/Projects/typescript-api-extractor/.claude/worktrees/export-declaration-spaces-fixes/test/fixtures/export-declaration-spaces-alias-chains/functions\""
-				},
 				"properties": []
 			},
 			"isValue": true,

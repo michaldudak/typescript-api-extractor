@@ -54,7 +54,9 @@ type-only site (`export type { X }`, `import type { X }`, `export type * from`,
 barrels of plain star exports behind a type-only one and namespace re-exports of
 modules that use `export type *`. A local value merged with a type-only import
 keeps its value, and a module reached both with and without `type` keeps the
-values of the plain path. The flags come from the checker, so a re-export
+values of the plain path. Imports of an `export =` module follow that assignment.
+Values that are not also pure types and arrive only through `export type *` are
+left out of the module's exports. The flags come from the checker, so a re-export
 from an unresolvable module surfaces with the checker's fallback classification
 (a value of type `any`).
 

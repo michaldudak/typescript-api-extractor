@@ -9,10 +9,13 @@ import { ParserError } from '../ParserError';
 
 /**
  * Checks if a symbol is a pure type (interface, type alias, enum) with no value component.
- * A merged declaration (function + namespace) is NOT a pure type.
+ * A merged declaration (function + namespace) is NOT a pure type. Re-exports such as
+ * `export type { Props } from './types'` are judged by the declaration they resolve to.
  */
-function isPureType(symbol: ts.Symbol): boolean {
-	const declarations = symbol.declarations;
+function isPureType(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const declarations = (
+		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
+	).declarations;
 	if (!declarations || declarations.length === 0) {
 		return false;
 	}
@@ -62,7 +65,7 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 					checker,
 				);
 				const isStarExport = !sourceFileSymbol.exports?.has(exportedSymbol.escapedName);
-				if (isTypeOnlyExport && isStarExport && !isPureType(exportedSymbol)) {
+				if (isTypeOnlyExport && isStarExport && !isPureType(exportedSymbol, checker)) {
 					// A value (like a function with merged namespace) reached only through
 					// `export type *` is not exported by TypeScript at all.
 					continue;

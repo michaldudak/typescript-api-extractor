@@ -194,6 +194,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 		}
 	}
 
+	// A module object (`import * as api`) is named after the module's absolute
+	// file path, which identifies the checkout rather than a public type.
+	if (symbol.declarations?.some(ts.isSourceFile)) {
+		return undefined;
+	}
+
 	const typeName = symbol.getName();
 
 	// Filter out TypeScript internal symbol names (e.g., __type for anonymous type literals,

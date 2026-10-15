@@ -68,6 +68,13 @@ function containerExportHasValuePath(
 		return aliasHasValuePath(localExport, checker, visits);
 	}
 
+	// An `export =` module exports everything, its synthetic default included,
+	// through that one assignment.
+	const exportEquals = containerSymbol.exports?.get(ts.InternalSymbolName.ExportEquals);
+	if (exportEquals) {
+		return aliasHasValuePath(exportEquals, checker, visits);
+	}
+
 	return getStarExportDeclarations(containerSymbol).some((declaration) => {
 		if (declaration.isTypeOnly || !declaration.moduleSpecifier) {
 			return false;
