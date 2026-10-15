@@ -70,10 +70,19 @@ function containerExportHasValuePath(
 		return aliasHasValuePath(localExport, checker, visits);
 	}
 
-	// An `export =` module exports everything, its synthetic default included,
-	// through that one assignment.
+	// An `export =` module exports everything through that one assignment: named
+	// imports read the assigned symbol's members, a synthetic default reads the
+	// assignment itself.
 	const exportEquals = containerSymbol.exports?.get(ts.InternalSymbolName.ExportEquals);
 	if (exportEquals) {
+		const assignedSymbol =
+			exportEquals.flags & ts.SymbolFlags.Alias
+				? checker.getAliasedSymbol(exportEquals)
+				: exportEquals;
+		if (assignedSymbol !== containerSymbol && assignedSymbol.exports?.has(exportName)) {
+			return containerExportHasValuePath(assignedSymbol, exportName, checker, visits);
+		}
+
 		return aliasHasValuePath(exportEquals, checker, visits);
 	}
 

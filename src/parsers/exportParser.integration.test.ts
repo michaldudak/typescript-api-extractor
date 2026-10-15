@@ -82,3 +82,34 @@ it('keeps the checker fallback spaces for a re-export from an unresolvable modul
 		isNamespace: false,
 	});
 });
+
+it('masks a type-only member of an `export =` namespace re-exported by name', () => {
+	const filePath = '/virtual/export-equals-member.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram({
+			[filePath]: "export { C, D } from './legacy';",
+			'/virtual/c.ts': "export class C {\n  id = 'c';\n}",
+			'/virtual/legacy.d.ts': `import { C as ImportedC } from './c';
+
+declare function Service(): void;
+declare namespace Service {
+  export type { ImportedC as C };
+  export class D {
+    id: string;
+  }
+}
+
+export = Service;`,
+		}),
+	);
+
+	// Named imports of an `export =` module read the assigned namespace's members,
+	// so a member exported with `export type` stays type-only downstream.
+	expect(
+		moduleDefinition.exports.map(({ name, isValue, isType }) => ({ name, isValue, isType })),
+	).toEqual([
+		{ name: 'C', isValue: false, isType: true },
+		{ name: 'D', isValue: true, isType: true },
+	]);
+});
