@@ -44,3 +44,41 @@ it('preserves the historical external-source policy for paths containing node_mo
 		},
 	});
 });
+
+it('classifies a re-exported JSON default import as a plain value', () => {
+	const filePath = '/virtual/json-import.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(
+			{
+				[filePath]: "import data from './data.json';\n\nexport { data };",
+				'/virtual/data.json': '{ "value": 1 }',
+			},
+			{ resolveJsonModule: true, esModuleInterop: true },
+		),
+	);
+
+	// The JSON module's synthetic `export=` property is declared by the JSON
+	// source file, which does not make the imported object a namespace.
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'data',
+		isValue: true,
+		isType: false,
+		isNamespace: false,
+	});
+});
+
+it('keeps the checker fallback spaces for a re-export from an unresolvable module', () => {
+	const filePath = '/virtual/unresolvable.ts';
+	const moduleDefinition = parseFromProgram(
+		filePath,
+		createInMemoryProgram(filePath, "export { Missing } from './missing';"),
+	);
+
+	expect(moduleDefinition.exports[0]).toMatchObject({
+		name: 'Missing',
+		isValue: true,
+		isType: false,
+		isNamespace: false,
+	});
+});

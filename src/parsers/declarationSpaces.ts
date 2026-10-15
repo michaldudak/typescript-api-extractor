@@ -22,12 +22,7 @@ export function getDeclarationSpaces(
 	return {
 		isValue: (flags & ts.SymbolFlags.Value) !== 0,
 		isType: (flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace: chain.some(
-			(current) =>
-				current.declarations?.some(
-					(declaration) => ts.isModuleDeclaration(declaration) || ts.isSourceFile(declaration),
-				) ?? false,
-		),
+		isNamespace: chain.some(isNamespaceSymbol),
 	};
 }
 
@@ -39,13 +34,32 @@ export function getAliasChainFlags(symbol: ts.Symbol, checker: ts.TypeChecker): 
 	return getCombinedFlags(getAliasChain(symbol, checker));
 }
 
+/**
+ * A source file only declares a namespace through its module symbol. The
+ * synthetic `export=` property of a JSON module is declared by the JSON file
+ * too, but it is a plain value.
+ */
+function isNamespaceSymbol(symbol: ts.Symbol): boolean {
+	return (
+		symbol.declarations?.some(
+			(declaration) =>
+				ts.isModuleDeclaration(declaration) ||
+				(ts.isSourceFile(declaration) && (symbol.flags & ts.SymbolFlags.Module) !== 0),
+		) ?? false
+	);
+}
+
 function getAliasChain(symbol: ts.Symbol, checker: ts.TypeChecker): ts.Symbol[] {
 	const chain: ts.Symbol[] = [];
 	let current: ts.Symbol | undefined = symbol;
 	while (current && !chain.includes(current)) {
 		chain.push(current);
+		// An alias into an unresolvable module has no immediate target; the fully
+		// resolved alias then carries the checker's fallback symbol.
 		current =
-			current.flags & ts.SymbolFlags.Alias ? checker.getImmediateAliasedSymbol(current) : undefined;
+			current.flags & ts.SymbolFlags.Alias
+				? (checker.getImmediateAliasedSymbol(current) ?? checker.getAliasedSymbol(current))
+				: undefined;
 	}
 
 	return chain;
