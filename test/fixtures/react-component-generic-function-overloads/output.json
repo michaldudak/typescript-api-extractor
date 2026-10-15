@@ -102,6 +102,12 @@
 						},
 						"optional": true
 					}
+				],
+				"typeParameters": [
+					{
+						"name": "Value",
+						"kind": "typeParameter"
+					}
 				]
 			}
 		}

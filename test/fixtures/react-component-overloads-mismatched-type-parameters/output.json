@@ -1,0 +1,122 @@
+{
+	"name": "test/fixtures/react-component-overloads-mismatched-type-parameters/input",
+	"exports": [
+		{
+			"name": "DifferentNamesComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "DifferentNamesComponent"
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "items",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "array",
+									"elementType": {
+										"name": "Item",
+										"kind": "typeParameter"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		},
+		{
+			"name": "DifferentConstraintsComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "DifferentConstraintsComponent"
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"name": "Value",
+							"constraint": {
+								"kind": "intrinsic",
+								"intrinsic": "string"
+							},
+							"kind": "typeParameter"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "PartiallyGenericComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "PartiallyGenericComponent"
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"name": "Value",
+									"kind": "typeParameter"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					},
+					{
+						"name": "label",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

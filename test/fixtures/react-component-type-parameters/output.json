@@ -1,0 +1,134 @@
+{
+	"name": "test/fixtures/react-component-type-parameters/input",
+	"exports": [
+		{
+			"name": "GenericFunctionComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "GenericFunctionComponent"
+				},
+				"props": [
+					{
+						"name": "value",
+						"type": {
+							"name": "Value",
+							"kind": "typeParameter"
+						},
+						"optional": false
+					}
+				],
+				"typeParameters": [
+					{
+						"name": "Value",
+						"kind": "typeParameter"
+					}
+				]
+			}
+		},
+		{
+			"name": "NonGenericComponent",
+			"type": {
+				"kind": "component",
+				"typeName": {
+					"name": "NonGenericComponent"
+				},
+				"props": [
+					{
+						"name": "label",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false
+					}
+				]
+			}
+		},
+		{
+			"name": "ConstrainedComponent",
+			"type": {
+				"kind": "component",
+				"props": [
+					{
+						"name": "keys",
+						"type": {
+							"kind": "array",
+							"elementType": {
+								"name": "Key",
+								"constraint": {
+									"kind": "intrinsic",
+									"intrinsic": "string"
+								},
+								"kind": "typeParameter"
+							}
+						},
+						"optional": false
+					},
+					{
+						"name": "values",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Record",
+										"typeArguments": [
+											{
+												"type": {
+													"name": "Key",
+													"constraint": {
+														"kind": "intrinsic",
+														"intrinsic": "string"
+													},
+													"kind": "typeParameter"
+												},
+												"equalToDefault": false
+											},
+											{
+												"type": {
+													"name": "Value",
+													"defaultValue": {
+														"kind": "intrinsic",
+														"intrinsic": "unknown"
+													},
+													"kind": "typeParameter"
+												},
+												"equalToDefault": false
+											}
+										]
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"optional": true
+					}
+				],
+				"typeParameters": [
+					{
+						"name": "Key",
+						"constraint": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"kind": "typeParameter"
+					},
+					{
+						"name": "Value",
+						"defaultValue": {
+							"kind": "intrinsic",
+							"intrinsic": "unknown"
+						},
+						"kind": "typeParameter"
+					}
+				]
+			}
+		}
+	],
+	"imports": ["react"]
+}

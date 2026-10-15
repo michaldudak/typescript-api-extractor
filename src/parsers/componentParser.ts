@@ -8,6 +8,8 @@ import {
 	ObjectNode,
 	UnionNode,
 	IntersectionNode,
+	TypeParameterNode,
+	typeEquivalenceChecker,
 	type AnyType,
 } from '../models';
 import { TypeName } from '../models/typeName';
@@ -115,7 +117,53 @@ function createComponentNode(
 	return new ComponentNode(
 		cloneTypeName(getComponentTypeName(type, componentFunctions)),
 		squashComponentProps(callSignatures, context),
+		getSharedTypeParameters(callSignatures),
 	);
+}
+
+/**
+ * The props of every signature are merged into one list, so the type parameters
+ * they refer to only describe the component when every signature declares the
+ * same ones. When signatures disagree, no single list is correct for the merged
+ * props and none is reported.
+ */
+function getSharedTypeParameters(callSignatures: CallSignature[]): TypeParameterNode[] | undefined {
+	const [firstSignature, ...remainingSignatures] = callSignatures;
+	const typeParameters = firstSignature?.typeParameters;
+	if (!typeParameters?.length) {
+		return undefined;
+	}
+
+	const allSignaturesAgree = remainingSignatures.every((signature) =>
+		areTypeParameterListsEqual(typeParameters, signature.typeParameters ?? []),
+	);
+
+	return allSignaturesAgree ? typeParameters : undefined;
+}
+
+function areTypeParameterListsEqual(
+	typeParameters1: TypeParameterNode[],
+	typeParameters2: TypeParameterNode[],
+): boolean {
+	return (
+		typeParameters1.length === typeParameters2.length &&
+		typeParameters1.every((typeParameter1, index) => {
+			const typeParameter2 = typeParameters2[index];
+			return (
+				typeParameter1.name === typeParameter2.name &&
+				areOptionalTypesEqual(typeParameter1.constraint, typeParameter2.constraint) &&
+				areOptionalTypesEqual(typeParameter1.defaultValue, typeParameter2.defaultValue)
+			);
+		})
+	);
+}
+
+function areOptionalTypesEqual(type1: AnyType | undefined, type2: AnyType | undefined): boolean {
+	if (type1 === undefined || type2 === undefined) {
+		return type1 === type2;
+	}
+
+	return typeEquivalenceChecker.areEquivalentStrictly(type1, type2);
 }
 
 /**
