@@ -167,6 +167,36 @@
 			"isNamespace": false
 		},
 		{
+			"name": "BarrelClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "BarrelClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "BarrelProps",
 			"type": {
 				"kind": "object",
@@ -183,6 +213,36 @@
 						"optional": false
 					}
 				]
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "ReexportedBarrelClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "ReexportedBarrelClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
 			},
 			"isValue": false,
 			"isType": true,

@@ -8,36 +8,14 @@ import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
 
 /**
- * Checks if a symbol is a pure type (interface, type alias, enum) with no value component.
- * A merged declaration (function + namespace) is NOT a pure type. Re-exports such as
- * `export type { Props } from './types'` are judged by the declaration they resolve to.
+ * Whether a symbol names a type (interface, type alias, enum, class), judged by the
+ * declaration a re-export such as `export type { Props } from './types'` resolves to.
+ * A function merged with a namespace does not: the namespace's members are types,
+ * the merged symbol is not.
  */
-function isPureType(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
-	const declarations = (
-		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol
-	).declarations;
-	if (!declarations || declarations.length === 0) {
-		return false;
-	}
-
-	// Check all declarations - if ANY is a value declaration, it's not a pure type
-	for (const decl of declarations) {
-		if (
-			ts.isFunctionDeclaration(decl) ||
-			ts.isVariableDeclaration(decl) ||
-			ts.isClassDeclaration(decl)
-		) {
-			return false;
-		}
-	}
-
-	// Only interfaces, type aliases, and enums are pure types
-	return declarations.every(
-		(decl) =>
-			ts.isInterfaceDeclaration(decl) ||
-			ts.isTypeAliasDeclaration(decl) ||
-			ts.isEnumDeclaration(decl),
-	);
+function hasTypeMeaning(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const target = symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
+	return ((symbol.flags | target.flags) & ts.SymbolFlags.Type) !== 0;
 }
 
 /**
@@ -65,9 +43,9 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 					checker,
 				);
 				const isStarExport = !sourceFileSymbol.exports?.has(exportedSymbol.escapedName);
-				if (isTypeOnlyExport && isStarExport && !isPureType(exportedSymbol, checker)) {
-					// A value (like a function with merged namespace) reached only through
-					// `export type *` is not exported by TypeScript at all.
+				if (isTypeOnlyExport && isStarExport && !hasTypeMeaning(exportedSymbol, checker)) {
+					// A value without a type meaning (like a function with a merged
+					// namespace) reached only through type-only sites exports nothing.
 					continue;
 				}
 
