@@ -4,7 +4,6 @@ import { ParserError } from '../ParserError';
 import { type ScopedParserContext } from '../parserContext';
 import { isInternalSymbolName } from './common';
 import { getDocumentationFromSymbol } from './documentationParser';
-import { getDeclarationSpaces } from './declarationSpaces';
 import { type ExportDescriptor, resolveExportDescriptors } from './exportDescriptors';
 import { resolveType } from './typeResolver';
 
@@ -18,16 +17,12 @@ export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ScopedParserContext,
 	parentNamespaces: string[] = [],
-	isTypeOnlyExport?: boolean,
+	containerSymbol?: ts.Symbol,
 ): ExportNode[] | undefined {
-	const descriptors = resolveExportDescriptors(
-		exportSymbol,
-		parserContext,
+	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, {
 		parentNamespaces,
-		undefined,
-		undefined,
-		isTypeOnlyExport,
-	);
+		containerSymbol,
+	});
 	if (!descriptors) {
 		return;
 	}
@@ -84,23 +79,12 @@ function createExportNodesFromDescriptor(
 						? [...descriptor.parentNamespaces, descriptor.name].join('.')
 						: descriptor.name;
 
-				let declarationSpaces = getDeclarationSpaces(
-					descriptor.declarationSpacesSymbol ?? descriptor.symbol,
-					parserContext.checker,
-				);
-				if (descriptor.isTypeOnlyExport) {
-					// A type-only export (`export type { X }`, `export type * from`)
-					// re-exports only the type meaning of its target; the runtime value
-					// does not cross the export site.
-					declarationSpaces = { ...declarationSpaces, isValue: false };
-				}
-
 				return [
 					new ExportNode(
 						exportName,
 						parsedType,
 						getDocumentationFromSymbol(descriptor.symbol, parserContext.checker),
-						declarationSpaces,
+						descriptor.declarationSpaces,
 						descriptor.reexportedFrom,
 						descriptor.extendsTypes,
 					),

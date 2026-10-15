@@ -3,7 +3,6 @@ import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
 import { type ScopedParserContext } from '../parserContext';
 import { parseExport } from './exportParser';
-import { getContainerExportReach } from './exportValuePaths';
 import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
 
@@ -26,12 +25,7 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 			const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
 
 			for (const exportedSymbol of exportedSymbols) {
-				const reach = getContainerExportReach(sourceFileSymbol, exportedSymbol, checker);
-				if (reach === 'hidden') {
-					continue;
-				}
-
-				const parsedExports = parseExport(exportedSymbol, context, [], reach === 'typeOnly');
+				const parsedExports = parseExport(exportedSymbol, context, [], sourceFileSymbol);
 				if (!parsedExports) {
 					continue;
 				}

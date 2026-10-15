@@ -1,8 +1,9 @@
 import ts from 'typescript';
-import { getContainerExportReach, hasValueAliasPath } from './exportValuePaths';
+import { getDeclarationSpaces } from './declarationSpaces';
+import { getExportReach } from './exportValuePaths';
 import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
-import { type ExtendsTypeInfo } from '../models';
+import { type DeclarationSpaces, type ExtendsTypeInfo } from '../models';
 import { isInternalSymbolName } from './common';
 import { declarationHasNodeModulesPathSegment } from './sourceFileUtils';
 import { analyzeTypeAliasSource } from './typeResolvers/authoredTypeAlias';
@@ -59,20 +60,36 @@ export interface ExportDescriptor {
 	/** Authored type node, when it affects alias or union preservation during type resolution. */
 	typeNode?: ts.TypeNode;
 	/**
-	 * Symbol to read declaration spaces from when it differs from `symbol`: a
-	 * re-export starts from its own export symbol, so declarations merged onto it
-	 * count along with the target's.
+	 * Declaration spaces of the export, read from its export symbol so that
+	 * declarations merged onto a re-export count along with the target's, and
+	 * with the value space masked when the export is reached only as a type.
 	 */
-	declarationSpacesSymbol?: ts.Symbol;
+	declarationSpaces: DeclarationSpaces;
 	/** Original exported name when the public descriptor is a renamed re-export. */
 	reexportedFrom?: string;
-	/**
-	 * Whether the export is type-only (`export type { X }`). A type-only export
-	 * re-exports only the type meaning of its target, never the runtime value.
-	 */
-	isTypeOnlyExport?: boolean;
 	/** Interface or class heritage metadata attached to the export. */
 	extendsTypes?: ExtendsTypeInfo[];
+}
+
+/** A descriptor before its declaration spaces are attached. */
+type ExportDescriptorDraft = Omit<ExportDescriptor, 'declarationSpaces'>;
+
+/**
+ * Where an export sits while its descriptors are resolved.
+ */
+export interface ExportDescriptorOptions {
+	/** Namespace path inherited from enclosing namespace exports, prefixed onto the public name. */
+	parentNamespaces?: string[];
+	/** Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata. */
+	parentSymbolScope?: string[];
+	/** Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order. */
+	resolutionState?: ExportDescriptorResolutionState;
+	/**
+	 * The module or namespace listing the export, which decides whether it is reached
+	 * as a value, as a type only, or not at all. Without it, only the export symbol's
+	 * own alias chain is considered.
+	 */
+	containerSymbol?: ts.Symbol;
 }
 
 /**
@@ -84,22 +101,26 @@ export interface ExportDescriptor {
  *
  * @param exportSymbol Module-level export symbol being normalized; its name becomes the public descriptor name.
  * @param context Parser context providing the TypeScript checker and scope helpers.
- * @param parentNamespaces Namespace path inherited from enclosing namespace exports, prefixed onto the public name.
- * @param parentSymbolScope Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata.
- * @param resolutionState Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order.
- * @param isTypeOnlyExport Whether the export is reached only through type-only sites, as decided by its container. Defaults to walking the export symbol's own alias chain.
- * @returns One or more normalized descriptors, or `undefined` when the symbol has no extractable declaration.
+ * @param options Where the export sits; see {@link ExportDescriptorOptions}.
+ * @returns One or more normalized descriptors, or `undefined` when the symbol has no extractable declaration or reaches its container only as a value that type-only sites strip.
  */
 export function resolveExportDescriptors(
 	exportSymbol: ts.Symbol,
 	context: ScopedParserContext,
-	parentNamespaces: string[] = [],
-	parentSymbolScope: string[] = [],
-	resolutionState: ExportDescriptorResolutionState = { nextTypeResolutionOrder: 0 },
-	isTypeOnlyExport?: boolean,
+	{
+		parentNamespaces = [],
+		parentSymbolScope = [],
+		resolutionState = { nextTypeResolutionOrder: 0 },
+		containerSymbol,
+	}: ExportDescriptorOptions = {},
 ): ExportDescriptor[] | undefined {
 	return context.runWithSymbolScope(exportSymbol.name, () => {
 		try {
+			const reach = getExportReach(exportSymbol, containerSymbol, context.checker);
+			if (reach === 'hidden') {
+				return;
+			}
+
 			const scope: ExportDescriptorScope = {
 				context,
 				parentNamespaces,
@@ -133,18 +154,17 @@ export function resolveExportDescriptors(
 				);
 			} else {
 				descriptors = withNamespaceDescriptors(
-					resolveDeclarationExportDescriptor(exportSymbol, exportDeclaration, scope),
+					withDeclarationSpaces(
+						resolveDeclarationExportDescriptor(exportSymbol, exportDeclaration, scope),
+						exportSymbol,
+						context.checker,
+					),
 					namespaceDescriptors,
 				);
 			}
 
-			// Whichever declaration form carried it here, a symbol reached through a
-			// type-only export site loses its runtime binding — as do the members of any
-			// namespace merged onto it.
-			return withTypeOnlyExport(
-				descriptors,
-				isTypeOnlyExport ?? !hasValueAliasPath(exportSymbol, context.checker),
-			);
+			// The members of a namespace merged onto a type-only export are type-only too.
+			return withTypeOnlyExport(descriptors, reach === 'typeOnly');
 		} catch (error) {
 			if (!(error instanceof ParserError)) {
 				throw new ParserError(error, context.parsedSymbolStack);
@@ -212,11 +232,11 @@ function resolveExportSpecifierDescriptors(
 		isReExport && targetSymbol.name !== exportSymbol.name ? targetSymbol.name : undefined;
 	const targetTypeAlias = findAliasedTypeAliasDeclaration(targetSymbol, context.checker);
 	const targetTypeNode = targetTypeAlias?.type;
-	const descriptors = withNamespaceDescriptors(
+	return withNamespaceDescriptors(
 		{
 			name: exportSymbol.name,
 			symbol: targetSymbol,
-			declarationSpacesSymbol: exportSymbol,
+			declarationSpaces: getDeclarationSpaces(exportSymbol, context.checker),
 			getType: () => getExportSpecifierType(targetSymbol, exportDeclaration, context),
 			parentNamespaces,
 			typeResolutionOrder: getNextTypeResolutionOrder(resolutionState),
@@ -230,8 +250,6 @@ function resolveExportSpecifierDescriptors(
 		},
 		[...namespaceDescriptors, ...targetNamespaceDescriptors],
 	);
-
-	return descriptors;
 }
 
 function shouldPreserveTypeAliasNode(
@@ -292,7 +310,7 @@ function resolveDeclarationExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.Declaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	if (ts.isExportAssignment(exportDeclaration)) {
 		return resolveDefaultExportDescriptor(exportSymbol, exportDeclaration, scope);
 	}
@@ -332,7 +350,7 @@ function resolveDefaultExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ExportAssignment,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.expression);
 	if (!exportedSymbol) {
@@ -364,7 +382,7 @@ function resolveValueExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.VariableDeclaration | ts.FunctionDeclaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	if (!exportDeclaration.name) {
 		return;
 	}
@@ -399,7 +417,7 @@ function resolveInterfaceExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.InterfaceDeclaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -432,7 +450,7 @@ function resolveEnumExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.EnumDeclaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -469,7 +487,7 @@ function resolveClassExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.ClassDeclaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	if (!exportDeclaration.name) {
 		return;
 	}
@@ -504,7 +522,7 @@ function resolveTypeAliasExportDescriptor(
 	exportSymbol: ts.Symbol,
 	exportDeclaration: ts.TypeAliasDeclaration,
 	scope: ExportDescriptorScope,
-): ExportDescriptor | undefined {
+): ExportDescriptorDraft | undefined {
 	const { context, parentNamespaces, symbolScope, resolutionState } = scope;
 	const exportedSymbol = context.checker.getSymbolAtLocation(exportDeclaration.name);
 	if (!exportedSymbol) {
@@ -641,21 +659,12 @@ function resolveNamespaceMemberDescriptors(
 	const descriptors: ExportDescriptor[] = [];
 
 	for (const member of namespaceMembers) {
-		// Members can arrive through the namespace module's own star exports,
-		// which their alias chains do not show.
-		const reach = getContainerExportReach(namespaceSymbol, member, context.checker);
-		if (reach === 'hidden') {
-			continue;
-		}
-
-		const memberDescriptors = resolveExportDescriptors(
-			member,
-			context,
-			[...parentNamespaces, namespaceExportName],
-			symbolScope,
+		const memberDescriptors = resolveExportDescriptors(member, context, {
+			parentNamespaces: [...parentNamespaces, namespaceExportName],
+			parentSymbolScope: symbolScope,
 			resolutionState,
-			reach === 'typeOnly',
-		);
+			containerSymbol: namespaceSymbol,
+		});
 		if (memberDescriptors) {
 			descriptors.push(...memberDescriptors);
 		}
@@ -700,18 +709,36 @@ function asNonEmptyDescriptors(descriptors: ExportDescriptor[]): ExportDescripto
 }
 
 /**
- * Marks every descriptor as crossing a type-only export site, which strips its runtime
- * binding. Returns the list unchanged when the export site is not type-only.
+ * Completes a draft with the declaration spaces of its export symbol.
+ *
+ * @param draft The descriptor draft, if one was produced.
+ * @param exportSymbol The export symbol the spaces are read from.
+ * @param checker Type checker for walking the export symbol's alias chain.
+ */
+function withDeclarationSpaces(
+	draft: ExportDescriptorDraft | undefined,
+	exportSymbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): ExportDescriptor | undefined {
+	return draft && { ...draft, declarationSpaces: getDeclarationSpaces(exportSymbol, checker) };
+}
+
+/**
+ * Masks the value space of every descriptor reached only through type-only sites,
+ * which strip the runtime binding. Returns the list unchanged otherwise.
  *
  * @param descriptors Descriptors produced for one export.
- * @param isTypeOnlyExport Whether the export site is type-only.
+ * @param isTypeOnlyExport Whether the export is reached only through type-only sites.
  */
 function withTypeOnlyExport(
 	descriptors: ExportDescriptor[] | undefined,
 	isTypeOnlyExport: boolean,
 ): ExportDescriptor[] | undefined {
 	return isTypeOnlyExport
-		? descriptors?.map((descriptor) => ({ ...descriptor, isTypeOnlyExport: true }))
+		? descriptors?.map((descriptor) => ({
+				...descriptor,
+				declarationSpaces: { ...descriptor.declarationSpaces, isValue: false },
+			}))
 		: descriptors;
 }
 

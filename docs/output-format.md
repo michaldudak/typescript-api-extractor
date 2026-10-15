@@ -48,19 +48,13 @@ along their alias chain, so declarations merged onto an alias in any module of
 the chain count. A re-exported namespace import (`import * as N`; `export { N }`)
 is a namespace and a value.
 
-An export occupies the value space only when at least one path to it crosses no
-type-only site (`export type { X }`, `import type { X }`, `export type * from`,
-`export type * as N from`). Paths are followed through every module, including
-barrels of plain star exports behind a type-only one and namespace re-exports of
-modules that use `export type *`. A local value merged with a type-only import
-keeps its value, and a module reached both with and without `type` keeps the
-values of the plain path. Imports of an `export =` module follow that assignment.
-Functions and variables that arrive only through type-only sites are left out of
-the module's or namespace's exports, along with any namespace merged onto them. Exports with a
-type meaning anywhere along their alias chain, and namespaces of their own, are
-kept with the value space masked. The flags come from the checker, so a re-export
-from an unresolvable module surfaces with the checker's fallback classification
-(a value of type `any`).
+An export keeps the value space only when some path to it crosses no type-only
+site (`import type`, `export type { X }`, `export type *`, `export type * as N`).
+Paths are followed through every alias, import, `export =`, and star export, and
+a local value merged with a type-only import keeps its value. Otherwise the value
+space is masked, and an export left with nothing but a value, such as a function
+or variable with any namespace merged onto it, is omitted. A re-export from an
+unresolvable module gets the checker's fallback: a value of type `any`.
 
 ## Type Operators
 

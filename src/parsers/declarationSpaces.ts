@@ -27,11 +27,22 @@ export function getDeclarationSpaces(
 }
 
 /**
- * The symbol flags of every symbol on the alias chain, combined. See
- * {@link getDeclarationSpaces}.
+ * Whether an export reached only through type-only sites still has something to
+ * export: a type meaning anywhere along its alias chain, or a namespace that is
+ * not merged onto a function or variable. A function or variable is dropped
+ * along with any namespace merged onto it, since only its value would remain.
  */
-export function getAliasChainFlags(symbol: ts.Symbol, checker: ts.TypeChecker): ts.SymbolFlags {
-	return getCombinedFlags(getAliasChain(symbol, checker));
+export function isRetainedWithoutValue(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const chain = getAliasChain(symbol, checker);
+	const flags = getCombinedFlags(chain);
+	if (flags & ts.SymbolFlags.Type) {
+		return true;
+	}
+
+	return (
+		(flags & (ts.SymbolFlags.Function | ts.SymbolFlags.Variable)) === 0 &&
+		chain.some(isNamespaceSymbol)
+	);
 }
 
 /**
