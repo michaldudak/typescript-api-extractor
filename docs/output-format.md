@@ -43,13 +43,18 @@ declaration spaces tell them apart.
 Merged declarations occupy every space their declarations occupy: a class is
 both a value and a type, `interface X {}` merged with `const X: X` is both, and
 a namespace containing only types is neither a value nor a type, only a
-namespace. Renamed and re-exported aliases report the spaces of the declaration
-they resolve to, combined with any local declarations merged onto the alias. A
-type-only re-export (`export type { X }`, `export type * from '...'`,
-`export type * as N from '...'`) never occupies the value space, whatever its
-target is. When the same file also star-exports that module without `type`, the
-values still arrive through that path; reachability through a further module's
-star export is not modelled. The flags come from the checker, so a re-export
+namespace. Renamed and re-exported aliases report the spaces of every symbol
+along their alias chain, so declarations merged onto an alias in any module of
+the chain count. A re-exported namespace import (`import * as N`; `export { N }`)
+is a namespace and a value.
+
+An export occupies the value space only when at least one path to it crosses no
+type-only site (`export type { X }`, `import type { X }`, `export type * from`,
+`export type * as N from`). Paths are followed through every module, including
+barrels of plain star exports behind a type-only one and namespace re-exports of
+modules that use `export type *`. A local value merged with a type-only import
+keeps its value, and a module reached both with and without `type` keeps the
+values of the plain path. The flags come from the checker, so a re-export
 from an unresolvable module surfaces with the checker's fallback classification
 (a value of type `any`).
 

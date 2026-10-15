@@ -30,6 +30,9 @@ substructures that are reused across multiple type classes.
   `ExportDescriptor` records before any output model nodes are built. It owns
   export-specifier targeting, namespace merging, re-export metadata, export type
   acquisition, and recoverable export warnings.
+- `src/parsers/exportValuePaths.ts` decides whether an export keeps its runtime
+  value by walking its export paths, alias hops and star exports alike, for
+  type-only sites.
 - `src/parsers/exportTransforms.ts` applies post-export transforms after generic
   export nodes are built. Today it runs the React component transform from
   `componentParser.ts`.

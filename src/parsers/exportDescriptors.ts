@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import { hasValueAliasPath, hasValueExportPath } from './exportValuePaths';
 import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
@@ -132,7 +133,7 @@ export function resolveExportDescriptors(
 			// Whichever declaration form carried it here, a symbol reached through a
 			// type-only export site loses its runtime binding — as do the members of any
 			// namespace merged onto it.
-			return withTypeOnlyExport(descriptors, isTypeOnlyAliasChain(exportSymbol, context.checker));
+			return withTypeOnlyExport(descriptors, !hasValueAliasPath(exportSymbol, context.checker));
 		} catch (error) {
 			if (!(error instanceof ParserError)) {
 				throw new ParserError(error, context.parsedSymbolStack);
@@ -219,25 +220,6 @@ function resolveExportSpecifierDescriptors(
 	);
 
 	return descriptors;
-}
-
-/**
- * Whether the export symbol's alias chain crosses a type-only import or export
- * declaration (`export type { X }`, or a re-exported `import type { X }`). A
- * type-only site strips the runtime value from everything exported through it,
- * which resolving the alias chain in one jump would not see.
- */
-function isTypeOnlyAliasChain(exportSymbol: ts.Symbol, checker: ts.TypeChecker): boolean {
-	const seen = new Set<ts.Symbol>();
-	let current: ts.Symbol | undefined = exportSymbol;
-	while (current && current.flags & ts.SymbolFlags.Alias && !seen.has(current)) {
-		seen.add(current);
-		if (current.declarations?.some(ts.isTypeOnlyImportOrExportDeclaration)) {
-			return true;
-		}
-		current = checker.getImmediateAliasedSymbol(current);
-	}
-	return false;
 }
 
 function shouldPreserveTypeAliasNode(
@@ -655,7 +637,14 @@ function resolveNamespaceMemberDescriptors(
 			resolutionState,
 		);
 		if (memberDescriptors) {
-			descriptors.push(...memberDescriptors);
+			// Members can arrive through the namespace module's own star exports,
+			// which their alias chains do not show.
+			const isTypeOnlyMember = !hasValueExportPath(
+				namespaceSymbol,
+				member.escapedName,
+				context.checker,
+			);
+			descriptors.push(...(withTypeOnlyExport(memberDescriptors, isTypeOnlyMember) ?? []));
 		}
 	}
 

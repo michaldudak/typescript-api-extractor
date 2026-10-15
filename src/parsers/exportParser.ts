@@ -119,23 +119,33 @@ function createExportNodesFromDescriptor(
  * Determines which declaration spaces an export occupies. See
  * {@link DeclarationSpaces} for the semantics.
  *
- * Alias symbols (re-exported imports) resolve to their targets, keeping the
- * alias symbol's own flags too: an alias merged with a local declaration
- * occupies the spaces of both. Namespaces are recognized by an actual
- * namespace or module declaration rather than `SymbolFlags.Module`, because
- * the binder also sets that flag for expando assignments (`fn.extra = ...`).
+ * Every symbol on the alias chain contributes its own flags: an alias merged
+ * with a local declaration occupies the spaces of both, and each hop of a
+ * re-export chain can merge in more. Namespaces are recognized by an actual
+ * namespace, module, or source-file declaration rather than
+ * `SymbolFlags.Module`, because the binder also sets that flag for expando
+ * assignments (`fn.extra = ...`).
  */
 function getDeclarationSpaces(symbol: ts.Symbol, checker: ts.TypeChecker): DeclarationSpaces {
-	const resolvedSymbol =
-		symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
-	const flags = symbol.flags | resolvedSymbol.flags;
-	const hasNamespaceDeclaration = (candidate: ts.Symbol) =>
-		candidate.declarations?.some(ts.isModuleDeclaration) ?? false;
+	let flags: ts.SymbolFlags = ts.SymbolFlags.None;
+	let isNamespace = false;
+	const visited = new Set<ts.Symbol>();
+	let current: ts.Symbol | undefined = symbol;
+	while (current && !visited.has(current)) {
+		visited.add(current);
+		flags |= current.flags;
+		isNamespace ||=
+			current.declarations?.some(
+				(declaration) => ts.isModuleDeclaration(declaration) || ts.isSourceFile(declaration),
+			) ?? false;
+		current =
+			current.flags & ts.SymbolFlags.Alias ? checker.getImmediateAliasedSymbol(current) : undefined;
+	}
 
 	return {
 		isValue: (flags & ts.SymbolFlags.Value) !== 0,
 		isType: (flags & ts.SymbolFlags.Type) !== 0,
-		isNamespace: hasNamespaceDeclaration(symbol) || hasNamespaceDeclaration(resolvedSymbol),
+		isNamespace,
 	};
 }
 
