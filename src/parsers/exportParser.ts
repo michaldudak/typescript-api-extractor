@@ -18,19 +18,23 @@ export function parseExport(
 	exportSymbol: ts.Symbol,
 	parserContext: ScopedParserContext,
 	parentNamespaces: string[] = [],
-	isTypeOnlyExport = false,
+	isTypeOnlyExport?: boolean,
 ): ExportNode[] | undefined {
-	const descriptors = resolveExportDescriptors(exportSymbol, parserContext, parentNamespaces);
+	const descriptors = resolveExportDescriptors(
+		exportSymbol,
+		parserContext,
+		parentNamespaces,
+		undefined,
+		undefined,
+		isTypeOnlyExport,
+	);
 	if (!descriptors) {
 		return;
 	}
 
 	const nodesByDescriptor = new Map<ExportDescriptor, ExportNode[] | undefined>();
 	for (const descriptor of getTypeResolutionOrderedDescriptors(descriptors)) {
-		nodesByDescriptor.set(
-			descriptor,
-			createExportNodesFromDescriptor(descriptor, parserContext, isTypeOnlyExport),
-		);
+		nodesByDescriptor.set(descriptor, createExportNodesFromDescriptor(descriptor, parserContext));
 	}
 
 	// Descriptor order is the emitted API order. Type-resolution order is kept
@@ -63,7 +67,6 @@ function getTypeResolutionOrderedDescriptors(descriptors: ExportDescriptor[]): E
 function createExportNodesFromDescriptor(
 	descriptor: ExportDescriptor,
 	parserContext: ScopedParserContext,
-	isTypeOnlyExport: boolean,
 ): ExportNode[] | undefined {
 	return runWithSymbolScopes(parserContext, descriptor.symbolScope, () => {
 		try {
@@ -85,7 +88,7 @@ function createExportNodesFromDescriptor(
 					descriptor.declarationSpacesSymbol ?? descriptor.symbol,
 					parserContext.checker,
 				);
-				if (descriptor.isTypeOnlyExport || isTypeOnlyExport) {
+				if (descriptor.isTypeOnlyExport) {
 					// A type-only export (`export type { X }`, `export type * from`)
 					// re-exports only the type meaning of its target; the runtime value
 					// does not cross the export site.

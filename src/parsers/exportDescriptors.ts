@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { hasValueAliasPath, hasValueExportPath } from './exportValuePaths';
+import { getContainerExportReach, hasValueAliasPath } from './exportValuePaths';
 import { type ScopedParserContext } from '../parserContext';
 import { ParserError } from '../ParserError';
 import { type ExtendsTypeInfo } from '../models';
@@ -87,6 +87,7 @@ export interface ExportDescriptor {
  * @param parentNamespaces Namespace path inherited from enclosing namespace exports, prefixed onto the public name.
  * @param parentSymbolScope Symbol-stack entries from enclosing exports, extended with this symbol's name for warning metadata.
  * @param resolutionState Mutable counter shared across one top-level resolution that assigns each descriptor its type-resolution order.
+ * @param isTypeOnlyExport Whether the export is reached only through type-only sites, as decided by its container. Defaults to walking the export symbol's own alias chain.
  * @returns One or more normalized descriptors, or `undefined` when the symbol has no extractable declaration.
  */
 export function resolveExportDescriptors(
@@ -95,6 +96,7 @@ export function resolveExportDescriptors(
 	parentNamespaces: string[] = [],
 	parentSymbolScope: string[] = [],
 	resolutionState: ExportDescriptorResolutionState = { nextTypeResolutionOrder: 0 },
+	isTypeOnlyExport?: boolean,
 ): ExportDescriptor[] | undefined {
 	return context.runWithSymbolScope(exportSymbol.name, () => {
 		try {
@@ -139,7 +141,10 @@ export function resolveExportDescriptors(
 			// Whichever declaration form carried it here, a symbol reached through a
 			// type-only export site loses its runtime binding — as do the members of any
 			// namespace merged onto it.
-			return withTypeOnlyExport(descriptors, !hasValueAliasPath(exportSymbol, context.checker));
+			return withTypeOnlyExport(
+				descriptors,
+				isTypeOnlyExport ?? !hasValueAliasPath(exportSymbol, context.checker),
+			);
 		} catch (error) {
 			if (!(error instanceof ParserError)) {
 				throw new ParserError(error, context.parsedSymbolStack);
@@ -636,22 +641,23 @@ function resolveNamespaceMemberDescriptors(
 	const descriptors: ExportDescriptor[] = [];
 
 	for (const member of namespaceMembers) {
+		// Members can arrive through the namespace module's own star exports,
+		// which their alias chains do not show.
+		const reach = getContainerExportReach(namespaceSymbol, member, context.checker);
+		if (reach === 'hidden') {
+			continue;
+		}
+
 		const memberDescriptors = resolveExportDescriptors(
 			member,
 			context,
 			[...parentNamespaces, namespaceExportName],
 			symbolScope,
 			resolutionState,
+			reach === 'typeOnly',
 		);
 		if (memberDescriptors) {
-			// Members can arrive through the namespace module's own star exports,
-			// which their alias chains do not show.
-			const isTypeOnlyMember = !hasValueExportPath(
-				namespaceSymbol,
-				member.escapedName,
-				context.checker,
-			);
-			descriptors.push(...(withTypeOnlyExport(memberDescriptors, isTypeOnlyMember) ?? []));
+			descriptors.push(...memberDescriptors);
 		}
 	}
 

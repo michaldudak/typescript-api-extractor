@@ -1,4 +1,5 @@
 import ts from 'typescript';
+import { getAliasChainFlags, getDeclarationSpaces } from './declarationSpaces';
 
 /**
  * Tracks what a walk has visited, so cyclic re-exports terminate.
@@ -6,6 +7,34 @@ import ts from 'typescript';
 interface ValuePathVisits {
 	aliases: Set<ts.Symbol>;
 	containerExports: Map<ts.Symbol, Set<ts.__String>>;
+}
+
+/**
+ * How an export of a module or namespace arrives: with its runtime value, as a
+ * type only, or not at all. An export reached only through type-only star
+ * exports is hidden when nothing but a value would remain (see
+ * {@link isRetainedWithoutValue}).
+ */
+export type ContainerExportReach = 'value' | 'typeOnly' | 'hidden';
+
+/**
+ * Classifies one export of a module or namespace. See {@link ContainerExportReach}.
+ *
+ * @param containerSymbol The module or namespace symbol exporting the symbol.
+ * @param exportSymbol The export symbol as the checker lists it for the container.
+ * @param checker Type checker for resolving aliases and module specifiers.
+ */
+export function getContainerExportReach(
+	containerSymbol: ts.Symbol,
+	exportSymbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): ContainerExportReach {
+	if (hasValueExportPath(containerSymbol, exportSymbol.escapedName, checker)) {
+		return 'value';
+	}
+
+	const isStarExport = !containerSymbol.exports?.has(exportSymbol.escapedName);
+	return isStarExport && !isRetainedWithoutValue(exportSymbol, checker) ? 'hidden' : 'typeOnly';
 }
 
 /**
@@ -173,4 +202,21 @@ function getStarExportDeclarations(containerSymbol: ts.Symbol): ts.ExportDeclara
 				ts.isExportDeclaration(statement) && !statement.exportClause,
 		);
 	});
+}
+
+/**
+ * Whether an export reached only through type-only sites still has something to
+ * export: a type meaning anywhere along its alias chain, or a namespace that is
+ * not merged onto a function or variable. A function or variable is dropped
+ * along with any namespace merged onto it, since only its value would remain.
+ */
+function isRetainedWithoutValue(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
+	const declarationSpaces = getDeclarationSpaces(symbol, checker);
+	return (
+		declarationSpaces.isType ||
+		(declarationSpaces.isNamespace &&
+			(getAliasChainFlags(symbol, checker) &
+				(ts.SymbolFlags.Function | ts.SymbolFlags.Variable)) ===
+				0)
+	);
 }

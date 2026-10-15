@@ -56,7 +56,7 @@ modules that use `export type *`. A local value merged with a type-only import
 keeps its value, and a module reached both with and without `type` keeps the
 values of the plain path. Imports of an `export =` module follow that assignment.
 Functions and variables that arrive only through type-only sites are left out of
-the module's exports, along with any namespace merged onto them. Exports with a
+the module's or namespace's exports, along with any namespace merged onto them. Exports with a
 type meaning anywhere along their alias chain, and namespaces of their own, are
 kept with the value space masked. The flags come from the checker, so a re-export
 from an unresolvable module surfaces with the checker's fallback classification

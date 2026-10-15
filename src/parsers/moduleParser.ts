@@ -2,28 +2,10 @@ import path from 'node:path';
 import ts from 'typescript';
 import { ExportNode, ModuleNode } from '../models';
 import { type ScopedParserContext } from '../parserContext';
-import { getAliasChainFlags, getDeclarationSpaces } from './declarationSpaces';
 import { parseExport } from './exportParser';
-import { hasValueExportPath } from './exportValuePaths';
+import { getContainerExportReach } from './exportValuePaths';
 import { applyExportTransforms } from './exportTransforms';
 import { ParserError } from '../ParserError';
-
-/**
- * Whether an export reached only through type-only sites still has something to
- * export: a type meaning anywhere along its alias chain, or a namespace that is
- * not merged onto a function or variable. A function or variable is dropped
- * along with any namespace merged onto it, since only its value would remain.
- */
-function isRetainedWithoutValue(symbol: ts.Symbol, checker: ts.TypeChecker): boolean {
-	const declarationSpaces = getDeclarationSpaces(symbol, checker);
-	return (
-		declarationSpaces.isType ||
-		(declarationSpaces.isNamespace &&
-			(getAliasChainFlags(symbol, checker) &
-				(ts.SymbolFlags.Function | ts.SymbolFlags.Variable)) ===
-				0)
-	);
-}
 
 /**
  * Parses a source file into a ModuleNode: resolves every module export, drops
@@ -44,19 +26,12 @@ export function parseModule(sourceFile: ts.SourceFile, context: ScopedParserCont
 			const exportedSymbols = checker.getExportsOfModule(sourceFileSymbol);
 
 			for (const exportedSymbol of exportedSymbols) {
-				const isTypeOnlyExport = !hasValueExportPath(
-					sourceFileSymbol,
-					exportedSymbol.escapedName,
-					checker,
-				);
-				const isStarExport = !sourceFileSymbol.exports?.has(exportedSymbol.escapedName);
-				if (isTypeOnlyExport && isStarExport && !isRetainedWithoutValue(exportedSymbol, checker)) {
-					// A function or variable (with or without a merged namespace)
-					// reached only through type-only sites exports nothing.
+				const reach = getContainerExportReach(sourceFileSymbol, exportedSymbol, checker);
+				if (reach === 'hidden') {
 					continue;
 				}
 
-				const parsedExports = parseExport(exportedSymbol, context, [], isTypeOnlyExport);
+				const parsedExports = parseExport(exportedSymbol, context, [], reach === 'typeOnly');
 				if (!parsedExports) {
 					continue;
 				}

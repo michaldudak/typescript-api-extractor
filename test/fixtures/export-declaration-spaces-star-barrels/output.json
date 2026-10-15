@@ -40,6 +40,37 @@
 			"isNamespace": false
 		},
 		{
+			"name": "TypeOnlyBarrelNamespace.BarrelClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "BarrelClass",
+					"namespaces": ["TypeOnlyBarrelNamespace"]
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
 			"name": "ValueBarrelNamespace.BarrelEnum",
 			"type": {
 				"typeName": {
@@ -215,6 +246,36 @@
 				]
 			},
 			"isValue": false,
+			"isType": true,
+			"isNamespace": false
+		},
+		{
+			"name": "DualPathClass",
+			"type": {
+				"kind": "class",
+				"typeName": {
+					"name": "DualPathClass"
+				},
+				"constructSignatures": [
+					{
+						"parameters": []
+					}
+				],
+				"properties": [
+					{
+						"name": "id",
+						"type": {
+							"kind": "intrinsic",
+							"intrinsic": "string"
+						},
+						"optional": false,
+						"readonly": false,
+						"isStatic": false
+					}
+				],
+				"methods": []
+			},
+			"isValue": true,
 			"isType": true,
 			"isNamespace": false
 		},
