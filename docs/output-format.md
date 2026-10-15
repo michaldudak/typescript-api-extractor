@@ -134,35 +134,6 @@ template literals, and nested template literals are flattened into one. A
 template literal without open-ended placeholders, such as `` `on${'click'}` ``,
 is a plain string literal.
 
-## Components
-
-React components are reported as a `ComponentNode`, with the props of all call
-signatures merged into one list:
-
-```typescript
-interface ComponentNode {
-	kind: 'component';
-	typeName?: TypeName;
-	props: PropertyNode[];
-	typeParameters?: TypeParameterNode[];
-}
-
-interface TypeParameterNode {
-	kind: 'typeParameter';
-	name: string;
-	constraint?: TypeNode;
-	defaultValue?: TypeNode;
-}
-```
-
-`typeParameters` lists the generics of a component such as
-`function List<Item extends object>(props: ListProps<Item>)`. Props that refer
-to them carry `typeParameter` nodes with the same names. The field is omitted for
-non-generic components, and also when overloads or union arms declare different
-type parameters, because no single list describes the merged props. Components
-wrapped in `forwardRef` or `memo` usually have no type parameters to report:
-TypeScript erases them from the wrapper's type.
-
 ## React Components
 
 Exports recognized as React components become component nodes. The props

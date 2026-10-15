@@ -128,42 +128,25 @@ function createComponentNode(
  * props and none is reported.
  */
 function getSharedTypeParameters(callSignatures: CallSignature[]): TypeParameterNode[] | undefined {
-	const [firstSignature, ...remainingSignatures] = callSignatures;
-	const typeParameters = firstSignature?.typeParameters;
-	if (!typeParameters?.length) {
+	const typeParameters = callSignatures[0]?.typeParameters;
+	if (!typeParameters) {
 		return undefined;
 	}
 
-	const allSignaturesAgree = remainingSignatures.every((signature) =>
-		areTypeParameterListsEqual(typeParameters, signature.typeParameters ?? []),
-	);
+	const allSignaturesAgree = callSignatures.every((signature) => {
+		const signatureTypeParameters = signature.typeParameters ?? [];
+		return (
+			typeParameters.every(
+				(typeParameter, index) => typeParameter.name === signatureTypeParameters[index]?.name,
+			) &&
+			typeEquivalenceChecker.areTypeParameterListsEquivalentStrictly(
+				typeParameters,
+				signatureTypeParameters,
+			)
+		);
+	});
 
 	return allSignaturesAgree ? typeParameters : undefined;
-}
-
-function areTypeParameterListsEqual(
-	typeParameters1: TypeParameterNode[],
-	typeParameters2: TypeParameterNode[],
-): boolean {
-	return (
-		typeParameters1.length === typeParameters2.length &&
-		typeParameters1.every((typeParameter1, index) => {
-			const typeParameter2 = typeParameters2[index];
-			return (
-				typeParameter1.name === typeParameter2.name &&
-				areOptionalTypesEqual(typeParameter1.constraint, typeParameter2.constraint) &&
-				areOptionalTypesEqual(typeParameter1.defaultValue, typeParameter2.defaultValue)
-			);
-		})
-	);
-}
-
-function areOptionalTypesEqual(type1: AnyType | undefined, type2: AnyType | undefined): boolean {
-	if (type1 === undefined || type2 === undefined) {
-		return type1 === type2;
-	}
-
-	return typeEquivalenceChecker.areEquivalentStrictly(type1, type2);
 }
 
 /**
