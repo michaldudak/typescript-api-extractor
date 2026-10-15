@@ -87,13 +87,16 @@ class TypeEquivalence {
 		}
 
 		// Fast-path simple non-function types when no rename context is active.
-		// FunctionNode is excluded because TypeParameterNode.toString() omits
-		// constraints/defaults, which would collapse distinct generic signatures.
+		// Types holding a FunctionNode at any depth are excluded because
+		// TypeParameterNode.toString() omits constraints/defaults, which would
+		// collapse distinct generic signatures.
 		if (
 			(!typeParamRenames || typeParamRenames.size === 0) &&
 			!isToStringFastPathExcluded(type1) &&
 			!isToStringFastPathExcluded(type2) &&
-			type1.toString() === type2.toString()
+			type1.toString() === type2.toString() &&
+			!containsFunction(type1) &&
+			!containsFunction(type2)
 		) {
 			return true;
 		}
@@ -625,6 +628,41 @@ function isToStringFastPathExcluded(type: AnyType): boolean {
 		type.kind === 'union' ||
 		type.kind === 'intersection'
 	);
+}
+
+function containsFunction(type: AnyType): boolean {
+	if (type instanceof FunctionNode) {
+		return true;
+	}
+
+	if (type.kind === 'union' || type.kind === 'intersection') {
+		return type.types.some(containsFunction);
+	}
+
+	if (type instanceof ArrayNode) {
+		return containsFunction(type.elementType);
+	}
+
+	if (type instanceof TupleNode || type instanceof TemplateLiteralNode) {
+		return type.types.some(containsFunction);
+	}
+
+	if (type instanceof TypeOperatorNode) {
+		return containsFunction(type.type);
+	}
+
+	if (type instanceof ObjectNode) {
+		return (
+			type.properties.some((property) => containsFunction(property.type)) ||
+			(type.indexSignature !== undefined && containsFunction(type.indexSignature.valueType))
+		);
+	}
+
+	if (type instanceof ExternalTypeNode) {
+		return (type.typeName.typeArguments ?? []).some((argument) => containsFunction(argument.type));
+	}
+
+	return false;
 }
 
 /** Shared structural-equivalence service used by compound canonicalization. */

@@ -21,3 +21,23 @@ export function PartiallyGenericComponent(props: { label: string }): React.React
 export function PartiallyGenericComponent(props: { value?: unknown; label?: string }) {
 	return null;
 }
+
+export function DifferentDefaultsComponent<Value = string>(props: {
+	value?: Value;
+}): React.ReactNode;
+export function DifferentDefaultsComponent<Value = number>(props: {
+	value?: Value;
+}): React.ReactNode;
+export function DifferentDefaultsComponent(props: { value?: unknown }) {
+	return null;
+}
+
+export function NestedGenericConstraintsComponent<
+	Value extends { format: <Input extends string>(input: Input) => string },
+>(props: { value: Value }): React.ReactNode;
+export function NestedGenericConstraintsComponent<
+	Value extends { format: <Input extends number>(input: Input) => string },
+>(props: { value: Value }): React.ReactNode;
+export function NestedGenericConstraintsComponent(props: { value: unknown }) {
+	return null;
+}

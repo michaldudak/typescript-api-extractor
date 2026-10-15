@@ -160,8 +160,9 @@ interface TypeParameterNode {
 that use them refer to them by name through `typeParameter` nodes. Overloads and
 union arms report type parameters only when every signature declares the same
 names, constraints, and defaults, because no single list describes merged props
-otherwise. Components wrapped in `forwardRef` or `memo` have no type parameters:
-TypeScript erases them from the wrapper's type.
+otherwise. Components wrapped in `forwardRef` or `memo` usually have no type
+parameters, because TypeScript erases them from the wrapper's type. A wrapper cast
+back to a generic signature reports them.
 
 ## Example Output
 
