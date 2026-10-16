@@ -86,21 +86,6 @@ class TypeEquivalence {
 			return false;
 		}
 
-		// Fast-path simple non-function types when no rename context is active.
-		// Types holding a FunctionNode at any depth are excluded because
-		// TypeParameterNode.toString() omits constraints/defaults, which would
-		// collapse distinct generic signatures.
-		if (
-			(!typeParamRenames || typeParamRenames.size === 0) &&
-			!isToStringFastPathExcluded(type1) &&
-			!isToStringFastPathExcluded(type2) &&
-			type1.toString() === type2.toString() &&
-			!containsFunction(type1) &&
-			!containsFunction(type2)
-		) {
-			return true;
-		}
-
 		// Alias identity wins over shape. Two aliases with equal names and type
 		// arguments match; aliased and inline forms intentionally do not.
 		const tn1 = 'typeName' in type1 ? type1.typeName : undefined;
@@ -614,55 +599,6 @@ class TypeEquivalence {
 
 		return `${kind}|${name}|${value}`;
 	}
-}
-
-/**
- * Kinds whose `toString()` is lossy enough that equal text does not imply
- * equivalence: function signatures omit constraints/defaults, and compounds
- * plus type operators carry member identity the rendered form flattens away.
- */
-function isToStringFastPathExcluded(type: AnyType): boolean {
-	return (
-		type instanceof FunctionNode ||
-		type instanceof TypeOperatorNode ||
-		type.kind === 'union' ||
-		type.kind === 'intersection'
-	);
-}
-
-function containsFunction(type: AnyType): boolean {
-	if (type instanceof FunctionNode) {
-		return true;
-	}
-
-	if (type.kind === 'union' || type.kind === 'intersection') {
-		return type.types.some(containsFunction);
-	}
-
-	if (type instanceof ArrayNode) {
-		return containsFunction(type.elementType);
-	}
-
-	if (type instanceof TupleNode || type instanceof TemplateLiteralNode) {
-		return type.types.some(containsFunction);
-	}
-
-	if (type instanceof TypeOperatorNode) {
-		return containsFunction(type.type);
-	}
-
-	if (type instanceof ObjectNode) {
-		return (
-			type.properties.some((property) => containsFunction(property.type)) ||
-			(type.indexSignature !== undefined && containsFunction(type.indexSignature.valueType))
-		);
-	}
-
-	if (type instanceof ExternalTypeNode) {
-		return (type.typeName.typeArguments ?? []).some((argument) => containsFunction(argument.type));
-	}
-
-	return false;
 }
 
 /** Shared structural-equivalence service used by compound canonicalization. */
