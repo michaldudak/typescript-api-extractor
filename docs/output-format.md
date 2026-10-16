@@ -134,6 +134,32 @@ template literals, and nested template literals are flattened into one. A
 template literal without open-ended placeholders, such as `` `on${'click'}` ``,
 is a plain string literal.
 
+## React Components
+
+Exports recognized as React components become component nodes. The props
+parameter of every call signature is merged into one `props` list:
+
+```typescript
+interface ComponentNode {
+	kind: 'component';
+	typeName?: TypeName;
+	props: PropertyNode[];
+	typeParameters?: TypeParameterNode[];
+}
+
+interface TypeParameterNode {
+	kind: 'typeParameter';
+	name: string;
+	constraint?: TypeNode;
+	defaultValue?: TypeNode;
+}
+```
+
+`typeParameters` lists the component's generics, which props refer to by name
+through `typeParameter` nodes. It is omitted unless every call signature declares
+the same names, constraints, and defaults. Components wrapped in `forwardRef` or
+`memo` usually have none, since TypeScript erases them from the wrapper's type.
+
 ## Example Output
 
 For a React component like this:

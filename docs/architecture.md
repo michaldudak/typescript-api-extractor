@@ -37,6 +37,7 @@ substructures that are reused across multiple type classes.
   and should remain a transform policy rather than a generic export parser. It
   recognizes both a single function type and a union of them, so a polymorphic
   component whose arms differ per prop form still reports one merged prop list.
+  Type parameters are kept only when every signature declares the same ones.
   Return types are matched by name rather than by resolved node kind, so
   `includeExternalTypes` changes how much detail the output carries without
   changing what counts as a component.

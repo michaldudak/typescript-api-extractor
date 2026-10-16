@@ -8,6 +8,8 @@ import {
 	ObjectNode,
 	UnionNode,
 	IntersectionNode,
+	TypeParameterNode,
+	typeEquivalenceChecker,
 	type AnyType,
 } from '../models';
 import { TypeName } from '../models/typeName';
@@ -115,7 +117,36 @@ function createComponentNode(
 	return new ComponentNode(
 		cloneTypeName(getComponentTypeName(type, componentFunctions)),
 		squashComponentProps(callSignatures, context),
+		getSharedTypeParameters(callSignatures),
 	);
+}
+
+/**
+ * The props of every signature are merged into one list, so the type parameters
+ * they refer to only describe the component when every signature declares the
+ * same ones. When signatures disagree, no single list is correct for the merged
+ * props and none is reported.
+ */
+function getSharedTypeParameters(callSignatures: CallSignature[]): TypeParameterNode[] | undefined {
+	const typeParameters = callSignatures[0]?.typeParameters;
+	if (!typeParameters) {
+		return undefined;
+	}
+
+	const allSignaturesAgree = callSignatures.every((signature) => {
+		const signatureTypeParameters = signature.typeParameters ?? [];
+		return (
+			typeParameters.every(
+				(typeParameter, index) => typeParameter.name === signatureTypeParameters[index]?.name,
+			) &&
+			typeEquivalenceChecker.areTypeParameterListsEquivalentStrictly(
+				typeParameters,
+				signatureTypeParameters,
+			)
+		);
+	});
+
+	return allSignaturesAgree ? typeParameters : undefined;
 }
 
 /**

@@ -86,18 +86,6 @@ class TypeEquivalence {
 			return false;
 		}
 
-		// Fast-path simple non-function types when no rename context is active.
-		// FunctionNode is excluded because TypeParameterNode.toString() omits
-		// constraints/defaults, which would collapse distinct generic signatures.
-		if (
-			(!typeParamRenames || typeParamRenames.size === 0) &&
-			!isToStringFastPathExcluded(type1) &&
-			!isToStringFastPathExcluded(type2) &&
-			type1.toString() === type2.toString()
-		) {
-			return true;
-		}
-
 		// Alias identity wins over shape. Two aliases with equal names and type
 		// arguments match; aliased and inline forms intentionally do not.
 		const tn1 = 'typeName' in type1 ? type1.typeName : undefined;
@@ -217,6 +205,62 @@ class TypeEquivalence {
 		return this.areFunctionsEquivalent(func1, func2, true, outerTypeParamRenames);
 	}
 
+	/**
+	 * Compares type parameter lists by position, without wildcard matching. Names
+	 * are not compared, so `<T extends string>` and `<U extends string>` match.
+	 *
+	 * @param typeParameters1 - First type parameter list to compare.
+	 * @param typeParameters2 - Second type parameter list to compare.
+	 * @returns Whether both lists have equivalent constraints and defaults.
+	 */
+	areTypeParameterListsEquivalentStrictly(
+		typeParameters1: TypeParameterNode[],
+		typeParameters2: TypeParameterNode[],
+	): boolean {
+		return this.areTypeParameterListsEquivalent(typeParameters1, typeParameters2, false);
+	}
+
+	private areTypeParameterListsEquivalent(
+		typeParameters1: TypeParameterNode[],
+		typeParameters2: TypeParameterNode[],
+		anyIsWildcard: boolean,
+		typeParamRenames?: TypeParameterRenameMap,
+	): boolean {
+		return (
+			typeParameters1.length === typeParameters2.length &&
+			typeParameters1.every((typeParameter1, index) => {
+				const typeParameter2 = typeParameters2[index];
+				return (
+					this.areOptionalTypesEquivalent(
+						typeParameter1.constraint,
+						typeParameter2.constraint,
+						anyIsWildcard,
+						typeParamRenames,
+					) &&
+					this.areOptionalTypesEquivalent(
+						typeParameter1.defaultValue,
+						typeParameter2.defaultValue,
+						anyIsWildcard,
+						typeParamRenames,
+					)
+				);
+			})
+		);
+	}
+
+	private areOptionalTypesEquivalent(
+		type1: AnyType | undefined,
+		type2: AnyType | undefined,
+		anyIsWildcard: boolean,
+		typeParamRenames?: TypeParameterRenameMap,
+	): boolean {
+		if (!type1 || !type2) {
+			return type1 === type2;
+		}
+
+		return this.areEquivalent(type1, type2, anyIsWildcard, typeParamRenames);
+	}
+
 	private areFunctionsEquivalent(
 		func1: FunctionNode,
 		func2: FunctionNode,
@@ -253,28 +297,15 @@ class TypeEquivalence {
 				return false;
 			}
 
-			const tp1 = sig1.typeParameters ?? [];
-			const tp2 = sig2.typeParameters ?? [];
-			for (let k = 0; k < tp1.length; k++) {
-				const c1 = tp1[k].constraint;
-				const c2 = tp2[k].constraint;
-				if (c1 && c2) {
-					if (!this.areEquivalent(c1, c2, anyIsWildcard, typeParamRenames)) {
-						return false;
-					}
-				} else if (c1 || c2) {
-					return false;
-				}
-
-				const d1 = tp1[k].defaultValue;
-				const d2 = tp2[k].defaultValue;
-				if (d1 && d2) {
-					if (!this.areEquivalent(d1, d2, anyIsWildcard, typeParamRenames)) {
-						return false;
-					}
-				} else if (d1 || d2) {
-					return false;
-				}
+			if (
+				!this.areTypeParameterListsEquivalent(
+					sig1.typeParameters ?? [],
+					sig2.typeParameters ?? [],
+					anyIsWildcard,
+					typeParamRenames,
+				)
+			) {
+				return false;
 			}
 
 			if (sig1.parameters.length !== sig2.parameters.length) {
@@ -568,20 +599,6 @@ class TypeEquivalence {
 
 		return `${kind}|${name}|${value}`;
 	}
-}
-
-/**
- * Kinds whose `toString()` is lossy enough that equal text does not imply
- * equivalence: function signatures omit constraints/defaults, and compounds
- * plus type operators carry member identity the rendered form flattens away.
- */
-function isToStringFastPathExcluded(type: AnyType): boolean {
-	return (
-		type instanceof FunctionNode ||
-		type instanceof TypeOperatorNode ||
-		type.kind === 'union' ||
-		type.kind === 'intersection'
-	);
 }
 
 /** Shared structural-equivalence service used by compound canonicalization. */
