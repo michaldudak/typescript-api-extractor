@@ -91,7 +91,7 @@ class TypeEquivalence {
 		if (
 			type1 instanceof ExternalTypeNode &&
 			type2 instanceof ExternalTypeNode &&
-			JSON.stringify(type1.source) !== JSON.stringify(type2.source)
+			type1.getSourceKey() !== type2.getSourceKey()
 		) {
 			return false;
 		}

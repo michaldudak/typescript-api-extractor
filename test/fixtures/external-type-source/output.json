@@ -10,36 +10,6 @@
 				},
 				"properties": [
 					{
-						"name": "container",
-						"type": {
-							"kind": "union",
-							"typeName": {
-								"name": "HTMLElement"
-							},
-							"types": [
-								{
-									"kind": "external",
-									"typeName": {
-										"name": "HTMLElement"
-									},
-									"source": {
-										"kind": "lib",
-										"files": ["lib.dom.d.ts"]
-									}
-								},
-								{
-									"kind": "intrinsic",
-									"intrinsic": "undefined"
-								}
-							]
-						},
-						"documentation": {
-							"description": "Declared in `lib.dom.d.ts`.",
-							"tags": []
-						},
-						"optional": true
-					},
-					{
 						"name": "selection",
 						"type": {
 							"kind": "union",

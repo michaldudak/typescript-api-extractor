@@ -68,20 +68,5 @@ export function getNodeModulesPackageName(sourceFile: ts.SourceFile): string | u
 	}
 
 	const [scopeOrName, scopedName] = segments.slice(nodeModulesIndex + 1);
-	if (!scopeOrName) {
-		return undefined;
-	}
-
-	return scopeOrName.startsWith('@') && scopedName ? `${scopeOrName}/${scopedName}` : scopeOrName;
-}
-
-/**
- * Returns the last path segment of a source file, such as `lib.dom.d.ts`.
- *
- * @param sourceFile - Source file whose base name should be returned.
- * @returns The file name without its directory.
- */
-export function getSourceFileBaseName(sourceFile: ts.SourceFile): string {
-	const segments = sourceFile.fileName.split(/[\\/]/);
-	return segments[segments.length - 1];
+	return scopeOrName.startsWith('@') ? `${scopeOrName}/${scopedName}` : scopeOrName;
 }

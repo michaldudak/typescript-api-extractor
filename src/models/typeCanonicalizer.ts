@@ -198,7 +198,7 @@ class TypeCanonicalizer {
 			return `literal:${type.value}`;
 		}
 		if (type instanceof ExternalTypeNode) {
-			return `external:${JSON.stringify(type.source)}:${type.typeName.toString()}`;
+			return `external:${type.getSourceKey()}:${type.typeName.toString()}`;
 		}
 		if (type instanceof TypeParameterNode) {
 			return `typeparam:${type.name}`;

@@ -10,11 +10,6 @@ export interface SourceProps {
 	/**
 	 * Declared in `lib.dom.d.ts`.
 	 */
-	container?: HTMLElement;
-
-	/**
-	 * Declared in `lib.dom.d.ts`.
-	 */
 	selection?: Range;
 
 	/**

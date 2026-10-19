@@ -1,3 +1,4 @@
+import path from 'node:path';
 import ts from 'typescript';
 import {
 	ExternalTypeNode,
@@ -7,11 +8,7 @@ import {
 } from '../../models';
 import { TypeName } from '../../models/typeName';
 import { isInternalSymbolName } from '../common';
-import {
-	getNodeModulesPackageName,
-	getSourceFileBaseName,
-	isNodeModulesDeclaration,
-} from '../sourceFileUtils';
+import { getNodeModulesPackageName, isNodeModulesDeclaration } from '../sourceFileUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 
 const allowedBuiltInTsTypes = new Set([
@@ -68,7 +65,6 @@ export function resolveExternalType(
 		return undefined;
 	}
 	const authoredExternalAlias = getExternalTypeAlias(typeNode, checker);
-	const authoredExternalAliasName = authoredExternalAlias?.name;
 	const isSemanticTypeExternal = isSymbolExternal(type.aliasSymbol ?? type.getSymbol(), checker);
 
 	// Array and tuple identity is a semantic checker fact and remains stable
@@ -78,13 +74,13 @@ export function resolveExternalType(
 	const hasSemanticExternalAlias = type.aliasSymbol != null && isSemanticTypeExternal;
 	if (
 		(checker.isArrayType(type) || checker.isTupleType(type)) &&
-		!authoredExternalAliasName &&
+		!authoredExternalAlias &&
 		!hasSemanticExternalAlias
 	) {
 		return undefined;
 	}
 
-	if (!isSemanticTypeExternal && !authoredExternalAliasName) {
+	if (!isSemanticTypeExternal && !authoredExternalAlias) {
 		return undefined;
 	}
 
@@ -99,31 +95,33 @@ export function resolveExternalType(
 	const resolvedSymbolName = resolvedSymbol?.getName?.();
 
 	let externalTypeName: string | undefined;
-	// The symbol whose declarations tell where the named type comes from.
-	let sourceSymbol: ts.Symbol | undefined;
 	const resolvedIsExternalInterface =
 		resolvedSymbolName &&
 		!isInternalSymbolName(resolvedSymbolName) &&
 		isSymbolExternal(resolvedSymbol, checker, false) &&
 		(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
+	const namesResolvedInterface = resolvedIsExternalInterface && !type.aliasSymbol;
 
-	if (resolvedIsExternalInterface && !type.aliasSymbol) {
+	if (namesResolvedInterface) {
 		externalTypeName = resolvedSymbolName;
-		sourceSymbol = resolvedSymbol;
 	} else {
 		externalTypeName =
-			authoredExternalAliasName ||
+			authoredExternalAlias?.name ||
 			typeName?.name ||
 			type.aliasSymbol?.getName?.() ||
 			resolvedSymbolName;
-		sourceSymbol = authoredExternalAlias?.symbol ?? type.aliasSymbol ?? resolvedSymbol;
 	}
 
 	if (!externalTypeName) {
 		return new IntrinsicNode('any');
 	}
 
-	const source = getExternalTypeSource(sourceSymbol, program);
+	const source = getExternalTypeSource(
+		namesResolvedInterface
+			? resolvedSymbol
+			: (authoredExternalAlias?.symbol ?? type.aliasSymbol ?? resolvedSymbol),
+		program,
+	);
 
 	// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 	if (externalTypeName === 'bivarianceHack') {
@@ -161,7 +159,7 @@ function getExternalTypeSource(
 	for (const declaration of symbol?.declarations ?? []) {
 		const sourceFile = declaration.getSourceFile();
 		if (program.isSourceFileDefaultLibrary(sourceFile)) {
-			libFiles.add(getSourceFileBaseName(sourceFile));
+			libFiles.add(path.posix.basename(sourceFile.fileName));
 		} else {
 			packageName ??= getNodeModulesPackageName(sourceFile);
 		}
