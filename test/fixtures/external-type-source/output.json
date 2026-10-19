@@ -183,6 +183,36 @@
 						"optional": true
 					},
 					{
+						"name": "importedPackageRange",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "PackageRange"
+							},
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "PackageRange"
+									},
+									"source": {
+										"kind": "package",
+										"name": "shadow-lib"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "The same alias referenced through an inline `import()` type.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
 						"name": "widget",
 						"type": {
 							"kind": "union",

@@ -97,8 +97,14 @@ export function getFullNameWithSymbol(
 	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
 	let typeSymbol: ts.Symbol | undefined;
 	let qualifiedNameNamespaces: string[] = [];
-	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
-		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+	// Both `Foo` references and inline `import('pkg').Foo` types name the authored type.
+	const typeNodeName =
+		typeNode && ts.isTypeReferenceNode(typeNode)
+			? typeNode.typeName
+			: typeNode && ts.isImportTypeNode(typeNode)
+				? typeNode.qualifier
+				: undefined;
+	if (typeNodeName) {
 		let typeSymbolCandidate: ts.Symbol | undefined;
 		if (ts.isIdentifier(typeNodeName)) {
 			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);

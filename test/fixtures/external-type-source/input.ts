@@ -51,6 +51,11 @@ export interface SourceProps {
 	packageRange?: PackageRange;
 
 	/**
+	 * The same alias referenced through an inline `import()` type.
+	 */
+	importedPackageRange?: import('shadow-lib').PackageRange;
+
+	/**
 	 * Declared in a scoped package.
 	 */
 	widget?: Widget;
