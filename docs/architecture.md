@@ -89,8 +89,10 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
   `keyof`, carries generic substitutions across local and relative-import alias
   chains, and preserves source-only preflight checks where export normalization
   must not perturb TypeScript's lazy caches.
-- `referencedTypeAlias.ts` centralizes type-alias lookup for ordinary references
-  and `import()` type references used by container and operator helpers.
+- `referencedTypeAlias.ts` centralizes how ordinary references and `import()`
+  type references name a type: the authored entity name, import-alias
+  following, and the type-alias and interface lookups used by naming, container,
+  and operator helpers.
 - `arrayTypeResolver.ts` handles arrays and element-type recursion.
 - `classTypeResolver.ts` handles class detection, constructor model assembly,
   constructor documentation, class members, static members, and class type
@@ -151,7 +153,9 @@ type resolution, it should use the active resolver callback from the current
   class is internal so callers use one shared normalization policy.
 - `src/models/typeEquivalence.ts` owns structural equivalence checks used by
   canonicalization, including the intentional rule that unaliased `any` can act
-  as a wildcard when choosing between duplicate generated signatures. It exports
+  as a wildcard when choosing between duplicate generated signatures, and the
+  source key that keeps equally named external types from different
+  declarations apart. It exports
   the singleton `typeEquivalenceChecker`; the implementation class is internal.
 
 ## Shared Parser Helpers

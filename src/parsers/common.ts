@@ -6,6 +6,7 @@ import {
 	containsKeyofTypeOperatorOrAlias,
 	substituteTypeParameterTypeNode,
 } from './typeResolvers/typeOperatorTypeNodes';
+import { getReferenceEntityName } from './typeResolvers/referencedTypeAlias';
 
 /**
  * Known TypeScript compiler-generated internal symbol names.
@@ -97,13 +98,7 @@ export function getFullNameWithSymbol(
 	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
 	let typeSymbol: ts.Symbol | undefined;
 	let qualifiedNameNamespaces: string[] = [];
-	// Both `Foo` references and inline `import('pkg').Foo` types name the authored type.
-	const typeNodeName =
-		typeNode && ts.isTypeReferenceNode(typeNode)
-			? typeNode.typeName
-			: typeNode && ts.isImportTypeNode(typeNode)
-				? typeNode.qualifier
-				: undefined;
+	const typeNodeName = getReferenceEntityName(typeNode);
 	if (typeNodeName) {
 		let typeSymbolCandidate: ts.Symbol | undefined;
 		if (ts.isIdentifier(typeNodeName)) {
