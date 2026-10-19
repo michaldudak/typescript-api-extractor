@@ -157,13 +157,12 @@ the library files that declare it. Global types are often declared across
 several files, so `Intl.NumberFormat` lists `lib.es5.d.ts` along with the
 `lib.es20xx.*.d.ts` files that extend it. Any other type has kind `package`,
 named after the package directory under `node_modules` that declares it, such as
-`@types/react`. A package's own `Range` therefore has kind `package`, while the
-DOM `Range` has kind `lib` with `files: ['lib.dom.d.ts']`. The source follows the
-declaration that supplies the name, so a package alias of a built-in type, such
-as `type Locale = Intl.LocalesArgument`, has kind `package`.
+`@types/react`. The source follows the declaration that supplies the name, so a
+package alias of a built-in type, such as `type Locale = Intl.LocalesArgument`,
+has kind `package`.
 
-External types with the same name but a different `source` are distinct types,
-so a union of both keeps both members.
+External types with the same name but a different `source` are distinct, so the
+DOM `Range` and a package's own `Range` stay separate members of a union.
 
 ## Example Output
 

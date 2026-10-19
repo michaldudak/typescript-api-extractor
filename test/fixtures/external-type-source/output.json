@@ -10,36 +10,6 @@
 				},
 				"properties": [
 					{
-						"name": "selection",
-						"type": {
-							"kind": "union",
-							"typeName": {
-								"name": "Range"
-							},
-							"types": [
-								{
-									"kind": "external",
-									"typeName": {
-										"name": "Range"
-									},
-									"source": {
-										"kind": "lib",
-										"files": ["lib.dom.d.ts"]
-									}
-								},
-								{
-									"kind": "intrinsic",
-									"intrinsic": "undefined"
-								}
-							]
-						},
-						"documentation": {
-							"description": "Declared in `lib.dom.d.ts`.",
-							"tags": []
-						},
-						"optional": true
-					},
-					{
 						"name": "locale",
 						"type": {
 							"kind": "external",
@@ -168,6 +138,24 @@
 						"optional": true
 					},
 					{
+						"name": "renamedLocale",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "RenamedLocale"
+							},
+							"source": {
+								"kind": "package",
+								"name": "shadow-lib"
+							}
+						},
+						"documentation": {
+							"description": "The same alias imported under another name is still attributed to the package.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
 						"name": "widget",
 						"type": {
 							"kind": "union",
@@ -226,7 +214,7 @@
 							]
 						},
 						"documentation": {
-							"description": "The DOM `Range` and the package `Range` stay distinct members.",
+							"description": "The DOM `Range` (declared in `lib.dom.d.ts`) and the package `Range` stay distinct members.",
 							"tags": []
 						},
 						"optional": true

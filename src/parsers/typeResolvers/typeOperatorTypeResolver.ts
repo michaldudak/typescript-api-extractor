@@ -11,7 +11,7 @@ import {
 	type TypeOperatorResolutionKind,
 } from '../../models';
 import { type ScopedParserContext } from '../../parserContext';
-import { getFullName } from '../common';
+import { getFullNameWithSymbol } from '../common';
 import { unwrapTupleElementSyntax } from '../typeContainerUtils';
 import { reportUnsupportedTypeFallback } from '../typeResolutionDiagnostics';
 import { deriveTypeParameterBindings, type TypeParameterBindings } from '../typeParameterBindings';
@@ -728,9 +728,11 @@ function resolveAuthoredTypeNode(
 		// their already-active collapsed parent. Dispatching the authored reference
 		// directly avoids replacing each recovered member with a shallow cycle
 		// placeholder while still scoping its generic bindings for nested members.
+		const fullName = getFullNameWithSymbol(type, typeNode, session.context);
 		const replayedReference = session.resolveWithSyntax({
 			type,
-			typeName: getFullName(type, typeNode, session.context),
+			typeName: fullName?.typeName,
+			typeNameSymbol: fullName?.symbol,
 			typeNode,
 		});
 		if (replayedReference) {
@@ -1636,10 +1638,12 @@ function resolveTypeOperatorOperand(
 			return compactTypeOperatorOperand(session.resolve(type, typeNode));
 		}
 
+		const fullName = getFullNameWithSymbol(type, typeNode, session.context);
 		const request: TypeResolutionRequest = {
 			type,
 			typeNode,
-			typeName: getFullName(type, typeNode, session.context),
+			typeName: fullName?.typeName,
+			typeNameSymbol: fullName?.symbol,
 		};
 		const externalType = resolveExternalType(request, session);
 		if (externalType) {

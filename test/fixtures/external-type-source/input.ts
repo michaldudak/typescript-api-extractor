@@ -4,15 +4,15 @@
  * same name.
  */
 import 'augmenting-lib';
-import { type Range as ShadowRange, type Intl as ShadowIntl, type Locale } from 'shadow-lib';
+import {
+	type Range as ShadowRange,
+	type Intl as ShadowIntl,
+	type Locale,
+	type Locale as RenamedLocale,
+} from 'shadow-lib';
 import { type Widget } from '@scope/widgets';
 
 export interface SourceProps {
-	/**
-	 * Declared in `lib.dom.d.ts`.
-	 */
-	selection?: Range;
-
 	/**
 	 * Declared in one of the `lib.es*.d.ts` files.
 	 */
@@ -40,12 +40,17 @@ export interface SourceProps {
 	packageLocale?: Locale;
 
 	/**
+	 * The same alias imported under another name is still attributed to the package.
+	 */
+	renamedLocale?: RenamedLocale;
+
+	/**
 	 * Declared in a scoped package.
 	 */
 	widget?: Widget;
 
 	/**
-	 * The DOM `Range` and the package `Range` stay distinct members.
+	 * The DOM `Range` (declared in `lib.dom.d.ts`) and the package `Range` stay distinct members.
 	 */
 	anyRange?: Range | ShadowRange;
 
