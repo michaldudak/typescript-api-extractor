@@ -86,6 +86,16 @@ class TypeEquivalence {
 			return false;
 		}
 
+		// Equally named external types can come from unrelated declarations, such
+		// as the DOM `Range` and a package's own `Range`.
+		if (
+			type1 instanceof ExternalTypeNode &&
+			type2 instanceof ExternalTypeNode &&
+			JSON.stringify(type1.source) !== JSON.stringify(type2.source)
+		) {
+			return false;
+		}
+
 		// Fast-path simple non-function types when no rename context is active.
 		// FunctionNode is excluded because TypeParameterNode.toString() omits
 		// constraints/defaults, which would collapse distinct generic signatures.

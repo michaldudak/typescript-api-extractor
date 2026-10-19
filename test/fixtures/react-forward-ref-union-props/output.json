@@ -111,11 +111,19 @@
 																"kind": "external",
 																"typeName": {
 																	"name": "HTMLButtonElement"
+																},
+																"source": {
+																	"kind": "lib",
+																	"files": ["lib.dom.d.ts"]
 																}
 															},
 															"equalToDefault": false
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										],
@@ -287,11 +295,19 @@
 																"kind": "external",
 																"typeName": {
 																	"name": "HTMLButtonElement"
+																},
+																"source": {
+																	"kind": "lib",
+																	"files": ["lib.dom.d.ts"]
 																}
 															},
 															"equalToDefault": false
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										],

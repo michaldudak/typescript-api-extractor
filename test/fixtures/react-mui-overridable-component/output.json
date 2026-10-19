@@ -747,6 +747,10 @@
 													"equalToDefault": true
 												}
 											]
+										},
+										"source": {
+											"kind": "package",
+											"name": "@types/react"
 										}
 									},
 									"kind": "typeParameter"
@@ -819,6 +823,10 @@
 									"typeName": {
 										"name": "CSSProperties",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{

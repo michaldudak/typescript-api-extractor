@@ -76,6 +76,10 @@
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"documentation": {
@@ -167,6 +171,10 @@
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"documentation": {
@@ -199,6 +207,10 @@
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"documentation": {
@@ -252,6 +264,10 @@
 							"typeName": {
 								"name": "ReactNode",
 								"namespaces": ["React"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"documentation": {

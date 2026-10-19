@@ -116,6 +116,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -209,6 +213,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "lib",
+																								"files": ["lib.es5.d.ts"]
 																							}
 																						},
 																						"equalToDefault": false
@@ -235,6 +243,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								}
 																							]
@@ -242,6 +254,10 @@
 																						"equalToDefault": true
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -279,6 +295,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -303,6 +323,10 @@
 																																	"equalToDefault": false
 																																}
 																															]
+																														},
+																														"source": {
+																															"kind": "package",
+																															"name": "@types/react"
 																														}
 																													},
 																													{
@@ -336,6 +360,10 @@
 																															"equalToDefault": false
 																														}
 																													]
+																												},
+																												"source": {
+																													"kind": "package",
+																													"name": "@types/react"
 																												}
 																											},
 																											{
@@ -405,6 +433,10 @@
 																													"equalToDefault": false
 																												}
 																											]
+																										},
+																										"source": {
+																											"kind": "package",
+																											"name": "@types/react"
 																										}
 																									},
 																									{
@@ -429,6 +461,10 @@
 																																		"equalToDefault": false
 																																	}
 																																]
+																															},
+																															"source": {
+																																"kind": "package",
+																																"name": "@types/react"
 																															}
 																														},
 																														{
@@ -462,6 +498,10 @@
 																																"equalToDefault": false
 																															}
 																														]
+																													},
+																													"source": {
+																														"kind": "package",
+																														"name": "@types/react"
 																													}
 																												},
 																												{
@@ -534,6 +574,10 @@
 																															"equalToDefault": false
 																														}
 																													]
+																												},
+																												"source": {
+																													"kind": "package",
+																													"name": "@types/react"
 																												}
 																											}
 																										]
@@ -541,6 +585,10 @@
 																									"equalToDefault": true
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					}
 																				}
@@ -709,6 +757,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -751,6 +803,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "lib",
+																				"files": ["lib.es5.d.ts"]
 																			}
 																		},
 																		"equalToDefault": false
@@ -777,6 +833,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				}
 																			]
@@ -784,6 +844,10 @@
 																		"equalToDefault": true
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -821,6 +885,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -845,6 +913,10 @@
 																													"equalToDefault": false
 																												}
 																											]
+																										},
+																										"source": {
+																											"kind": "package",
+																											"name": "@types/react"
 																										}
 																									},
 																									{
@@ -878,6 +950,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							},
 																							{
@@ -947,6 +1023,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					},
 																					{
@@ -971,6 +1051,10 @@
 																														"equalToDefault": false
 																													}
 																												]
+																											},
+																											"source": {
+																												"kind": "package",
+																												"name": "@types/react"
 																											}
 																										},
 																										{
@@ -1004,6 +1088,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -1076,6 +1164,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							}
 																						]
@@ -1083,6 +1175,10 @@
 																					"equalToDefault": true
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																}
@@ -1109,11 +1205,19 @@
 														"kind": "external",
 														"typeName": {
 															"name": "HTMLDivElement"
+														},
+														"source": {
+															"kind": "lib",
+															"files": ["lib.dom.d.ts"]
 														}
 													},
 													"equalToDefault": false
 												}
 											]
+										},
+										"source": {
+											"kind": "package",
+											"name": "@types/react"
 										}
 									}
 								],
@@ -1259,6 +1363,10 @@
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												},
 												{
@@ -1301,6 +1409,10 @@
 																				"equalToDefault": false
 																			}
 																		]
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.es5.d.ts"]
 																	}
 																},
 																"equalToDefault": false
@@ -1327,6 +1439,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		}
 																	]
@@ -1334,6 +1450,10 @@
 																"equalToDefault": true
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												},
 												{
@@ -1371,6 +1491,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -1395,6 +1519,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							},
 																							{
@@ -1428,6 +1556,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					},
 																					{
@@ -1497,6 +1629,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -1521,6 +1657,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -1554,6 +1694,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "package",
+																								"name": "@types/react"
 																							}
 																						},
 																						{
@@ -1626,6 +1770,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					}
 																				]
@@ -1633,6 +1781,10 @@
 																			"equalToDefault": true
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															}
 														}
@@ -1794,6 +1946,10 @@
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -1836,6 +1992,10 @@
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.es5.d.ts"]
 													}
 												},
 												"equalToDefault": false
@@ -1862,6 +2022,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														}
 													]
@@ -1869,6 +2033,10 @@
 												"equalToDefault": true
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -1906,6 +2074,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -1930,6 +2102,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -1963,6 +2139,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	},
 																	{
@@ -2032,6 +2212,10 @@
 																			"equalToDefault": false
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															},
 															{
@@ -2056,6 +2240,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -2089,6 +2277,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -2161,6 +2353,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																]
@@ -2168,6 +2364,10 @@
 															"equalToDefault": true
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -2283,6 +2483,10 @@
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -2376,6 +2580,10 @@
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.es5.d.ts"]
 													}
 												},
 												"equalToDefault": false
@@ -2402,6 +2610,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														}
 													]
@@ -2409,6 +2621,10 @@
 												"equalToDefault": true
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -2446,6 +2662,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -2470,6 +2690,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -2503,6 +2727,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	},
 																	{
@@ -2572,6 +2800,10 @@
 																			"equalToDefault": false
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															},
 															{
@@ -2596,6 +2828,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -2629,6 +2865,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -2701,6 +2941,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																]
@@ -2708,6 +2952,10 @@
 															"equalToDefault": true
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -2903,6 +3151,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "lib",
+																								"files": ["lib.es5.d.ts"]
 																							}
 																						},
 																						"equalToDefault": false
@@ -2929,6 +3181,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								}
 																							]
@@ -2936,6 +3192,10 @@
 																						"equalToDefault": true
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -2973,6 +3233,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -2997,6 +3261,10 @@
 																																	"equalToDefault": false
 																																}
 																															]
+																														},
+																														"source": {
+																															"kind": "package",
+																															"name": "@types/react"
 																														}
 																													},
 																													{
@@ -3030,6 +3298,10 @@
 																															"equalToDefault": false
 																														}
 																													]
+																												},
+																												"source": {
+																													"kind": "package",
+																													"name": "@types/react"
 																												}
 																											},
 																											{
@@ -3090,6 +3362,10 @@
 																													"equalToDefault": false
 																												}
 																											]
+																										},
+																										"source": {
+																											"kind": "package",
+																											"name": "@types/react"
 																										}
 																									},
 																									{
@@ -3114,6 +3390,10 @@
 																																		"equalToDefault": false
 																																	}
 																																]
+																															},
+																															"source": {
+																																"kind": "package",
+																																"name": "@types/react"
 																															}
 																														},
 																														{
@@ -3147,6 +3427,10 @@
 																																"equalToDefault": false
 																															}
 																														]
+																													},
+																													"source": {
+																														"kind": "package",
+																														"name": "@types/react"
 																													}
 																												},
 																												{
@@ -3210,6 +3494,10 @@
 																															"equalToDefault": false
 																														}
 																													]
+																												},
+																												"source": {
+																													"kind": "package",
+																													"name": "@types/react"
 																												}
 																											}
 																										]
@@ -3217,6 +3505,10 @@
 																									"equalToDefault": true
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					}
 																				}
@@ -3318,6 +3610,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "lib",
+																				"files": ["lib.es5.d.ts"]
 																			}
 																		},
 																		"equalToDefault": false
@@ -3344,6 +3640,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				}
 																			]
@@ -3351,6 +3651,10 @@
 																		"equalToDefault": true
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -3388,6 +3692,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -3412,6 +3720,10 @@
 																													"equalToDefault": false
 																												}
 																											]
+																										},
+																										"source": {
+																											"kind": "package",
+																											"name": "@types/react"
 																										}
 																									},
 																									{
@@ -3445,6 +3757,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							},
 																							{
@@ -3505,6 +3821,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					},
 																					{
@@ -3529,6 +3849,10 @@
 																														"equalToDefault": false
 																													}
 																												]
+																											},
+																											"source": {
+																												"kind": "package",
+																												"name": "@types/react"
 																											}
 																										},
 																										{
@@ -3562,6 +3886,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -3625,6 +3953,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							}
 																						]
@@ -3632,6 +3964,10 @@
 																					"equalToDefault": true
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																}
@@ -3658,11 +3994,19 @@
 														"kind": "external",
 														"typeName": {
 															"name": "HTMLDivElement"
+														},
+														"source": {
+															"kind": "lib",
+															"files": ["lib.dom.d.ts"]
 														}
 													},
 													"equalToDefault": false
 												}
 											]
+										},
+										"source": {
+											"kind": "package",
+											"name": "@types/react"
 										}
 									}
 								],
@@ -3741,6 +4085,10 @@
 																				"equalToDefault": false
 																			}
 																		]
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.es5.d.ts"]
 																	}
 																},
 																"equalToDefault": false
@@ -3767,6 +4115,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		}
 																	]
@@ -3774,6 +4126,10 @@
 																"equalToDefault": true
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												},
 												{
@@ -3811,6 +4167,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -3835,6 +4195,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							},
 																							{
@@ -3868,6 +4232,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					},
 																					{
@@ -3928,6 +4296,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -3952,6 +4324,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -3985,6 +4361,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "package",
+																								"name": "@types/react"
 																							}
 																						},
 																						{
@@ -4048,6 +4428,10 @@
 																									"equalToDefault": false
 																								}
 																							]
+																						},
+																						"source": {
+																							"kind": "package",
+																							"name": "@types/react"
 																						}
 																					}
 																				]
@@ -4055,6 +4439,10 @@
 																			"equalToDefault": true
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															}
 														}
@@ -4149,6 +4537,10 @@
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.es5.d.ts"]
 													}
 												},
 												"equalToDefault": false
@@ -4175,6 +4567,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														}
 													]
@@ -4182,6 +4578,10 @@
 												"equalToDefault": true
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -4219,6 +4619,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -4243,6 +4647,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -4276,6 +4684,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	},
 																	{
@@ -4336,6 +4748,10 @@
 																			"equalToDefault": false
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															},
 															{
@@ -4360,6 +4776,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -4393,6 +4813,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -4456,6 +4880,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																]
@@ -4463,6 +4891,10 @@
 															"equalToDefault": true
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -4562,6 +4994,10 @@
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.es5.d.ts"]
 													}
 												},
 												"equalToDefault": false
@@ -4588,6 +5024,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														}
 													]
@@ -4595,6 +5035,10 @@
 												"equalToDefault": true
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -4632,6 +5076,10 @@
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														{
@@ -4656,6 +5104,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -4689,6 +5141,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	},
 																	{
@@ -4749,6 +5205,10 @@
 																			"equalToDefault": false
 																		}
 																	]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															},
 															{
@@ -4773,6 +5233,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -4806,6 +5270,10 @@
 																						"equalToDefault": false
 																					}
 																				]
+																			},
+																			"source": {
+																				"kind": "package",
+																				"name": "@types/react"
 																			}
 																		},
 																		{
@@ -4869,6 +5337,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																]
@@ -4876,6 +5348,10 @@
 															"equalToDefault": true
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}

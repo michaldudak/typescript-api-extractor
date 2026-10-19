@@ -271,6 +271,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "HTMLElement"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						}
 					}

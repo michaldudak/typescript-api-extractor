@@ -123,7 +123,8 @@ All resolver pipeline modules live in `src/parsers/typeResolvers/`.
   shapes such as type parameters, conditional types, indexed access types, and
   substitution fallbacks.
 - `externalTypeResolver.ts` contains the external-type policy used when
-  `includeExternalTypes` is disabled.
+  `includeExternalTypes` is disabled, and records whether each external type is
+  declared in TypeScript's default library or in an npm package.
 - `signatureTypeParameterNodes.ts` is a shared helper for signature type
   parameter metadata used by class and function resolvers.
 - `signatureParser.ts` owns shared function-like signature parsing: call

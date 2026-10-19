@@ -40,6 +40,10 @@
 																	"kind": "external",
 																	"typeName": {
 																		"name": "Event"
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.dom.d.ts"]
 																	}
 																},
 																"optional": false
@@ -100,6 +104,10 @@
 															"kind": "external",
 															"typeName": {
 																"name": "Event"
+															},
+															"source": {
+																"kind": "lib",
+																"files": ["lib.dom.d.ts"]
 															}
 														},
 														"optional": false
@@ -183,6 +191,10 @@
 																	"kind": "external",
 																	"typeName": {
 																		"name": "Event"
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.dom.d.ts"]
 																	}
 																},
 																"optional": false
@@ -243,6 +255,10 @@
 															"kind": "external",
 															"typeName": {
 																"name": "Event"
+															},
+															"source": {
+																"kind": "lib",
+																"files": ["lib.dom.d.ts"]
 															}
 														},
 														"optional": false

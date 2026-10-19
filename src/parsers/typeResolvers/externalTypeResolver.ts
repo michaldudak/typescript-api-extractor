@@ -1,8 +1,17 @@
 import ts from 'typescript';
-import { ExternalTypeNode, IntrinsicNode, type AnyType } from '../../models';
+import {
+	ExternalTypeNode,
+	IntrinsicNode,
+	type AnyType,
+	type ExternalTypeSource,
+} from '../../models';
 import { TypeName } from '../../models/typeName';
 import { isInternalSymbolName } from '../common';
-import { isNodeModulesDeclaration } from '../sourceFileUtils';
+import {
+	getNodeModulesPackageName,
+	getSourceFileBaseName,
+	isNodeModulesDeclaration,
+} from '../sourceFileUtils';
 import { type TypeResolutionRequest, type TypeResolutionSession } from '../typeResolutionTypes';
 
 const allowedBuiltInTsTypes = new Set([
@@ -45,7 +54,7 @@ export function resolveExternalType(
 	session: TypeResolutionSession,
 ): AnyType | undefined {
 	const { type, typeName, typeNode } = request;
-	const { checker, includeExternalTypes } = session.context;
+	const { checker, program, includeExternalTypes } = session.context;
 	if (includeExternalTypes) {
 		return undefined;
 	}
@@ -58,7 +67,8 @@ export function resolveExternalType(
 	if (type.flags & ts.TypeFlags.TypeParameter) {
 		return undefined;
 	}
-	const authoredExternalAliasName = getExternalTypeAliasName(typeNode, checker);
+	const authoredExternalAlias = getExternalTypeAlias(typeNode, checker);
+	const authoredExternalAliasName = authoredExternalAlias?.name;
 	const isSemanticTypeExternal = isSymbolExternal(type.aliasSymbol ?? type.getSymbol(), checker);
 
 	// Array and tuple identity is a semantic checker fact and remains stable
@@ -89,6 +99,8 @@ export function resolveExternalType(
 	const resolvedSymbolName = resolvedSymbol?.getName?.();
 
 	let externalTypeName: string | undefined;
+	// The symbol whose declarations tell where the named type comes from.
+	let sourceSymbol: ts.Symbol | undefined;
 	const resolvedIsExternalInterface =
 		resolvedSymbolName &&
 		!isInternalSymbolName(resolvedSymbolName) &&
@@ -97,26 +109,69 @@ export function resolveExternalType(
 
 	if (resolvedIsExternalInterface && !type.aliasSymbol) {
 		externalTypeName = resolvedSymbolName;
+		sourceSymbol = resolvedSymbol;
 	} else {
 		externalTypeName =
 			authoredExternalAliasName ||
 			typeName?.name ||
 			type.aliasSymbol?.getName?.() ||
 			resolvedSymbolName;
+		sourceSymbol = authoredExternalAlias?.symbol ?? type.aliasSymbol ?? resolvedSymbol;
 	}
 
 	if (!externalTypeName) {
 		return new IntrinsicNode('any');
 	}
 
+	const source = getExternalTypeSource(sourceSymbol, program);
+
 	// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 	if (externalTypeName === 'bivarianceHack') {
-		return new ExternalTypeNode(new TypeName('RefCallback', ['React'], typeName?.typeArguments));
+		return new ExternalTypeNode(
+			new TypeName('RefCallback', ['React'], typeName?.typeArguments),
+			source,
+		);
 	}
 
 	return new ExternalTypeNode(
 		new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
+		source,
 	);
+}
+
+/**
+ * Describes where an external type is declared.
+ *
+ * A type declared in TypeScript's default library is reported as `lib`, with
+ * every library file that contributes to it, even when packages augment the
+ * same global. Otherwise the type is attributed to the npm package of its
+ * first declaration inside `node_modules`.
+ *
+ * @param symbol - Symbol that supplied the external type's name.
+ * @param program - Program used to recognize default library files.
+ * @returns The declaration source, or `undefined` when it cannot be determined.
+ */
+function getExternalTypeSource(
+	symbol: ts.Symbol | undefined,
+	program: ts.Program,
+): ExternalTypeSource | undefined {
+	const libFiles = new Set<string>();
+	let packageName: string | undefined;
+
+	for (const declaration of symbol?.declarations ?? []) {
+		const sourceFile = declaration.getSourceFile();
+		if (program.isSourceFileDefaultLibrary(sourceFile)) {
+			libFiles.add(getSourceFileBaseName(sourceFile));
+		} else {
+			packageName ??= getNodeModulesPackageName(sourceFile);
+		}
+	}
+
+	if (libFiles.size > 0) {
+		return { kind: 'lib', files: [...libFiles].sort() };
+	}
+
+	return packageName ? { kind: 'package', name: packageName } : undefined;
 }
 
 /**
@@ -130,13 +185,13 @@ export function isExternalTypeNode(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
 ): boolean {
-	return getExternalTypeAliasName(typeNode, checker) !== undefined;
+	return getExternalTypeAlias(typeNode, checker) !== undefined;
 }
 
-function getExternalTypeAliasName(
+function getExternalTypeAlias(
 	typeNode: ts.TypeNode | undefined,
 	checker: ts.TypeChecker,
-): string | undefined {
+): { name: string; symbol: ts.Symbol } | undefined {
 	let declaration = typeNode?.parent;
 	while (declaration && !ts.isTypeAliasDeclaration(declaration)) {
 		declaration = declaration.parent;
@@ -146,7 +201,9 @@ function getExternalTypeAliasName(
 	}
 
 	const symbol = checker.getSymbolAtLocation(declaration.name);
-	return isSymbolExternal(symbol, checker) ? declaration.name.text : undefined;
+	return symbol && isSymbolExternal(symbol, checker)
+		? { name: declaration.name.text, symbol }
+		: undefined;
 }
 
 /**

@@ -1,0 +1,322 @@
+{
+	"name": "test/fixtures/external-type-source/input",
+	"exports": [
+		{
+			"name": "SourceProps",
+			"type": {
+				"kind": "object",
+				"typeName": {
+					"name": "SourceProps"
+				},
+				"properties": [
+					{
+						"name": "container",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "HTMLElement"
+							},
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "HTMLElement"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared in `lib.dom.d.ts`.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "selection",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "Range"
+							},
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Range"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared in `lib.dom.d.ts`.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "locale",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "LocalesArgument",
+								"namespaces": ["Intl"]
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.es2020.intl.d.ts"]
+							}
+						},
+						"documentation": {
+							"description": "Declared in one of the `lib.es*.d.ts` files.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "numberFormat",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "NumberFormat",
+								"namespaces": ["Intl"]
+							},
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "NumberFormat",
+										"namespaces": ["Intl"]
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.es2018.intl.d.ts", "lib.es2020.bigint.d.ts", "lib.es5.d.ts"]
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared across several `lib.es*.d.ts` files.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "range",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Range"
+									},
+									"source": {
+										"kind": "package",
+										"name": "shadow-lib"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared in a package, with the same name as the DOM `Range`.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "shadowNumberFormat",
+						"type": {
+							"kind": "union",
+							"typeName": {
+								"name": "NumberFormat",
+								"namespaces": ["Intl"]
+							},
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "NumberFormat",
+										"namespaces": ["Intl"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "shadow-lib"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared in a package, with the same name as the built-in `Intl.NumberFormat`.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "widget",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Widget"
+									},
+									"source": {
+										"kind": "package",
+										"name": "@scope/widgets"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Declared in a scoped package.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "anyRange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Range"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
+									}
+								},
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "Range"
+									},
+									"source": {
+										"kind": "package",
+										"name": "shadow-lib"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "The DOM `Range` and the package `Range` stay distinct members.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "onRange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "Range"
+														},
+														"source": {
+															"kind": "lib",
+															"files": ["lib.dom.d.ts"]
+														}
+													},
+													"name": "range",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "function",
+									"callSignatures": [
+										{
+											"parameters": [
+												{
+													"type": {
+														"kind": "external",
+														"typeName": {
+															"name": "Range"
+														},
+														"source": {
+															"kind": "package",
+															"name": "shadow-lib"
+														}
+													},
+													"name": "range",
+													"optional": false
+												}
+											],
+											"returnValueType": {
+												"kind": "intrinsic",
+												"intrinsic": "void"
+											}
+										}
+									]
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "Callbacks that differ only in which `Range` they receive stay distinct members.",
+							"tags": []
+						},
+						"optional": true
+					}
+				]
+			}
+		}
+	],
+	"imports": ["shadow-lib", "@scope/widgets"]
+}

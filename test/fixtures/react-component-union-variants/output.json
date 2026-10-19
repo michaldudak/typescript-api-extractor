@@ -78,6 +78,10 @@
 																					"equalToDefault": false
 																				}
 																			]
+																		},
+																		"source": {
+																			"kind": "package",
+																			"name": "@types/react"
 																		}
 																	}
 																]
@@ -85,6 +89,10 @@
 															"equalToDefault": true
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -129,6 +137,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -174,6 +186,10 @@
 															"typeName": {
 																"name": "ReactNode",
 																"namespaces": ["React"]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														"optional": true
@@ -212,11 +228,19 @@
 																"kind": "external",
 																"typeName": {
 																	"name": "HTMLDivElement"
+																},
+																"source": {
+																	"kind": "lib",
+																	"files": ["lib.dom.d.ts"]
 																}
 															},
 															"equalToDefault": false
 														}
 													]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										],
@@ -228,6 +252,10 @@
 													"typeName": {
 														"name": "ReactNode",
 														"namespaces": ["React"]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												},
 												"optional": true
@@ -279,6 +307,10 @@
 																"typeName": {
 																	"name": "ReactNode",
 																	"namespaces": ["React"]
+																},
+																"source": {
+																	"kind": "package",
+																	"name": "@types/react"
 																}
 															},
 															"optional": true
@@ -317,11 +349,19 @@
 																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLDivElement"
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.dom.d.ts"]
 																	}
 																},
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												}
 											],
@@ -333,6 +373,10 @@
 														"typeName": {
 															"name": "ReactNode",
 															"namespaces": ["React"]
+														},
+														"source": {
+															"kind": "package",
+															"name": "@types/react"
 														}
 													},
 													"optional": true
@@ -369,6 +413,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								}
 							}

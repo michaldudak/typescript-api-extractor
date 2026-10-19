@@ -17,6 +17,10 @@
 						"kind": "external",
 						"typeName": {
 							"name": "Element"
+						},
+						"source": {
+							"kind": "lib",
+							"files": ["lib.dom.d.ts"]
 						}
 					},
 					{
@@ -25,6 +29,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "Element"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						}
 					},
@@ -32,6 +40,10 @@
 						"kind": "external",
 						"typeName": {
 							"name": "Rect"
+						},
+						"source": {
+							"kind": "package",
+							"name": "floating-ui"
 						}
 					}
 				]

@@ -48,6 +48,10 @@
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.es5.d.ts"]
 									}
 								},
 								"name": "record",
@@ -238,6 +242,10 @@
 															"equalToDefault": false
 														}
 													]
+												},
+												"source": {
+													"kind": "lib",
+													"files": ["lib.es5.d.ts"]
 												}
 											},
 											"optional": false

@@ -175,11 +175,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "Element"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								"name": "ref",
@@ -191,6 +199,10 @@
 							"typeName": {
 								"name": "Element",
 								"namespaces": ["React", "JSX"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						}
 					}
