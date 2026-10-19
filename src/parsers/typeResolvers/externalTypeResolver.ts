@@ -91,6 +91,8 @@ export function resolveExternalType(
 	//
 	// When a type is an external alias (e.g., `Point` from a package that wraps `{ x, y }`),
 	// TypeScript preserves the aliasSymbol. Use the alias name to preserve the author's intent.
+	// An alias of an interface (e.g., `type PackageRange = globalThis.Range`) loses its
+	// aliasSymbol, so the authored reference is the only place its name survives.
 	const resolvedSymbol = type.getSymbol();
 	const resolvedSymbolName = resolvedSymbol?.getName?.();
 
@@ -99,13 +101,18 @@ export function resolveExternalType(
 		!isInternalSymbolName(resolvedSymbolName) &&
 		isSymbolExternal(resolvedSymbol, checker, false) &&
 		(resolvedSymbol?.flags ?? 0) & ts.SymbolFlags.Interface;
+	const typeNameTarget = resolveImportAlias(request.typeNameSymbol, checker);
+	const namesExternalAlias =
+		typeNameTarget !== undefined &&
+		(typeNameTarget.flags & ts.SymbolFlags.TypeAlias) !== 0 &&
+		isSymbolExternal(typeNameTarget, checker);
 
 	// Each name is paired with the symbol it comes from, so the source always
 	// describes the declaration that supplied the name. A package alias of a
 	// built-in type, such as `type Locale = Intl.LocalesArgument`, is attributed
 	// to the package.
 	const namings: [string | undefined, ts.Symbol | undefined][] =
-		resolvedIsExternalInterface && !type.aliasSymbol
+		resolvedIsExternalInterface && !type.aliasSymbol && !namesExternalAlias
 			? [[resolvedSymbolName, resolvedSymbol]]
 			: [
 					[authoredExternalAlias?.name, authoredExternalAlias?.symbol],
@@ -119,12 +126,7 @@ export function resolveExternalType(
 		return new IntrinsicNode('any');
 	}
 
-	const source = getExternalTypeSource(
-		nameSymbol && nameSymbol.flags & ts.SymbolFlags.Alias
-			? checker.getAliasedSymbol(nameSymbol)
-			: nameSymbol,
-		program,
-	);
+	const source = getExternalTypeSource(resolveImportAlias(nameSymbol, checker), program);
 
 	// Fixes a weird TS behavior where it doesn't show the alias name but resolves to the actual type in case of RefCallback.
 	if (externalTypeName === 'bivarianceHack') {
@@ -138,6 +140,20 @@ export function resolveExternalType(
 		new TypeName(externalTypeName, typeName?.namespaces, typeName?.typeArguments),
 		source,
 	);
+}
+
+/**
+ * Follows an import or re-export to the symbol it points at.
+ *
+ * @param symbol - Symbol that may be an import alias.
+ * @param checker - Checker used to resolve the alias.
+ * @returns The aliased symbol, or `symbol` itself when it is not an alias.
+ */
+function resolveImportAlias(
+	symbol: ts.Symbol | undefined,
+	checker: ts.TypeChecker,
+): ts.Symbol | undefined {
+	return symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 }
 
 /**

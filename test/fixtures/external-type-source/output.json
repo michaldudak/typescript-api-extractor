@@ -156,6 +156,33 @@
 						"optional": true
 					},
 					{
+						"name": "packageRange",
+						"type": {
+							"kind": "union",
+							"types": [
+								{
+									"kind": "external",
+									"typeName": {
+										"name": "PackageRange"
+									},
+									"source": {
+										"kind": "package",
+										"name": "shadow-lib"
+									}
+								},
+								{
+									"kind": "intrinsic",
+									"intrinsic": "undefined"
+								}
+							]
+						},
+						"documentation": {
+							"description": "A package alias of a built-in interface.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
 						"name": "widget",
 						"type": {
 							"kind": "union",
@@ -291,6 +318,24 @@
 						"optional": true
 					}
 				]
+			}
+		},
+		{
+			"name": "PackageRange",
+			"type": {
+				"kind": "external",
+				"typeName": {
+					"name": "Range",
+					"namespaces": ["globalThis"]
+				},
+				"source": {
+					"kind": "lib",
+					"files": ["lib.dom.d.ts"]
+				}
+			},
+			"documentation": {
+				"description": "A package alias of a built-in interface.",
+				"tags": []
 			}
 		}
 	],

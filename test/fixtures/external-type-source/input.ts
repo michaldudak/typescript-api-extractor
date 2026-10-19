@@ -9,6 +9,7 @@ import {
 	type Intl as ShadowIntl,
 	type Locale,
 	type Locale as RenamedLocale,
+	type PackageRange,
 } from 'shadow-lib';
 import { type Widget } from '@scope/widgets';
 
@@ -45,6 +46,11 @@ export interface SourceProps {
 	renamedLocale?: RenamedLocale;
 
 	/**
+	 * A package alias of a built-in interface.
+	 */
+	packageRange?: PackageRange;
+
+	/**
 	 * Declared in a scoped package.
 	 */
 	widget?: Widget;
@@ -59,3 +65,9 @@ export interface SourceProps {
 	 */
 	onRange?: ((range: Range) => void) | ((range: ShadowRange) => void);
 }
+
+/**
+ * A re-exported package alias keeps its name on the export, and its type is the
+ * built-in interface it aliases.
+ */
+export type { PackageRange } from 'shadow-lib';
