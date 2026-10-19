@@ -22,19 +22,6 @@ export class ExternalTypeNode implements TypeNode {
 		this.source = source;
 	}
 
-	/**
-	 * Identifies where the type is declared, for telling equally named external
-	 * types apart. Default library types share one key because the library
-	 * merges every declaration of a global name into the same type.
-	 */
-	getSourceKey(): string {
-		if (!this.source) {
-			return '';
-		}
-
-		return this.source.kind === 'lib' ? 'lib' : `package:${this.source.name}`;
-	}
-
 	toString(): string {
 		return this.typeName.toString();
 	}

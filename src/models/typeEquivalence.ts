@@ -91,7 +91,7 @@ class TypeEquivalence {
 		if (
 			type1 instanceof ExternalTypeNode &&
 			type2 instanceof ExternalTypeNode &&
-			type1.getSourceKey() !== type2.getSourceKey()
+			this.getExternalSourceKey(type1) !== this.getExternalSourceKey(type2)
 		) {
 			return false;
 		}
@@ -317,6 +317,22 @@ class TypeEquivalence {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Identifies where an external type is declared, for telling equally named
+	 * external types apart. Default library types share one key because the
+	 * library merges every declaration of a global name into the same type.
+	 *
+	 * @param type - External type whose source should be keyed.
+	 * @returns A key that is equal for external types from the same source.
+	 */
+	getExternalSourceKey(type: ExternalTypeNode): string {
+		if (!type.source) {
+			return '';
+		}
+
+		return type.source.kind === 'lib' ? 'lib' : `package:${type.source.name}`;
 	}
 
 	/**
