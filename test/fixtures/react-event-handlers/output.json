@@ -22,11 +22,19 @@
 											"kind": "external",
 											"typeName": {
 												"name": "Element"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										"equalToDefault": true
 									}
 								]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"optional": false
@@ -47,11 +55,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "Element"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": true
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -75,11 +91,19 @@
 											"kind": "external",
 											"typeName": {
 												"name": "HTMLDivElement"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										"equalToDefault": false
 									}
 								]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"optional": false
@@ -100,11 +124,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLDivElement"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{

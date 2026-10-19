@@ -33,6 +33,8 @@ export interface TypeResolutionRequest {
 	typeNode: ts.TypeNode | undefined;
 	/** Public type name derived before resolver dispatch. */
 	typeName: TypeName | undefined;
+	/** Symbol whose name `typeName` carries, when known. */
+	typeNameSymbol?: ts.Symbol;
 }
 
 /**

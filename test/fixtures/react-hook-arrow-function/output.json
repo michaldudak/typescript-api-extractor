@@ -87,11 +87,19 @@
 																			"kind": "external",
 																			"typeName": {
 																				"name": "HTMLElement"
+																			},
+																			"source": {
+																				"kind": "lib",
+																				"files": ["lib.dom.d.ts"]
 																			}
 																		},
 																		"equalToDefault": false
 																	}
 																]
+															},
+															"source": {
+																"kind": "package",
+																"name": "@types/react"
 															}
 														},
 														"name": "externalProps",
@@ -109,11 +117,19 @@
 																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLElement"
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.dom.d.ts"]
 																	}
 																},
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												}
 											}
@@ -128,6 +144,10 @@
 										"typeName": {
 											"name": "RefCallback",
 											"namespaces": ["React"]
+										},
+										"source": {
+											"kind": "package",
+											"name": "@types/react"
 										}
 									},
 									"optional": false

@@ -31,11 +31,19 @@
 																		"kind": "external",
 																		"typeName": {
 																			"name": "HTMLElement"
+																		},
+																		"source": {
+																			"kind": "lib",
+																			"files": ["lib.dom.d.ts"]
 																		}
 																	},
 																	"equalToDefault": false
 																}
 															]
+														},
+														"source": {
+															"kind": "package",
+															"name": "@types/react"
 														}
 													},
 													"kind": "typeParameter"
@@ -60,11 +68,19 @@
 																	"kind": "external",
 																	"typeName": {
 																		"name": "HTMLElement"
+																	},
+																	"source": {
+																		"kind": "lib",
+																		"files": ["lib.dom.d.ts"]
 																	}
 																},
 																"equalToDefault": false
 															}
 														]
+													},
+													"source": {
+														"kind": "package",
+														"name": "@types/react"
 													}
 												},
 												"kind": "typeParameter"
@@ -161,11 +177,19 @@
 												"kind": "external",
 												"typeName": {
 													"name": "HTMLElement"
+												},
+												"source": {
+													"kind": "lib",
+													"files": ["lib.dom.d.ts"]
 												}
 											},
 											"equalToDefault": false
 										}
 									]
+								},
+								"source": {
+									"kind": "package",
+									"name": "@types/react"
 								}
 							},
 							"kind": "typeParameter"
@@ -184,11 +208,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLElement"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								"kind": "typeParameter"

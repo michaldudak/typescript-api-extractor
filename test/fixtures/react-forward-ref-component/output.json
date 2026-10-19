@@ -66,11 +66,19 @@
 														"kind": "external",
 														"typeName": {
 															"name": "HTMLDivElement"
+														},
+														"source": {
+															"kind": "lib",
+															"files": ["lib.dom.d.ts"]
 														}
 													},
 													"equalToDefault": false
 												}
 											]
+										},
+										"source": {
+											"kind": "package",
+											"name": "@types/react"
 										}
 									}
 								],

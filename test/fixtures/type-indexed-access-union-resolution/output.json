@@ -18,12 +18,20 @@
 									"kind": "external",
 									"typeName": {
 										"name": "HTMLElement"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
 									}
 								},
 								{
 									"kind": "external",
 									"typeName": {
 										"name": "ShadowRoot"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
 									}
 								},
 								{
@@ -53,12 +61,20 @@
 									"kind": "external",
 									"typeName": {
 										"name": "HTMLElement"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
 									}
 								},
 								{
 									"kind": "external",
 									"typeName": {
 										"name": "ShadowRoot"
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.dom.d.ts"]
 									}
 								},
 								{

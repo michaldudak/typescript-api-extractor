@@ -198,7 +198,7 @@ class TypeCanonicalizer {
 			return `literal:${type.value}`;
 		}
 		if (type instanceof ExternalTypeNode) {
-			return `external:${type.typeName.toString()}`;
+			return `external:${typeEquivalenceChecker.getExternalSourceKey(type)}:${type.typeName.toString()}`;
 		}
 		if (type instanceof TypeParameterNode) {
 			return `typeparam:${type.name}`;

@@ -1,8 +1,7 @@
 import ts from 'typescript';
 import { IntrinsicNode, type AnyType } from '../models';
-import { type TypeName } from '../models/typeName';
 import { type ScopedParserContext } from '../parserContext';
-import { getFullName } from './common';
+import { getFullNameWithSymbol } from './common';
 import { reportUnsupportedTypeFallback } from './typeResolutionDiagnostics';
 import {
 	type NameResolutionWarning,
@@ -224,7 +223,7 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 		// Enter the type frame BEFORE calling getFullName to catch cycles that occur
 		// when getFullName resolves generic type arguments that may reference back to this type.
 		const resolveInFrame = () => {
-			let typeName: TypeName | undefined;
+			let fullName: ReturnType<typeof getFullNameWithSymbol>;
 
 			// SubstitutionTypes are checker-internal placeholders created while TypeScript
 			// evaluates conditional/infer/mapped types. They represent "baseType, but
@@ -245,13 +244,14 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 					nameResolutionWarnings.push(warning);
 				};
 				try {
-					typeName = getFullName(type, typeNode, context);
+					fullName = getFullNameWithSymbol(type, typeNode, context);
 				} finally {
 					context.onWarning = onWarning;
 				}
 			} else {
-				typeName = getFullName(type, typeNode, context);
+				fullName = getFullNameWithSymbol(type, typeNode, context);
 			}
+			const typeName = fullName?.typeName;
 
 			const replayNameResolutionWarnings = () => {
 				for (const warning of nameResolutionWarnings) {
@@ -272,7 +272,12 @@ export class TypeResolutionSession implements TypeResolutionSessionContract {
 				return withNameResolutionWarnings(createShallowType(type, typeName, checker));
 			}
 
-			const request: TypeResolutionRequest = { type, typeNode, typeName };
+			const request: TypeResolutionRequest = {
+				type,
+				typeNode,
+				typeName,
+				typeNameSymbol: fullName?.symbol,
+			};
 			const resolution = this.dispatch(request);
 			if (resolution) {
 				return resolution.resolver.replayNameResolutionWarnings === false

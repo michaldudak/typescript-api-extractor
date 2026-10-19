@@ -15,6 +15,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "Event"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						},
 						"documentation": {
@@ -29,6 +33,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "KeyboardEvent"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						},
 						"documentation": {
@@ -43,6 +51,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "Event"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						},
 						"documentation": {

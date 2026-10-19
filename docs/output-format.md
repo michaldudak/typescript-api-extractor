@@ -134,6 +134,36 @@ template literals, and nested template literals are flattened into one. A
 template literal without open-ended placeholders, such as `` `on${'click'}` ``,
 is a plain string literal.
 
+## External Types
+
+Unless `includeExternalTypes` is set, types declared outside the parsed project,
+such as DOM types or types from npm packages, are kept as named references
+instead of being expanded:
+
+```typescript
+interface ExternalTypeNode {
+	kind: 'external';
+	typeName: TypeName;
+	source?: ExternalTypeSource;
+}
+
+type ExternalTypeSource =
+	{ kind: 'lib'; files: readonly string[] } | { kind: 'package'; name: string };
+```
+
+`source` tells where the referenced type is declared, so types that share a name
+can be told apart. A type from TypeScript's default library has kind `lib`, with
+the library files that declare it. Global types are often declared across
+several files, so `Intl.NumberFormat` lists `lib.es5.d.ts` along with the
+`lib.es20xx.*.d.ts` files that extend it. Any other type has kind `package`,
+named after the package directory under `node_modules` that declares it, such as
+`@types/react`. The source follows the declaration that supplies the name, so a
+package alias of a built-in type, such as `type Locale = Intl.LocalesArgument`,
+has kind `package`.
+
+External types with the same name but a different `source` are distinct, so the
+DOM `Range` and a package's own `Range` stay separate members of a union.
+
 ## Example Output
 
 For a React component like this:

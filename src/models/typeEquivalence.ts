@@ -86,6 +86,16 @@ class TypeEquivalence {
 			return false;
 		}
 
+		// Equally named external types can come from unrelated declarations, such
+		// as the DOM `Range` and a package's own `Range`.
+		if (
+			type1 instanceof ExternalTypeNode &&
+			type2 instanceof ExternalTypeNode &&
+			this.getExternalSourceKey(type1) !== this.getExternalSourceKey(type2)
+		) {
+			return false;
+		}
+
 		// Fast-path simple non-function types when no rename context is active.
 		// FunctionNode is excluded because TypeParameterNode.toString() omits
 		// constraints/defaults, which would collapse distinct generic signatures.
@@ -307,6 +317,22 @@ class TypeEquivalence {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Identifies where an external type is declared, for telling equally named
+	 * external types apart. Default library types share one key because the
+	 * library merges every declaration of a global name into the same type.
+	 *
+	 * @param type - External type whose source should be keyed.
+	 * @returns A key that is equal for external types from the same source.
+	 */
+	getExternalSourceKey(type: ExternalTypeNode): string {
+		if (!type.source) {
+			return '';
+		}
+
+		return type.source.kind === 'lib' ? 'lib' : `package:${type.source.name}`;
 	}
 
 	/**

@@ -22,11 +22,19 @@
 											"kind": "external",
 											"typeName": {
 												"name": "HTMLInputElement"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										"equalToDefault": false
 									}
 								]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"optional": false
@@ -38,6 +46,10 @@
 							"typeName": {
 								"name": "RefCallback",
 								"namespaces": ["React"]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"optional": false
@@ -55,11 +67,19 @@
 											"kind": "external",
 											"typeName": {
 												"name": "HTMLInputElement"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										"equalToDefault": false
 									}
 								]
+							},
+							"source": {
+								"kind": "package",
+								"name": "@types/react"
 							}
 						},
 						"optional": false
@@ -80,11 +100,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLInputElement"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -105,6 +133,10 @@
 									"typeName": {
 										"name": "RefCallback",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -131,11 +163,19 @@
 													"kind": "external",
 													"typeName": {
 														"name": "HTMLInputElement"
+													},
+													"source": {
+														"kind": "lib",
+														"files": ["lib.dom.d.ts"]
 													}
 												},
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{

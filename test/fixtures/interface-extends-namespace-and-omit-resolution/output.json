@@ -189,6 +189,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -232,6 +236,10 @@
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -559,6 +567,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -602,6 +614,10 @@
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -976,6 +992,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -1019,6 +1039,10 @@
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}
@@ -1541,6 +1565,10 @@
 									"typeName": {
 										"name": "ReactNode",
 										"namespaces": ["React"]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
@@ -1584,6 +1612,10 @@
 												"typeName": {
 													"name": "ReactNode",
 													"namespaces": ["React"]
+												},
+												"source": {
+													"kind": "package",
+													"name": "@types/react"
 												}
 											}
 										}

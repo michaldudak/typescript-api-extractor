@@ -51,3 +51,22 @@ export function hasNodeModulesPathSegment(sourceFile: ts.SourceFile): boolean {
 export function declarationHasNodeModulesPathSegment(declaration: ts.Declaration): boolean {
 	return hasNodeModulesPathSegment(declaration.getSourceFile());
 }
+
+/**
+ * Finds the npm package that owns a source file, based on the last
+ * `node_modules` segment of its path. Scoped packages keep their scope, so a
+ * file under `node_modules/@types/react` belongs to `@types/react`.
+ *
+ * @param sourceFile - Source file whose owning package should be found.
+ * @returns The package name, or `undefined` when the file is not inside `node_modules`.
+ */
+export function getNodeModulesPackageName(sourceFile: ts.SourceFile): string | undefined {
+	const segments = sourceFile.fileName.split(/[\\/]/);
+	const nodeModulesIndex = segments.lastIndexOf(nodeModulesPathSubstring);
+	if (nodeModulesIndex === -1) {
+		return undefined;
+	}
+
+	const [scopeOrName, scopedName] = segments.slice(nodeModulesIndex + 1);
+	return scopeOrName.startsWith('@') ? `${scopeOrName}/${scopedName}` : scopeOrName;
+}

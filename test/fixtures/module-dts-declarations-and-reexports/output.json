@@ -161,6 +161,10 @@
 															"equalToDefault": false
 														}
 													]
+												},
+												"source": {
+													"kind": "lib",
+													"files": ["lib.es5.d.ts"]
 												}
 											},
 											{
@@ -313,6 +317,10 @@
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "lib",
+										"files": ["lib.es5.d.ts"]
 									}
 								},
 								{

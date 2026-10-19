@@ -17,6 +17,10 @@
 						"kind": "external",
 						"typeName": {
 							"name": "Element"
+						},
+						"source": {
+							"kind": "lib",
+							"files": ["lib.dom.d.ts"]
 						}
 					},
 					{
@@ -25,6 +29,10 @@
 							"kind": "external",
 							"typeName": {
 								"name": "Element"
+							},
+							"source": {
+								"kind": "lib",
+								"files": ["lib.dom.d.ts"]
 							}
 						}
 					},
@@ -32,6 +40,10 @@
 						"kind": "external",
 						"typeName": {
 							"name": "Rect"
+						},
+						"source": {
+							"kind": "package",
+							"name": "external-lib"
 						}
 					}
 				]
@@ -53,12 +65,20 @@
 						"kind": "external",
 						"typeName": {
 							"name": "Element"
+						},
+						"source": {
+							"kind": "lib",
+							"files": ["lib.dom.d.ts"]
 						}
 					},
 					{
 						"kind": "external",
 						"typeName": {
 							"name": "Point"
+						},
+						"source": {
+							"kind": "package",
+							"name": "external-lib"
 						}
 					}
 				]
@@ -74,6 +94,10 @@
 				"kind": "external",
 				"typeName": {
 					"name": "Padding"
+				},
+				"source": {
+					"kind": "package",
+					"name": "external-lib"
 				}
 			},
 			"documentation": {
@@ -87,6 +111,10 @@
 				"kind": "external",
 				"typeName": {
 					"name": "NestedRect"
+				},
+				"source": {
+					"kind": "package",
+					"name": "external-lib"
 				}
 			},
 			"documentation": {
@@ -125,6 +153,10 @@
 											"kind": "external",
 											"typeName": {
 												"name": "Element"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										{
@@ -133,6 +165,10 @@
 												"kind": "external",
 												"typeName": {
 													"name": "Element"
+												},
+												"source": {
+													"kind": "lib",
+													"files": ["lib.dom.d.ts"]
 												}
 											}
 										},
@@ -140,6 +176,10 @@
 											"kind": "external",
 											"typeName": {
 												"name": "Rect"
+											},
+											"source": {
+												"kind": "package",
+												"name": "external-lib"
 											}
 										}
 									]
@@ -174,12 +214,20 @@
 											"kind": "external",
 											"typeName": {
 												"name": "Element"
+											},
+											"source": {
+												"kind": "lib",
+												"files": ["lib.dom.d.ts"]
 											}
 										},
 										{
 											"kind": "external",
 											"typeName": {
 												"name": "Point"
+											},
+											"source": {
+												"kind": "package",
+												"name": "external-lib"
 											}
 										}
 									]
@@ -205,6 +253,10 @@
 									"kind": "external",
 									"typeName": {
 										"name": "Padding"
+									},
+									"source": {
+										"kind": "package",
+										"name": "external-lib"
 									}
 								},
 								{
@@ -228,6 +280,10 @@
 									"kind": "external",
 									"typeName": {
 										"name": "NestedRect"
+									},
+									"source": {
+										"kind": "package",
+										"name": "external-lib"
 									}
 								},
 								{

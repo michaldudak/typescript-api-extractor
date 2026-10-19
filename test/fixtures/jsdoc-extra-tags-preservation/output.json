@@ -61,6 +61,10 @@
 																					"kind": "external",
 																					"typeName": {
 																						"name": "HTMLInputElement"
+																					},
+																					"source": {
+																						"kind": "lib",
+																						"files": ["lib.dom.d.ts"]
 																					}
 																				},
 																				"equalToDefault": false
@@ -70,11 +74,19 @@
 																					"kind": "external",
 																					"typeName": {
 																						"name": "Element"
+																					},
+																					"source": {
+																						"kind": "lib",
+																						"files": ["lib.dom.d.ts"]
 																					}
 																				},
 																				"equalToDefault": true
 																			}
 																		]
+																	},
+																	"source": {
+																		"kind": "package",
+																		"name": "@types/react"
 																	}
 																},
 																"name": "event",

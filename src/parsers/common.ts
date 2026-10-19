@@ -6,6 +6,7 @@ import {
 	containsKeyofTypeOperatorOrAlias,
 	substituteTypeParameterTypeNode,
 } from './typeResolvers/typeOperatorTypeNodes';
+import { getReferenceEntityName } from './typeResolvers/referencedTypeAlias';
 
 /**
  * Known TypeScript compiler-generated internal symbol names.
@@ -76,6 +77,18 @@ export function getFullName(
 	typeNode: ts.TypeNode | undefined,
 	context: ScopedParserContext,
 ): TypeName | undefined {
+	return getFullNameWithSymbol(type, typeNode, context)?.typeName;
+}
+
+/**
+ * Same as `getFullName`, but also returns the symbol the name was read from, so
+ * callers can inspect the declaration behind the name.
+ */
+export function getFullNameWithSymbol(
+	type: ts.Type,
+	typeNode: ts.TypeNode | undefined,
+	context: ScopedParserContext,
+): { typeName: TypeName; symbol: ts.Symbol } | undefined {
 	const { checker } = context;
 
 	// The following code handles cases where the type is a simple alias of another type (type Alias = SomeType).
@@ -85,8 +98,8 @@ export function getFullName(
 	// Here we don't want to preserve T as a type symbol, but rather resolve it to its actual type.
 	let typeSymbol: ts.Symbol | undefined;
 	let qualifiedNameNamespaces: string[] = [];
-	if (typeNode && ts.isTypeReferenceNode(typeNode)) {
-		const typeNodeName = (typeNode as ts.TypeReferenceNode).typeName;
+	const typeNodeName = getReferenceEntityName(typeNode);
+	if (typeNodeName) {
 		let typeSymbolCandidate: ts.Symbol | undefined;
 		if (ts.isIdentifier(typeNodeName)) {
 			typeSymbolCandidate = checker.getSymbolAtLocation(typeNodeName);
@@ -107,7 +120,7 @@ export function getFullName(
 		}
 	}
 
-	const name = getTypeName(type, typeSymbol);
+	const named = getTypeName(type, typeSymbol);
 	// Use namespaces from the symbol/type first, but fall back to qualified name namespaces
 	// when the type doesn't have intrinsic namespace information
 	let namespaces = typeSymbol ? getTypeSymbolNamespaces(typeSymbol) : getTypeNamespaces(type);
@@ -116,15 +129,18 @@ export function getFullName(
 	}
 	const typeArguments = getTypeArguments(type, typeNode, typeSymbol, context);
 
-	if (name === undefined) {
+	if (named === undefined) {
 		return undefined;
 	}
 
-	return new TypeName(
-		name,
-		namespaces.length > 0 ? namespaces : undefined,
-		typeArguments.length > 0 ? typeArguments : undefined,
-	);
+	return {
+		typeName: new TypeName(
+			named.name,
+			namespaces.length > 0 ? namespaces : undefined,
+			typeArguments.length > 0 ? typeArguments : undefined,
+		),
+		symbol: named.symbol,
+	};
 }
 
 /**
@@ -177,7 +193,10 @@ function typeSymbolIsNonGenericAlias(typeSymbol: ts.Symbol): boolean {
 	return false;
 }
 
-function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string | undefined {
+function getTypeName(
+	type: ts.Type,
+	typeSymbol: ts.Symbol | undefined,
+): { name: string; symbol: ts.Symbol } | undefined {
 	const symbol = typeSymbol ?? type.aliasSymbol ?? type.getSymbol();
 	if (!symbol) {
 		return undefined;
@@ -202,12 +221,12 @@ function getTypeName(type: ts.Type, typeSymbol: ts.Symbol | undefined): string |
 	if (isInternalSymbolName(typeName)) {
 		// If we have a typeSymbol from the typeNode, use its name instead
 		if (typeSymbol && !isInternalSymbolName(typeSymbol.getName())) {
-			return typeSymbol.getName();
+			return { name: typeSymbol.getName(), symbol: typeSymbol };
 		}
 		return undefined;
 	}
 
-	return typeName;
+	return { name: typeName, symbol };
 }
 
 function getTypeArguments(

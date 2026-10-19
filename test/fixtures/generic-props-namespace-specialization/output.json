@@ -101,6 +101,10 @@
 																							"equalToDefault": false
 																						}
 																					]
+																				},
+																				"source": {
+																					"kind": "package",
+																					"name": "@types/react"
 																				}
 																			},
 																			{
@@ -125,6 +129,10 @@
 																												"equalToDefault": false
 																											}
 																										]
+																									},
+																									"source": {
+																										"kind": "package",
+																										"name": "@types/react"
 																									}
 																								},
 																								{
@@ -158,6 +166,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "package",
+																								"name": "@types/react"
 																							}
 																						},
 																						{
@@ -218,6 +230,10 @@
 																								"equalToDefault": false
 																							}
 																						]
+																					},
+																					"source": {
+																						"kind": "package",
+																						"name": "@types/react"
 																					}
 																				},
 																				{
@@ -242,6 +258,10 @@
 																													"equalToDefault": false
 																												}
 																											]
+																										},
+																										"source": {
+																											"kind": "package",
+																											"name": "@types/react"
 																										}
 																									},
 																									{
@@ -275,6 +295,10 @@
 																											"equalToDefault": false
 																										}
 																									]
+																								},
+																								"source": {
+																									"kind": "package",
+																									"name": "@types/react"
 																								}
 																							},
 																							{
@@ -347,6 +371,10 @@
 																										"equalToDefault": false
 																									}
 																								]
+																							},
+																							"source": {
+																								"kind": "package",
+																								"name": "@types/react"
 																							}
 																						}
 																					]
@@ -354,6 +382,10 @@
 																				"equalToDefault": true
 																			}
 																		]
+																	},
+																	"source": {
+																		"kind": "package",
+																		"name": "@types/react"
 																	}
 																}
 															}
@@ -403,6 +435,10 @@
 									"equalToDefault": false
 								}
 							]
+						},
+						"source": {
+							"kind": "package",
+							"name": "@types/react"
 						}
 					},
 					{
@@ -427,6 +463,10 @@
 														"equalToDefault": false
 													}
 												]
+											},
+											"source": {
+												"kind": "package",
+												"name": "@types/react"
 											}
 										},
 										{
@@ -460,6 +500,10 @@
 												"equalToDefault": false
 											}
 										]
+									},
+									"source": {
+										"kind": "package",
+										"name": "@types/react"
 									}
 								},
 								{
