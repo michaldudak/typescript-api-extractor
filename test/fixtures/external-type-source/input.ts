@@ -3,7 +3,8 @@
  * TypeScript's default library can be told apart from a package type with the
  * same name.
  */
-import { type Range as ShadowRange, type Intl as ShadowIntl } from 'shadow-lib';
+import 'augmenting-lib';
+import { type Range as ShadowRange, type Intl as ShadowIntl, type Locale } from 'shadow-lib';
 import { type Widget } from '@scope/widgets';
 
 export interface SourceProps {
@@ -24,6 +25,7 @@ export interface SourceProps {
 
 	/**
 	 * Declared in a package, with the same name as the DOM `Range`.
+	 * Attributed to the declaring package, not to `augmenting-lib` that augments it.
 	 */
 	range?: ShadowRange;
 
@@ -31,6 +33,11 @@ export interface SourceProps {
 	 * Declared in a package, with the same name as the built-in `Intl.NumberFormat`.
 	 */
 	shadowNumberFormat?: ShadowIntl.NumberFormat;
+
+	/**
+	 * A package alias of a built-in type is attributed to the package.
+	 */
+	packageLocale?: Locale;
 
 	/**
 	 * Declared in a scoped package.

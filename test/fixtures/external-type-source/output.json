@@ -112,7 +112,7 @@
 							]
 						},
 						"documentation": {
-							"description": "Declared in a package, with the same name as the DOM `Range`.",
+							"description": "Declared in a package, with the same name as the DOM `Range`.\nAttributed to the declaring package, not to `augmenting-lib` that augments it.",
 							"tags": []
 						},
 						"optional": true
@@ -145,6 +145,24 @@
 						},
 						"documentation": {
 							"description": "Declared in a package, with the same name as the built-in `Intl.NumberFormat`.",
+							"tags": []
+						},
+						"optional": true
+					},
+					{
+						"name": "packageLocale",
+						"type": {
+							"kind": "external",
+							"typeName": {
+								"name": "Locale"
+							},
+							"source": {
+								"kind": "package",
+								"name": "shadow-lib"
+							}
+						},
+						"documentation": {
+							"description": "A package alias of a built-in type is attributed to the package.",
 							"tags": []
 						},
 						"optional": true
@@ -288,5 +306,5 @@
 			}
 		}
 	],
-	"imports": ["shadow-lib", "@scope/widgets"]
+	"imports": ["augmenting-lib", "shadow-lib", "@scope/widgets"]
 }

@@ -116,10 +116,20 @@ export function resolveExternalType(
 		return new IntrinsicNode('any');
 	}
 
+	// The source must describe the declaration that supplied the name. Otherwise
+	// a package alias of a built-in type, such as `type Locale = Intl.LocalesArgument`,
+	// would be named `Locale` but attributed to the default library.
+	const nameCandidates = namesResolvedInterface
+		? [resolvedSymbol]
+		: [
+				authoredExternalAlias?.symbol,
+				getReferencedSymbol(typeNode, checker),
+				type.aliasSymbol,
+				resolvedSymbol,
+			];
 	const source = getExternalTypeSource(
-		namesResolvedInterface
-			? resolvedSymbol
-			: (authoredExternalAlias?.symbol ?? type.aliasSymbol ?? resolvedSymbol),
+		nameCandidates.find((symbol) => symbol?.getName() === externalTypeName) ??
+			nameCandidates.find((symbol) => symbol !== undefined),
 		program,
 	);
 
@@ -143,7 +153,9 @@ export function resolveExternalType(
  * A type declared in TypeScript's default library is reported as `lib`, with
  * every library file that contributes to it, even when packages augment the
  * same global. Otherwise the type is attributed to the npm package of its
- * first declaration inside `node_modules`.
+ * first declaration inside `node_modules`. The checker merges `declare module`
+ * and `declare global` augmentations after the declarations they augment, so
+ * a package that only augments a type is not mistaken for its owner.
  *
  * @param symbol - Symbol that supplied the external type's name.
  * @param program - Program used to recognize default library files.
@@ -170,6 +182,27 @@ function getExternalTypeSource(
 	}
 
 	return packageName ? { kind: 'package', name: packageName } : undefined;
+}
+
+/**
+ * Finds the symbol of the type reference as written, following imports to the
+ * declaration they point at.
+ *
+ * @param typeNode - Authored syntax of the reference, if any.
+ * @param checker - Checker used to resolve the reference.
+ * @returns The referenced symbol, or `undefined` when there is no type reference.
+ */
+function getReferencedSymbol(
+	typeNode: ts.TypeNode | undefined,
+	checker: ts.TypeChecker,
+): ts.Symbol | undefined {
+	if (!typeNode || !ts.isTypeReferenceNode(typeNode)) {
+		return undefined;
+	}
+
+	const name = ts.isQualifiedName(typeNode.typeName) ? typeNode.typeName.right : typeNode.typeName;
+	const symbol = checker.getSymbolAtLocation(name);
+	return symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
 }
 
 /**
