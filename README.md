@@ -3,8 +3,7 @@
 > **This project has moved.** TypeScript API Extractor is now maintained in
 > [`mui/mui-public`](https://github.com/mui/mui-public/tree/master/packages/typescript-api-extractor).
 > This repository is no longer maintained. Please use the new location for the
-> latest source code and documentation, and open issues and pull requests in
-> [`mui/mui-public`](https://github.com/mui/mui-public).
+> latest source code and documentation.
 
 [![npm version](https://badge.fury.io/js/typescript-api-extractor.svg)](https://badge.fury.io/js/typescript-api-extractor)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](http://www.typescriptlang.org/)
